@@ -1,6 +1,6 @@
 import { ethers as Ethers, utils } from 'ethers'
 import { RadicleRegistry, DAI, DripsToken, DaiDripsHub } from './contracts'
-import { validateSplits } from './utils'
+import { validateSplits, validateAddressInput } from './utils'
 
 export class DripsClient {
   provider: any;
@@ -178,12 +178,15 @@ export class DripsClient {
   async updateUserSplits (currentReceivers, newReceivers) {
     try {
       if (!this.signer) throw "Not connected to wallet"
-      
+
       validateSplits(newReceivers)
 
       const contract = this.getHubContract()
       const contractSigner = contract.connect(this.signer)
       // submit
+      console.log('Calling setSplits() with ')
+      console.log(currentReceivers)
+      console.log(newReceivers)
       return contractSigner['setSplits'](currentReceivers, newReceivers)
     } catch (e) {
       console.error(e)

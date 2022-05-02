@@ -84,10 +84,11 @@ export const toWeiPerSec = (dai = 0) => {
  * @param splits [{ address, percent }]
 */
 export const formatSplits = (splits) => {
+  console.log(splits)
   splits = splits || []
   let receivers = []
   const splitFractionMax = 1000000
-
+  console.log(splits)
   const hasDrips = splits.length && splits.find(split => split.percent > 0 && split.address.length)
 
   if (hasDrips) {

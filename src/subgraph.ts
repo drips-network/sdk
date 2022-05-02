@@ -40,7 +40,8 @@ export async function getDripsByReceiver (address) {
 
 export async function getSplitsBySender ( address ) {
   try {
-    const resp = await query({ query: querySplitsBySender, variables: { address, first: 100 } })
+    const resp = await query({ query: querySplitsBySender, variables: { sender: address, first: 100 } })
+    console.log('query ' + querySplitsBySender + ' ===== ' + address)
     let entries = resp.data?.splitsEntries || []
     // format
     entries = entries.map(entry => ({
