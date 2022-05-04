@@ -1,21 +1,28 @@
-import { ethers as Ethers, utils } from 'ethers'
-import { RadicleRegistry, DAI, DripsToken, DaiDripsHub } from './contracts'
-import { validateSplits, validateAddressInput } from './utils'
+import { ethers as Ethers } from 'ethers'
+import { Web3Provider } from "@ethersproject/providers";
+import { RadicleRegistry, DAI, DaiDripsHub } from './contracts'
+import { validateSplits } from './utils'
 
 export class DripsClient {
-  provider: any;
-  signer: any;
-  walletProvider: any;
-  address: any;
-  networkId: any;
+  provider: Web3Provider
+  signer: Ethers.Signer
+  address: string
+  networkId: number
+
+  radicleRegistryContact: Ethers.Contract
+  daiContract: Ethers.Contract
+  hubContract: Ethers.Contract
 
 
   constructor(provider) {
     this.provider = provider
     this.signer = undefined
-    this.walletProvider = undefined
     this.address = undefined
     this.networkId = undefined
+ 
+    this.radicleRegistryContact = new Ethers.Contract(RadicleRegistry.address, RadicleRegistry.abi, this.provider)
+    this.daiContract = new Ethers.Contract(DAI.address, DAI.abi, this.provider)
+    this.hubContract = new Ethers.Contract(DaiDripsHub.address, DaiDripsHub.abi, this.provider)
   }
 
   getAddress () {
@@ -27,19 +34,15 @@ export class DripsClient {
   }
 
   getRadicleRegistryContract () {
-    return new Ethers.Contract(RadicleRegistry.address, RadicleRegistry.abi, this.provider)
-  }
-
-  getProjectContract (address) {
-    return new Ethers.Contract(this.address, DripsToken.abi, this.provider)
+    return this.radicleRegistryContact
   }
 
   getDAIContract () {
-    return new Ethers.Contract(DAI.address, DAI.abi, this.provider)
+    return this.daiContract
   }
 
   getHubContract () {
-    return new Ethers.Contract(DaiDripsHub.address, DaiDripsHub.abi, this.provider)
+    return this.hubContract
   }
 
   async connect () {
@@ -54,11 +57,8 @@ export class DripsClient {
       // set network id
       await this.setNetworkId()
 
-      this.listenToWalletProvider()
-
       return true
     } catch (e) {
-
       console.error('@connect', e)
 
       // clear wallet in case
@@ -71,69 +71,19 @@ export class DripsClient {
 
   disconnect () {
     this.signOut()
-    this.setupFallbackProvider()
     this.signer = null
-
-    console.log('disconnected from wallet')
   }
 
-  listenToWalletProvider () {
-    if (!this.walletProvider?.on) return
+  private signIn (signInAddress) {
+    this.address = signInAddress.toLowerCase()
+  }
 
-    // account changed (or disconnected)
-    this.walletProvider.on('accountsChanged', accounts => {
-      console.log('accountsChanged', accounts)
-      if (!accounts.length) {
-        this.disconnect()
-      }
-      this.signIn(accounts[0])
-    })
-
-    // changed network
-    this.walletProvider.on('chainChanged', chainId => {
-      console.log('network changed', chainId)
-      // reload page so data is correct...
-      window.location.reload()
-    })
-
-    // random disconnection? (doesn't fire on account disconnect)
-    this.walletProvider.on('disconnect', error => {
-      console.error('disconnected?', error)
-      this.disconnect()
-    })
+  private signOut () {
+    this.address = null
   }
 
   async setNetworkId() {
     this.networkId = (await this.provider.getNetwork()).chainId
-  }
-
-  signIn(signInAddress) {
-    this.address = signInAddress.toLowerCase()
-    console.log('setting address to ' + this.address)
-  }
-
-  signOut () {
-    this.address = null
-    this.networkId = null
-  }
-
-  async setupFallbackProvider () {
-    try {
-      if (window.ethereum) {
-        // metamask/browser
-        this.provider = new Ethers.providers.Web3Provider(window.ethereum)
-      }
-      // else {
-      //   // infura fallback
-      //   this.provider = Ethers.getDefaultProvider(deployNetwork.infura)
-      // }
-
-      return true
-    } catch (e) {
-      console.error(e)
-    }
-
-    return false;
   }
 
   async approveDAIContract () {
@@ -143,7 +93,7 @@ export class DripsClient {
       const contract = new Ethers.Contract(DAI.address, DAI.abi, this.provider)
       const contractSigner = contract.connect(this.signer)
 
-      // approve max amount
+      // approve the max amount
       const amount = Ethers.constants.MaxUint256
       const tx = await contractSigner.approve(DaiDripsHub.address, amount)
       return tx
@@ -152,22 +102,14 @@ export class DripsClient {
       throw e
     }
   }
-
+ 
   async updateUserDrips (lastUpdate:number, lastBalance:number, currentReceivers:string, balanceDelta:number, newReceivers:string) {
     try {
       if (!this.signer) throw "Not connected to wallet"
 
-      // TODO -- here we should validate that the new receivers are all valid Ethereum addresses, similar to validateSplits below
-
       const contract = this.getHubContract()
       const contractSigner = contract.connect(this.signer)
 
-      // Send the tx to the contract
-      console.log('lastUpdate: ' + lastUpdate)
-      console.log('lastBalance: ' + lastBalance)
-      console.log('currentReceivers: ' + currentReceivers)
-      console.log('balanceDelta: ' + balanceDelta)
-      console.log('newReceivers: ' + newReceivers)
       return contractSigner['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers)
     } catch (e) {
       console.error(e)
@@ -175,7 +117,7 @@ export class DripsClient {
     }
   }
 
-  async updateUserSplits (currentReceivers, newReceivers) {
+  async updateUserSplits (currentReceivers: any, newReceivers: any) {
     try {
       if (!this.signer) throw "Not connected to wallet"
 
@@ -183,10 +125,7 @@ export class DripsClient {
 
       const contract = this.getHubContract()
       const contractSigner = contract.connect(this.signer)
-      // submit
-      console.log('Calling setSplits() with ')
-      console.log(currentReceivers)
-      console.log(newReceivers)
+
       return contractSigner['setSplits'](currentReceivers, newReceivers)
     } catch (e) {
       console.error(e)
@@ -194,12 +133,28 @@ export class DripsClient {
     }
   }
 
-  // Check how much DAI an address is allowed to spend on behalf of the signed-in user
+  // check how much DAI the DripsHub is allowed to spend on behalf of the signed-in user
   async getAllowance () {
     if (!this.address) throw "Must call connect() before calling getAllowance()"
 
     const daiContract = this.getDAIContract()
-    //console.log('this.address=' + this.address + ' spendingAddress=' + DaiDripsHub.address)
+    
     return daiContract.allowance(this.address, DaiDripsHub.address)
+  }
+
+  async getAmountCollectableWithSplits (address: string, currentSplitsJSON: any) {
+    try {
+      if (!this.provider) throw "Must have a provider defined to query the collectable balance"
+      
+      // map the current splits JSON into the format that the solidity method is expecting
+      const currSplits = currentSplitsJSON.map(entry => ([entry.receiver, entry.weight]))
+
+      // call the collectable() method on the contract
+      const contract = this.getHubContract()
+      return contract.collectable(address, currSplits)
+    } catch (e) {
+      console.error('@getCollectable', e)
+      throw e
+    }
   }
 }
