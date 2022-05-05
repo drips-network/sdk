@@ -1,7 +1,7 @@
 import { ethers as Ethers } from 'ethers'
 import { Web3Provider } from "@ethersproject/providers";
 import { RadicleRegistry, DAI, DaiDripsHub } from './contracts'
-import { validateSplits } from './utils'
+import { validateDrips,validateSplits } from './utils'
 
 export class DripsClient {
   provider: Web3Provider
@@ -106,6 +106,8 @@ export class DripsClient {
   async updateUserDrips (lastUpdate:number, lastBalance:number, currentReceivers:string, balanceDelta:number, newReceivers:string) {
     try {
       if (!this.signer) throw "Not connected to wallet"
+
+      validateDrips(newReceivers)
 
       const contract = this.getHubContract()
       const contractSigner = contract.connect(this.signer)

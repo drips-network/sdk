@@ -137,7 +137,7 @@ export default [
         "type": "uint64"
       }
     ],
-    "name": "Dripping",
+    "name": "Dripping1",
     "type": "event"
   },
   {
@@ -217,7 +217,7 @@ export default [
         "type": "tuple[]"
       }
     ],
-    "name": "DripsUpdated",
+    "name": "DripsUpdated1",
     "type": "event"
   },
   {
@@ -273,7 +273,7 @@ export default [
         "type": "uint128"
       }
     ],
-    "name": "Given",
+    "name": "Given1",
     "type": "event"
   },
   {
