@@ -1,0 +1,30 @@
+{
+  "name": "drips-sdk",
+  "version": "0.1.1",
+  "main": "dist/index.js",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "predev": "rimraf dist",
+    "dev": "tsc -w",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "ethers": "^5.6.2"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.16.7",
+    "@types/node": "^17.0.25",
+    "assert": "^2.0.0",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "parcel": "^2.4.1",
+    "querystring-es3": "^0.2.1",
+    "rimraf": "^3.0.2",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "typescript": "^4.6.3",
+    "url": "^0.11.0",
+    "util": "^0.12.4"
+  }
+}
