@@ -1,62 +1,42 @@
-import { ethers as Ethers } from 'ethers'
-import { Web3Provider } from "@ethersproject/providers";
-import { RadicleRegistry, DAI, DaiDripsHub } from './contracts'
-import { validateDrips,validateSplits } from './utils'
+import type { providers, Signer } from "ethers";
+import type { Dai, DaiDripsHub, RadicleRegistry } from '../contracts';
+import { constants } from 'ethers';
+import { validateDrips, validateSplits } from './utils';
+import { Dai__factory } from "../contracts/factories/Dai__factory";
+import { DaiDripsHub__factory } from "../contracts/factories/DaiDripsHub__factory";
+import { RadicleRegistry__factory } from "../contracts/factories/RadicleRegistry__factory";
+
+const DAI_DRIPS_HUB_ADDRESS = "0xfbcD6918907902c106A99058146CBdBb76a812f6";
+const DAI_ADDRESS = "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea";
+const RADICLE_REGISTRY_ADDRESS = "0xc2a8F699317795956bE5Cc4f9FF61FD4E7667670";
 
 export class DripsClient {
-  provider: Web3Provider
-  signer: Ethers.Signer
+  provider: providers.Web3Provider
+  signer: Signer
   address: string
   networkId: number
 
-  radicleRegistryContact: Ethers.Contract
-  daiContract: Ethers.Contract
-  hubContract: Ethers.Contract
+  radicleRegistryContact: RadicleRegistry;
+  daiContract: Dai
+  hubContract: DaiDripsHub;
 
-
-  constructor(provider) {
+  constructor(provider: providers.Web3Provider) {
     this.provider = provider
     this.signer = undefined
     this.address = undefined
     this.networkId = undefined
  
-    this.radicleRegistryContact = new Ethers.Contract(RadicleRegistry.address, RadicleRegistry.abi, this.provider)
-    this.daiContract = new Ethers.Contract(DAI.address, DAI.abi, this.provider)
-    this.hubContract = new Ethers.Contract(DaiDripsHub.address, DaiDripsHub.abi, this.provider)
+    this.radicleRegistryContact = RadicleRegistry__factory.connect(RADICLE_REGISTRY_ADDRESS, this.provider);
+    this.daiContract = Dai__factory.connect(DAI_ADDRESS, this.provider)
+    this.hubContract = DaiDripsHub__factory.connect(DAI_DRIPS_HUB_ADDRESS, this.provider)
   }
 
-  getAddress () {
-    return this.address
-  }
-
-  getNetworkId () {
-    return this.networkId
-  }
-
-  getRadicleRegistryContract () {
-    return this.radicleRegistryContact
-  }
-
-  getDAIContract () {
-    return this.daiContract
-  }
-
-  getHubContract () {
-    return this.hubContract
-  }
-
-  async connect () {
+  async connect() {
     try {
-      // connect and update signer
       this.signer = this.provider.getSigner()
-
-      // set user address
-      let signerAddress = await this.signer.getAddress()
+      const signerAddress = await this.signer.getAddress()
       this.signIn(signerAddress)
-
-      // set network id
-      await this.setNetworkId()
-
+      this.networkId = (await this.provider.getNetwork()).chainId
       return true
     } catch (e) {
       console.error('@connect', e)
@@ -72,9 +52,14 @@ export class DripsClient {
   disconnect () {
     this.signOut()
     this.signer = null
+    this.networkId = null;
   }
 
-  private signIn (signInAddress) {
+  get connected() {
+    return !!this.networkId;
+  }
+
+  private signIn (signInAddress: string) {
     this.address = signInAddress.toLowerCase()
   }
 
@@ -82,81 +67,69 @@ export class DripsClient {
     this.address = null
   }
 
-  async setNetworkId() {
-    this.networkId = (await this.provider.getNetwork()).chainId
-  }
-
-  async approveDAIContract () {
+  approveDAIContract () {
     try {
       if (!this.signer) throw 'DripsClient must be connected before approving DAI'
 
-      const contract = new Ethers.Contract(DAI.address, DAI.abi, this.provider)
-      const contractSigner = contract.connect(this.signer)
-
-      // approve the max amount
-      const amount = Ethers.constants.MaxUint256
-      const tx = await contractSigner.approve(DaiDripsHub.address, amount)
-      return tx
+      const contractSigner = this.daiContract.connect(this.signer)
+      return contractSigner.approve(DAI_DRIPS_HUB_ADDRESS, constants.MaxUint256)
     } catch (e) {
       console.error('@approveDAIContract', e)
       throw e
     }
   }
- 
-  async updateUserDrips (lastUpdate:number, lastBalance:number, currentReceivers:string, balanceDelta:number, newReceivers:string) {
-    try {
-      if (!this.signer) throw "Not connected to wallet"
 
-      validateDrips(newReceivers)
+  updateUserDrips: DaiDripsHub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'] =
+    (lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) => {
+      try {
+        if (!this.signer) throw "Not connected to wallet"
 
-      const contract = this.getHubContract()
-      const contractSigner = contract.connect(this.signer)
+        validateDrips(newReceivers)
 
-      return contractSigner['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers)
-    } catch (e) {
-      console.error(e)
-      throw e
+        const contractSigner = this.hubContract.connect(this.signer)
+
+        return contractSigner['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
+          lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers
+        )
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
     }
-  }
 
-  async updateUserSplits (currentReceivers: any, newReceivers: any) {
-    try {
-      if (!this.signer) throw "Not connected to wallet"
+  updateUserSplits: DaiDripsHub['setSplits'] =
+    (currentReceivers, newReceivers) => {
+      try {
+        if (!this.signer) throw "Not connected to wallet"
 
-      validateSplits(newReceivers)
+        validateSplits(newReceivers)
 
-      const contract = this.getHubContract()
-      const contractSigner = contract.connect(this.signer)
+        const contractSigner = this.hubContract.connect(this.signer)
 
-      return contractSigner['setSplits'](currentReceivers, newReceivers)
-    } catch (e) {
-      console.error(e)
-      throw e
+        return contractSigner['setSplits'](currentReceivers, newReceivers)
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
     }
-  }
 
   // check how much DAI the DripsHub is allowed to spend on behalf of the signed-in user
-  async getAllowance () {
+  getAllowance() {
     if (!this.address) throw "Must call connect() before calling getAllowance()"
 
-    const daiContract = this.getDAIContract()
-    
-    return daiContract.allowance(this.address, DaiDripsHub.address)
+    return this.daiContract.allowance(this.address, DAI_DRIPS_HUB_ADDRESS);
   }
 
-  async getAmountCollectableWithSplits (address: string, currentSplitsJSON: any) {
-    try {
-      if (!this.provider) throw "Must have a provider defined to query the collectable balance"
-      
-      // map the current splits JSON into the format that the solidity method is expecting
-      const currSplits = currentSplitsJSON.map(entry => ([entry.receiver, entry.weight]))
+  getAmountCollectableWithSplits: DaiDripsHub['collectable'] =
+    (address, currentSplits) => {
+      try {
+        if (!this.provider) throw "Must have a provider defined to query the collectable balance"
 
-      // call the collectable() method on the contract
-      const contract = this.getHubContract()
-      return contract.collectable(address, currSplits)
-    } catch (e) {
-      console.error('@getCollectable', e)
-      throw e
+        return this.hubContract.collectable(address, currentSplits)
+      } catch (e) {
+        console.error('@getCollectable', e)
+        throw e
+      }
     }
-  }
+
 }

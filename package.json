@@ -1,30 +1,45 @@
 {
   "name": "drips-sdk",
   "version": "0.1.1",
-  "main": "dist/index.js",
-  "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "tsc",
-    "predev": "rimraf dist",
-    "dev": "tsc -w",
-    "prepare": "npm run build"
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./DaiDripsHub": {
+      "types": "./contracts/DaiDripsHub.ts"
+    },
+    "./package.json": "./package.json"
   },
-  "dependencies": {
-    "ethers": "^5.6.2"
+  "types": "./dist/index.d.ts",
+  "files": [
+    "./dist",
+    "./contracts"
+  ],
+  "scripts": {
+    "build": "npm run build:contracts && npm run build:lib",
+    "build:lib": "tsup --dts-resolve",
+    "build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/contracts/**.json",
+    "build:lib-fast": "tsup",
+    "dev": "nodemon --watch src -e ts,json --exec 'npm run build:lib-fast'",
+    "prepare": "npm run build",
+    "lint": "eslint src --ext .ts"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-optional-chaining": "^7.16.7",
+    "@typechain/ethers-v5": "^10.0.0",
     "@types/node": "^17.0.25",
-    "assert": "^2.0.0",
-    "https-browserify": "^1.0.0",
-    "os-browserify": "^0.3.0",
-    "parcel": "^2.4.1",
-    "querystring-es3": "^0.2.1",
-    "rimraf": "^3.0.2",
-    "stream-browserify": "^3.0.0",
-    "stream-http": "^3.2.0",
-    "typescript": "^4.6.3",
-    "url": "^0.11.0",
-    "util": "^0.12.4"
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/parser": "^5.23.0",
+    "eslint": "^8.15.0",
+    "nodemon": "^2.0.16",
+    "tsup": "^5.12.7",
+    "typechain": "^8.0.0",
+    "typescript": "^4.6.4"
+  },
+  "peerDependencies": {
+    "ethers": "^5.6.2"
   }
 }
