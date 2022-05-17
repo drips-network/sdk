@@ -11,9 +11,7 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
-  "files": [
-    "./dist"
-  ],
+  "files": [ "dist/" ],
   "scripts": {
     "build": "npm run build:contracts && npm run build:lib",
     "build:lib": "tsup --dts-resolve",
