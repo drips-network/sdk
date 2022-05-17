@@ -1,123 +1,45 @@
-import { splitsFractionMax } from "./utils"
+import * as gql from './gql';
 
-const cacheAPISec = "3600" // string
+export type Split = {
+  sender: string;
+  receiver: string;
+  weight: number;
+}
 
-export const queryProject = `
-query ($id: ID!) {
-  fundingProject (id: $id) {
-    id
-    projectOwner
-    daiCollected
-    daiSplit
-    ipfsHash
-    tokenTypes {
-      tokenTypeId
-      id
-      minAmt: minAmtPerSec
-      limit
-      currentTotalAmtPerSec
-      currentTotalGiven
-      ipfsHash
-      streaming
-    }
-    tokens {
-      owner: tokenReceiver
-      giveAmt
-      amtPerSec
-    }
-  }
+export type Drip = {
+  amtPerSec: string;
+  receiver: string;
 }
-`
 
-export const queryProjectMeta = `
-query ($id: ID!) {
-  fundingProject (id: $id) {
-    ipfsHash
-  }
+export type DripsConfig = {
+  withdrawable?: number;
+  balance?: string;
+  timestamp?: string;
+  receivers?: Drip[];
 }
-`
-
-export const queryDripsConfigByID = `
-query ($id: ID!) {
-dripsConfigs (where: {id: $id}, first: 1) {
-  id
-  balance
-  timestamp: lastUpdatedBlockTimestamp
-  receivers: dripsEntries {
-    receiver
-    amtPerSec
-  }
-}
-}
-`
-
-export const queryDripsByReceiver = `
-query ($receiver: Bytes!) {
-dripsEntries (where: { receiver: $receiver} ) {
-  # id
-  sender: user
-  receiver
-  amtPerSec
-}
-}
-`
-
-export const querySplitsBySender = `
-query ($sender: Bytes!, $first: Int!) {
-splitsEntries (first: $first, where: { sender: $sender }) {
-  # id
-  sender
-  receiver
-  weight
-}
-}
-`
-
-export const querySplitsByReceiver = `
-query ($receiver: Bytes!, $first: Int!) {
-splitsEntries (first: $first, where: { receiver: $receiver }) {
-  # id
-  sender
-  receiver
-  weight
-}
-}
-`
 
 export class SubgraphClient {
   apiUrl: string
   
-  constructor(apiUrl) {
+  constructor(apiUrl: string) {
     this.apiUrl = apiUrl
   }
 
-  async getDripsBySender (address) {
-    const emptyConfig = {
-      balance: '0',
-      timestamp: '0',
-      receivers: [],
-      withdrawable: () => '0'
-    }
+  async getDripsBySender (address: string) {
+    type APIResponse = {dripsConfigs: DripsConfig[]};
     try {
-      // fetch...
-      const resp = await this.query({ query: queryDripsConfigByID, variables: { id : address } })
-      return resp.data?.dripsConfigs[0]
+      const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id : address })
+      return resp.data?.dripsConfigs[0] || {} as DripsConfig;
     } catch (e) {
       console.error(e)
       throw e
     }
   }
   
-  async getDripsByReceiver (address) {
-    const emptyConfig = {
-      balance: '0',
-      timestamp: '0',
-      receivers: [],
-      withdrawable: () => '0'
-    }
+  async getDripsByReceiver (receiver: string) {
+    type APIResponse = {dripsEntries: unknown};
     try {
-      // fetch...
-      const resp = await this.query ({ query: queryDripsByReceiver, variables: { receiver : address } })
+      const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver })
       return resp.data?.dripsEntries
     } catch (e) {
       console.error(e)
@@ -125,39 +47,21 @@ export class SubgraphClient {
     }
   }
   
-  async getSplitsBySender (address) {
+  private async _getSplits(query: string, args: {sender: string} | {receiver: string}) {
+    type APIResponse = { splitsEntries: Split[] };
     try {
-      const resp = await this.query({ query: querySplitsBySender, variables: { sender: address, first: 100 } })
-      let entries = resp.data?.splitsEntries || []
-      // format
-      entries = entries.map(entry => ({
-        ...entry,
-        percent: entry.weight / splitsFractionMax * 100
-      }))
-      return entries
+      const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
+      return resp.data?.splitsEntries || [];
     } catch (e) {
       console.error(e)
       throw e
     }
   }
   
-  async getSplitsByReceiver (address) {
-    try {
-      const resp = await this.query({ query: querySplitsByReceiver, variables: { address, first: 100 } })
-      let entries = resp.data?.splitsEntries || []
-      // format
-      entries = entries.map(entry => ({
-        ...entry,
-        percent: entry.weight / splitsFractionMax * 100
-      }))
-      return entries
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
-  }
+  getSplitsBySender = (sender: string) => this._getSplits(gql.splitsBySender, {sender})
+  getSplitsByReceiver = (receiver: string) => this._getSplits(gql.splitsByReceiver, {receiver})
   
-  async query ({query, variables}) {
+  async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
     const id = btoa(JSON.stringify({ query, variables }))
     try {
       if (!this.apiUrl) {
@@ -173,9 +77,7 @@ export class SubgraphClient {
       })
   
       if (resp.status >= 200 && resp.status <= 299) {
-        const data = await resp.json()
-  
-        return data
+        return await resp.json() as {data: T};
       } else {
         throw Error(resp.statusText)
       }
