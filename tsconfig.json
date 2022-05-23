@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
+    "outDir": "./dist/",
+    "module": "ES2020",
+    "target": "ES2020",
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "declaration": true,
+    "declarationMap": true,
+    "skipLibCheck": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    
+    "typeRoots": ["node_modules/@types"]
+  },
+  "include": ["src/**/*", "contracts/**/*"]
+}
