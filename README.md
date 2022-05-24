@@ -9,7 +9,7 @@ Drips is also a part of the [Radicle](https://radicle.xyz/) ecosystem of project
 
 The Drips SDK is intended to be used by developers primarily as a Javascript package installed into their projects. We plan to add the project to npm soon, but for now, users can include it into their project's package.json as a dependency by using this command:
 
-`npm i https://github.com/radicle-dev/drips-js-sdk`
+`npm i https://github.com/radicle-dev/drips-js-sdk#v0.1.1`
 
 ### Getting Started With Examples
 
