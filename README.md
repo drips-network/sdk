@@ -1,9 +1,9 @@
 # Drips JS SDK
 A Javascript SDK for 💦 [drips.network](https://drips.network/). 
 
-Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and also for splitting funding streams among multiple recipients. With Drips there are no 💸 commissions, predatory 👔 middle-men, or 🏦 banks involved. 
+Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and splitting funding streams among multiple recipients. With Drips there are no 💸 commissions, predatory 👔 middle-men, or 🏦 banks involved. 
 
-Drips is also a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [Drips docs](https://docs.drips.network/) for more details about the Drips protocol and how to use it.
+Drips is a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [Drips docs](https://docs.drips.network/) for more details about the Drips protocol and how to use it.
 
 ### How To Use This SDK
 
@@ -11,9 +11,39 @@ The Drips SDK is intended to be used by developers primarily as a Javascript pac
 
 `npm i https://github.com/radicle-dev/drips-js-sdk#v0.1.1`
 
+### API Documentaiton in TypeDoc
+
+The SDK contains API/type-level docunentation, generaetd using TypeDoc.
+
+To browse it, clone this project to your local machine, and open docs/index.html in your local web browser.
+
 ### Getting Started With Examples
 
-The [Drips SDK Examples](https://github.com/radicle-dev/drips-sdk-examples) repository is a separate repo containing example code that shows how the Drips SDK can be integrated into different types of Javascript projects. It's a great place to get started for users interested in exploring the SDK and learning how it works.
+The `examples/web` directory contains example code that illustrates how Drips can be incorporated into a web project. To get started exploring the Drips SDK through these examples, we recommend first cloning repository to your local machine:
+
+`git clone https://github.com/radicle-dev/drips-sdk-examples.git`
+
+Now change directory to the directory for the web example:
+
+`cd examples/web`
+
+Next, you'll need to install the javascript dependencies for the example project using npm (you'll need to make sure npm installed on your machine before completing this step):
+
+`npm i`
+
+Once the dependencies have been installed, you can start Svelte. Svelte is a lightweight local web server:
+
+`npm run dev`
+
+You should now have a web server running the web-based Drips SDK example locally. Open your web browser and go to [http://localhost:8080/index.html](http://localhost:8080/index.html). You should see a simple UI that will let you explore the majority of the Drips SDK functionality. A few notes:
+
+1. Take a look at the code in examples/web/src/App.svelte to see how this example web app is utilizing DripsClient, and play around with the code in App.svelte and the other *.svelte fiiles in src/components.
+
+2. By default, the example is set to work with the Drips contracts on the Rinkeby test network. If you want to use a different network for testing, you'll need to change the `networkToUse` variable in App.svelte.
+
+3. You will need to click on the `Connect` button in the UI to connect your MetaMask or WalletConnect wallet before the other functionality will be enabled.
+
+Enjoy!
 
 ### Related Resources
 
