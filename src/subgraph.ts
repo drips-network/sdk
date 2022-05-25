@@ -25,37 +25,22 @@ export class SubgraphClient {
     this.apiUrl = apiUrl
   }
 
-  async getDripsBySender (address: string) {
+  async getDripsBySender (address: string) : Promise<DripsConfig> {
     type APIResponse = {dripsConfigs: DripsConfig[]};
-    try {
-      const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id : address })
-      return resp.data?.dripsConfigs[0] || {} as DripsConfig;
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
+    const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id : address })
+    return resp.data?.dripsConfigs[0] || {} as DripsConfig;
   }
   
-  async getDripsByReceiver (receiver: string) {
-    type APIResponse = {dripsEntries: unknown};
-    try {
-      const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver })
-      return resp.data?.dripsEntries
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
+  async getDripsByReceiver (receiver: string) : Promise<Drip[]> {
+    type APIResponse = {dripsEntries: Drip[]};
+    const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver })
+    return resp.data?.dripsEntries
   }
   
-  private async _getSplits(query: string, args: {sender: string} | {receiver: string}) {
+  private async _getSplits(query: string, args: {sender: string} | {receiver: string}) : Promise<Split[]> {
     type APIResponse = { splitsEntries: Split[] };
-    try {
-      const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
-      return resp.data?.splitsEntries || [];
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
+    const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
+    return resp.data?.splitsEntries || [];
   }
   
   getSplitsBySender = (sender: string) => this._getSplits(gql.splitsBySender, {sender})
@@ -63,28 +48,22 @@ export class SubgraphClient {
   
   async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
     const id = btoa(JSON.stringify({ query, variables }))
-    try {
-      if (!this.apiUrl) {
-        throw new Error('API URL missing')
-      }
-      
-      const resp = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query, variables })
-      })
-  
-      if (resp.status >= 200 && resp.status <= 299) {
-        return await resp.json() as {data: T};
-      } else {
-        throw Error(resp.statusText)
-      }
-    } catch (e) {
-      console.error(e)
-      sessionStorage.removeItem(id)
-      throw new Error('API Error')
+    if (!this.apiUrl) {
+      throw new Error('API URL missing')
+    }
+    
+    const resp = await fetch(this.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ query, variables })
+    })
+
+    if (resp.status >= 200 && resp.status <= 299) {
+      return await resp.json() as {data: T};
+    } else {
+      throw Error(resp.statusText)
     }
   }
 }

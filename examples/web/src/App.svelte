@@ -51,7 +51,7 @@
 
     providerNetwork = await provider.getNetwork();
 
-    dripsClient = new DripsClient(provider)
+    dripsClient = new DripsClient(provider, networkToUse)
 
     await dripsClient.connect()
 

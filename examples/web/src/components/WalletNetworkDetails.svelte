@@ -7,16 +7,12 @@
   let daiApproved = '';
   let daiCollectable: Awaited<ReturnType<DripsClient['getAmountCollectableWithSplits']>>;
 
-  console.log("in WalletNetworkDetails.svelte dripsClient?.connected=" + dripsClient?.connected +  " dripsClient=" + dripsClient + " subgraphClient=" + subgraphClient)
-
   $: if (dripsClient?.connected && subgraphClient) displayWalletAndAddressStats();
   
   async function displayWalletAndAddressStats () {
-    console.log("in displayWalletAndAddressStats")
     daiApproved = toDAI(await dripsClient.getAllowance(), 'pretty', 2)
     const splits = await subgraphClient.getSplitsBySender(dripsClient.address.toLowerCase())
     daiCollectable = await dripsClient.getAmountCollectableWithSplits(dripsClient.address, splits)
-    console.log(daiApproved + ' ' + splits + ' ' + daiCollectable)
   }
 </script>
 
