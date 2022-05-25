@@ -13,7 +13,7 @@ The Drips SDK is intended to be used by developers primarily as a Javascript pac
 
 ### Getting Started With Examples
 
-The [Drips SDK Examples](https://github.com/radicle-dev/drips-sdk-examples) repository is a separate repo containing example code that shows how the Drips SDK can be integrated into different types of Javascript projects. It's a great place to get started for users interested in exploring the SDK and learning how it works.
+The [Drips SDK Examples](https://github.com/radicle-dev/drips-js-sdk/tree/main/examples/web) repository is a  repo containing example code that shows how the Drips SDK can be integrated into different types of Javascript projects. It's a great place to get started for users interested in exploring the SDK and learning how it works.
 
 ### Related Resources
 
