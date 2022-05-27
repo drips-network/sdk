@@ -21,7 +21,7 @@ To browse it, clone this project to your local machine, and open docs/index.html
 
 The `examples/web` directory contains example code that illustrates how Drips can be incorporated into a web project. To get started exploring the Drips SDK through these examples, we recommend first cloning repository to your local machine:
 
-`git clone https://github.com/radicle-dev/drips-sdk-examples.git`
+`git clone https://github.com/radicle-dev/drips-js-sdk.git`
 
 Now change directory to the directory for the web example:
 
