@@ -15,19 +15,13 @@ export class DripsClient {
 
   contractDetails: any
 
-  radicleRegistryContact: RadicleRegistry;
   daiContract: Dai
   hubContract: DaiDripsHub;
 
   constructor(provider: providers.Web3Provider, networkName: string) {
     this.provider = provider
-    this.signer = undefined
-    this.address = undefined
-    this.networkId = undefined
- 
     this.contractDetails = getContractsForNetwork(networkName)
 
-    this.radicleRegistryContact = RadicleRegistry__factory.connect(this.contractDetails.CONTRACT_RADICLE_REGISTRY, this.provider);
     this.daiContract = Dai__factory.connect(this.contractDetails.CONTRACT_DAI, this.provider)
     this.hubContract = DaiDripsHub__factory.connect(this.contractDetails.CONTRACT_DRIPS_HUB, this.provider)
   }
@@ -64,7 +58,7 @@ export class DripsClient {
   }
 
   approveDAIContract () {
-    if (!this.signer) throw 'DripsClient must be connected before approving DAI'
+    if (!this.signer) throw new Error('DripsClient must be connected before approving DAI')
 
     const contractSigner = this.daiContract.connect(this.signer)
     return contractSigner.approve(this.contractDetails.CONTRACT_DRIPS_HUB, constants.MaxUint256)
@@ -72,7 +66,7 @@ export class DripsClient {
 
   updateUserDrips: DaiDripsHub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'] =
     (lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) => {
-      if (!this.signer) throw "Not connected to wallet"
+      if (!this.signer) throw new Error("Not connected to wallet")
 
       validateDrips(newReceivers)
 
@@ -85,7 +79,7 @@ export class DripsClient {
 
   updateUserSplits: DaiDripsHub['setSplits'] =
     (currentReceivers, newReceivers) => {
-      if (!this.signer) throw "Not connected to wallet"
+      if (!this.signer) throw new Error("Not connected to wallet")
 
       validateSplits(newReceivers)
 
@@ -96,14 +90,14 @@ export class DripsClient {
 
   // check how much DAI the DripsHub is allowed to spend on behalf of the signed-in user
   getAllowance() {
-    if (!this.address) throw "Must call connect() before calling getAllowance()"
+    if (!this.address) throw new Error("Must call connect() before calling getAllowance()")
 
     return this.daiContract.allowance(this.address, this.contractDetails.CONTRACT_DRIPS_HUB);
   }
 
   getAmountCollectableWithSplits: DaiDripsHub['collectable'] =
     (address, currentSplits) => {
-      if (!this.provider) throw "Must have a provider defined to query the collectable balance"
+      if (!this.provider) throw new Error("Must have a provider defined to query the collectable balance")
 
       return this.hubContract.collectable(address, currentSplits)
     }
