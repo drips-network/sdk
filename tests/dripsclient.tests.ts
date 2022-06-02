@@ -1,6 +1,6 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { BigNumber, ContractTransaction, ethers, providers } from 'ethers';
-import * as sinon from 'sinon';
+import sinon, { StubbedInstance, stubInterface } from 'ts-sinon';
 import {
   Dai,
   DaiDripsHub,
@@ -8,61 +8,52 @@ import {
   Dai__factory,
 } from '../contracts';
 import { DripsClient } from '../src/dripsclient';
-import { Mock, Times } from 'moq.ts';
 import { constants } from 'ethers';
 import { getContractsForNetwork } from '../src/contracts';
 import { assert } from 'chai';
 import * as utils from '../src/utils';
 
 describe('DripsClient', () => {
-  let network: string;
-  let contractDetails: any;
-  let daiContractMock: Mock<Dai>;
-  let providerMock: Mock<Web3Provider>;
-  let hubContractMock: Mock<DaiDripsHub>;
-  let signerMock: Mock<providers.JsonRpcSigner>;
+  const NETWORK = 'rinkeby';
+
+  let daiContractStub: StubbedInstance<Dai>;
+  let providerStub: StubbedInstance<Web3Provider>;
+  let hubContractStub: StubbedInstance<DaiDripsHub>;
+  let signerStub: StubbedInstance<providers.JsonRpcSigner>;
 
   let dripsClient: DripsClient;
 
+  // Base "Arrange" step.
   beforeEach(() => {
-    // Base "Arrange" step for all tests.
+    // Setup DripsClient dependency stubs.
+    signerStub = stubInterface<providers.JsonRpcSigner>();
+    signerStub.getAddress.resolves(ethers.Wallet.createRandom().address);
 
-    network = 'rinkeby';
-    contractDetails = getContractsForNetwork(network);
+    providerStub = stubInterface<Web3Provider>();
+    providerStub.getSigner.returns(signerStub);
+    providerStub.getNetwork.resolves({ chainId: 4 } as providers.Network);
 
-    // Setup DripsClient dependency mocks.
-    providerMock = new Mock<Web3Provider>();
-    signerMock = new Mock<providers.JsonRpcSigner>();
-    signerMock
-      .setup((x) => x.getAddress())
-      .returnsAsync(ethers.Wallet.createRandom().address);
-    providerMock.setup((x) => x.getSigner()).returns(signerMock.object());
-    providerMock
-      .setup((x) => x.getNetwork())
-      .returnsAsync({ chainId: 4 } as providers.Network);
-
-    // Setup Dai contract mock.
-    daiContractMock = new Mock<Dai>();
-    daiContractMock
-      .setup((x) => x.connect(signerMock.object()))
-      .returns(daiContractMock.object());
+    // Setup Dai contract stub.
+    daiContractStub = stubInterface<Dai>();
+    daiContractStub.connect.withArgs(signerStub).returns(daiContractStub);
     sinon
       .stub(Dai__factory, 'connect')
-      .withArgs(contractDetails.CONTRACT_DAI, providerMock.object())
-      .returns(daiContractMock.object());
+      .withArgs(getContractsForNetwork(NETWORK).CONTRACT_DAI, providerStub)
+      .returns(daiContractStub);
 
-    // Setup DaiDripsHub contract mock.
-    hubContractMock = new Mock<DaiDripsHub>();
-    hubContractMock
-      .setup((x) => x.connect(signerMock.object()))
-      .returns(hubContractMock.object());
+    // Setup DaiDripsHub contract stub.
+    hubContractStub = stubInterface<DaiDripsHub>();
+    hubContractStub.connect.withArgs(signerStub).returns(hubContractStub);
     sinon
       .stub(DaiDripsHub__factory, 'connect')
-      .withArgs(contractDetails.CONTRACT_DRIPS_HUB, providerMock.object())
-      .returns(hubContractMock.object());
+      .withArgs(
+        getContractsForNetwork(NETWORK).CONTRACT_DRIPS_HUB,
+        providerStub
+      )
+      .returns(hubContractStub);
 
     // Create a DripsClient instance (system under test).
-    dripsClient = new DripsClient(providerMock.object(), network);
+    dripsClient = new DripsClient(providerStub, NETWORK);
   });
 
   afterEach(() => {
@@ -70,14 +61,14 @@ describe('DripsClient', () => {
   });
 
   describe('constructor', () => {
-    it('should set provider, Dai and DaiDripsHub contracts properties', () => {
+    it('should set provider, Dai contract and DaiDripsHub contract properties', () => {
       // Assert.
       assert.isUndefined(dripsClient.signer);
       assert.isUndefined(dripsClient.address);
       assert.isUndefined(dripsClient.networkId);
-      assert.equal(dripsClient.provider, providerMock.object());
-      assert.equal(dripsClient.daiContract, daiContractMock.object());
-      assert.equal(dripsClient.hubContract, hubContractMock.object());
+      assert.equal(dripsClient.provider, providerStub);
+      assert.equal(dripsClient.daiContract, daiContractStub);
+      assert.equal(dripsClient.hubContract, hubContractStub);
     });
   });
 
@@ -87,21 +78,23 @@ describe('DripsClient', () => {
       await dripsClient.connect();
 
       // Assert.
-      assert.equal(dripsClient.signer, providerMock.object().getSigner());
+      assert.equal(dripsClient.signer, providerStub.getSigner());
       assert.equal(
         dripsClient.address,
-        (await providerMock.object().getSigner().getAddress()).toLowerCase()
+        (await providerStub.getSigner().getAddress()).toLowerCase()
       );
       assert.equal(
         dripsClient.networkId,
-        (await providerMock.object().getNetwork()).chainId
+        (await providerStub.getNetwork()).chainId
       );
     });
 
     it('should disconnect when an exception is thrown', async () => {
       // Arrange.
       const error = new Error('Cannot get signer');
-      providerMock.setup((x) => x.getSigner()).throws<Error>(error);
+      providerStub.getSigner.throws(error);
+
+      let threw = false;
 
       try {
         // Act.
@@ -109,12 +102,14 @@ describe('DripsClient', () => {
       } catch (ex) {
         // Assert
         assert.equal(ex, error);
+        threw = true;
       }
 
       // Assert
       assert.isNull(dripsClient.signer);
       assert.isNull(dripsClient.address);
       assert.isNull(dripsClient.networkId);
+      assert.isTrue(threw, "Expected to throw but it didn't");
     });
   });
 
@@ -142,7 +137,7 @@ describe('DripsClient', () => {
       assert.isTrue(dripsClient.connected);
     });
 
-    it('should return false when network ID is not set', () => {
+    it('should return false when network ID is falsy', () => {
       // Arrange.
       dripsClient.networkId = undefined;
 
@@ -156,35 +151,47 @@ describe('DripsClient', () => {
       // Arrange.
       dripsClient.signer = undefined;
 
+      let threw = false;
+
       try {
+        // Act.
         await dripsClient.approveDAIContract();
       } catch (error) {
+        // Assert
         assert.typeOf(error, 'Error');
         assert.equal(
           'DripsClient must be connected before approving DAI',
           error.message
         );
+        threw = true;
       }
+      // Assert
+      assert.isTrue(threw, "Expected to throw but it didn't");
     });
 
     it('should delegate the call to the approve() contract method', async () => {
       // Arrange.
-      daiContractMock
-        .setup((x) =>
-          x.approve(contractDetails.CONTRACT_DRIPS_HUB, constants.MaxUint256)
+      const tx = {} as ContractTransaction;
+      daiContractStub.approve
+        .withArgs(
+          getContractsForNetwork(NETWORK).CONTRACT_DRIPS_HUB,
+          constants.MaxUint256
         )
-        .returnsAsync({} as ContractTransaction);
+        .resolves(tx);
 
       await dripsClient.connect();
 
       // Act.
-      await dripsClient.approveDAIContract();
+      const response = await dripsClient.approveDAIContract();
 
       // Assert.
-      daiContractMock.verify(
-        (x) =>
-          x.approve(contractDetails.CONTRACT_DRIPS_HUB, constants.MaxUint256),
-        Times.Once()
+      assert.equal(response, tx);
+      assert(
+        daiContractStub.approve.calledOnceWithExactly(
+          getContractsForNetwork(NETWORK).CONTRACT_DRIPS_HUB,
+          constants.MaxUint256
+        ),
+        `Expected approve() method to be called with different arguments`
       );
     });
   });
@@ -206,6 +213,8 @@ describe('DripsClient', () => {
         ],
       };
 
+      let threw = false;
+
       try {
         // Act.
         await dripsClient.updateUserDrips(
@@ -219,7 +228,10 @@ describe('DripsClient', () => {
         // Assert.
         assert.typeOf(error, 'Error');
         assert.equal('Not connected to wallet', error.message);
+        threw = true;
       }
+      // Assert
+      assert.isTrue(threw, "Expected to throw but it didn't");
     });
 
     it('should validate Drips', async () => {
@@ -240,19 +252,17 @@ describe('DripsClient', () => {
 
       await dripsClient.connect();
 
-      hubContractMock
-        .setup((x) =>
-          x[
-            'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
-          ](
-            payload.lastBalance,
-            payload.lastBalance,
-            payload.currentReceivers,
-            payload.balanceDelta,
-            payload.newReceivers
-          )
+      hubContractStub[
+        'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
+      ]
+        .withArgs(
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
         )
-        .returnsAsync({} as ContractTransaction);
+        .resolves({} as ContractTransaction);
 
       // Act.
       await dripsClient.updateUserDrips(
@@ -264,7 +274,10 @@ describe('DripsClient', () => {
       );
 
       // Assert.
-      assert(validateDripsStub.calledOnceWith(payload.newReceivers));
+      assert(
+        validateDripsStub.calledOnceWithExactly(payload.newReceivers),
+        `Expected validateSplits() method to be called with different arguments`
+      );
     });
 
     it('should delegate the call to the setDrips() contract method', async () => {
@@ -283,19 +296,17 @@ describe('DripsClient', () => {
         ],
       };
 
-      hubContractMock
-        .setup((x) =>
-          x[
-            'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
-          ](
-            payload.lastBalance,
-            payload.lastBalance,
-            payload.currentReceivers,
-            payload.balanceDelta,
-            payload.newReceivers
-          )
+      hubContractStub[
+        'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
+      ]
+        .withArgs(
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
         )
-        .returnsAsync({} as ContractTransaction);
+        .resolves({} as ContractTransaction);
 
       // Act.
       await dripsClient.updateUserDrips(
@@ -307,18 +318,17 @@ describe('DripsClient', () => {
       );
 
       // Assert.
-      hubContractMock.verify(
-        (x) =>
-          x[
-            'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
-          ](
-            payload.lastBalance,
-            payload.lastBalance,
-            payload.currentReceivers,
-            payload.balanceDelta,
-            payload.newReceivers
-          ),
-        Times.Once()
+      assert(
+        hubContractStub[
+          'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
+        ].calledOnceWithExactly(
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
+        ),
+        `Expected setDrips() method to be called with different arguments`
       );
     });
   });
@@ -340,6 +350,8 @@ describe('DripsClient', () => {
         ],
       };
 
+      let threw = false;
+
       try {
         // Act.
         await dripsClient.updateUserSplits(
@@ -350,7 +362,10 @@ describe('DripsClient', () => {
         // Assert.
         assert.typeOf(error, 'Error');
         assert.equal('Not connected to wallet', error.message);
+        threw = true;
       }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
     });
 
     it('should validate Drips', async () => {
@@ -371,11 +386,9 @@ describe('DripsClient', () => {
 
       await dripsClient.connect();
 
-      hubContractMock
-        .setup((x) =>
-          x.setSplits(payload.currentReceivers, payload.newReceivers)
-        )
-        .returnsAsync({} as ContractTransaction);
+      hubContractStub.setSplits
+        .withArgs(payload.currentReceivers, payload.newReceivers)
+        .resolves({} as ContractTransaction);
 
       // Act.
       await dripsClient.updateUserSplits(
@@ -384,7 +397,10 @@ describe('DripsClient', () => {
       );
 
       // Assert.
-      assert(validateSlitsStub.calledOnceWith(payload.newReceivers));
+      assert(
+        validateSlitsStub.calledOnceWithExactly(payload.newReceivers),
+        'Expected validateSplits() method to be called with different arguments'
+      );
     });
 
     it('should delegate the call to the setSplits() contract method', async () => {
@@ -403,11 +419,9 @@ describe('DripsClient', () => {
         ],
       };
 
-      hubContractMock
-        .setup((x) =>
-          x.setSplits(payload.currentReceivers, payload.newReceivers)
-        )
-        .returnsAsync({} as ContractTransaction);
+      hubContractStub.setSplits
+        .withArgs(payload.currentReceivers, payload.newReceivers)
+        .resolves({} as ContractTransaction);
 
       // Act.
       await dripsClient.updateUserSplits(
@@ -416,9 +430,12 @@ describe('DripsClient', () => {
       );
 
       // Assert.
-      hubContractMock.verify(
-        (x) => x.setSplits(payload.currentReceivers, payload.newReceivers),
-        Times.Once()
+      assert(
+        hubContractStub.setSplits.calledOnceWithExactly(
+          payload.currentReceivers,
+          payload.newReceivers
+        ),
+        'Expected setSplits() method to be called with different arguments'
       );
     });
   });
@@ -428,6 +445,7 @@ describe('DripsClient', () => {
       // Arrange.
       dripsClient.address = undefined;
 
+      let threw = false;
       try {
         // Act.
         await dripsClient.getAllowance();
@@ -438,7 +456,10 @@ describe('DripsClient', () => {
           'Must call connect() before calling getAllowance()',
           error.message
         );
+        threw = true;
       }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
     });
 
     it('should delegate the call to the allowance() contract method', async () => {
@@ -446,19 +467,24 @@ describe('DripsClient', () => {
       await dripsClient.connect();
       const expectedAllowance = BigNumber.from(1000);
 
-      daiContractMock
-        .setup(async (x) =>
-          x.allowance(dripsClient.address, contractDetails.CONTRACT_DRIPS_HUB)
+      daiContractStub.allowance
+        .withArgs(
+          dripsClient.address,
+          getContractsForNetwork(NETWORK).CONTRACT_DRIPS_HUB
         )
-        .returnsAsync(expectedAllowance);
+        .resolves(expectedAllowance);
 
       // Act.
       const allowance = await dripsClient.getAllowance();
 
       // Assert.
       assert.equal(allowance, expectedAllowance);
-      daiContractMock.verify(async (x) =>
-        x.allowance(dripsClient.address, contractDetails.CONTRACT_DRIPS_HUB)
+      assert(
+        daiContractStub.allowance.calledOnceWithExactly(
+          dripsClient.address,
+          getContractsForNetwork(NETWORK).CONTRACT_DRIPS_HUB
+        ),
+        'Expected allowance() method to be called with different arguments'
       );
     });
   });
@@ -467,6 +493,8 @@ describe('DripsClient', () => {
     it('should throw when address property is falsy', async () => {
       // Arrange.
       dripsClient.provider = undefined;
+
+      let threw = false;
 
       try {
         // Act.
@@ -481,7 +509,10 @@ describe('DripsClient', () => {
           'Must have a provider defined to query the collectable balance',
           error.message
         );
+        threw = true;
       }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
     });
 
     it('should delegate the call to the allowance() contract method', async () => {
@@ -498,9 +529,9 @@ describe('DripsClient', () => {
         BigNumber.from(2000),
       ] as [BigNumber, BigNumber] & { collected: BigNumber; split: BigNumber };
 
-      hubContractMock
-        .setup(async (x) => x.collectable(address, currentSplits))
-        .returnsAsync(expectedAmountCollectable);
+      hubContractStub.collectable
+        .withArgs(address, currentSplits)
+        .resolves(expectedAmountCollectable);
 
       await dripsClient.connect();
 
@@ -512,8 +543,12 @@ describe('DripsClient', () => {
 
       // Assert.
       assert.equal(collectable, expectedAmountCollectable);
-      hubContractMock.verify(async (x) =>
-        x.collectable(address, currentSplits)
+      assert(
+        hubContractStub.collectable.calledOnceWithExactly(
+          address,
+          currentSplits
+        ),
+        'Expected collectable() method to be called with different arguments'
       );
     });
   });
