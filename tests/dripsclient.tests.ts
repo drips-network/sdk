@@ -60,7 +60,7 @@ describe('DripsClient', () => {
     sinon.restore();
   });
 
-  describe('constructor', () => {
+  describe('constructor()', () => {
     it('should set provider, Dai contract and DaiDripsHub contract properties', () => {
       // Assert.
       assert.isUndefined(dripsClient.signer);
@@ -196,7 +196,7 @@ describe('DripsClient', () => {
     });
   });
 
-  describe('updateUserDrips', async () => {
+  describe('updateUserDrips()', async () => {
     it('should throw if signer property is falsy', async () => {
       // Arrange.
       dripsClient.signer = undefined;
@@ -333,7 +333,153 @@ describe('DripsClient', () => {
     });
   });
 
-  describe('updateUserSplits', async () => {
+  describe('updateSubAccountDrips()', async () => {
+    it('should throw if signer property is falsy', async () => {
+      // Arrange.
+      dripsClient.signer = undefined;
+
+      const payload = {
+        account: 1,
+        lastUpdate: 2,
+        lastBalance: 22,
+        currentReceivers: [
+          { receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 },
+        ],
+        balanceDelta: 22,
+        newReceivers: [
+          { receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 },
+        ],
+      };
+
+      let threw = false;
+
+      try {
+        // Act.
+        await dripsClient.updateSubAccountDrips(
+          payload.account,
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
+        );
+      } catch (error) {
+        // Assert.
+        assert.typeOf(error, 'Error');
+        assert.equal('Not connected to wallet', error.message);
+        threw = true;
+      }
+      // Assert
+      assert.isTrue(threw, "Expected to throw but it didn't");
+    });
+
+    it('should validate Drips', async () => {
+      // Arrange.
+      const payload = {
+        account: 1,
+        lastUpdate: 2,
+        lastBalance: 22,
+        currentReceivers: [
+          { receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 },
+        ],
+        balanceDelta: 22,
+        newReceivers: [
+          { receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 },
+        ],
+      };
+
+      const validateDripsStub = sinon.stub(utils, 'validateDrips');
+
+      await dripsClient.connect();
+
+      hubContractStub[
+        'setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
+      ]
+        .withArgs(
+          payload.account,
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
+        )
+        .resolves({} as ContractTransaction);
+
+      // Act.
+      await dripsClient.updateSubAccountDrips(
+        payload.account,
+        payload.lastBalance,
+        payload.lastBalance,
+        payload.currentReceivers,
+        payload.balanceDelta,
+        payload.newReceivers
+      );
+
+      // Assert.
+      assert(
+        validateDripsStub.calledOnceWithExactly(payload.newReceivers),
+        `Expected validateSplits() method to be called with different arguments`
+      );
+    });
+
+    it('should delegate the call to the setDrips() contract method', async () => {
+      // Arrange.
+      await dripsClient.connect();
+
+      const payload = {
+        account: 1,
+        lastUpdate: 2,
+        lastBalance: 22,
+        currentReceivers: [
+          { receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 },
+        ],
+        balanceDelta: 22,
+        newReceivers: [
+          { receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 },
+        ],
+      };
+
+      hubContractStub[
+        'setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
+      ]
+        .withArgs(
+          payload.account,
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
+        )
+        .resolves({} as ContractTransaction);
+
+      // Act.
+      await dripsClient.updateSubAccountDrips(
+        payload.account,
+        payload.lastBalance,
+        payload.lastBalance,
+        payload.currentReceivers,
+        payload.balanceDelta,
+        payload.newReceivers
+      );
+
+      // Assert.
+      assert(
+        hubContractStub[
+          'setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
+        ].calledOnceWithExactly(
+          payload.account,
+          payload.lastBalance,
+          payload.lastBalance,
+          payload.currentReceivers,
+          payload.balanceDelta,
+          payload.newReceivers
+        ),
+        `Expected setDrips() method to be called with different arguments`
+      );
+    });
+  });
+
+  describe('updateUserSplits()', async () => {
     it('should throw if signer property is falsy', async () => {
       // Arrange.
       dripsClient.signer = undefined;

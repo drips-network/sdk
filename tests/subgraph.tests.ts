@@ -113,7 +113,7 @@ describe('SubgraphClient', () => {
     });
   });
 
-  describe('getSplitsBySender', () => {
+  describe('getSplitsBySender()', () => {
     it('should return expected Splits', async () => {
       // Arrange.
       const client = new SubgraphClient('https://api.graphql');
@@ -172,7 +172,7 @@ describe('SubgraphClient', () => {
     });
   });
 
-  describe('getSplitsByReceiver', () => {
+  describe('getSplitsByReceiver()', () => {
     it('should return expected Splits', async () => {
       // Arrange.
       const client = new SubgraphClient('https://api.graphql');

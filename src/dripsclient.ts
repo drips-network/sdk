@@ -79,7 +79,7 @@ export class DripsClient {
 
   updateSubAccountDrips: DaiDripsHub['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'] =
     (subAccountId, lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) => {
-      if (!this.signer) throw "Not connected to wallet"
+      if (!this.signer) throw new Error("Not connected to wallet")
 
       validateDrips(newReceivers)
 
