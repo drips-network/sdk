@@ -1,68 +1,68 @@
 import * as gql from './gql';
 
 export type Split = {
-  sender: string;
-  receiver: string;
-  weight: number;
-}
+	sender: string;
+	receiver: string;
+	weight: number;
+};
 
 export type Drip = {
-  amtPerSec: string;
-  receiver: string;
-}
+	amtPerSec: string;
+	receiver: string;
+};
 
 export type DripsConfig = {
-  withdrawable?: number;
-  balance?: string;
-  timestamp?: string;
-  receivers?: Drip[];
-}
+	withdrawable?: number;
+	balance?: string;
+	timestamp?: string;
+	receivers?: Drip[];
+};
 
 export class SubgraphClient {
-  apiUrl: string
-  
-  constructor(apiUrl: string) {
-    this.apiUrl = apiUrl
-  }
+	apiUrl: string;
 
-  async getDripsBySender (address: string) : Promise<DripsConfig> {
-    type APIResponse = {dripsConfigs: DripsConfig[]};
-    const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id : address })
-    return resp.data?.dripsConfigs?.length ? resp.data?.dripsConfigs[0] : {} as DripsConfig;
-  }
-  
-  async getDripsByReceiver (receiver: string) : Promise<Drip[]> {
-    type APIResponse = {dripsEntries: Drip[]};
-    const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver })
-    return resp.data?.dripsEntries
-  }
-  
-  private async _getSplits(query: string, args: {sender: string} | {receiver: string}) : Promise<Split[]> {
-    type APIResponse = { splitsEntries: Split[] };
-    const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
-    return resp.data?.splitsEntries || [];
-  }
-  
-  getSplitsBySender = (sender: string) => this._getSplits(gql.splitsBySender, {sender})
-  getSplitsByReceiver = (receiver: string) => this._getSplits(gql.splitsByReceiver, {receiver})
-  
-  async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
-    if (!this.apiUrl) {
-      throw new Error('API URL missing')
-    }
-    
-    const resp = await fetch(this.apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ query, variables })
-    })
+	constructor(apiUrl: string) {
+		this.apiUrl = apiUrl;
+	}
 
-    if (resp.status >= 200 && resp.status <= 299) {
-      return await resp.json() as {data: T};
-    } else {
-      throw new Error(resp.statusText)
-    }
-  }
+	async getDripsBySender(address: string): Promise<DripsConfig> {
+		type APIResponse = { dripsConfigs: DripsConfig[] };
+		const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id: address });
+		return resp.data?.dripsConfigs?.length ? resp.data?.dripsConfigs[0] : ({} as DripsConfig);
+	}
+
+	async getDripsByReceiver(receiver: string): Promise<Drip[]> {
+		type APIResponse = { dripsEntries: Drip[] };
+		const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver });
+		return resp.data?.dripsEntries;
+	}
+
+	private async _getSplits(query: string, args: { sender: string } | { receiver: string }): Promise<Split[]> {
+		type APIResponse = { splitsEntries: Split[] };
+		const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
+		return resp.data?.splitsEntries || [];
+	}
+
+	getSplitsBySender = (sender: string) => this._getSplits(gql.splitsBySender, { sender });
+	getSplitsByReceiver = (receiver: string) => this._getSplits(gql.splitsByReceiver, { receiver });
+
+	async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
+		if (!this.apiUrl) {
+			throw new Error('API URL missing');
+		}
+
+		const resp = await fetch(this.apiUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ query, variables })
+		});
+
+		if (resp.status >= 200 && resp.status <= 299) {
+			return (await resp.json()) as { data: T };
+		}
+
+		throw new Error(resp.statusText);
+	}
 }
