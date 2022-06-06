@@ -8,9 +8,9 @@
   let daiCollectable: Awaited<ReturnType<DripsClient['getAmountCollectableWithSplits']>>;
 
   $: if (dripsClient?.connected && subgraphClient) displayWalletAndAddressStats();
-  
+
   async function displayWalletAndAddressStats () {
-    daiApproved = toDAI(await dripsClient.getAllowance(), 'pretty', 2)
+    daiApproved = toDAI(await dripsClient.getAllowance(), 2, 'pretty')
     const splits = await subgraphClient.getSplitsBySender(dripsClient.address.toLowerCase())
     daiCollectable = await dripsClient.getAmountCollectableWithSplits(dripsClient.address, splits)
   }
