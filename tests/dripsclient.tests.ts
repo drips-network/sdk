@@ -586,6 +586,180 @@ describe('DripsClient', () => {
     });
   });
 
+  describe('giveFromUser()', async () => {
+    it('should throw if signer property is falsy', async () => {
+      // Arrange.
+      dripsClient.signer = undefined;
+
+      const payload = {
+        receiver: ethers.Wallet.createRandom().address,
+        amount: 10,
+      };
+
+      let threw = false;
+
+      try {
+        // Act.
+        await dripsClient.giveFromUser(payload.receiver, payload.amount);
+      } catch (error) {
+        // Assert.
+        assert.typeOf(error, 'Error');
+        assert.equal('Not connected to wallet', error.message);
+        threw = true;
+      }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
+    });
+
+    it('should throw if receiver is not a valid Etherium address', async () => {
+      // Arrange.
+      await dripsClient.connect();
+
+      const payload = {
+        receiver: 'invalid Etherium address',
+        amount: 10,
+      };
+
+      let threw = false;
+
+      try {
+        // Act.
+        await dripsClient.giveFromUser(payload.receiver, payload.amount);
+      } catch (error) {
+        // Assert.
+        assert.typeOf(error, 'Error');
+        assert.equal(
+          `Invalid recipient: "${payload.receiver}" is not an Ethereum address`,
+          error.message
+        );
+        threw = true;
+      }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
+    });
+
+    it('should delegate the call to the give() contract method', async () => {
+      // Arrange.
+      await dripsClient.connect();
+
+      const payload = {
+        receiver: ethers.Wallet.createRandom().address,
+        amount: 10,
+      };
+
+      hubContractStub['give(address,uint128)']
+        .withArgs(payload.receiver, payload.amount)
+        .resolves({} as ContractTransaction);
+
+      // Act.
+      await dripsClient.giveFromUser(payload.receiver, payload.amount);
+
+      // Assert.
+      assert(
+        hubContractStub['give(address,uint128)'].calledOnceWithExactly(
+          payload.receiver,
+          payload.amount
+        ),
+        'Expected giveFromUser() method to be called with different arguments'
+      );
+    });
+  });
+
+  describe('giveFromAccount()', async () => {
+    it('should throw if signer property is falsy', async () => {
+      // Arrange.
+      dripsClient.signer = undefined;
+
+      const payload = {
+        account: 1,
+        receiver: ethers.Wallet.createRandom().address,
+        amount: 10,
+      };
+
+      let threw = false;
+
+      try {
+        // Act.
+        await dripsClient.giveFromAccount(
+          payload.account,
+          payload.receiver,
+          payload.amount
+        );
+      } catch (error) {
+        // Assert.
+        assert.typeOf(error, 'Error');
+        assert.equal('Not connected to wallet', error.message);
+        threw = true;
+      }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
+    });
+
+    it('should throw if receiver is not a valid Etherium address', async () => {
+      // Arrange.
+      await dripsClient.connect();
+
+      const payload = {
+        account: 1,
+        receiver: 'invalid Etherium address',
+        amount: 10,
+      };
+
+      let threw = false;
+
+      try {
+        // Act.
+        await dripsClient.giveFromAccount(
+          payload.account,
+          payload.receiver,
+          payload.amount
+        );
+      } catch (error) {
+        // Assert.
+        assert.typeOf(error, 'Error');
+        assert.equal(
+          `Invalid recipient: "${payload.receiver}" is not an Ethereum address`,
+          error.message
+        );
+        threw = true;
+      }
+      // Assert.
+      assert.isTrue(threw, "Expected to throw but it didn't");
+    });
+
+    it('should delegate the call to the give() contract method', async () => {
+      // Arrange.
+      await dripsClient.connect();
+
+      const payload = {
+        account: 1,
+        receiver: ethers.Wallet.createRandom().address,
+        amount: 10,
+      };
+
+      hubContractStub['give(address,uint128)']
+        .withArgs(payload.receiver, payload.amount)
+        .resolves({} as ContractTransaction);
+
+      // Act.
+      await dripsClient.giveFromAccount(
+        payload.account,
+        payload.receiver,
+        payload.amount
+      );
+
+      // Assert.
+      assert(
+        hubContractStub['give(uint256,address,uint128)'].calledOnceWithExactly(
+          payload.account,
+          payload.receiver,
+          payload.amount
+        ),
+        'Expected giveFromAccount() method to be called with different arguments'
+      );
+    });
+  });
+
   describe('getAllowance()', () => {
     it('should throw when address property is falsy', async () => {
       // Arrange.
