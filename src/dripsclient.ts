@@ -1,4 +1,4 @@
-import type { providers, Signer } from 'ethers';
+import type { BigNumberish, providers, Signer } from 'ethers';
 import { constants } from 'ethers';
 import type { Dai, DaiDripsHub, RadicleRegistry } from '../contracts';
 import { getContractsForNetwork } from './contracts';
@@ -6,6 +6,7 @@ import { validateDrips, validateSplits } from './utils';
 import { Dai__factory } from '../contracts/factories/Dai__factory';
 import { DaiDripsHub__factory } from '../contracts/factories/DaiDripsHub__factory';
 import { RadicleRegistry__factory } from '../contracts/factories/RadicleRegistry__factory';
+import { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DaiDripsHub';
 
 export default class DripsClient {
 	provider: providers.Web3Provider;
@@ -73,7 +74,7 @@ export default class DripsClient {
 		return contractSigner.approve(this.contractDetails.CONTRACT_DRIPS_HUB, constants.MaxUint256);
 	}
 
-	updateUserDrips(lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) {
+	updateUserDrips(lastUpdate: BigNumberish, lastBalance: BigNumberish, currentReceivers: DripsReceiverStruct[], balanceDelta: BigNumberish, newReceivers: DripsReceiverStruct[]) {
 		if (!this.signer) throw new Error('Not connected to wallet');
 
 		validateDrips(newReceivers);
@@ -89,7 +90,7 @@ export default class DripsClient {
 		);
 	}
 
-	updateSubAccountDrips(subAccountId, lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) {
+	updateSubAccountDrips(subAccountId: BigNumberish, lastUpdate: BigNumberish, lastBalance: BigNumberish, currentReceivers: DripsReceiverStruct[], balanceDelta: BigNumberish, newReceivers: DripsReceiverStruct[]) {
 		if (!this.signer) throw new Error('Not connected to wallet');
 
 		validateDrips(newReceivers);
@@ -106,7 +107,7 @@ export default class DripsClient {
 		);
 	}
 
-	updateUserSplits(currentReceivers, newReceivers) {
+	updateUserSplits(currentReceivers: SplitsReceiverStruct[], newReceivers: SplitsReceiverStruct[]) {
 		if (!this.signer) throw new Error('Not connected to wallet');
 
 		validateSplits(newReceivers);
@@ -123,7 +124,7 @@ export default class DripsClient {
 		return this.daiContract.allowance(this.address, this.contractDetails.CONTRACT_DRIPS_HUB);
 	}
 
-	getAmountCollectableWithSplits: DaiDripsHub['collectable'] = (address, currentSplits) => {
+	getAmountCollectableWithSplits(address, currentSplits) {
 		if (!this.provider) throw new Error('Must have a provider defined to query the collectable balance');
 
 		return this.hubContract.collectable(address, currentSplits);
