@@ -1,5 +1,5 @@
 import { BigNumberish, providers, Signer, utils, constants } from 'ethers';
-import { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DaiDripsHub';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DaiDripsHub';
 import type { Dai, DaiDripsHub } from '../contracts';
 import { getContractsForNetwork } from './contracts';
 import { validateDrips, validateSplits } from './utils';
