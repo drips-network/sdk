@@ -1,4 +1,4 @@
-import type { providers, Signer } from "ethers";
+import { BigNumberish, providers, Signer, utils } from "ethers";
 import type { Dai, DaiDripsHub, RadicleRegistry } from '../contracts';
 import { getContractsForNetwork } from './contracts'
 import { constants } from 'ethers';
@@ -100,6 +100,24 @@ export class DripsClient {
 
       return contractSigner['setSplits'](currentReceivers, newReceivers)
     }
+
+	giveFromUser(receiver: string, amount: BigNumberish) {
+		if (!this.signer) throw new Error("Not connected to wallet")
+		if (!utils.isAddress(receiver)) throw new Error(`Invalid recipient: "${receiver}" is not an Ethereum address`)
+
+		const contractSigner = this.hubContract.connect(this.signer)
+
+		return contractSigner["give(address,uint128)"](receiver, amount)
+	}
+
+	giveFromAccount(account: BigNumberish, receiver: string, amount: BigNumberish) {
+		if (!this.signer) throw new Error("Not connected to wallet")
+		if (!utils.isAddress(receiver)) throw new Error(`Invalid recipient: "${receiver}" is not an Ethereum address`)
+
+		const contractSigner = this.hubContract.connect(this.signer)
+
+		return contractSigner["give(uint256,address,uint128)"](account, receiver, amount)
+	}
 
   // check how much DAI the DripsHub is allowed to spend on behalf of the signed-in user
   getAllowance() {
