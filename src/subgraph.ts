@@ -43,8 +43,12 @@ export class SubgraphClient {
 		return resp.data?.splitsEntries || [];
 	}
 
-	getSplitsBySender = (sender: string) => this._getSplits(gql.splitsBySender, { sender });
-	getSplitsByReceiver = (receiver: string) => this._getSplits(gql.splitsByReceiver, { receiver });
+	getSplitsBySender(sender: string) {
+		return this._getSplits(gql.splitsBySender, { sender });
+	}
+	getSplitsByReceiver(receiver: string) {
+		return this._getSplits(gql.splitsByReceiver, { receiver });
+	}
 
 	async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		if (!this.apiUrl) {

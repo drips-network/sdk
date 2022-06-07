@@ -73,13 +73,7 @@ export default class DripsClient {
 		return contractSigner.approve(this.contractDetails.CONTRACT_DRIPS_HUB, constants.MaxUint256);
 	}
 
-	updateUserDrips: DaiDripsHub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'] = (
-		lastUpdate,
-		lastBalance,
-		currentReceivers,
-		balanceDelta,
-		newReceivers
-	) => {
+	updateUserDrips(lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) {
 		if (!this.signer) throw new Error('Not connected to wallet');
 
 		validateDrips(newReceivers);
@@ -93,27 +87,26 @@ export default class DripsClient {
 			balanceDelta,
 			newReceivers
 		);
-	};
+	}
 
-	updateSubAccountDrips: DaiDripsHub['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'] =
-		(subAccountId, lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) => {
-			if (!this.signer) throw new Error('Not connected to wallet');
+	updateSubAccountDrips(subAccountId, lastUpdate, lastBalance, currentReceivers, balanceDelta, newReceivers) {
+		if (!this.signer) throw new Error('Not connected to wallet');
 
-			validateDrips(newReceivers);
+		validateDrips(newReceivers);
 
-			const contractSigner = this.hubContract.connect(this.signer);
+		const contractSigner = this.hubContract.connect(this.signer);
 
-			return contractSigner['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
-				subAccountId,
-				lastUpdate,
-				lastBalance,
-				currentReceivers,
-				balanceDelta,
-				newReceivers
-			);
-		};
+		return contractSigner['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
+			subAccountId,
+			lastUpdate,
+			lastBalance,
+			currentReceivers,
+			balanceDelta,
+			newReceivers
+		);
+	}
 
-	updateUserSplits: DaiDripsHub['setSplits'] = (currentReceivers, newReceivers) => {
+	updateUserSplits(currentReceivers, newReceivers) {
 		if (!this.signer) throw new Error('Not connected to wallet');
 
 		validateSplits(newReceivers);
@@ -121,7 +114,7 @@ export default class DripsClient {
 		const contractSigner = this.hubContract.connect(this.signer);
 
 		return contractSigner.setSplits(currentReceivers, newReceivers);
-	};
+	}
 
 	// check how much DAI the DripsHub is allowed to spend on behalf of the signed-in user
 	getAllowance() {
