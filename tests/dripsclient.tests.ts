@@ -1,5 +1,5 @@
 import { Web3Provider } from '@ethersproject/providers';
-import { BigNumber, ContractTransaction, ethers, providers, constants } from 'ethers';
+import { BigNumber, ContractTransaction, ethers, providers, constants, Signer, Wallet } from 'ethers';
 import sinon, { StubbedInstance, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { Dai, DaiDripsHub, DaiDripsHub__factory, Dai__factory } from '../contracts';
@@ -21,7 +21,7 @@ describe('DripsClient', () => {
 	beforeEach(() => {
 		// Setup DripsClient dependency stubs.
 		signerStub = stubInterface<providers.JsonRpcSigner>();
-		signerStub.getAddress.resolves(ethers.Wallet.createRandom().address);
+		signerStub.getAddress.resolves(Wallet.createRandom().address);
 
 		providerStub = stubInterface<Web3Provider>();
 		providerStub.getSigner.returns(signerStub);
@@ -183,9 +183,9 @@ describe('DripsClient', () => {
 			const payload = {
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
 			let threw = false;
@@ -214,9 +214,9 @@ describe('DripsClient', () => {
 			const payload = {
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
 			const validateDripsStub = sinon.stub(utils, 'validateDrips');
@@ -256,9 +256,9 @@ describe('DripsClient', () => {
 			const payload = {
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
 			hubContractStub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
@@ -305,9 +305,9 @@ describe('DripsClient', () => {
 				account: 1,
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
 			let threw = false;
@@ -338,9 +338,9 @@ describe('DripsClient', () => {
 				account: 1,
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
 			const validateDripsStub = sinon.stub(utils, 'validateDrips');
@@ -383,9 +383,9 @@ describe('DripsClient', () => {
 				account: 1,
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, amtPerSec: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
 			hubContractStub['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
@@ -434,9 +434,9 @@ describe('DripsClient', () => {
 			const payload = {
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, weight: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, weight: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }]
 			};
 
 			let threw = false;
@@ -459,9 +459,9 @@ describe('DripsClient', () => {
 			const payload = {
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, weight: 1 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 1 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, weight: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }]
 			};
 
 			const validateSlitsStub = sinon.stub(utils, 'validateSplits');
@@ -489,9 +489,9 @@ describe('DripsClient', () => {
 			const payload = {
 				lastUpdate: 2,
 				lastBalance: 22,
-				currentReceivers: [{ receiver: ethers.Wallet.createRandom().address, weight: 3 }],
+				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }],
 				balanceDelta: 22,
-				newReceivers: [{ receiver: ethers.Wallet.createRandom().address, weight: 3 }]
+				newReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }]
 			};
 
 			hubContractStub.setSplits
@@ -515,7 +515,7 @@ describe('DripsClient', () => {
 			dripsClient.signer = undefined;
 
 			const payload = {
-				receiver: ethers.Wallet.createRandom().address,
+				receiver: Wallet.createRandom().address,
 				amount: 10
 			};
 
@@ -563,7 +563,7 @@ describe('DripsClient', () => {
 			await dripsClient.connect();
 
 			const payload = {
-				receiver: ethers.Wallet.createRandom().address,
+				receiver: Wallet.createRandom().address,
 				amount: 10
 			};
 
@@ -589,7 +589,7 @@ describe('DripsClient', () => {
 
 			const payload = {
 				account: 1,
-				receiver: ethers.Wallet.createRandom().address,
+				receiver: Wallet.createRandom().address,
 				amount: 10
 			};
 
@@ -639,7 +639,7 @@ describe('DripsClient', () => {
 
 			const payload = {
 				account: 1,
-				receiver: ethers.Wallet.createRandom().address,
+				receiver: Wallet.createRandom().address,
 				amount: 10
 			};
 
@@ -714,8 +714,8 @@ describe('DripsClient', () => {
 
 			try {
 				// Act.
-				await dripsClient.getAmountCollectableWithSplits(ethers.Wallet.createRandom().address, [
-					{ receiver: ethers.Wallet.createRandom().address, weight: 1 }
+				await dripsClient.getAmountCollectableWithSplits(Wallet.createRandom().address, [
+					{ receiver: Wallet.createRandom().address, weight: 1 }
 				]);
 			} catch (error) {
 				// Assert.
@@ -729,10 +729,10 @@ describe('DripsClient', () => {
 
 		it('should delegate the call to the allowance() contract method', async () => {
 			// Arrange.
-			const { address } = ethers.Wallet.createRandom();
+			const { address } = Wallet.createRandom();
 			const currentSplits = [
 				{
-					receiver: ethers.Wallet.createRandom().address,
+					receiver: Wallet.createRandom().address,
 					weight: 1
 				}
 			];
@@ -753,6 +753,66 @@ describe('DripsClient', () => {
 			assert(
 				hubContractStub.collectable.calledOnceWithExactly(address, currentSplits),
 				'Expected collectable() method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('collect()', async () => {
+		it('should throw if signer property is falsy', async () => {
+			// Arrange.
+			dripsClient.address = Wallet.createRandom().address;
+			dripsClient.signer = undefined;
+
+			let threw = false;
+
+			try {
+				// Act.
+				await dripsClient.collect([]);
+			} catch (error) {
+				// Assert.
+				assert.typeOf(error, 'Error');
+				assert.equal('Not connected to wallet', error.message);
+				threw = true;
+			}
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
+		it('should throw if address property is falsy', async () => {
+			// Arrange.
+			dripsClient.signer = {} as Signer;
+			dripsClient.address = undefined;
+
+			let threw = false;
+
+			try {
+				// Act.
+				await dripsClient.collect([]);
+			} catch (error) {
+				// Assert.
+				assert.typeOf(error, 'Error');
+				assert.equal('Not connected to wallet', error.message);
+				threw = true;
+			}
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
+		it('should delegate the call to the collect() contract method', async () => {
+			// Arrange.
+			await dripsClient.connect();
+
+			const splits = [{ receiver: '', weight: 1 }];
+
+			hubContractStub.collect.withArgs(dripsClient.address, splits).resolves({} as ContractTransaction);
+
+			// Act.
+			await dripsClient.collect(splits);
+
+			// Assert.
+			assert(
+				hubContractStub.collect.calledOnceWithExactly(dripsClient.address, splits),
+				'Expected collect() method to be called with different arguments'
 			);
 		});
 	});

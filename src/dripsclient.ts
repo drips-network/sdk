@@ -144,9 +144,17 @@ export default class DripsClient {
 		return this.daiContract.allowance(this.address, this.contractDetails.CONTRACT_DRIPS_HUB);
 	}
 
-	getAmountCollectableWithSplits: DaiDripsHub['collectable'] = (address, currentSplits) => {
+	getAmountCollectableWithSplits(address: string, currentSplits: SplitsReceiverStruct[]) {
 		if (!this.provider) throw new Error('Must have a provider defined to query the collectable balance');
 
 		return this.hubContract.collectable(address, currentSplits);
-	};
+	}
+
+	collect(splits: SplitsReceiverStruct[]) {
+		if (!this.signer || !this.address) throw new Error('Not connected to wallet');
+
+		const contractSigner = this.hubContract.connect(this.signer);
+
+		return contractSigner.collect(this.address, splits);
+	}
 }
