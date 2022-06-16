@@ -9,9 +9,9 @@ export enum DripsErrorCode {
 }
 
 export class DripsError {
-	code: string;
-	message: string;
-	context?: unknown;
+	readonly code: string;
+	readonly message: string;
+	readonly context?: unknown;
 
 	constructor(code: DripsErrorCode, message: string, context?: unknown) {
 		this.code = code;
