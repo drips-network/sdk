@@ -1,3 +1,4 @@
+import { DripsErrors } from './errors';
 import * as gql from './gql';
 
 export type Split = {
@@ -53,7 +54,7 @@ export class SubgraphClient {
 
 	async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		if (!this.apiUrl) {
-			throw new Error('API URL missing');
+			throw DripsErrors.connectionFailed('Could not query subgraph: API URL is not specified.');
 		}
 
 		const resp = await fetch(this.apiUrl, {
@@ -67,6 +68,6 @@ export class SubgraphClient {
 		if (resp.status >= 200 && resp.status <= 299) {
 			return (await resp.json()) as { data: T };
 		}
-		throw new Error(resp.statusText);
+		throw DripsErrors.unknownClientError(resp.statusText, resp);
 	}
 }

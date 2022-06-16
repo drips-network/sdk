@@ -5,12 +5,13 @@ import { getContractsForNetwork } from './contracts';
 import { validateDrips, validateSplits } from './utils';
 import { Dai__factory } from '../contracts/factories/Dai__factory';
 import { DaiDripsHub__factory } from '../contracts/factories/DaiDripsHub__factory';
+import { DripsErrors } from './errors';
 
 export default class DripsClient {
 	provider: providers.Web3Provider;
-	signer: Signer;
-	address: string;
-	networkId: number;
+	signer: Signer | null = null;
+	address: string | null = null;
+	networkId: number | null = null;
 
 	contractDetails: any;
 
@@ -25,16 +26,15 @@ export default class DripsClient {
 		this.hubContract = DaiDripsHub__factory.connect(this.contractDetails.CONTRACT_DRIPS_HUB, this.provider);
 	}
 
-	async connect() {
+	async connect(): Promise<void> {
 		try {
 			this.signer = this.provider.getSigner();
 			const signerAddress = await this.signer.getAddress();
 			this.signIn(signerAddress);
 			this.networkId = (await this.provider.getNetwork()).chainId;
-			return true;
 		} catch (e) {
 			this.disconnect();
-			throw e;
+			throw DripsErrors.connectionFailed(e.message, e);
 		}
 	}
 
@@ -57,9 +57,14 @@ export default class DripsClient {
 	}
 
 	approveDAIContract() {
-		if (!this.signer) throw new Error('DripsClient must be connected before approving DAI');
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound(
+				'Could not approve DAI contract: signer not found. Make sure the client is connected.'
+			);
+		}
 
 		const contractSigner = this.daiContract.connect(this.signer);
+
 		return contractSigner.approve(this.contractDetails.CONTRACT_DRIPS_HUB, constants.MaxUint256);
 	}
 
@@ -70,7 +75,9 @@ export default class DripsClient {
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
 	) {
-		if (!this.signer) throw new Error('Not connected to wallet');
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound('Could not update Drips: signer not found. Make sure the client is connected.');
+		}
 
 		validateDrips(newReceivers);
 
@@ -93,7 +100,9 @@ export default class DripsClient {
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
 	) {
-		if (!this.signer) throw new Error('Not connected to wallet');
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound('Could not update Drips: signer not found. Make sure the client is connected.');
+		}
 
 		validateDrips(newReceivers);
 
@@ -110,7 +119,9 @@ export default class DripsClient {
 	}
 
 	updateUserSplits(currentReceivers: SplitsReceiverStruct[], newReceivers: SplitsReceiverStruct[]) {
-		if (!this.signer) throw new Error('Not connected to wallet');
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound('Could not update Splits: signer not found. Make sure the client is connected.');
+		}
 
 		validateSplits(newReceivers);
 
@@ -120,8 +131,15 @@ export default class DripsClient {
 	}
 
 	giveFromUser(receiver: string, amount: BigNumberish) {
-		if (!this.signer) throw new Error('Not connected to wallet');
-		if (!utils.isAddress(receiver)) throw new Error(`Invalid recipient: "${receiver}" is not an Ethereum address`);
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound('Could give funds: signer not found. Make sure the client is connected.');
+		}
+		if (!utils.isAddress(receiver)) {
+			throw DripsErrors.addressNotValid(
+				`Could not give funds: invalid recipient - "${receiver}" is not an Ethereum address`,
+				receiver
+			);
+		}
 
 		const contractSigner = this.hubContract.connect(this.signer);
 
@@ -129,8 +147,15 @@ export default class DripsClient {
 	}
 
 	giveFromAccount(account: BigNumberish, receiver: string, amount: BigNumberish) {
-		if (!this.signer) throw new Error('Not connected to wallet');
-		if (!utils.isAddress(receiver)) throw new Error(`Invalid recipient: "${receiver}" is not an Ethereum address`);
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound('Could not give funds: signer not found. Make sure the client is connected.');
+		}
+		if (!utils.isAddress(receiver)) {
+			throw DripsErrors.addressNotValid(
+				`Could not give funds: invalid recipient - "${receiver}" is not an Ethereum address`,
+				receiver
+			);
+		}
 
 		const contractSigner = this.hubContract.connect(this.signer);
 
@@ -139,20 +164,36 @@ export default class DripsClient {
 
 	// check how much DAI the DripsHub is allowed to spend on behalf of the signed-in user
 	getAllowance() {
-		if (!this.address) throw new Error('Must call connect() before calling getAllowance()');
+		if (!this.address) {
+			throw DripsErrors.signerNotFound(
+				'Could not retrieve allowance: signer address not found. Make sure the client is connected.'
+			);
+		}
 
 		return this.daiContract.allowance(this.address, this.contractDetails.CONTRACT_DRIPS_HUB);
 	}
 
-	getAmountCollectableWithSplits(address: string, currentSplits: SplitsReceiverStruct[]) {
-		if (!this.provider) throw new Error('Must have a provider defined to query the collectable balance');
+	getAmountCollectableWithSplits: DaiDripsHub['collectable'] = (address, currentSplits) => {
+		if (!utils.isAddress(address)) {
+			throw DripsErrors.addressNotValid(
+				`Could not retrieve collectable amount: invalid address - "${address}" is not an Ethereum address`,
+				address
+			);
+		}
 
 		return this.hubContract.collectable(address, currentSplits);
-	}
+	};
 
 	collect(splits: SplitsReceiverStruct[]) {
-		if (!this.signer || !this.address) throw new Error('Not connected to wallet');
-
+		if (!this.signer) {
+			throw DripsErrors.signerNotFound('Could not update Splits: signer not found. Make sure the client is connected.');
+		}
+		if (!this.address) {
+			throw DripsErrors.addressNotValid(
+				`Could not retrieve collectable amount: invalid address - "${this.address}" is not an Ethereum address`,
+				this.address ?? '(empty this.address)'
+			);
+		}
 		const contractSigner = this.hubContract.connect(this.signer);
 
 		return contractSigner.collect(this.address, splits);
