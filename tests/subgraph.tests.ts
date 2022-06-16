@@ -3,6 +3,7 @@ import * as sinon from 'sinon';
 import { Wallet } from 'ethers';
 import { SubgraphClient } from '../src/subgraph';
 import * as gql from '../src/gql';
+import { DripsErrorCode } from '../src/errors';
 
 describe('SubgraphClient', () => {
 	afterEach(() => {
@@ -207,15 +208,14 @@ describe('SubgraphClient', () => {
 	describe('query()', async () => {
 		it('should throw if API URL is empty', async () => {
 			// Arrange.
-			const client = new SubgraphClient(null);
+			const client = new SubgraphClient('');
 
 			try {
 				// Act.
 				await client.query(gql.dripsByReceiver, {});
 			} catch (error) {
 				// Assert
-				assert.typeOf(error, 'Error');
-				assert.equal('API URL missing', error.message);
+				assert.equal(error.code, DripsErrorCode.CONNECTION_FAILED);
 			}
 		});
 
@@ -262,8 +262,7 @@ describe('SubgraphClient', () => {
 				await client.query(gql.dripsByReceiver, {});
 			} catch (error) {
 				// Assert
-				assert.typeOf(error, 'Error');
-				assert.equal('Internal Server Error', error.message);
+				assert.equal(error.code, DripsErrorCode.UNKNOWN_CLIENT_ERROR);
 			}
 		});
 	});

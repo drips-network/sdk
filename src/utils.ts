@@ -1,6 +1,7 @@
 import type { BigNumberish, Event } from 'ethers';
 import { BigNumber, utils, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DaiDripsHub';
+import { DripsErrors } from './errors';
 import { DripsConfig } from './subgraph';
 
 export const oneMonth = 30 * 24 * 60 * 60;
@@ -63,7 +64,10 @@ export function validateDrips(drips: DripsReceiverStruct[]) {
 	for (let i = 0; i < drips.length; i++) {
 		const { receiver } = drips[i];
 		if (!utils.isAddress(receiver)) {
-			throw new Error(`Invalid recipient: "${receiver}" is not an Ethereum address`);
+			throw DripsErrors.addressNotValid(
+				`Could not retrieve collectable amount: invalid address - "${receiver}" is not an Ethereum address`,
+				receiver
+			);
 		}
 	}
 }
@@ -76,7 +80,10 @@ export function validateSplits(splits: SplitsReceiverStruct[]) {
 	for (let i = 0; i < splits.length; i++) {
 		const { receiver } = splits[i];
 		if (!utils.isAddress(receiver)) {
-			throw new Error(`Invalid recipient: "${receiver}" is not an Ethereum address`);
+			throw DripsErrors.addressNotValid(
+				`Could not retrieve collectable amount: invalid address - "${receiver}" is not an Ethereum address`,
+				receiver
+			);
 		}
 	}
 }
@@ -89,9 +96,9 @@ export const getDripsWithdrawable = (config: DripsConfig) => {
 	// - if withdrawable < 0, withdrawable = eventBalance % totalAmtPerSec
 	try {
 		const currTimestamp = Math.floor(new Date().getTime() / 1000); // sec
-		const totalAmtPerSec = config.receivers.reduce((acc, curr) => acc.add(curr.amtPerSec), BigNumber.from(0));
+		const totalAmtPerSec = config.receivers!.reduce((acc, curr) => acc.add(curr.amtPerSec), BigNumber.from(0));
 		const eventBalance = BigNumber.from(config.balance);
-		let withdrawable = eventBalance.sub(totalAmtPerSec.mul(currTimestamp - parseInt(config.timestamp, 10)));
+		let withdrawable = eventBalance.sub(totalAmtPerSec.mul(currTimestamp - parseInt(config.timestamp!, 10)));
 		if (withdrawable.lt(0)) {
 			withdrawable = eventBalance.mod(totalAmtPerSec);
 		}
@@ -110,9 +117,9 @@ export const getDripsWithdrawableFromEvent = async (event: Event) => {
 	try {
 		const currTimestamp = Math.floor(new Date().getTime() / 1000); // sec
 		const eventTimestamp = (await event.getBlock()).timestamp; // sec
-		const receivers = event.args[2] as [number, number][]; // TODO (typing);
+		const receivers = event.args![2] as [number, number][]; // TODO (typing);
 		const totalAmtPerSec = receivers.reduce<BigNumber>((acc, curr) => acc.add(curr[1]), BigNumber.from(0));
-		const eventBalance = event.args[1] as BigNumber;
+		const eventBalance = event.args![1] as BigNumber;
 		let withdrawable = eventBalance.sub(totalAmtPerSec.mul(currTimestamp - eventTimestamp));
 		if (withdrawable.lt(0)) {
 			withdrawable = eventBalance.mod(totalAmtPerSec);
@@ -125,6 +132,9 @@ export const getDripsWithdrawableFromEvent = async (event: Event) => {
 
 export const validateAddressInput = (input: string) => {
 	if (!utils.isAddress(input)) {
-		throw new Error(`"${input}" does not resolve to an Ethereum address`);
+		throw DripsErrors.addressNotValid(
+			`Could not retrieve collectable amount: invalid address - "${input}" is not an Ethereum address`,
+			input
+		);
 	}
 };
