@@ -1,11 +1,11 @@
 /* eslint-disable max-classes-per-file */
 
 export enum DripsErrorCode {
-	SIGNER_NOT_FOUND = 'SIGNER_NOT_FOUND',
+	INVALID_ADDRESS = 'INVALID_ADDRESS',
+	INVALID_OPERATION = 'INVALID_OPERATION',
 	CONNECTION_FAILED = 'CONNECTION_FAILED',
-	ADDRESS_NOT_VALID = 'ADDRESS_NOT_VALID',
-	PROVIDER_NOT_FOUND = 'PROVIDER_NOT_FOUND',
-	UNKNOWN_CLIENT_ERROR = 'UNKNOWN_CLIENT_ERROR'
+	UNKNOWN_CLIENT_ERROR = 'UNKNOWN_CLIENT_ERROR',
+	INVALID_CONFIGURATION = 'INVALID_CONFIGURATION'
 }
 
 export class DripsError {
@@ -21,12 +21,14 @@ export class DripsError {
 }
 
 export class DripsErrors {
-	static signerNotFound = (debugMessage: string) => new DripsError(DripsErrorCode.SIGNER_NOT_FOUND, debugMessage);
-	static connectionFailed = (debugMessage: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.CONNECTION_FAILED, debugMessage, context);
-	static providerNotFound = (debugMessage: string) => new DripsError(DripsErrorCode.PROVIDER_NOT_FOUND, debugMessage);
-	static addressNotValid = (debugMessage: string, address?: string) =>
-		new DripsError(DripsErrorCode.ADDRESS_NOT_VALID, debugMessage, address);
+	static invalidConfiguration = (debugMessage: string, context?: unknown) =>
+		new DripsError(DripsErrorCode.INVALID_CONFIGURATION, debugMessage, context);
+	static invalidOperation = (debugMessage: string, context?: unknown) =>
+		new DripsError(DripsErrorCode.INVALID_OPERATION, debugMessage, context);
+	static invalidAddress = (debugMessage: string, address?: string) =>
+		new DripsError(DripsErrorCode.INVALID_ADDRESS, debugMessage, address);
 	static unknownClientError = (debugMessage: string, context?: unknown) =>
 		new DripsError(DripsErrorCode.UNKNOWN_CLIENT_ERROR, debugMessage, context);
+	static connectionFailed = (debugMessage: string, context?: unknown) =>
+		new DripsError(DripsErrorCode.CONNECTION_FAILED, debugMessage, context);
 }

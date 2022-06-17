@@ -54,7 +54,7 @@ export class SubgraphClient {
 
 	async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		if (!this.apiUrl) {
-			throw DripsErrors.connectionFailed('Could not query subgraph: API URL is not specified.');
+			throw DripsErrors.connectionFailed('Cannot not query subgraph: API URL is not specified.');
 		}
 
 		const resp = await fetch(this.apiUrl, {

@@ -12,16 +12,6 @@ describe('DripsErrors', () => {
 		assert.equal(uniqueCodes.length, methods.length);
 	});
 
-	describe('signerNotFound()', () => {
-		it('should return SIGNER_NOT_FOUND error code', () => {
-			// Act.
-			const { code } = DripsErrors.signerNotFound('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.SIGNER_NOT_FOUND);
-		});
-	});
-
 	describe('connectionFailed()', () => {
 		it('should return CONNECTION_FAILED error code', () => {
 			// Act.
@@ -32,23 +22,13 @@ describe('DripsErrors', () => {
 		});
 	});
 
-	describe('providerNotFound()', () => {
-		it('should return PROVIDER_NOT_FOUND error code', () => {
-			// Act.
-			const { code } = DripsErrors.providerNotFound('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.PROVIDER_NOT_FOUND);
-		});
-	});
-
 	describe('addressNotValid()', () => {
 		it('should return ADDRESS_NOT_VALID error code', () => {
 			// Act.
-			const { code } = DripsErrors.addressNotValid('');
+			const { code } = DripsErrors.invalidAddress('');
 
 			// Assert.
-			assert.equal(code, DripsErrorCode.ADDRESS_NOT_VALID);
+			assert.equal(code, DripsErrorCode.INVALID_ADDRESS);
 		});
 	});
 
@@ -59,6 +39,16 @@ describe('DripsErrors', () => {
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.UNKNOWN_CLIENT_ERROR);
+		});
+	});
+
+	describe('invalidOperation()', () => {
+		it('should return INVALID_OPERATION error code', () => {
+			// Act.
+			const { code } = DripsErrors.invalidOperation('');
+
+			// Assert.
+			assert.equal(code, DripsErrorCode.INVALID_OPERATION);
 		});
 	});
 });

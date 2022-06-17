@@ -1,5 +1,5 @@
-import type { BigNumberish, Event } from 'ethers';
-import { BigNumber, utils, constants } from 'ethers';
+import { BigNumberish, ethers, Event, BigNumber, utils, constants } from 'ethers';
+import Web3 from 'web3';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DaiDripsHub';
 import { DripsErrors } from './errors';
 import { DripsConfig } from './subgraph';
@@ -64,8 +64,8 @@ export function validateDrips(drips: DripsReceiverStruct[]) {
 	for (let i = 0; i < drips.length; i++) {
 		const { receiver } = drips[i];
 		if (!utils.isAddress(receiver)) {
-			throw DripsErrors.addressNotValid(
-				`Could not retrieve collectable amount: invalid address - "${receiver}" is not an Ethereum address`,
+			throw DripsErrors.invalidAddress(
+				`Cannot retrieve collectable amount: invalid Etherium address '${receiver}'.`,
 				receiver
 			);
 		}
@@ -80,8 +80,8 @@ export function validateSplits(splits: SplitsReceiverStruct[]) {
 	for (let i = 0; i < splits.length; i++) {
 		const { receiver } = splits[i];
 		if (!utils.isAddress(receiver)) {
-			throw DripsErrors.addressNotValid(
-				`Could not retrieve collectable amount: invalid address - "${receiver}" is not an Ethereum address`,
+			throw DripsErrors.invalidAddress(
+				`Cannot retrieve collectable amount: invalid Etherium address - '${receiver}'.`,
 				receiver
 			);
 		}
@@ -132,9 +132,33 @@ export const getDripsWithdrawableFromEvent = async (event: Event) => {
 
 export const validateAddressInput = (input: string) => {
 	if (!utils.isAddress(input)) {
-		throw DripsErrors.addressNotValid(
-			`Could not retrieve collectable amount: invalid address - "${input}" is not an Ethereum address`,
+		throw DripsErrors.invalidAddress(
+			`Cannot retrieve collectable amount: invalid Etherium address - "${input}" is not an Ethereum address`,
 			input
 		);
 	}
+};
+
+export const isEthersProvider = (prov: any): prov is ethers.providers.Provider => Boolean(prov.getNetwork);
+
+export const isWeb3Provider = (prov: any): prov is Web3 => Boolean(prov.currentProvider);
+
+export const transformToEthersProvider = (provider: ethers.providers.Provider | Web3): ethers.providers.Provider => {
+	if (!provider) {
+		throw DripsErrors.invalidOperation('Cannot transform provider to ethers.Provider: provider has a falsy value.');
+	}
+
+	if (isEthersProvider(provider)) {
+		return provider;
+	}
+
+	if (isWeb3Provider(provider)) {
+		return new ethers.providers.Web3Provider(
+			provider.currentProvider as ethers.providers.ExternalProvider | ethers.providers.JsonRpcFetchFunc
+		);
+	}
+
+	throw DripsErrors.invalidOperation(
+		"Cannot transform provider to ethers.providers.Provider: the specified provider seems that it's not of type ethers.providers.Provider or of Web3."
+	);
 };
