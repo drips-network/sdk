@@ -139,14 +139,13 @@ export const validateAddressInput = (input: string) => {
 	}
 };
 
-export const isEthersProvider = (prov: any): prov is ethers.providers.Provider => Boolean(prov.getNetwork);
-
-export const isWeb3Provider = (prov: any): prov is Web3 => Boolean(prov.currentProvider);
-
 export const transformToEthersProvider = (provider: ethers.providers.Provider | Web3): ethers.providers.Provider => {
 	if (!provider) {
 		throw DripsErrors.invalidOperation('Cannot transform provider to ethers.Provider: provider has a falsy value.');
 	}
+
+	const isEthersProvider = (prov: any): prov is ethers.providers.Provider => Boolean(prov.getNetwork);
+	const isWeb3Provider = (prov: any): prov is Web3 => Boolean(prov.currentProvider);
 
 	if (isEthersProvider(provider)) {
 		return provider;
