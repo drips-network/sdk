@@ -1,4 +1,4 @@
-import { DripsErrors } from './errors';
+import { DripsErrors } from './DripsError';
 import * as gql from './gql';
 
 export type Split = {
@@ -28,19 +28,25 @@ export class SubgraphClient {
 
 	async getDripsBySender(address: string): Promise<DripsConfig> {
 		type APIResponse = { dripsConfigs: DripsConfig[] };
+
 		const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id: address });
+
 		return resp.data?.dripsConfigs?.length ? resp.data?.dripsConfigs[0] : ({} as DripsConfig);
 	}
 
 	async getDripsByReceiver(receiver: string): Promise<Drip[]> {
 		type APIResponse = { dripsEntries: Drip[] };
+
 		const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver });
+
 		return resp.data?.dripsEntries;
 	}
 
 	private async _getSplits(query: string, args: { sender: string } | { receiver: string }): Promise<Split[]> {
 		type APIResponse = { splitsEntries: Split[] };
+
 		const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
+
 		return resp.data?.splitsEntries || [];
 	}
 
@@ -54,7 +60,7 @@ export class SubgraphClient {
 
 	async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		if (!this.apiUrl) {
-			throw DripsErrors.connectionFailed('Cannot not query subgraph: API URL is not specified.');
+			throw DripsErrors.connectionFailed('Cannot query subgraph: API URL is not specified.');
 		}
 
 		const resp = await fetch(this.apiUrl, {
@@ -68,6 +74,7 @@ export class SubgraphClient {
 		if (resp.status >= 200 && resp.status <= 299) {
 			return (await resp.json()) as { data: T };
 		}
+
 		throw DripsErrors.unknownClientError(resp.statusText, resp);
 	}
 }

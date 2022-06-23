@@ -3,13 +3,13 @@ type SupportedChainTuple = typeof SUPPORTED_CHAINS;
 export type SupportedChain = SupportedChainTuple[number];
 
 export type NetworkProperties = {
-	name: string;
-	CONTRACT_DAI: string;
-	CONTRACT_DRIPS_HUB: string;
-	[others: string]: string;
+	readonly name: string;
+	readonly CONTRACT_DAI: string;
+	readonly CONTRACT_DRIPS_HUB: string;
+	readonly [others: string]: string;
 };
 
-export const chainIdToContractsMap: Record<SupportedChain, NetworkProperties> = {
+export const chainIdToNetworkPropertiesMap: Record<SupportedChain, NetworkProperties> = {
 	1: {
 		name: 'mainnet',
 		CONTRACT_DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -79,7 +79,3 @@ export const chainIdToContractsMap: Record<SupportedChain, NetworkProperties> = 
 		CONTRACT_METADATA: '0x1C465B0249Fb7c92896709768b9d4aBD0135DBc9'
 	}
 };
-
-export function getContractsForNetwork(network: string) {
-	return Object.values(chainIdToContractsMap).find((n) => n.name === network);
-}

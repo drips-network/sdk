@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { Wallet } from 'ethers';
-import { SubgraphClient } from '../src/subgraph';
+import { SubgraphClient } from '../src/SubgraphClient';
 import * as gql from '../src/gql';
-import { DripsErrorCode } from '../src/errors';
+import { DripsErrorCode } from '../src/DripsError';
 
 describe('SubgraphClient', () => {
 	afterEach(() => {

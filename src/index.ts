@@ -1,5 +1,5 @@
-export * from './subgraph';
-export { default as DripsClient } from './dripsclient';
+export * from './SubgraphClient';
+export { default as DripsClient } from './DripsClient';
 export * from './utils';
 export * as gql from './gql';
 

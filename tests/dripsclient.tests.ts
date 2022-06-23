@@ -1,15 +1,19 @@
-import { BigNumber, ContractTransaction, providers, constants, Signer, Wallet, ethers } from 'ethers';
-import sinon, { StubbedInstance, stubInterface } from 'ts-sinon';
+import type { ContractTransaction, providers, Signer } from 'ethers';
+import { BigNumber, constants, Wallet } from 'ethers';
+import type { StubbedInstance } from 'ts-sinon';
+import sinon, { stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import type { Provider } from '@ethersproject/providers';
-import { Dai, DaiDripsHub, DaiDripsHub__factory, Dai__factory } from '../contracts';
-import DripsClient, { DripsClientConfig } from '../src/dripsclient';
-import { chainIdToContractsMap, SupportedChain } from '../src/contracts';
+import type { Dai, DaiDripsHub } from '../contracts';
+import { DaiDripsHub__factory, Dai__factory } from '../contracts';
+import type { DripsClientConfig } from '../src/dripsclient';
+import DripsClient from '../src/DripsClient';
+import { chainIdToNetworkPropertiesMap } from '../src/NetworkProperties';
 import * as utils from '../src/utils';
-import { DripsErrorCode } from '../src/errors';
+import { DripsErrorCode } from '../src/DripsError';
 
 describe('DripsClient', () => {
-	const CHAIN_ID = 4; // Rinkeby.
+	const CHAIN_ID = 80001;
 
 	let daiContractStub: StubbedInstance<Dai>;
 	let providerStub: StubbedInstance<Provider>;
@@ -32,7 +36,7 @@ describe('DripsClient', () => {
 		daiContractStub.connect.withArgs(signerStub).returns(daiContractStub);
 		sinon
 			.stub(Dai__factory, 'connect')
-			.withArgs(chainIdToContractsMap[CHAIN_ID].CONTRACT_DAI, providerStub)
+			.withArgs(chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DAI, providerStub)
 			.returns(daiContractStub);
 
 		// Setup DaiDripsHub contract stub.
@@ -40,13 +44,12 @@ describe('DripsClient', () => {
 		hubContractStub.connect.withArgs(signerStub).returns(hubContractStub);
 		sinon
 			.stub(DaiDripsHub__factory, 'connect')
-			.withArgs(chainIdToContractsMap[CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
+			.withArgs(chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
 			.returns(hubContractStub);
 
 		// Create a DripsClient instance (system under test).
 		dripsClient = await DripsClient.create({
 			provider: providerStub,
-			chainId: CHAIN_ID,
 			signer: signerStub
 		});
 	});
@@ -56,62 +59,13 @@ describe('DripsClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should create a fully initialized client instance', async () => {
-			// Assert.
-			assert.equal(dripsClient.signer, signerStub);
-			assert.equal(dripsClient.network, await providerStub.getNetwork());
-			assert.equal(dripsClient.provider, providerStub);
-			assert.equal(dripsClient.networkProperties, chainIdToContractsMap[(await providerStub.getNetwork()).chainId]);
-			assert.equal(dripsClient.networkProperties, chainIdToContractsMap[(await providerStub.getNetwork()).chainId]);
-			assert.equal(chainIdToContractsMap[CHAIN_ID], chainIdToContractsMap[(await providerStub.getNetwork()).chainId]);
-
-			assert.equal(dripsClient.daiContract, daiContractStub);
-			assert.equal(dripsClient.hubContract, hubContractStub);
-		});
-
-		it('should throw invalidConfiguration error when chainId is not specified', async () => {
-			// Arrange.
-			let threw = false;
-
-			try {
-				// Act.
-				await DripsClient.create({} as DripsClientConfig);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				assert.isTrue(error.message.includes('chain ID is missing'));
-				threw = true;
-			}
-
-			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
-		});
-
-		it('should throw invalidConfiguration error when chainId is not supported', async () => {
-			// Arrange.
-			let threw = false;
-
-			try {
-				// Act.
-				await DripsClient.create({ chainId: 999 as SupportedChain } as DripsClientConfig);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				assert.isTrue(error.message.includes('unsupported chain ID'));
-				threw = true;
-			}
-
-			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
-		});
-
 		it('should throw invalidConfiguration error when provider is missing', async () => {
 			// Arrange.
 			let threw = false;
 
 			try {
 				// Act.
-				await DripsClient.create({ chainId: CHAIN_ID } as DripsClientConfig);
+				await DripsClient.create({ signer: signerStub as Signer } as DripsClientConfig);
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
@@ -129,7 +83,7 @@ describe('DripsClient', () => {
 
 			try {
 				// Act.
-				await DripsClient.create({ chainId: CHAIN_ID, provider: providerStub as Provider } as DripsClientConfig);
+				await DripsClient.create({ provider: providerStub as Provider } as DripsClientConfig);
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
@@ -141,18 +95,19 @@ describe('DripsClient', () => {
 			assert.isTrue(threw, "Expected to throw but it didn't");
 		});
 
-		it('should throw invalidConfiguration error when chain IDs do not match', async () => {
+		it('should throw invalidAddress error when signer address is not valid', async () => {
 			// Arrange.
 			let threw = false;
-			providerStub.getNetwork.resolves({ chainId: CHAIN_ID + 1 } as providers.Network);
+			const invalidAddress = 'invalid address';
+			signerStub.getAddress.resolves(invalidAddress);
 
 			try {
 				// Act.
-				await DripsClient.create({ chainId: CHAIN_ID, provider: providerStub, signer: signerStub });
+				await DripsClient.create({ provider: providerStub, signer: signerStub });
 			} catch (error) {
 				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				assert.isTrue(error.message.includes('chain IDs do not match'));
+				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
+				assert.isTrue(error.message.includes(`signer address '${invalidAddress}' is not valid`));
 				threw = true;
 			}
 
@@ -160,23 +115,42 @@ describe('DripsClient', () => {
 			assert.isTrue(threw, "Expected to throw but it didn't");
 		});
 
-		it('should throw invalidAddress error when signer address is not valid', async () => {
+		it('should throw invalidConfiguration error when chain ID is not supported', async () => {
 			// Arrange.
 			let threw = false;
-			signerStub.getAddress.resolves('invalid address');
+			providerStub.getNetwork.resolves({ chainId: CHAIN_ID + 1 } as providers.Network);
 
 			try {
 				// Act.
-				await DripsClient.create({ chainId: CHAIN_ID, provider: providerStub, signer: signerStub });
+				await DripsClient.create({ provider: providerStub, signer: signerStub });
 			} catch (error) {
 				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				assert.isTrue(error.message.includes('invalid signer Etherium address'));
+				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
+				assert.isTrue(error.message.includes(`chain ID '${CHAIN_ID + 1}' is not supported`));
 				threw = true;
 			}
 
 			// Assert.
 			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
+		it('should create a fully initialized client instance', async () => {
+			// Assert.
+			assert.equal(dripsClient.signer, signerStub);
+			assert.equal(dripsClient.network, await providerStub.getNetwork());
+			assert.equal(dripsClient.provider, providerStub);
+			assert.equal(
+				dripsClient.networkProperties,
+				chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
+			);
+			assert.equal(
+				dripsClient.networkProperties,
+				chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
+			);
+			assert.equal(
+				chainIdToNetworkPropertiesMap[CHAIN_ID],
+				chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
+			);
 		});
 	});
 
@@ -185,7 +159,7 @@ describe('DripsClient', () => {
 			// Arrange.
 			const tx = {} as ContractTransaction;
 			daiContractStub.approve
-				.withArgs(chainIdToContractsMap[CHAIN_ID].CONTRACT_DRIPS_HUB, constants.MaxUint256)
+				.withArgs(chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB, constants.MaxUint256)
 				.resolves(tx);
 
 			// Act.
@@ -195,7 +169,7 @@ describe('DripsClient', () => {
 			assert.equal(response, tx);
 			assert(
 				daiContractStub.approve.calledOnceWithExactly(
-					chainIdToContractsMap[CHAIN_ID].CONTRACT_DRIPS_HUB,
+					chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB,
 					constants.MaxUint256
 				),
 				`Expected approve() method to be called with different arguments`
@@ -431,10 +405,10 @@ describe('DripsClient', () => {
 	});
 
 	describe('giveFromUser()', async () => {
-		it('should throw if receiver is not a valid Etherium address', async () => {
+		it('should throw if receiver address is not a valid', async () => {
 			// Arrange.
 			const payload = {
-				receiver: 'invalid Etherium address',
+				receiver: 'invalid address',
 				amount: 10
 			};
 
@@ -475,11 +449,11 @@ describe('DripsClient', () => {
 	});
 
 	describe('giveFromAccount()', async () => {
-		it('should throw invalidAddress error when receiver is not a valid Etherium address', async () => {
+		it('should throw invalidAddress error when receiver address is not valid', async () => {
 			// Arrange.
 			const payload = {
 				account: 1,
-				receiver: 'invalid Etherium address',
+				receiver: 'invalid address',
 				amount: 10
 			};
 
@@ -530,7 +504,7 @@ describe('DripsClient', () => {
 			const expectedAllowance = BigNumber.from(1000);
 
 			daiContractStub.allowance
-				.withArgs(await dripsClient.signer.getAddress(), chainIdToContractsMap[CHAIN_ID].CONTRACT_DRIPS_HUB)
+				.withArgs(await dripsClient.signer.getAddress(), chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB)
 				.resolves(expectedAllowance);
 
 			// Act.
@@ -541,7 +515,7 @@ describe('DripsClient', () => {
 			assert(
 				daiContractStub.allowance.calledOnceWithExactly(
 					await dripsClient.signer.getAddress(),
-					chainIdToContractsMap[CHAIN_ID].CONTRACT_DRIPS_HUB
+					chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB
 				),
 				'Expected allowance() method to be called with different arguments'
 			);
@@ -549,7 +523,7 @@ describe('DripsClient', () => {
 	});
 
 	describe('getAmountCollectableWithSplits()', () => {
-		it('should throw invalidAddress error when address property is not specified', async () => {
+		it('should throw invalidAddress error when address is not valid', async () => {
 			// Arrange.
 			let threw = false;
 

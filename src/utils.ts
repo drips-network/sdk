@@ -1,8 +1,9 @@
-import { BigNumberish, ethers, Event, BigNumber, utils, constants } from 'ethers';
-import Web3 from 'web3';
+import type { BigNumberish, Event } from 'ethers';
+import { ethers, BigNumber, utils, constants } from 'ethers';
+import type Web3 from 'web3';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DaiDripsHub';
-import { DripsErrors } from './errors';
-import { DripsConfig } from './subgraph';
+import { DripsErrors } from './DripsError';
+import type { DripsConfig } from './SubgraphClient';
 
 export const oneMonth = 30 * 24 * 60 * 60;
 export const TOTAL_SPLITS_WEIGHT = 1000000;
@@ -65,8 +66,7 @@ export function validateDrips(drips: DripsReceiverStruct[]) {
 		const { receiver } = drips[i];
 		if (!utils.isAddress(receiver)) {
 			throw DripsErrors.invalidAddress(
-				`Cannot retrieve collectable amount: invalid Etherium address '${receiver}'.`,
-				receiver
+				`Error validating Drips configuration: receiver address '${receiver}' is not valid.`
 			);
 		}
 	}
@@ -81,7 +81,7 @@ export function validateSplits(splits: SplitsReceiverStruct[]) {
 		const { receiver } = splits[i];
 		if (!utils.isAddress(receiver)) {
 			throw DripsErrors.invalidAddress(
-				`Cannot retrieve collectable amount: invalid Etherium address - '${receiver}'.`,
+				`Cannot retrieve collectable amount: receiver address '${receiver}' is not valid.`,
 				receiver
 			);
 		}
@@ -132,10 +132,7 @@ export const getDripsWithdrawableFromEvent = async (event: Event) => {
 
 export const validateAddressInput = (input: string) => {
 	if (!utils.isAddress(input)) {
-		throw DripsErrors.invalidAddress(
-			`Cannot retrieve collectable amount: invalid Etherium address - "${input}" is not an Ethereum address`,
-			input
-		);
+		throw DripsErrors.invalidAddress(`address '${input}' is not valid.`);
 	}
 };
 
