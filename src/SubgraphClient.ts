@@ -3,30 +3,34 @@ import * as gql from './gql';
 
 export type Split = {
 	sender: string;
-	receiver: string;
 	weight: number;
+	receiver: string;
 };
 
 export type Drip = {
-	amtPerSec: string;
 	receiver: string;
+	amtPerSec: string;
 };
 
 export type DripsConfig = {
-	withdrawable?: number;
 	balance?: string;
-	timestamp?: string;
 	receivers?: Drip[];
+	timestamp?: string;
+	withdrawable?: number;
 };
 
 export class SubgraphClient {
-	apiUrl: string;
+	public readonly apiUrl: string;
 
-	constructor(apiUrl: string) {
+	public constructor(apiUrl: string) {
+		if (!apiUrl) {
+			throw DripsErrors.invalidArgument('Cannot create instance: API URL is missing.');
+		}
+
 		this.apiUrl = apiUrl;
 	}
 
-	async getDripsBySender(address: string): Promise<DripsConfig> {
+	public async getDripsBySender(address: string): Promise<DripsConfig> {
 		type APIResponse = { dripsConfigs: DripsConfig[] };
 
 		const resp = await this.query<APIResponse>(gql.dripsConfigByID, { id: address });
@@ -34,7 +38,7 @@ export class SubgraphClient {
 		return resp.data?.dripsConfigs?.length ? resp.data?.dripsConfigs[0] : ({} as DripsConfig);
 	}
 
-	async getDripsByReceiver(receiver: string): Promise<Drip[]> {
+	public async getDripsByReceiver(receiver: string): Promise<Drip[]> {
 		type APIResponse = { dripsEntries: Drip[] };
 
 		const resp = await this.query<APIResponse>(gql.dripsByReceiver, { receiver });
@@ -42,25 +46,19 @@ export class SubgraphClient {
 		return resp.data?.dripsEntries;
 	}
 
-	private async _getSplits(query: string, args: { sender: string } | { receiver: string }): Promise<Split[]> {
-		type APIResponse = { splitsEntries: Split[] };
-
-		const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
-
-		return resp.data?.splitsEntries || [];
-	}
-
-	getSplitsBySender(sender: string) {
+	public getSplitsBySender(sender: string) {
 		return this._getSplits(gql.splitsBySender, { sender });
 	}
 
-	getSplitsByReceiver(receiver: string) {
+	public getSplitsByReceiver(receiver: string) {
 		return this._getSplits(gql.splitsByReceiver, { receiver });
 	}
 
-	async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
+	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		if (!this.apiUrl) {
-			throw DripsErrors.connectionFailed('Cannot query subgraph: API URL is not specified.');
+			throw DripsErrors.invalidOperation(
+				`API URL is missing but this should never happen here! Make sure you didn't *manually* changed it after creating the client instance.`
+			);
 		}
 
 		const resp = await fetch(this.apiUrl, {
@@ -75,6 +73,14 @@ export class SubgraphClient {
 			return (await resp.json()) as { data: T };
 		}
 
-		throw DripsErrors.unknownClientError(resp.statusText, resp);
+		throw DripsErrors.unknownError(resp.statusText, resp);
+	}
+
+	private async _getSplits(query: string, args: { sender: string } | { receiver: string }): Promise<Split[]> {
+		type APIResponse = { splitsEntries: Split[] };
+
+		const resp = await this.query<APIResponse>(query, { ...args, first: 100 });
+
+		return resp.data?.splitsEntries || [];
 	}
 }

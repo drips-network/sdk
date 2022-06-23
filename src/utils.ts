@@ -138,7 +138,7 @@ export const validateAddressInput = (input: string) => {
 
 export const transformToEthersProvider = (provider: ethers.providers.Provider | Web3): ethers.providers.Provider => {
 	if (!provider) {
-		throw DripsErrors.invalidOperation('Cannot transform provider to ethers.Provider: provider has a falsy value.');
+		throw DripsErrors.invalidArgument('Cannot transform provider to ethers.Provider: provider has a falsy value.');
 	}
 
 	const isEthersProvider = (prov: any): prov is ethers.providers.Provider => Boolean(prov.getNetwork);

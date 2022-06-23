@@ -12,43 +12,58 @@ describe('DripsErrors', () => {
 		assert.equal(uniqueCodes.length, methods.length);
 	});
 
-	describe('connectionFailed()', () => {
-		it('should return CONNECTION_FAILED error code', () => {
-			// Act.
-			const { code } = DripsErrors.connectionFailed('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.CONNECTION_FAILED);
-		});
-	});
-
 	describe('addressNotValid()', () => {
-		it('should return ADDRESS_NOT_VALID error code', () => {
+		it('should return expected error details', () => {
 			// Act.
-			const { code } = DripsErrors.invalidAddress('');
+			const { code, message } = DripsErrors.invalidAddress('');
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_ADDRESS);
+			assert.isTrue(message.includes(DripsErrorCode.INVALID_ADDRESS));
 		});
 	});
 
-	describe('unknownClientError()', () => {
-		it('should return UNKNOWN_CLIENT_ERROR error code', () => {
+	describe('invalidConfiguration()', () => {
+		it('should return expected error details', () => {
 			// Act.
-			const { code } = DripsErrors.unknownClientError('');
+			const { code, message } = DripsErrors.invalidConfiguration('');
 
 			// Assert.
-			assert.equal(code, DripsErrorCode.UNKNOWN_CLIENT_ERROR);
+			assert.equal(code, DripsErrorCode.INVALID_CONFIGURATION);
+			assert.isTrue(message.includes(DripsErrorCode.INVALID_CONFIGURATION));
+		});
+	});
+
+	describe('unknownError()', () => {
+		it('should return expected error details', () => {
+			// Act.
+			const { code, message } = DripsErrors.unknownError('');
+
+			// Assert.
+			assert.equal(code, DripsErrorCode.UNKNOWN_ERROR);
+			assert.isTrue(message.includes(DripsErrorCode.UNKNOWN_ERROR));
 		});
 	});
 
 	describe('invalidOperation()', () => {
-		it('should return INVALID_OPERATION error code', () => {
+		it('should return expected error details', () => {
 			// Act.
-			const { code } = DripsErrors.invalidOperation('');
+			const { code, message } = DripsErrors.invalidOperation('');
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_OPERATION);
+			assert.isTrue(message.includes(DripsErrorCode.INVALID_OPERATION));
+		});
+	});
+
+	describe('invalidArgument()', () => {
+		it('should return expected error details', () => {
+			// Act.
+			const { code, message } = DripsErrors.invalidArgument('');
+
+			// Assert.
+			assert.equal(code, DripsErrorCode.INVALID_ARGUMENT);
+			assert.isTrue(message.includes(DripsErrorCode.INVALID_ARGUMENT));
 		});
 	});
 });

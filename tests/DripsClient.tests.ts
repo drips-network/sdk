@@ -69,7 +69,6 @@ describe('DripsClient', () => {
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				assert.isTrue(error.message.includes('provider is missing'));
 				threw = true;
 			}
 
@@ -87,7 +86,6 @@ describe('DripsClient', () => {
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				assert.isTrue(error.message.includes('signer is missing'));
 				threw = true;
 			}
 
@@ -107,7 +105,6 @@ describe('DripsClient', () => {
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				assert.isTrue(error.message.includes(`signer address '${invalidAddress}' is not valid`));
 				threw = true;
 			}
 
@@ -126,7 +123,6 @@ describe('DripsClient', () => {
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				assert.isTrue(error.message.includes(`chain ID '${CHAIN_ID + 1}' is not supported`));
 				threw = true;
 			}
 

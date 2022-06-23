@@ -1,11 +1,13 @@
 import { assert } from 'chai';
-import { chainIdToNetworkPropertiesMap, SUPPORTED_CHAINS } from '../src/NetworkProperties';
+import { supportedChains } from '../src/NetworkProperties';
 
 describe('NetworkProperties', () => {
 	it('should export only unique and supported chain IDs', () => {
-		const chainIds = Object.keys(chainIdToNetworkPropertiesMap).map((x) => parseInt(x, 10));
+		// Arrange.
+		const chainIds = [1, 4, 137, 80001];
 
-		assert.includeMembers(SUPPORTED_CHAINS as unknown as number[], chainIds);
-		assert.equal([...new Set(SUPPORTED_CHAINS)].length, [...new Set(chainIds)].length);
+		// Assert.
+		assert.includeMembers(supportedChains as number[], chainIds);
+		assert.equal([...new Set(supportedChains)].length, [...new Set(chainIds)].length);
 	});
 });

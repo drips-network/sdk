@@ -6,27 +6,45 @@ import * as gql from '../src/gql';
 import { DripsErrorCode } from '../src/DripsError';
 
 describe('SubgraphClient', () => {
+	const API_URL = 'https://api.graphql';
+	let subgraphClient: SubgraphClient;
+
+	// Base "Arrange" step.
+	beforeEach(() => {
+		subgraphClient = new SubgraphClient(API_URL);
+	});
+
 	afterEach(() => {
 		sinon.restore();
 	});
 
 	describe('constructor()', () => {
-		it('should set the API URL', () => {
-			// Arrange.
-			const apiUrl = 'https://api.graphql';
+		it('should throw invalidArgument error when provider is missing', async () => {
+			let threw = false;
 
-			// Act.
-			const client = new SubgraphClient(apiUrl);
+			try {
+				// Act.
+				// eslint-disable-next-line no-new
+				new SubgraphClient(undefined as unknown as string);
+			} catch (error) {
+				// Assert.
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
 
 			// Assert.
-			assert.equal(client.apiUrl, apiUrl);
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
+		it('should set the API URL', () => {
+			// Assert.
+			assert.equal(subgraphClient.apiUrl, API_URL);
 		});
 	});
 
 	describe('getDripsBySender()', async () => {
 		it('should return expected Drips Config when Drips Configs exist', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const { address } = Wallet.createRandom();
 			const apiResponse = {
 				dripsConfigs: [
@@ -45,12 +63,12 @@ describe('SubgraphClient', () => {
 			};
 
 			const clientStub = sinon
-				.stub(client, 'query')
+				.stub(subgraphClient, 'query')
 				.withArgs(gql.dripsConfigByID, { id: address })
 				.resolves({ data: apiResponse });
 
 			// Act.
-			const dripsConfig = await client.getDripsBySender(address);
+			const dripsConfig = await subgraphClient.getDripsBySender(address);
 
 			// Assert.
 			assert.equal(dripsConfig, apiResponse.dripsConfigs[0]);
@@ -64,14 +82,13 @@ describe('SubgraphClient', () => {
 
 		it('should return empty object when Drips Configs does not exist', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const sender = Wallet.createRandom().address;
 			const apiResponse = { data: { dripsConfigs: [] } };
 
-			sinon.stub(client, 'query').withArgs(gql.dripsConfigByID, { id: sender }).resolves({ data: apiResponse });
+			sinon.stub(subgraphClient, 'query').withArgs(gql.dripsConfigByID, { id: sender }).resolves({ data: apiResponse });
 
 			// Act.
-			const dripsConfig = await client.getDripsBySender(sender);
+			const dripsConfig = await subgraphClient.getDripsBySender(sender);
 
 			// Assert.
 			assert.deepEqual(dripsConfig, {});
@@ -81,7 +98,6 @@ describe('SubgraphClient', () => {
 	describe('getDripsByReceiver()', async () => {
 		it('should return expected Drips', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const receiver = Wallet.createRandom().address;
 			const apiResponse = {
 				dripsEntries: [
@@ -93,12 +109,12 @@ describe('SubgraphClient', () => {
 			};
 
 			const clientStub = sinon
-				.stub(client, 'query')
+				.stub(subgraphClient, 'query')
 				.withArgs(gql.dripsByReceiver, { receiver })
 				.resolves({ data: apiResponse });
 
 			// Act.
-			const drips = await client.getDripsByReceiver(receiver);
+			const drips = await subgraphClient.getDripsByReceiver(receiver);
 
 			// Assert.
 			assert.equal(drips, apiResponse.dripsEntries);
@@ -114,7 +130,6 @@ describe('SubgraphClient', () => {
 	describe('getSplitsBySender()', () => {
 		it('should return expected Splits', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const sender = Wallet.createRandom().address;
 			const apiResponse = {
 				splitsEntries: [
@@ -127,12 +142,12 @@ describe('SubgraphClient', () => {
 			};
 
 			const clientStub = sinon
-				.stub(client, 'query')
+				.stub(subgraphClient, 'query')
 				.withArgs(gql.splitsBySender, { sender, first: 100 })
 				.resolves({ data: apiResponse });
 
 			// Act.
-			const splits = await client.getSplitsBySender(sender);
+			const splits = await subgraphClient.getSplitsBySender(sender);
 
 			// Assert.
 			assert.equal(splits, apiResponse.splitsEntries);
@@ -208,14 +223,17 @@ describe('SubgraphClient', () => {
 	describe('query()', async () => {
 		it('should throw if API URL is empty', async () => {
 			// Arrange.
-			const client = new SubgraphClient('');
+			const client = new SubgraphClient('API URL');
+
+			type Writeable<SubgraphClient> = { -readonly [P in keyof SubgraphClient]: SubgraphClient[P] };
+			(client as Writeable<SubgraphClient>).apiUrl = '';
 
 			try {
 				// Act.
 				await client.query(gql.dripsByReceiver, {});
 			} catch (error) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.CONNECTION_FAILED);
+				assert.equal(error.code, DripsErrorCode.INVALID_OPERATION);
 			}
 		});
 
@@ -262,7 +280,7 @@ describe('SubgraphClient', () => {
 				await client.query(gql.dripsByReceiver, {});
 			} catch (error) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.UNKNOWN_CLIENT_ERROR);
+				assert.equal(error.code, DripsErrorCode.UNKNOWN_ERROR);
 			}
 		});
 	});

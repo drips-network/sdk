@@ -1,7 +1,3 @@
-export const SUPPORTED_CHAINS = [1, 4, 137, 80001] as const;
-type SupportedChainTuple = typeof SUPPORTED_CHAINS;
-export type SupportedChain = SupportedChainTuple[number];
-
 export type NetworkProperties = {
 	readonly name: string;
 	readonly CONTRACT_DAI: string;
@@ -9,7 +5,7 @@ export type NetworkProperties = {
 	readonly [others: string]: string;
 };
 
-export const chainIdToNetworkPropertiesMap: Record<SupportedChain, NetworkProperties> = {
+export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = {
 	1: {
 		name: 'mainnet',
 		CONTRACT_DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -79,3 +75,7 @@ export const chainIdToNetworkPropertiesMap: Record<SupportedChain, NetworkProper
 		CONTRACT_METADATA: '0x1C465B0249Fb7c92896709768b9d4aBD0135DBc9'
 	}
 };
+
+export const supportedChains: readonly number[] = Object.freeze(
+	Object.keys(chainIdToNetworkPropertiesMap).map((chainId) => parseInt(chainId, 10))
+);
