@@ -3,7 +3,7 @@ import * as sinon from 'sinon';
 import { Wallet } from 'ethers';
 import { SubgraphClient } from '../src/SubgraphClient';
 import * as gql from '../src/gql';
-import { DripsErrorCode } from '../src/DripsError';
+import { DripsErrorCode } from '../src/dripsErrors';
 
 describe('SubgraphClient', () => {
 	afterEach(() => {

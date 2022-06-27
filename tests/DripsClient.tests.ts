@@ -9,8 +9,8 @@ import { DaiDripsHub__factory, Dai__factory } from '../contracts';
 import type { DripsClientConfig } from '../src/dripsclient';
 import DripsClient from '../src/DripsClient';
 import { chainIdToNetworkPropertiesMap } from '../src/NetworkProperties';
-import * as utils from '../src/utils';
-import { DripsErrorCode } from '../src/DripsError';
+import * as validators from '../src/validators';
+import { DripsErrorCode } from '../src/dripsErrors';
 
 describe('DripsClient', () => {
 	const CHAIN_ID = 80001;
@@ -178,6 +178,40 @@ describe('DripsClient', () => {
 	});
 
 	describe('updateUserDrips()', async () => {
+		it('should throw invalidOperation when receivers contain at least one invalid entry', async () => {
+			// Arrange.
+			const payload = {
+				lastUpdate: 2,
+				lastBalance: 22,
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
+				balanceDelta: 22,
+				newReceivers: [
+					{ receiver: Wallet.createRandom().address, amtPerSec: 3 },
+					{ receiver: 'invalid address', amtPerSec: 3 }
+				]
+			};
+
+			let threw = false;
+
+			// Act.
+			try {
+				await dripsClient.updateUserDrips(
+					payload.lastBalance,
+					payload.lastBalance,
+					payload.currentReceivers,
+					payload.balanceDelta,
+					payload.newReceivers
+				);
+			} catch (error) {
+				assert.equal(error.code, DripsErrorCode.INVALID_OPERATION);
+				assert.equal(error.context, payload.newReceivers);
+				threw = true;
+			}
+
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
 		it('should validate Drips', async () => {
 			// Arrange.
 			const payload = {
@@ -188,7 +222,7 @@ describe('DripsClient', () => {
 				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
-			const validateDripsStub = sinon.stub(utils, 'validateDrips');
+			const validateDripsStub = sinon.stub(validators, 'areValidDripsReceivers').returns(true);
 
 			hubContractStub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
 				.withArgs(
@@ -262,6 +296,42 @@ describe('DripsClient', () => {
 	});
 
 	describe('updateSubAccountDrips()', async () => {
+		it('should throw invalidOperation when receivers contain at least one invalid entry', async () => {
+			// Arrange.
+			const payload = {
+				account: 1,
+				lastUpdate: 2,
+				lastBalance: 22,
+				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
+				balanceDelta: 22,
+				newReceivers: [
+					{ receiver: Wallet.createRandom().address, amtPerSec: 3 },
+					{ receiver: 'invalid address', amtPerSec: 3 }
+				]
+			};
+
+			let threw = false;
+
+			// Act.
+			try {
+				await dripsClient.updateSubAccountDrips(
+					payload.account,
+					payload.lastBalance,
+					payload.lastBalance,
+					payload.currentReceivers,
+					payload.balanceDelta,
+					payload.newReceivers
+				);
+			} catch (error) {
+				assert.equal(error.code, DripsErrorCode.INVALID_OPERATION);
+				assert.equal(error.context, payload.newReceivers);
+				threw = true;
+			}
+
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
 		it('should validate Drips', async () => {
 			// Arrange.
 			const payload = {
@@ -273,7 +343,7 @@ describe('DripsClient', () => {
 				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
 			};
 
-			const validateDripsStub = sinon.stub(utils, 'validateDrips');
+			const validateDripsStub = sinon.stub(validators, 'areValidDripsReceivers').returns(true);
 
 			hubContractStub['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
 				.withArgs(
@@ -353,6 +423,34 @@ describe('DripsClient', () => {
 	});
 
 	describe('updateUserSplits()', async () => {
+		it('should throw invalidOperation when receivers contain at least one invalid entry', async () => {
+			// Arrange.
+			const payload = {
+				lastUpdate: 2,
+				lastBalance: 22,
+				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 1 }],
+				balanceDelta: 22,
+				newReceivers: [
+					{ receiver: Wallet.createRandom().address, weight: 3 },
+					{ receiver: 'invalid address', weight: 3 }
+				]
+			};
+
+			let threw = false;
+
+			// Act.
+			try {
+				await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
+			} catch (error) {
+				assert.equal(error.code, DripsErrorCode.INVALID_OPERATION);
+				assert.equal(error.context, payload.newReceivers);
+				threw = true;
+			}
+
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
 		it('should validate Drips', async () => {
 			// Arrange.
 			const payload = {
@@ -363,7 +461,7 @@ describe('DripsClient', () => {
 				newReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }]
 			};
 
-			const validateSlitsStub = sinon.stub(utils, 'validateSplits');
+			const validateSlitsStub = sinon.stub(validators, 'areValidSplitsReceivers').returns(true);
 
 			hubContractStub.setSplits
 				.withArgs(payload.currentReceivers, payload.newReceivers)
