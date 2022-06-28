@@ -1,38 +1,23 @@
 <script lang="ts">
-	import type { SubgraphClient, DripsClient } from 'drips-sdk';
-	import { BigNumberish, utils } from 'ethers';
+  import { type SubgraphClient, toDAI, type DripsClient } from "drips-sdk";
 
-	// clip to nearest hundredth (dont round up)
-	export const round = (num: number, dec = 2) => (Math.floor(num * 100) / 100).toFixed(dec);
+  export let dripsClient: DripsClient;
+  export let subgraphClient: SubgraphClient;
 
-	export const toDAI = (wei: BigNumberish, roundTo: number, format = 'pretty') => {
-		const dai = utils.formatEther(wei);
-		if (format === 'exact') {
-			return dai;
-		}
-		return round(parseFloat(dai), roundTo);
-	};
+  let daiApproved = '';
+  let daiCollectable: Awaited<ReturnType<DripsClient['getAmountCollectableWithSplits']>>;
 
-	export let dripsClient: DripsClient;
-	export let subgraphClient: SubgraphClient;
-
-	let address = '';
-	let networkId = 0;
-	let daiApproved = '';
-	let daiCollectable: Awaited<ReturnType<DripsClient['getAmountCollectableWithSplits']>>;
-
-	$: if (Boolean(dripsClient) && subgraphClient) displayWalletAndAddressStats();
-
-	async function displayWalletAndAddressStats() {
-		address = await dripsClient.signer.getAddress();
-		daiApproved = toDAI(await dripsClient.getAllowance(), 2, 'pretty');
-		const splits = await subgraphClient.getSplitsBySender(address.toLowerCase());
-		daiCollectable = await dripsClient.getAmountCollectableWithSplits(address, splits);
-	}
+  $: if (dripsClient?.connected && subgraphClient) displayWalletAndAddressStats();
+  
+  async function displayWalletAndAddressStats () {
+    daiApproved = toDAI(await dripsClient.getAllowance(), 'pretty', 2)
+    const splits = await subgraphClient.getSplitsBySender(dripsClient.address.toLowerCase())
+    daiCollectable = await dripsClient.getAmountCollectableWithSplits(dripsClient.address, splits)
+  }
 </script>
 
-<div>Address: {address || '[Not Connected]'}</div>
-<div>Network: {networkId || '[Not Connected]'}</div>
+<div>Address: {dripsClient?.address || '[Not Connected]'}</div>
+<div>Network: {dripsClient?.networkId || '[Not Connected]'}</div>
 <div>DAI Approved: {daiApproved || '[Not Connected]'}</div>
 <div>DAI Collectable (after splits): {daiCollectable ? daiCollectable.collected : '[Not Connected]'}</div>
-<div>DAI to be Split to others: {daiCollectable ? daiCollectable.split : '[Not Connected]'}</div>
+<div>DAI to be Split to others:  {daiCollectable ? daiCollectable.split : '[Not Connected]'}</div>
