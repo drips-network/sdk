@@ -5,10 +5,10 @@ import type { Network, Provider } from '@ethersproject/providers';
 import type { Dai, DaiDripsHub } from '../contracts';
 import type { NetworkProperties } from './NetworkProperties';
 import { chainIdToNetworkPropertiesMap, SUPPORTED_CHAINS } from './NetworkProperties';
-import { validateDrips, validateSplits } from './utils';
+import { areValidDripsReceivers, areValidSplitsReceivers } from './validators';
 import { Dai__factory } from '../contracts/factories/Dai__factory';
 import { DaiDripsHub__factory } from '../contracts/factories/DaiDripsHub__factory';
-import { DripsErrors } from './DripsError';
+import { DripsErrors } from './dripsErrors';
 
 export type DripsClientConfig = {
 	signer: Signer;
@@ -75,7 +75,10 @@ export default class DripsClient {
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateDrips(newReceivers);
+		// TODO: Change to invalidArgument after merge (https://github.com/radicle-dev/drips-js-sdk/pull/40#issuecomment-1167454932).
+		if (!areValidDripsReceivers(newReceivers)) {
+			throw DripsErrors.invalidOperation('Cannot update user Drips: receivers are not valid.', newReceivers);
+		}
 
 		const contractSigner = this._hubContract.connect(this.signer);
 
@@ -96,8 +99,10 @@ export default class DripsClient {
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateDrips(newReceivers);
-
+		// TODO: Change to invalidArgument after merge (https://github.com/radicle-dev/drips-js-sdk/pull/40#issuecomment-1167454932).
+		if (!areValidDripsReceivers(newReceivers)) {
+			throw DripsErrors.invalidOperation('Cannot update user Drips: receivers are not valid.', newReceivers);
+		}
 		const contractSigner = this._hubContract.connect(this.signer);
 
 		return contractSigner['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
@@ -114,8 +119,10 @@ export default class DripsClient {
 		currentReceivers: SplitsReceiverStruct[],
 		newReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateSplits(newReceivers);
-
+		if (!areValidSplitsReceivers(newReceivers)) {
+			// TODO: Change to invalidArgument after merge (https://github.com/radicle-dev/drips-js-sdk/pull/40#issuecomment-1167454932).
+			throw DripsErrors.invalidOperation('Cannot update user Splits: receivers are not valid', newReceivers);
+		}
 		const contractSigner = this._hubContract.connect(this.signer);
 
 		return contractSigner.setSplits(currentReceivers, newReceivers);
