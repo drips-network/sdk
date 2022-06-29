@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { DripsErrorCode, DripsErrors } from '../src/DripsError';
+import { DripsErrorCode, DripsErrors } from '../src/dripsErrors';
 
 describe('DripsErrors', () => {
 	it('should have unique error codes', () => {

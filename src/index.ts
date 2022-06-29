@@ -1,6 +1,6 @@
 export * from './SubgraphClient';
 export { default as DripsClient } from './DripsClient';
-export * from './utils';
+export * from './validators';
 export * as gql from './gql';
 
 // contract typings. we can move these to separate

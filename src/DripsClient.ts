@@ -4,11 +4,11 @@ import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DaiDri
 import type { Network, Provider } from '@ethersproject/providers';
 import type { Dai, DaiDripsHub } from '../contracts';
 import type { NetworkProperties } from './NetworkProperties';
-import { supportedChains, chainIdToNetworkPropertiesMap } from './NetworkProperties';
-import { validateDrips, validateSplits } from './utils';
+import { chainIdToNetworkPropertiesMap, supportedChains } from './NetworkProperties';
+import { areValidDripsReceivers, areValidSplitsReceivers } from './validators';
 import { Dai__factory } from '../contracts/factories/Dai__factory';
 import { DaiDripsHub__factory } from '../contracts/factories/DaiDripsHub__factory';
-import { DripsErrors } from './DripsError';
+import { DripsErrors } from './dripsErrors';
 
 export type DripsClientConfig = {
 	signer: Signer;
@@ -92,7 +92,9 @@ export default class DripsClient {
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateDrips(newReceivers);
+		if (!areValidDripsReceivers(newReceivers)) {
+			throw DripsErrors.invalidArgument('Cannot update user Drips: receivers are not valid.', newReceivers);
+		}
 
 		const contractSigner = this.#hubContract.connect(this.signer);
 
@@ -113,8 +115,9 @@ export default class DripsClient {
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateDrips(newReceivers);
-
+		if (!areValidDripsReceivers(newReceivers)) {
+			throw DripsErrors.invalidArgument('Cannot update user Drips: receivers are not valid.', newReceivers);
+		}
 		const contractSigner = this.#hubContract.connect(this.signer);
 
 		return contractSigner['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
@@ -131,8 +134,9 @@ export default class DripsClient {
 		currentReceivers: SplitsReceiverStruct[],
 		newReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateSplits(newReceivers);
-
+		if (!areValidSplitsReceivers(newReceivers)) {
+			throw DripsErrors.invalidArgument('Cannot update user Splits: receivers are not valid', newReceivers);
+		}
 		const contractSigner = this.#hubContract.connect(this.signer);
 
 		return contractSigner.setSplits(currentReceivers, newReceivers);
