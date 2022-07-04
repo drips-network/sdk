@@ -2,12 +2,14 @@ import type { ContractTransaction, Signer, BigNumber, BigNumberish } from 'ether
 import { utils, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DaiDripsHub';
 import type { Network, Provider } from '@ethersproject/providers';
+import { Result } from 'typescript-functional-extensions';
 import type { Dai, DaiDripsHub } from '../contracts';
 import type { NetworkProperties } from './NetworkProperties';
 import { chainIdToNetworkPropertiesMap, supportedChains } from './NetworkProperties';
 import { areValidDripsReceivers, areValidSplitsReceivers } from './validators';
 import { Dai__factory } from '../contracts/factories/Dai__factory';
 import { DaiDripsHub__factory } from '../contracts/factories/DaiDripsHub__factory';
+import type { DripsError } from './dripsErrors';
 import { DripsErrors } from './dripsErrors';
 
 export type DripsClientConfig = {
@@ -41,34 +43,37 @@ export default class DripsClient {
 
 	private constructor() {}
 
-	public static async create(config: DripsClientConfig): Promise<DripsClient> {
+	public static async create(config: DripsClientConfig): Promise<Result<DripsClient, DripsError>> {
 		if (!config.provider) {
-			throw DripsErrors.invalidConfiguration('Cannot create instance: provider is missing.');
+			return Result.failure(DripsErrors.invalidConfiguration('Cannot create instance: provider is missing.'));
 		}
 		if (!config.signer) {
-			throw DripsErrors.invalidConfiguration('Cannot create instance: signer is missing.');
+			return Result.failure(DripsErrors.invalidConfiguration('Cannot create instance: signer is missing.'));
 		}
 
 		const { provider, signer } = config;
 
 		const signerAddress = await signer.getAddress();
 		if (!utils.isAddress(signerAddress)) {
-			throw DripsErrors.invalidAddress(`Cannot create instance: signer address '${signerAddress}' is not valid.`);
+			return Result.failure(
+				DripsErrors.invalidAddress(`Cannot create instance: signer address '${signerAddress}' is not valid.`)
+			);
 		}
 
 		const network = await provider.getNetwork();
 		const networkProperties = chainIdToNetworkPropertiesMap[network.chainId];
 
 		if (!networkProperties?.CONTRACT_DAI || !networkProperties?.CONTRACT_DRIPS_HUB) {
-			throw DripsErrors.invalidConfiguration(
-				`Cannot create instance: chain ID '${
-					network.chainId
-				}' is not supported. Supported chain IDs are: '${supportedChains.toString()}'.`
+			return Result.failure(
+				DripsErrors.invalidConfiguration(
+					`Cannot create instance: chain ID '${
+						network.chainId
+					}' is not supported. Supported chain IDs are: '${supportedChains.toString()}'.`
+				)
 			);
 		}
 
 		const dripsClient = new DripsClient();
-
 		dripsClient.#signer = signer;
 		dripsClient.#network = network;
 		dripsClient.#provider = provider;
@@ -76,7 +81,7 @@ export default class DripsClient {
 		dripsClient.#daiContract = Dai__factory.connect(networkProperties.CONTRACT_DAI, provider);
 		dripsClient.#hubContract = DaiDripsHub__factory.connect(networkProperties.CONTRACT_DRIPS_HUB, provider);
 
-		return dripsClient;
+		return Result.success(dripsClient);
 	}
 
 	public approveDAIContract(): Promise<ContractTransaction> {
@@ -85,42 +90,49 @@ export default class DripsClient {
 		return contractSigner.approve(this.networkProperties.CONTRACT_DRIPS_HUB, constants.MaxUint256);
 	}
 
-	public updateUserDrips(
+	public async updateUserDrips(
 		lastUpdate: BigNumberish,
 		lastBalance: BigNumberish,
 		currentReceivers: DripsReceiverStruct[],
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
-	): Promise<ContractTransaction> {
+	): Promise<Result<ContractTransaction, DripsError>> {
 		if (!areValidDripsReceivers(newReceivers)) {
-			throw DripsErrors.invalidArgument('Cannot update user Drips: receivers are not valid.', newReceivers);
+			return Result.failure(
+				DripsErrors.invalidArgument('Cannot update user Drips: receivers are not valid.', newReceivers)
+			);
 		}
 
 		const contractSigner = this.#hubContract.connect(this.signer);
 
-		return contractSigner['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
+		const tx = await contractSigner['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
 			lastUpdate,
 			lastBalance,
 			currentReceivers,
 			balanceDelta,
 			newReceivers
 		);
+
+		return Result.success(tx);
 	}
 
-	public updateSubAccountDrips(
+	public async updateSubAccountDrips(
 		subAccountId: BigNumberish,
 		lastUpdate: BigNumberish,
 		lastBalance: BigNumberish,
 		currentReceivers: DripsReceiverStruct[],
 		balanceDelta: BigNumberish,
 		newReceivers: DripsReceiverStruct[]
-	): Promise<ContractTransaction> {
+	): Promise<Result<ContractTransaction, DripsError>> {
 		if (!areValidDripsReceivers(newReceivers)) {
-			throw DripsErrors.invalidArgument('Cannot update user Drips: receivers are not valid.', newReceivers);
+			return Result.failure(
+				DripsErrors.invalidArgument('Cannot update user Drips: receivers are not valid.', newReceivers)
+			);
 		}
+
 		const contractSigner = this.#hubContract.connect(this.signer);
 
-		return contractSigner['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
+		const tx = await contractSigner['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'](
 			subAccountId,
 			lastUpdate,
 			lastBalance,
@@ -128,38 +140,56 @@ export default class DripsClient {
 			balanceDelta,
 			newReceivers
 		);
+
+		return Result.success(tx);
 	}
 
-	public updateUserSplits(
+	public async updateUserSplits(
 		currentReceivers: SplitsReceiverStruct[],
 		newReceivers: SplitsReceiverStruct[]
-	): Promise<ContractTransaction> {
+	): Promise<Result<ContractTransaction, DripsError>> {
 		if (!areValidSplitsReceivers(newReceivers)) {
-			throw DripsErrors.invalidArgument('Cannot update user Splits: receivers are not valid', newReceivers);
+			return Result.failure(
+				DripsErrors.invalidArgument('Cannot update user Splits: receivers are not valid', newReceivers)
+			);
 		}
 		const contractSigner = this.#hubContract.connect(this.signer);
 
-		return contractSigner.setSplits(currentReceivers, newReceivers);
+		const tx = await contractSigner.setSplits(currentReceivers, newReceivers);
+
+		return Result.success(tx);
 	}
 
-	public giveFromUser(receiver: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public async giveFromUser(receiver: string, amount: BigNumberish): Promise<Result<ContractTransaction, DripsError>> {
 		if (!utils.isAddress(receiver)) {
-			throw DripsErrors.invalidAddress(`Cannot give funds: receiver address '${receiver} is not valid.`);
+			return Result.failure(
+				DripsErrors.invalidAddress(`Cannot give funds: receiver address '${receiver} is not valid.`)
+			);
 		}
 
 		const contractSigner = this.#hubContract.connect(this.signer);
 
-		return contractSigner['give(address,uint128)'](receiver, amount);
+		const tx = await contractSigner['give(address,uint128)'](receiver, amount);
+
+		return Result.success(tx);
 	}
 
-	public giveFromAccount(account: BigNumberish, receiver: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public async giveFromAccount(
+		account: BigNumberish,
+		receiver: string,
+		amount: BigNumberish
+	): Promise<Result<ContractTransaction, DripsError>> {
 		if (!utils.isAddress(receiver)) {
-			throw DripsErrors.invalidAddress(`Cannot give funds: receiver address '${receiver} is not valid.`);
+			return Result.failure(
+				DripsErrors.invalidAddress(`Cannot give funds: receiver address '${receiver} is not valid.`)
+			);
 		}
 
 		const contractSigner = this.#hubContract.connect(this.signer);
 
-		return contractSigner['give(uint256,address,uint128)'](account, receiver, amount);
+		const tx = await contractSigner['give(uint256,address,uint128)'](account, receiver, amount);
+
+		return Result.success(tx);
 	}
 
 	public async getAllowance(): Promise<BigNumber> {
@@ -168,20 +198,27 @@ export default class DripsClient {
 		return this.#daiContract.allowance(address, this.networkProperties.CONTRACT_DRIPS_HUB);
 	}
 
-	public getAmountCollectableWithSplits(
+	public async getAmountCollectableWithSplits(
 		address: string,
 		currentSplits: SplitsReceiverStruct[]
 	): Promise<
-		[BigNumber, BigNumber] & {
-			collected: BigNumber;
-			split: BigNumber;
-		}
+		Result<
+			[BigNumber, BigNumber] & {
+				collected: BigNumber;
+				split: BigNumber;
+			},
+			DripsError
+		>
 	> {
 		if (!utils.isAddress(address)) {
-			throw DripsErrors.invalidAddress(`Cannot retrieve collectable amount: address '${address}' is not valid.`);
+			return Result.failure(
+				DripsErrors.invalidAddress(`Cannot retrieve collectable amount: address '${address}' is not valid.`)
+			);
 		}
 
-		return this.#hubContract.collectable(address.toLowerCase(), currentSplits);
+		const tx = await this.#hubContract.collectable(address.toLowerCase(), currentSplits);
+
+		return Result.success(tx);
 	}
 
 	public async collect(splits: SplitsReceiverStruct[]): Promise<ContractTransaction> {

@@ -6,8 +6,8 @@ import { assert } from 'chai';
 import type { Provider } from '@ethersproject/providers';
 import type { Dai, DaiDripsHub } from '../contracts';
 import { DaiDripsHub__factory, Dai__factory } from '../contracts';
-import type { DripsClientConfig } from '../src/dripsclient';
-import DripsClient from '../src/DripsClient';
+import type { DripsClientConfig } from '../src/DripsHubClient';
+import DripsClient from '../src/DripsHubClient';
 import { chainIdToNetworkPropertiesMap } from '../src/NetworkProperties';
 import * as validators from '../src/validators';
 import { DripsErrorCode } from '../src/dripsErrors';
@@ -48,10 +48,12 @@ describe('DripsClient', () => {
 			.returns(hubContractStub);
 
 		// Create a DripsClient instance (system under test).
-		dripsClient = await DripsClient.create({
+		const creationResult = await DripsClient.create({
 			provider: providerStub,
 			signer: signerStub
 		});
+
+		dripsClient = creationResult.getValueOrThrow();
 	});
 
 	afterEach(() => {
@@ -59,75 +61,43 @@ describe('DripsClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should throw invalidConfiguration error when provider is missing', async () => {
-			// Arrange.
-			let threw = false;
-
-			try {
-				// Act.
-				await DripsClient.create({ signer: signerStub as Signer } as DripsClientConfig);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				threw = true;
-			}
+		it('should return the expected failure result when provider is missing', async () => {
+			// Act.
+			const createResult = await DripsClient.create({ signer: signerStub as Signer } as DripsClientConfig);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(createResult.getErrorOrThrow().code, DripsErrorCode.INVALID_CONFIGURATION);
 		});
 
-		it('should throw invalidConfiguration error when signer is missing', async () => {
-			// Arrange.
-			let threw = false;
-
-			try {
-				// Act.
-				await DripsClient.create({ provider: providerStub as Provider } as DripsClientConfig);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				threw = true;
-			}
+		it('should return the expected failure result when signer is missing', async () => {
+			// Act.
+			const createResult = await DripsClient.create({ provider: providerStub as Provider } as DripsClientConfig);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(createResult.getErrorOrThrow().code, DripsErrorCode.INVALID_CONFIGURATION);
 		});
 
-		it('should throw invalidAddress error when signer address is not valid', async () => {
+		it('should return the expected failure result when signer address is not valid', async () => {
 			// Arrange.
-			let threw = false;
 			const invalidAddress = 'invalid address';
 			signerStub.getAddress.resolves(invalidAddress);
 
-			try {
-				// Act.
-				await DripsClient.create({ provider: providerStub, signer: signerStub });
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
+			// Act.
+			const createResult = await DripsClient.create({ provider: providerStub, signer: signerStub });
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(createResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ADDRESS);
 		});
 
-		it('should throw invalidConfiguration error when chain ID is not supported', async () => {
+		it('should return the expected failure result when chain ID is not supported', async () => {
 			// Arrange.
-			let threw = false;
 			providerStub.getNetwork.resolves({ chainId: CHAIN_ID + 1 } as providers.Network);
 
-			try {
-				// Act.
-				await DripsClient.create({ provider: providerStub, signer: signerStub });
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				threw = true;
-			}
+			// Act.
+			const createResult = await DripsClient.create({ provider: providerStub, signer: signerStub });
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(createResult.getErrorOrThrow().code, DripsErrorCode.INVALID_CONFIGURATION);
 		});
 
 		it('should create a fully initialized client instance', async () => {
@@ -174,7 +144,7 @@ describe('DripsClient', () => {
 	});
 
 	describe('updateUserDrips()', async () => {
-		it('should throw invalidArgument when receivers contain at least one invalid entry', async () => {
+		it('should return the expected failure result when receivers contain at least one invalid entry', async () => {
 			// Arrange.
 			const payload = {
 				lastUpdate: 2,
@@ -187,25 +157,17 @@ describe('DripsClient', () => {
 				]
 			};
 
-			let threw = false;
-
 			// Act.
-			try {
-				await dripsClient.updateUserDrips(
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				);
-			} catch (error) {
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				assert.equal(error.context, payload.newReceivers);
-				threw = true;
-			}
+			const updateResult = await dripsClient.updateUserDrips(
+				payload.lastBalance,
+				payload.lastBalance,
+				payload.currentReceivers,
+				payload.balanceDelta,
+				payload.newReceivers
+			);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(updateResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ARGUMENT);
 		});
 
 		it('should validate Drips', async () => {
@@ -267,7 +229,7 @@ describe('DripsClient', () => {
 				.resolves({} as ContractTransaction);
 
 			// Act.
-			await dripsClient.updateUserDrips(
+			const updateResult = await dripsClient.updateUserDrips(
 				payload.lastBalance,
 				payload.lastBalance,
 				payload.currentReceivers,
@@ -276,6 +238,7 @@ describe('DripsClient', () => {
 			);
 
 			// Assert.
+			assert.isTrue(updateResult.isSuccess);
 			assert(
 				hubContractStub[
 					'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
@@ -292,7 +255,7 @@ describe('DripsClient', () => {
 	});
 
 	describe('updateSubAccountDrips()', async () => {
-		it('should throw invalidArgument when receivers contain at least one invalid entry', async () => {
+		it('should return the expected failure result when receivers contain at least one invalid entry', async () => {
 			// Arrange.
 			const payload = {
 				account: 1,
@@ -306,26 +269,18 @@ describe('DripsClient', () => {
 				]
 			};
 
-			let threw = false;
-
 			// Act.
-			try {
-				await dripsClient.updateSubAccountDrips(
-					payload.account,
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				);
-			} catch (error) {
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				assert.equal(error.context, payload.newReceivers);
-				threw = true;
-			}
+			const updateResult = await dripsClient.updateSubAccountDrips(
+				payload.account,
+				payload.lastBalance,
+				payload.lastBalance,
+				payload.currentReceivers,
+				payload.balanceDelta,
+				payload.newReceivers
+			);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(updateResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ARGUMENT);
 		});
 
 		it('should validate Drips', async () => {
@@ -392,7 +347,7 @@ describe('DripsClient', () => {
 				.resolves({} as ContractTransaction);
 
 			// Act.
-			await dripsClient.updateSubAccountDrips(
+			const updateResult = await dripsClient.updateSubAccountDrips(
 				payload.account,
 				payload.lastBalance,
 				payload.lastBalance,
@@ -402,6 +357,7 @@ describe('DripsClient', () => {
 			);
 
 			// Assert.
+			assert.isTrue(updateResult.isSuccess);
 			assert(
 				hubContractStub[
 					'setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
@@ -419,7 +375,7 @@ describe('DripsClient', () => {
 	});
 
 	describe('updateUserSplits()', async () => {
-		it('should throw invalidArgument when receivers contain at least one invalid entry', async () => {
+		it('should return the expected failure result when receivers contain at least one invalid entry', async () => {
 			// Arrange.
 			const payload = {
 				lastUpdate: 2,
@@ -432,19 +388,11 @@ describe('DripsClient', () => {
 				]
 			};
 
-			let threw = false;
-
 			// Act.
-			try {
-				await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
-			} catch (error) {
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				assert.equal(error.context, payload.newReceivers);
-				threw = true;
-			}
+			const updateResult = await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(updateResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ARGUMENT);
 		});
 
 		it('should validate Drips', async () => {
@@ -488,9 +436,10 @@ describe('DripsClient', () => {
 				.resolves({} as ContractTransaction);
 
 			// Act.
-			await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
+			const updateResult = await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
 
 			// Assert.
+			assert.isTrue(updateResult.isSuccess);
 			assert(
 				hubContractStub.setSplits.calledOnceWithExactly(payload.currentReceivers, payload.newReceivers),
 				'Expected setSplits() method to be called with different arguments'
@@ -499,25 +448,18 @@ describe('DripsClient', () => {
 	});
 
 	describe('giveFromUser()', async () => {
-		it('should throw if receiver address is not a valid', async () => {
+		it('should return the expected failure result if receiver address is not a valid', async () => {
 			// Arrange.
 			const payload = {
 				receiver: 'invalid address',
 				amount: 10
 			};
 
-			let threw = false;
+			// Act.
+			const giveResult = await dripsClient.giveFromUser(payload.receiver, payload.amount);
 
-			try {
-				// Act.
-				await dripsClient.giveFromUser(payload.receiver, payload.amount);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(giveResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ADDRESS);
 		});
 
 		it('should delegate the call to the give() contract method', async () => {
@@ -543,7 +485,7 @@ describe('DripsClient', () => {
 	});
 
 	describe('giveFromAccount()', async () => {
-		it('should throw invalidAddress error when receiver address is not valid', async () => {
+		it('should return the expected failure result when receiver address is not valid', async () => {
 			// Arrange.
 			const payload = {
 				account: 1,
@@ -551,18 +493,10 @@ describe('DripsClient', () => {
 				amount: 10
 			};
 
-			let threw = false;
+			const giveResult = await dripsClient.giveFromAccount(payload.account, payload.receiver, payload.amount);
 
-			try {
-				// Act.
-				await dripsClient.giveFromAccount(payload.account, payload.receiver, payload.amount);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(giveResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ADDRESS);
 		});
 
 		it('should delegate the call to the give() contract method', async () => {
@@ -573,14 +507,15 @@ describe('DripsClient', () => {
 				amount: 10
 			};
 
-			hubContractStub['give(address,uint128)']
-				.withArgs(payload.receiver, payload.amount)
+			hubContractStub['give(uint256,address,uint128)']
+				.withArgs(payload.account, payload.receiver, payload.amount)
 				.resolves({} as ContractTransaction);
 
 			// Act.
-			await dripsClient.giveFromAccount(payload.account, payload.receiver, payload.amount);
+			const giveResult = await dripsClient.giveFromAccount(payload.account, payload.receiver, payload.amount);
 
 			// Assert.
+			assert.isTrue(giveResult.isSuccess);
 			assert(
 				hubContractStub['give(uint256,address,uint128)'].calledOnceWithExactly(
 					payload.account,
@@ -617,22 +552,14 @@ describe('DripsClient', () => {
 	});
 
 	describe('getAmountCollectableWithSplits()', () => {
-		it('should throw invalidAddress error when address is not valid', async () => {
-			// Arrange.
-			let threw = false;
+		it('should return the expected failure result when address is not valid', async () => {
+			// Act.
+			const getAmountResult = await dripsClient.getAmountCollectableWithSplits('invalid address', [
+				{ receiver: Wallet.createRandom().address, weight: 1 }
+			]);
 
-			try {
-				// Act.
-				await dripsClient.getAmountCollectableWithSplits('invalid address', [
-					{ receiver: Wallet.createRandom().address, weight: 1 }
-				]);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.equal(getAmountResult.getErrorOrThrow().code, DripsErrorCode.INVALID_ADDRESS);
 		});
 
 		it('should delegate the call to the getAmountCollectableWithSplits() contract method', async () => {
@@ -652,7 +579,9 @@ describe('DripsClient', () => {
 			hubContractStub.collectable.withArgs(address.toLowerCase(), currentSplits).resolves(expectedAmountCollectable);
 
 			// Act.
-			const collectable = await dripsClient.getAmountCollectableWithSplits(address, currentSplits);
+			const collectableResult = await dripsClient.getAmountCollectableWithSplits(address, currentSplits);
+
+			const collectable = collectableResult.getValueOrThrow();
 
 			// Assert.
 			assert.equal(collectable, expectedAmountCollectable);

@@ -34,14 +34,14 @@ describe('DripsErrors', () => {
 		});
 	});
 
-	describe('unknownError()', () => {
+	describe('httpError()', () => {
 		it('should return expected error details', () => {
 			// Act.
-			const { code, message } = DripsErrors.unknownError('');
+			const { code, message } = DripsErrors.httpError('');
 
 			// Assert.
-			assert.equal(code, DripsErrorCode.UNKNOWN_ERROR);
-			assert.isTrue(message.includes(DripsErrorCode.UNKNOWN_ERROR));
+			assert.equal(code, DripsErrorCode.HTTP_ERROR);
+			assert.isTrue(message.includes(DripsErrorCode.HTTP_ERROR));
 		});
 	});
 
