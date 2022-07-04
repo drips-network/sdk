@@ -11,21 +11,21 @@ describe('SubgraphClient', () => {
 
 	// Base "Arrange" step.
 	beforeEach(() => {
-		subgraphClient = new SubgraphClient(API_URL);
+		subgraphClient = SubgraphClient.create(API_URL);
 	});
 
 	afterEach(() => {
 		sinon.restore();
 	});
 
-	describe('constructor()', () => {
-		it('should throw invalidArgument error when provider is missing', async () => {
+	describe('create()', () => {
+		it('should throw invalidArgument error when API URL is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act.
 				// eslint-disable-next-line no-new
-				new SubgraphClient(undefined as unknown as string);
+				SubgraphClient.create(undefined as unknown as string);
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -162,16 +162,15 @@ describe('SubgraphClient', () => {
 
 		it('should return empty array when splits do not exist', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const sender = Wallet.createRandom().address;
 
 			const clientStub = sinon
-				.stub(client, 'query')
+				.stub(subgraphClient, 'query')
 				.withArgs(gql.splitsBySender, { sender, first: 100 })
 				.resolves({ data: null });
 
 			// Act.
-			const splits = await client.getSplitsBySender(sender);
+			const splits = await subgraphClient.getSplitsBySender(sender);
 
 			// Assert.
 			assert.deepEqual(splits, []);
@@ -188,7 +187,6 @@ describe('SubgraphClient', () => {
 	describe('getSplitsByReceiver()', () => {
 		it('should return expected Splits', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const receiver = Wallet.createRandom().address;
 			const apiResponse = {
 				splitsEntries: [
@@ -201,12 +199,12 @@ describe('SubgraphClient', () => {
 			};
 
 			const clientStub = sinon
-				.stub(client, 'query')
+				.stub(subgraphClient, 'query')
 				.withArgs(gql.splitsByReceiver, { receiver, first: 100 })
 				.resolves({ data: apiResponse });
 
 			// Act.
-			const splits = await client.getSplitsByReceiver(receiver);
+			const splits = await subgraphClient.getSplitsByReceiver(receiver);
 
 			// Assert.
 			assert.equal(splits, apiResponse.splitsEntries);
@@ -221,25 +219,8 @@ describe('SubgraphClient', () => {
 	});
 
 	describe('query()', async () => {
-		it('should throw if API URL is empty', async () => {
-			// Arrange.
-			const client = new SubgraphClient('API URL');
-
-			type Writeable<SubgraphClient> = { -readonly [P in keyof SubgraphClient]: SubgraphClient[P] };
-			(client as Writeable<SubgraphClient>).apiUrl = '';
-
-			try {
-				// Act.
-				await client.query(gql.dripsByReceiver, {});
-			} catch (error) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_OPERATION);
-			}
-		});
-
 		it('should return expected response', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
 			const apiResponse = [
 				{
 					amtPerSec: '1',
@@ -256,7 +237,7 @@ describe('SubgraphClient', () => {
 			);
 
 			// Act.
-			const response = await client.query<
+			const response = await subgraphClient.query<
 				{
 					amtPerSec: string;
 					receiver: string;
@@ -269,18 +250,16 @@ describe('SubgraphClient', () => {
 
 		it('should throw if API response status code is not >= 200 and <= 299', async () => {
 			// Arrange.
-			const client = new SubgraphClient('https://api.graphql');
-
 			global.fetch = sinon.stub(
 				async (): Promise<Response> => ({ status: 500, statusText: 'Internal Server Error' } as Response)
 			);
 
 			try {
 				// Act.
-				await client.query(gql.dripsByReceiver, {});
+				await subgraphClient.query(gql.dripsByReceiver, {});
 			} catch (error) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.UNKNOWN_ERROR);
+				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
 			}
 		});
 	});
