@@ -1,7 +1,9 @@
 export * from './SubgraphClient';
-export { default as DripsClient } from './DripsClient';
+export { default as DripsClient } from './DripsHubClient';
 export * from './validators';
 export * as gql from './gql';
+export * as networkProperties from './NetworkProperties';
+export * as dripsErrors from './dripsErrors';
 
 // contract typings. we can move these to separate
 // package exports in TS 4.7

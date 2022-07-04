@@ -1,11 +1,11 @@
 /* eslint-disable max-classes-per-file */
 
 export enum DripsErrorCode {
-	UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	INVALID_OPERATION = 'INVALID_OPERATION',
-	INVALID_CONFIGURATION = 'INVALID_CONFIGURATION'
+	INVALID_CONFIGURATION = 'INVALID_CONFIGURATION',
+	SUBGRAPH_QUERY_FAILED = 'SUBGRAPH_QUERY_FAILED'
 }
 
 export class DripsError {
@@ -45,10 +45,10 @@ export class DripsErrors {
 			`Code: ${DripsErrorCode.INVALID_ADDRESS} - Message: ${debugMessage}`,
 			address
 		);
-	static unknownError = (debugMessage: string, context?: unknown) =>
+	static subgraphQueryFailed = (debugMessage: string, context?: unknown) =>
 		new DripsError(
-			DripsErrorCode.UNKNOWN_ERROR,
-			`Code: ${DripsErrorCode.UNKNOWN_ERROR} - Message: ${debugMessage}`,
+			DripsErrorCode.SUBGRAPH_QUERY_FAILED,
+			`Code: ${DripsErrorCode.SUBGRAPH_QUERY_FAILED} - Message: ${debugMessage}`,
 			context
 		);
 }

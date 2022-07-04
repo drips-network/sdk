@@ -20,14 +20,22 @@ export type DripsConfig = {
 };
 
 export class SubgraphClient {
-	public readonly apiUrl: string;
+	#apiUrl!: string;
+	public get apiUrl() {
+		return this.#apiUrl;
+	}
 
-	public constructor(apiUrl: string) {
+	private constructor() {}
+
+	public static create(apiUrl: string) {
 		if (!apiUrl) {
 			throw DripsErrors.invalidArgument('Cannot create instance: API URL is missing.');
 		}
 
-		this.apiUrl = apiUrl;
+		const subgraphClient = new SubgraphClient();
+		subgraphClient.#apiUrl = apiUrl;
+
+		return subgraphClient;
 	}
 
 	public async getDripsBySender(address: string): Promise<DripsConfig> {
@@ -46,21 +54,15 @@ export class SubgraphClient {
 		return resp.data?.dripsEntries;
 	}
 
-	public getSplitsBySender(sender: string) {
+	public getSplitsBySender(sender: string): Promise<Split[]> {
 		return this._getSplits(gql.splitsBySender, { sender });
 	}
 
-	public getSplitsByReceiver(receiver: string) {
+	public getSplitsByReceiver(receiver: string): Promise<Split[]> {
 		return this._getSplits(gql.splitsByReceiver, { receiver });
 	}
 
 	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
-		if (!this.apiUrl) {
-			throw DripsErrors.invalidOperation(
-				`API URL is missing but this should never happen here! Make sure you didn't *manually* changed it after creating the client instance.`
-			);
-		}
-
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
 			headers: {
@@ -73,7 +75,7 @@ export class SubgraphClient {
 			return (await resp.json()) as { data: T };
 		}
 
-		throw DripsErrors.unknownError(resp.statusText, resp);
+		throw DripsErrors.subgraphQueryFailed(resp.statusText, resp);
 	}
 
 	private async _getSplits(query: string, args: { sender: string } | { receiver: string }): Promise<Split[]> {
