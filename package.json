@@ -17,7 +17,7 @@
 	"scripts": {
 		"lint": "eslint . --ext .ts",
 		"lint-and-fix": "eslint . --ext .ts --fix",
-		"build": "npm run lint && npm run build:contracts && npm run build:lib && npx typedoc src/index.ts",
+		"build": "npm run build:contracts && npm run build:lib && npx typedoc src/index.ts",
 		"build:lib": "tsup --dts-resolve",
 		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/contracts/**.json",
 		"build:lib-fast": "tsup",
