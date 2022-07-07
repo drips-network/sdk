@@ -7,12 +7,12 @@ import type { Provider } from '@ethersproject/providers';
 import type { Dai, DaiDripsHub } from '../contracts';
 import { DaiDripsHub__factory, Dai__factory } from '../contracts';
 import type { DripsClientConfig } from '../src/DripsHubClient';
-import DripsClient from '../src/DripsHubClient';
 import { chainIdToNetworkPropertiesMap } from '../src/NetworkProperties';
 import * as validators from '../src/validators';
-import { DripsErrorCode } from '../src/dripsErrors';
+import { DripsErrorCode } from '../src/DripsError';
+import DripsHubClient from '../src/DripsHubClient';
 
-describe('DripsClient', () => {
+describe('DripsHubClient', () => {
 	const CHAIN_ID = 80001;
 
 	let daiContractStub: StubbedInstance<Dai>;
@@ -20,7 +20,7 @@ describe('DripsClient', () => {
 	let hubContractStub: StubbedInstance<DaiDripsHub>;
 	let signerStub: StubbedInstance<providers.JsonRpcSigner>;
 
-	let dripsClient: DripsClient;
+	let dripsClient: DripsHubClient;
 
 	// Base "Arrange" step.
 	beforeEach(async () => {
@@ -48,7 +48,7 @@ describe('DripsClient', () => {
 			.returns(hubContractStub);
 
 		// Create a DripsClient instance (system under test).
-		dripsClient = await DripsClient.create({
+		dripsClient = await DripsHubClient.create({
 			provider: providerStub,
 			signer: signerStub
 		});
@@ -65,7 +65,7 @@ describe('DripsClient', () => {
 
 			try {
 				// Act.
-				await DripsClient.create({ signer: signerStub as Signer } as DripsClientConfig);
+				await DripsHubClient.create({ signer: signerStub as Signer } as DripsClientConfig);
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
@@ -82,7 +82,7 @@ describe('DripsClient', () => {
 
 			try {
 				// Act.
-				await DripsClient.create({ provider: providerStub as Provider } as DripsClientConfig);
+				await DripsHubClient.create({ provider: providerStub as Provider } as DripsClientConfig);
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
@@ -101,7 +101,7 @@ describe('DripsClient', () => {
 
 			try {
 				// Act.
-				await DripsClient.create({ provider: providerStub, signer: signerStub });
+				await DripsHubClient.create({ provider: providerStub, signer: signerStub });
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
@@ -119,7 +119,7 @@ describe('DripsClient', () => {
 
 			try {
 				// Act.
-				await DripsClient.create({ provider: providerStub, signer: signerStub });
+				await DripsHubClient.create({ provider: providerStub, signer: signerStub });
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);

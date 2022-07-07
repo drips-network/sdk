@@ -1,4 +1,4 @@
-import { DripsErrors } from './dripsErrors';
+import { DripsErrors } from './DripsError';
 import * as gql from './gql';
 
 export type Split = {

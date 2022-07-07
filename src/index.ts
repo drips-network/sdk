@@ -3,7 +3,7 @@ export { default as DripsClient } from './DripsHubClient';
 export * from './validators';
 export * as gql from './gql';
 export * as networkProperties from './NetworkProperties';
-export * as dripsErrors from './dripsErrors';
+export * as dripsErrors from './DripsError';
 
 // contract typings. we can move these to separate
 // package exports in TS 4.7

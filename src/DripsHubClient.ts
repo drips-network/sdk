@@ -8,14 +8,14 @@ import { chainIdToNetworkPropertiesMap, supportedChains } from './NetworkPropert
 import { areValidDripsReceivers, areValidSplitsReceivers } from './validators';
 import { Dai__factory } from '../contracts/factories/Dai__factory';
 import { DaiDripsHub__factory } from '../contracts/factories/DaiDripsHub__factory';
-import { DripsErrors } from './dripsErrors';
+import { DripsErrors } from './DripsError';
 
 export type DripsClientConfig = {
 	signer: Signer;
 	provider: Provider;
 };
 
-export default class DripsClient {
+export default class DripsHubClient {
 	#daiContract!: Dai;
 	#hubContract!: DaiDripsHub;
 
@@ -41,7 +41,7 @@ export default class DripsClient {
 
 	private constructor() {}
 
-	public static async create(config: DripsClientConfig): Promise<DripsClient> {
+	public static async create(config: DripsClientConfig): Promise<DripsHubClient> {
 		if (!config.provider) {
 			throw DripsErrors.invalidConfiguration('Cannot create instance: provider is missing.');
 		}
@@ -67,7 +67,7 @@ export default class DripsClient {
 			);
 		}
 
-		const dripsClient = new DripsClient();
+		const dripsClient = new DripsHubClient();
 
 		dripsClient.#signer = signer;
 		dripsClient.#network = network;
