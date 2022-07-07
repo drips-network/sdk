@@ -79,7 +79,7 @@ export default class DripsHubClient {
 		return dripsClient;
 	}
 
-	public approveDAIContract(): Promise<ContractTransaction> {
+	public approveDaiContract(): Promise<ContractTransaction> {
 		const contractSigner = this.#daiContract.connect(this.signer);
 
 		return contractSigner.approve(this.networkProperties.CONTRACT_DRIPS_HUB, constants.MaxUint256);

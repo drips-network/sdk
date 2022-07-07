@@ -159,7 +159,7 @@ describe('DripsHubClient', () => {
 				.resolves(tx);
 
 			// Act.
-			const response = await dripsClient.approveDAIContract();
+			const response = await dripsClient.approveDaiContract();
 
 			// Assert.
 			assert.equal(response, tx);
