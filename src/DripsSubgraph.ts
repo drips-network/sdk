@@ -19,7 +19,7 @@ export type DripsConfig = {
 	withdrawable?: number;
 };
 
-export class SubgraphClient {
+export class DripsSubgraph {
 	#apiUrl!: string;
 	public get apiUrl() {
 		return this.#apiUrl;
@@ -32,7 +32,7 @@ export class SubgraphClient {
 			throw DripsErrors.invalidArgument('Cannot create instance: API URL is missing.');
 		}
 
-		const subgraphClient = new SubgraphClient();
+		const subgraphClient = new DripsSubgraph();
 		subgraphClient.#apiUrl = apiUrl;
 
 		return subgraphClient;

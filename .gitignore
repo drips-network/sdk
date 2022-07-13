@@ -1,5 +1,6 @@
 # Generated contracts
 contracts
+src/abi
 
 # Tests coverage
 coverage
