@@ -1,6 +1,8 @@
-export * from './DripsSubgraph';
-export { default as DripsHub } from './DripsHub';
-export { default as AddressApp } from './AddressApp';
-export * from './common';
+export * from './utils';
+export * from './types';
 export * as gql from './gql';
+export * from './DripsSubgraph';
 export * as DripsError from './DripsError';
+export { default as DripsHubClient } from './DripsHubClient';
+export { default as AddressAppClient } from './AddressAppClient';
+export { default as DripsReceiverConfig } from './DripsReceiverConfig';

@@ -12,7 +12,7 @@ describe('DripsErrors', () => {
 		assert.equal(uniqueCodes.length, methods.length);
 	});
 
-	describe('addressNotValid()', () => {
+	describe('invalidAddress()', () => {
 		it('should return expected error details', () => {
 			// Act.
 			const { code, message } = DripsErrors.invalidAddress('');
@@ -20,28 +20,6 @@ describe('DripsErrors', () => {
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_ADDRESS);
 			assert.isTrue(message.includes(DripsErrorCode.INVALID_ADDRESS));
-		});
-	});
-
-	describe('invalidConfiguration()', () => {
-		it('should return expected error details', () => {
-			// Act.
-			const { code, message } = DripsErrors.invalidConfiguration('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.INVALID_CONFIGURATION);
-			assert.isTrue(message.includes(DripsErrorCode.INVALID_CONFIGURATION));
-		});
-	});
-
-	describe('unknownError()', () => {
-		it('should return expected error details', () => {
-			// Act.
-			const { code, message } = DripsErrors.subgraphQueryFailed('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
-			assert.isTrue(message.includes(DripsErrorCode.SUBGRAPH_QUERY_FAILED));
 		});
 	});
 
@@ -64,6 +42,17 @@ describe('DripsErrors', () => {
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_ARGUMENT);
 			assert.isTrue(message.includes(DripsErrorCode.INVALID_ARGUMENT));
+		});
+	});
+
+	describe('subgraphQueryFailed()', () => {
+		it('should return expected error details', () => {
+			// Act.
+			const { code, message } = DripsErrors.subgraphQueryFailed('');
+
+			// Assert.
+			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
+			assert.isTrue(message.includes(DripsErrorCode.SUBGRAPH_QUERY_FAILED));
 		});
 	});
 });

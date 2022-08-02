@@ -1,57 +1,41 @@
-import type { ContractTransaction, providers, Signer } from 'ethers';
-import { BigNumber, constants, Wallet } from 'ethers';
+import type { Network } from '@ethersproject/networks';
+import type { JsonRpcProvider } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
-import sinon, { stubInterface } from 'ts-sinon';
+import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
-import type { Provider } from '@ethersproject/providers';
-import type { Dai, DaiDripsHub } from '../contracts';
-import { DaiDripsHub__factory, Dai__factory } from '../contracts';
-import type { DripsClientConfig } from '../src/DripsHubClient';
-import { chainIdToNetworkPropertiesMap } from '../src/NetworkProperties';
-import * as validators from '../src/validators';
-import { DripsErrorCode } from '../src/DripsError';
+import { Wallet } from 'ethers';
 import DripsHubClient from '../src/DripsHubClient';
+import type { DripsHubLogic as DripsHubContract } from '../contracts';
+import { DripsHubLogic__factory } from '../contracts';
+import * as utils from '../src/utils';
+import { DripsErrorCode, DripsErrors } from '../src/DripsError';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 
 describe('DripsHubClient', () => {
-	const CHAIN_ID = 80001;
+	const TEST_CHAIN_ID = 5; // Goerli.
 
-	let daiContractStub: StubbedInstance<Dai>;
-	let providerStub: StubbedInstance<Provider>;
-	let hubContractStub: StubbedInstance<DaiDripsHub>;
-	let signerStub: StubbedInstance<providers.JsonRpcSigner>;
+	let networkStub: StubbedInstance<Network>;
+	let providerStub: StubbedInstance<JsonRpcProvider>;
+	let dripsHubContractStub: StubbedInstance<DripsHubContract>;
 
-	let dripsClient: DripsHubClient;
+	let testDripsHubClient: DripsHubClient;
 
-	// Base "Arrange" step.
+	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
-		// Setup DripsClient dependency stubs.
-		signerStub = stubInterface<providers.JsonRpcSigner>();
-		signerStub.getAddress.resolves(Wallet.createRandom().address);
+		providerStub = stubInterface<JsonRpcProvider>();
 
-		providerStub = stubInterface<Provider>();
-		providerStub.getNetwork.resolves({ chainId: CHAIN_ID } as providers.Network);
+		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		// Setup Dai contract stub.
-		daiContractStub = stubInterface<Dai>();
-		daiContractStub.connect.withArgs(signerStub).returns(daiContractStub);
+		providerStub.getNetwork.resolves(networkStub);
+
+		dripsHubContractStub = stubInterface<DripsHubContract>();
+
 		sinon
-			.stub(Dai__factory, 'connect')
-			.withArgs(chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DAI, providerStub)
-			.returns(daiContractStub);
+			.stub(DripsHubLogic__factory, 'connect')
+			.withArgs(utils.chainIdToNetworkPropertiesMap[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
+			.returns(dripsHubContractStub);
 
-		// Setup DaiDripsHub contract stub.
-		hubContractStub = stubInterface<DaiDripsHub>();
-		hubContractStub.connect.withArgs(signerStub).returns(hubContractStub);
-		sinon
-			.stub(DaiDripsHub__factory, 'connect')
-			.withArgs(chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
-			.returns(hubContractStub);
-
-		// Create a DripsClient instance (system under test).
-		dripsClient = await DripsHubClient.create({
-			provider: providerStub,
-			signer: signerStub
-		});
+		testDripsHubClient = await DripsHubClient.create(providerStub);
 	});
 
 	afterEach(() => {
@@ -59,16 +43,16 @@ describe('DripsHubClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should throw invalidConfiguration error when provider is missing', async () => {
+		it('should throw invalidArgument error when the provider argument is missing', async () => {
 			// Arrange.
 			let threw = false;
 
 			try {
 				// Act.
-				await DripsHubClient.create({ signer: signerStub as Signer } as DripsClientConfig);
+				await DripsHubClient.create(undefined as unknown as JsonRpcProvider);
 			} catch (error) {
 				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -76,53 +60,17 @@ describe('DripsHubClient', () => {
 			assert.isTrue(threw, "Expected to throw but it didn't");
 		});
 
-		it('should throw invalidConfiguration error when signer is missing', async () => {
+		it('should throw unsupportedNetwork error when the provider is connected to an unsupported chain', async () => {
 			// Arrange.
 			let threw = false;
+			providerStub.getNetwork.resolves({ chainId: TEST_CHAIN_ID + 1 } as Network);
 
 			try {
 				// Act.
-				await DripsHubClient.create({ provider: providerStub as Provider } as DripsClientConfig);
+				await DripsHubClient.create(providerStub);
 			} catch (error) {
 				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
-				threw = true;
-			}
-
-			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
-		});
-
-		it('should throw invalidAddress error when signer address is not valid', async () => {
-			// Arrange.
-			let threw = false;
-			const invalidAddress = 'invalid address';
-			signerStub.getAddress.resolves(invalidAddress);
-
-			try {
-				// Act.
-				await DripsHubClient.create({ provider: providerStub, signer: signerStub });
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
-
-			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
-		});
-
-		it('should throw invalidConfiguration error when chain ID is not supported', async () => {
-			// Arrange.
-			let threw = false;
-			providerStub.getNetwork.resolves({ chainId: CHAIN_ID + 1 } as providers.Network);
-
-			try {
-				// Act.
-				await DripsHubClient.create({ provider: providerStub, signer: signerStub });
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_CONFIGURATION);
+				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
 				threw = true;
 			}
 
@@ -132,552 +80,184 @@ describe('DripsHubClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert.
-			assert.equal(dripsClient.signer, signerStub);
-			assert.equal(dripsClient.network, await providerStub.getNetwork());
-			assert.equal(dripsClient.provider, providerStub);
+			assert.equal(testDripsHubClient.network.chainId, networkStub.chainId);
 			assert.equal(
-				dripsClient.networkProperties,
-				chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
+				testDripsHubClient.networkProperties,
+				utils.chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
 			);
-			assert.equal(
-				dripsClient.networkProperties,
-				chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
-			);
-			assert.equal(
-				chainIdToNetworkPropertiesMap[CHAIN_ID],
-				chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
-			);
+			assert.equal(await testDripsHubClient.provider.getNetwork(), networkStub);
 		});
 	});
 
-	describe('approveDAIContract()', () => {
-		it('should delegate the call to the approve() contract method', async () => {
+	describe('getCollectableAll()', () => {
+		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
-			const tx = {} as ContractTransaction;
-			daiContractStub.approve
-				.withArgs(chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB, constants.MaxUint256)
-				.resolves(tx);
-
-			// Act.
-			const response = await dripsClient.approveDaiContract();
-
-			// Assert.
-			assert.equal(response, tx);
-			assert(
-				daiContractStub.approve.calledOnceWithExactly(
-					chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB,
-					constants.MaxUint256
-				),
-				`Expected approve() method to be called with different arguments`
-			);
-		});
-	});
-
-	describe('updateUserDrips()', async () => {
-		it('should throw invalidArgument when receivers contain at least one invalid entry', async () => {
-			// Arrange.
-			const payload = {
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
-				balanceDelta: 22,
-				newReceivers: [
-					{ receiver: Wallet.createRandom().address, amtPerSec: 3 },
-					{ receiver: 'invalid address', amtPerSec: 3 }
-				]
-			};
-
-			let threw = false;
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
 			try {
-				await dripsClient.updateUserDrips(
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				);
+				await testDripsHubClient.getCollectableAll(1, erc20Address, []);
 			} catch (error) {
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				assert.equal(error.context, payload.newReceivers);
-				threw = true;
+				// Just for the test to continue.
 			}
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
-		it('should validate Drips', async () => {
+		it('should call the collectableAll() method of the drips hub contract', async () => {
 			// Arrange.
-			const payload = {
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
-				balanceDelta: 22,
-				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
-			};
-
-			const validateDripsStub = sinon.stub(validators, 'areValidDripsReceivers').returns(true);
-
-			hubContractStub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
-				.withArgs(
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				)
-				.resolves({} as ContractTransaction);
+			const userId = 1;
+			const currentReceivers: SplitsReceiverStruct[] = [];
+			const erc20Address = Wallet.createRandom().address;
 
 			// Act.
-			await dripsClient.updateUserDrips(
-				payload.lastBalance,
-				payload.lastBalance,
-				payload.currentReceivers,
-				payload.balanceDelta,
-				payload.newReceivers
-			);
+			await testDripsHubClient.getCollectableAll(userId, erc20Address, currentReceivers);
 
 			// Assert.
 			assert(
-				validateDripsStub.calledOnceWithExactly(payload.newReceivers),
-				`Expected validateSplits() method to be called with different arguments`
-			);
-		});
-
-		it('should delegate the call to the setDrips() contract method', async () => {
-			// Arrange.
-			const payload = {
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
-				balanceDelta: 22,
-				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
-			};
-
-			hubContractStub['setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
-				.withArgs(
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				)
-				.resolves({} as ContractTransaction);
-
-			// Act.
-			await dripsClient.updateUserDrips(
-				payload.lastBalance,
-				payload.lastBalance,
-				payload.currentReceivers,
-				payload.balanceDelta,
-				payload.newReceivers
-			);
-
-			// Assert.
-			assert(
-				hubContractStub[
-					'setDrips(uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
-				].calledOnceWithExactly(
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				),
-				`Expected setDrips() method to be called with different arguments`
+				dripsHubContractStub.collectableAll.calledOnceWithExactly(userId, erc20Address, currentReceivers),
+				`Expected collectableAll() method to be called with different arguments`
 			);
 		});
 	});
 
-	describe('updateSubAccountDrips()', async () => {
-		it('should throw invalidArgument when receivers contain at least one invalid entry', async () => {
+	describe('getSplittable()', () => {
+		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
-			const payload = {
-				account: 1,
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
-				balanceDelta: 22,
-				newReceivers: [
-					{ receiver: Wallet.createRandom().address, amtPerSec: 3 },
-					{ receiver: 'invalid address', amtPerSec: 3 }
-				]
-			};
-
-			let threw = false;
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
 			try {
-				await dripsClient.updateSubAccountDrips(
-					payload.account,
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				);
+				await testDripsHubClient.getSplittable(1, erc20Address);
 			} catch (error) {
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				assert.equal(error.context, payload.newReceivers);
-				threw = true;
+				// Just for the test to continue.
 			}
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
-		it('should validate Drips', async () => {
+		it('should call the getSplittable() method of the drips hub contract', async () => {
 			// Arrange.
-			const payload = {
-				account: 1,
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
-				balanceDelta: 22,
-				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
-			};
-
-			const validateDripsStub = sinon.stub(validators, 'areValidDripsReceivers').returns(true);
-
-			hubContractStub['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
-				.withArgs(
-					payload.account,
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				)
-				.resolves({} as ContractTransaction);
+			const userId = 1;
+			const erc20Address = Wallet.createRandom().address;
 
 			// Act.
-			await dripsClient.updateSubAccountDrips(
-				payload.account,
-				payload.lastBalance,
-				payload.lastBalance,
-				payload.currentReceivers,
-				payload.balanceDelta,
-				payload.newReceivers
-			);
+			await testDripsHubClient.getSplittable(userId, erc20Address);
 
 			// Assert.
 			assert(
-				validateDripsStub.calledOnceWithExactly(payload.newReceivers),
-				`Expected validateSplits() method to be called with different arguments`
-			);
-		});
-
-		it('should delegate the call to the setDrips() contract method', async () => {
-			// Arrange.
-			const payload = {
-				account: 1,
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }],
-				balanceDelta: 22,
-				newReceivers: [{ receiver: Wallet.createRandom().address, amtPerSec: 3 }]
-			};
-
-			hubContractStub['setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])']
-				.withArgs(
-					payload.account,
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				)
-				.resolves({} as ContractTransaction);
-
-			// Act.
-			await dripsClient.updateSubAccountDrips(
-				payload.account,
-				payload.lastBalance,
-				payload.lastBalance,
-				payload.currentReceivers,
-				payload.balanceDelta,
-				payload.newReceivers
-			);
-
-			// Assert.
-			assert(
-				hubContractStub[
-					'setDrips(uint256,uint64,uint128,(address,uint128)[],int128,(address,uint128)[])'
-				].calledOnceWithExactly(
-					payload.account,
-					payload.lastBalance,
-					payload.lastBalance,
-					payload.currentReceivers,
-					payload.balanceDelta,
-					payload.newReceivers
-				),
-				`Expected setDrips() method to be called with different arguments`
+				dripsHubContractStub.splittable.calledOnceWithExactly(userId, erc20Address),
+				`Expected getSplittable() method to be called with different arguments`
 			);
 		});
 	});
 
-	describe('updateUserSplits()', async () => {
-		it('should throw invalidArgument when receivers contain at least one invalid entry', async () => {
+	describe('getCollectable()', () => {
+		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
-			const payload = {
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 1 }],
-				balanceDelta: 22,
-				newReceivers: [
-					{ receiver: Wallet.createRandom().address, weight: 3 },
-					{ receiver: 'invalid address', weight: 3 }
-				]
-			};
-
-			let threw = false;
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
 			try {
-				await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
+				await testDripsHubClient.getCollectable(1, erc20Address);
 			} catch (error) {
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				assert.equal(error.context, payload.newReceivers);
-				threw = true;
+				// Just for the test to continue.
 			}
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
-		it('should validate Drips', async () => {
+		it('should call the getCollectable() method of the drips hub contract', async () => {
 			// Arrange.
-			const payload = {
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 1 }],
-				balanceDelta: 22,
-				newReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }]
-			};
-
-			const validateSlitsStub = sinon.stub(validators, 'areValidSplitsReceivers').returns(true);
-
-			hubContractStub.setSplits
-				.withArgs(payload.currentReceivers, payload.newReceivers)
-				.resolves({} as ContractTransaction);
+			const userId = 1;
+			const erc20Address = Wallet.createRandom().address;
 
 			// Act.
-			await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
+			await testDripsHubClient.getCollectable(userId, erc20Address);
 
 			// Assert.
 			assert(
-				validateSlitsStub.calledOnceWithExactly(payload.newReceivers),
-				'Expected validateSplits() method to be called with different arguments'
-			);
-		});
-
-		it('should delegate the call to the setSplits() contract method', async () => {
-			// Arrange.
-			const payload = {
-				lastUpdate: 2,
-				lastBalance: 22,
-				currentReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }],
-				balanceDelta: 22,
-				newReceivers: [{ receiver: Wallet.createRandom().address, weight: 3 }]
-			};
-
-			hubContractStub.setSplits
-				.withArgs(payload.currentReceivers, payload.newReceivers)
-				.resolves({} as ContractTransaction);
-
-			// Act.
-			await dripsClient.updateUserSplits(payload.currentReceivers, payload.newReceivers);
-
-			// Assert.
-			assert(
-				hubContractStub.setSplits.calledOnceWithExactly(payload.currentReceivers, payload.newReceivers),
-				'Expected setSplits() method to be called with different arguments'
+				dripsHubContractStub.collectable.calledOnceWithExactly(userId, erc20Address),
+				`Expected getCollectable() method to be called with different arguments`
 			);
 		});
 	});
 
-	describe('giveFromUser()', async () => {
-		it('should throw if receiver address is not a valid', async () => {
+	describe('getDripsState()', () => {
+		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
-			const payload = {
-				receiver: 'invalid address',
-				amount: 10
-			};
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			let threw = false;
-
+			// Act.
 			try {
-				// Act.
-				await dripsClient.giveFromUser(payload.receiver, payload.amount);
+				await testDripsHubClient.getDripsState(1, erc20Address);
 			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
+				// Just for the test to continue.
 			}
+
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
-		it('should delegate the call to the give() contract method', async () => {
+		it('should call the getDripsState() method of the drips hub contract', async () => {
 			// Arrange.
-			const payload = {
-				receiver: Wallet.createRandom().address,
-				amount: 10
-			};
-
-			hubContractStub['give(address,uint128)']
-				.withArgs(payload.receiver, payload.amount)
-				.resolves({} as ContractTransaction);
+			const userId = 1;
+			const erc20Address = Wallet.createRandom().address;
 
 			// Act.
-			await dripsClient.giveFromUser(payload.receiver, payload.amount);
+			await testDripsHubClient.getDripsState(userId, erc20Address);
 
 			// Assert.
 			assert(
-				hubContractStub['give(address,uint128)'].calledOnceWithExactly(payload.receiver, payload.amount),
-				'Expected giveFromUser() method to be called with different arguments'
+				dripsHubContractStub.dripsState.calledOnceWithExactly(userId, erc20Address),
+				`Expected getDripsState() method to be called with different arguments`
 			);
 		});
 	});
 
-	describe('giveFromAccount()', async () => {
-		it('should throw invalidAddress error when receiver address is not valid', async () => {
+	describe('getBalanceAt()', () => {
+		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
-			const payload = {
-				account: 1,
-				receiver: 'invalid address',
-				amount: 10
-			};
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			let threw = false;
-
+			// Act.
 			try {
-				// Act.
-				await dripsClient.giveFromAccount(payload.account, payload.receiver, payload.amount);
+				await testDripsHubClient.getBalanceAt(1, erc20Address, [], 1);
 			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
+				// Just for the test to continue.
 			}
+
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
-		it('should delegate the call to the give() contract method', async () => {
+		it('should call the getBalanceAt() method of the drips hub contract', async () => {
 			// Arrange.
-			const payload = {
-				account: 1,
-				receiver: Wallet.createRandom().address,
-				amount: 10
-			};
-
-			hubContractStub['give(address,uint128)']
-				.withArgs(payload.receiver, payload.amount)
-				.resolves({} as ContractTransaction);
+			const userId = 1;
+			const timestamp = 1;
+			const receivers: DripsReceiverStruct[] = [];
+			const erc20Address = Wallet.createRandom().address;
 
 			// Act.
-			await dripsClient.giveFromAccount(payload.account, payload.receiver, payload.amount);
+			await testDripsHubClient.getBalanceAt(userId, erc20Address, receivers, timestamp);
 
 			// Assert.
 			assert(
-				hubContractStub['give(uint256,address,uint128)'].calledOnceWithExactly(
-					payload.account,
-					payload.receiver,
-					payload.amount
-				),
-				'Expected giveFromAccount() method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('getAllowance()', () => {
-		it('should delegate the call to the allowance() contract method', async () => {
-			// Arrange.
-			const expectedAllowance = BigNumber.from(1000);
-
-			daiContractStub.allowance
-				.withArgs(await dripsClient.signer.getAddress(), chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB)
-				.resolves(expectedAllowance);
-
-			// Act.
-			const allowance = await dripsClient.getAllowance();
-
-			// Assert.
-			assert.equal(allowance, expectedAllowance);
-			assert(
-				daiContractStub.allowance.calledOnceWithExactly(
-					await dripsClient.signer.getAddress(),
-					chainIdToNetworkPropertiesMap[CHAIN_ID].CONTRACT_DRIPS_HUB
-				),
-				'Expected allowance() method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('getAmountCollectableWithSplits()', () => {
-		it('should throw invalidAddress error when address is not valid', async () => {
-			// Arrange.
-			let threw = false;
-
-			try {
-				// Act.
-				await dripsClient.getAmountCollectableWithSplits('invalid address', [
-					{ receiver: Wallet.createRandom().address, weight: 1 }
-				]);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
-			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
-		});
-
-		it('should delegate the call to the getAmountCollectableWithSplits() contract method', async () => {
-			// Arrange.
-			const { address } = Wallet.createRandom();
-			const currentSplits = [
-				{
-					receiver: Wallet.createRandom().address,
-					weight: 1
-				}
-			];
-			const expectedAmountCollectable = [BigNumber.from(1000), BigNumber.from(2000)] as [BigNumber, BigNumber] & {
-				collected: BigNumber;
-				split: BigNumber;
-			};
-
-			hubContractStub.collectable.withArgs(address.toLowerCase(), currentSplits).resolves(expectedAmountCollectable);
-
-			// Act.
-			const collectable = await dripsClient.getAmountCollectableWithSplits(address, currentSplits);
-
-			// Assert.
-			assert.equal(collectable, expectedAmountCollectable);
-			assert(
-				hubContractStub.collectable.calledOnceWithExactly(address.toLowerCase(), currentSplits),
-				'Expected collectable() method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('collect()', async () => {
-		it('should delegate the call to the collect() contract method', async () => {
-			// Arrange.
-			const splits = [{ receiver: '', weight: 1 }];
-			const signerAddress = await dripsClient.signer.getAddress();
-
-			hubContractStub.collect.withArgs(signerAddress, splits).resolves({} as ContractTransaction);
-
-			// Act.
-			await dripsClient.collect(splits);
-
-			// Assert.
-			assert(
-				hubContractStub.collect.calledOnceWithExactly(signerAddress.toLowerCase(), splits),
-				'Expected collect() method to be called with different arguments'
+				dripsHubContractStub.balanceAt.calledOnceWithExactly(userId, erc20Address, receivers, timestamp),
+				`Expected getDripsState() method to be called with different arguments`
 			);
 		});
 	});
