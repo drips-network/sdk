@@ -24,25 +24,17 @@ export class DripsError {
 
 export class DripsErrors {
 	static invalidOperation = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.INVALID_OPERATION, `${DripsErrorCode.INVALID_OPERATION}:${message}`, context);
+		new DripsError(DripsErrorCode.INVALID_OPERATION, `${message}`, context);
 	static invalidArgument = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.INVALID_ARGUMENT, `${DripsErrorCode.INVALID_ARGUMENT}:${message}`, context);
-	static invalidAddress = (message: string, address?: string) =>
-		new DripsError(DripsErrorCode.INVALID_ADDRESS, `${DripsErrorCode.INVALID_ADDRESS}:${message}`, address);
+		new DripsError(DripsErrorCode.INVALID_ARGUMENT, `${message}`, context);
+	static invalidAddress = (message: string, context?: string) =>
+		new DripsError(DripsErrorCode.INVALID_ADDRESS, `${message}`, context);
 	static subgraphQueryFailed = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.SUBGRAPH_QUERY_FAILED, `${DripsErrorCode.SUBGRAPH_QUERY_FAILED}:${message}`, context);
+		new DripsError(DripsErrorCode.SUBGRAPH_QUERY_FAILED, `${message}`, context);
 	static unsupportedNetwork = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, `${DripsErrorCode.UNSUPPORTED_NETWORK}:${message}`, context);
+		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, `${message}`, context);
 	static invalidDripsReceiver = (message: string, context?: unknown) =>
-		new DripsError(
-			DripsErrorCode.INVALID_DRIPS_RECEIVER,
-			`${DripsErrorCode.INVALID_DRIPS_RECEIVER}:${message}`,
-			context
-		);
+		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER, `${message}`, context);
 	static invalidSplitsReceiver = (message: string, context?: unknown) =>
-		new DripsError(
-			DripsErrorCode.INVALID_SPLITS_RECEIVER,
-			`${DripsErrorCode.INVALID_SPLITS_RECEIVER}:${message}`,
-			context
-		);
+		new DripsError(DripsErrorCode.INVALID_SPLITS_RECEIVER, `${message}`, context);
 }
