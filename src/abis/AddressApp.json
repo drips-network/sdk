@@ -1,0 +1,126 @@
+[
+	{
+		"inputs": [{ "internalType": "contract DripsHub", "name": "_dripsHub", "type": "address" }],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "appId",
+		"outputs": [{ "internalType": "uint32", "name": "", "type": "uint32" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "address", "name": "userAddr", "type": "address" }],
+		"name": "calcUserId",
+		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "address", "name": "user", "type": "address" },
+			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" }
+		],
+		"name": "collect",
+		"outputs": [{ "internalType": "uint128", "name": "amt", "type": "uint128" }],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "address", "name": "user", "type": "address" },
+			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
+			{
+				"components": [
+					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
+				],
+				"internalType": "struct SplitsReceiver[]",
+				"name": "currReceivers",
+				"type": "tuple[]"
+			}
+		],
+		"name": "collectAll",
+		"outputs": [
+			{ "internalType": "uint128", "name": "collectedAmt", "type": "uint128" },
+			{ "internalType": "uint128", "name": "splitAmt", "type": "uint128" }
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "dripsHub",
+		"outputs": [{ "internalType": "contract DripsHub", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "uint256", "name": "receiver", "type": "uint256" },
+			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
+			{ "internalType": "uint128", "name": "amt", "type": "uint128" }
+		],
+		"name": "give",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "reserve",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
+			{
+				"components": [
+					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "DripsConfig", "name": "config", "type": "uint192" }
+				],
+				"internalType": "struct DripsReceiver[]",
+				"name": "currReceivers",
+				"type": "tuple[]"
+			},
+			{ "internalType": "int128", "name": "balanceDelta", "type": "int128" },
+			{
+				"components": [
+					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "DripsConfig", "name": "config", "type": "uint192" }
+				],
+				"internalType": "struct DripsReceiver[]",
+				"name": "newReceivers",
+				"type": "tuple[]"
+			}
+		],
+		"name": "setDrips",
+		"outputs": [
+			{ "internalType": "uint128", "name": "newBalance", "type": "uint128" },
+			{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
+				],
+				"internalType": "struct SplitsReceiver[]",
+				"name": "receivers",
+				"type": "tuple[]"
+			}
+		],
+		"name": "setSplits",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
