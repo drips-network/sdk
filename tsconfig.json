@@ -12,7 +12,7 @@
 		"declaration": true,
 		"declarationMap": true,
 		"skipLibCheck": true,
-		"removeComments": true,
+		"removeComments": false,
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"sourceMap": true,
