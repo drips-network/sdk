@@ -19,7 +19,7 @@
 		"lint-and-fix": "eslint . --ext .ts --fix",
 		"build": "npm run build:contracts && npm run build:lib && npx typedoc src/index.ts",
 		"build:lib": "tsup --dts-resolve",
-		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/abi/**.json",
+		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/abis/**.json",
 		"build:lib-fast": "tsup",
 		"dev": "nodemon --watch src -e ts,json --exec 'npm run build:lib-fast'",
 		"prepare": "npm run build",
