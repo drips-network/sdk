@@ -24,45 +24,25 @@ export class DripsError {
 
 export class DripsErrors {
 	static invalidOperation = (message: string, context?: unknown) =>
-		new DripsError(
-			DripsErrorCode.INVALID_OPERATION,
-			`Code: ${DripsErrorCode.INVALID_OPERATION} - Message: ${message}`,
-			context
-		);
+		new DripsError(DripsErrorCode.INVALID_OPERATION, `${DripsErrorCode.INVALID_OPERATION}:${message}`, context);
 	static invalidArgument = (message: string, context?: unknown) =>
-		new DripsError(
-			DripsErrorCode.INVALID_ARGUMENT,
-			`Code: ${DripsErrorCode.INVALID_ARGUMENT} - Message: ${message}`,
-			context
-		);
+		new DripsError(DripsErrorCode.INVALID_ARGUMENT, `${DripsErrorCode.INVALID_ARGUMENT}:${message}`, context);
 	static invalidAddress = (message: string, address?: string) =>
-		new DripsError(
-			DripsErrorCode.INVALID_ADDRESS,
-			`Code: ${DripsErrorCode.INVALID_ADDRESS} - Message: ${message}`,
-			address
-		);
+		new DripsError(DripsErrorCode.INVALID_ADDRESS, `${DripsErrorCode.INVALID_ADDRESS}:${message}`, address);
 	static subgraphQueryFailed = (message: string, context?: unknown) =>
-		new DripsError(
-			DripsErrorCode.SUBGRAPH_QUERY_FAILED,
-			`Code: ${DripsErrorCode.SUBGRAPH_QUERY_FAILED} - Message: ${message}`,
-			context
-		);
+		new DripsError(DripsErrorCode.SUBGRAPH_QUERY_FAILED, `${DripsErrorCode.SUBGRAPH_QUERY_FAILED}:${message}`, context);
 	static unsupportedNetwork = (message: string, context?: unknown) =>
-		new DripsError(
-			DripsErrorCode.UNSUPPORTED_NETWORK,
-			`Code: ${DripsErrorCode.UNSUPPORTED_NETWORK} - Message: ${message}`,
-			context
-		);
+		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, `${DripsErrorCode.UNSUPPORTED_NETWORK}:${message}`, context);
 	static invalidDripsReceiver = (message: string, context?: unknown) =>
 		new DripsError(
 			DripsErrorCode.INVALID_DRIPS_RECEIVER,
-			`Code: ${DripsErrorCode.INVALID_DRIPS_RECEIVER} - Message: ${message}`,
+			`${DripsErrorCode.INVALID_DRIPS_RECEIVER}:${message}`,
 			context
 		);
 	static invalidSplitsReceiver = (message: string, context?: unknown) =>
 		new DripsError(
 			DripsErrorCode.INVALID_SPLITS_RECEIVER,
-			`Code: ${DripsErrorCode.INVALID_SPLITS_RECEIVER} - Message: ${message}`,
+			`${DripsErrorCode.INVALID_SPLITS_RECEIVER}:${message}`,
 			context
 		);
 }
