@@ -152,12 +152,13 @@ export default class AddressAppClient {
 	 * @returns A Promise which resolves to the remaining number of tokens the smart contract is allowed to spend on behalf of the signer.
 	 * @throws {@link DripsErrors.invalidAddress} if the ERC20 token address is not valid.
 	 */
-	public getAllowance(erc20Address: string): Promise<BigNumber> {
+	public async getAllowance(erc20Address: string): Promise<BigNumber> {
 		guardAgainstInvalidAddress(erc20Address);
 
 		const signerAsErc20Contract = createErc20Contract(erc20Address, this.#signer);
+		const signerAddress = await this.#signer.getAddress();
 
-		return signerAsErc20Contract.allowance(this.#signer, this.#networkProperties.CONTRACT_ADDRESS_APP);
+		return signerAsErc20Contract.allowance(signerAddress, this.#networkProperties.CONTRACT_ADDRESS_APP);
 	}
 
 	/**

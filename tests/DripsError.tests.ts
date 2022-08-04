@@ -15,44 +15,40 @@ describe('DripsErrors', () => {
 	describe('invalidAddress()', () => {
 		it('should return expected error details', () => {
 			// Act.
-			const { code, message } = DripsErrors.invalidAddress('');
+			const { code } = DripsErrors.invalidAddress('');
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_ADDRESS);
-			assert.isTrue(message.includes(DripsErrorCode.INVALID_ADDRESS));
 		});
 	});
 
 	describe('invalidOperation()', () => {
 		it('should return expected error details', () => {
 			// Act.
-			const { code, message } = DripsErrors.invalidOperation('');
+			const { code } = DripsErrors.invalidOperation('');
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_OPERATION);
-			assert.isTrue(message.includes(DripsErrorCode.INVALID_OPERATION));
 		});
 	});
 
 	describe('invalidArgument()', () => {
 		it('should return expected error details', () => {
 			// Act.
-			const { code, message } = DripsErrors.invalidArgument('');
+			const { code } = DripsErrors.invalidArgument('');
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.INVALID_ARGUMENT);
-			assert.isTrue(message.includes(DripsErrorCode.INVALID_ARGUMENT));
 		});
 	});
 
 	describe('subgraphQueryFailed()', () => {
 		it('should return expected error details', () => {
 			// Act.
-			const { code, message } = DripsErrors.subgraphQueryFailed('');
+			const { code } = DripsErrors.subgraphQueryFailed('');
 
 			// Assert.
 			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
-			assert.isTrue(message.includes(DripsErrorCode.SUBGRAPH_QUERY_FAILED));
 		});
 	});
 });

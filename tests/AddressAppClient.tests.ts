@@ -224,7 +224,7 @@ describe('AddressAppClient', () => {
 			// Assert.
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					testAddressAppClient.signer,
+					await testAddressAppClient.signer.getAddress(),
 					testAddressAppClient.networkProperties.CONTRACT_ADDRESS_APP
 				),
 				`Expected allowance() method to be called with different arguments`
