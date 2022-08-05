@@ -1,5 +1,6 @@
 export * from './utils';
 export * from './types';
+export * from '../contracts';
 export * as gql from './gql';
 export * from './DripsSubgraph';
 export { default as DripsHubClient } from './DripsHubClient';
