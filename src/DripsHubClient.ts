@@ -1,7 +1,7 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumber, BigNumberish } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
 import type { DripsHubLogic as DripsHubContract } from '../contracts';
 import { DripsHubLogic__factory } from '../contracts';
 import type { NetworkProperties } from './types';

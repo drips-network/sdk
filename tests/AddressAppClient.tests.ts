@@ -9,9 +9,8 @@ import { AddressApp__factory } from '../contracts';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import AddressAppClient from '../src/AddressAppClient';
 import * as utils from '../src/utils';
-import type { SplitsReceiverStruct } from '../contracts/DripsHubLogic';
+import type { SplitsReceiverStruct, DripsReceiverStruct } from '../contracts/AddressApp';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
-import type { DripsReceiverStruct } from '../contracts/AddressApp';
 import type { DripsReceiver } from '../src/types';
 import DripsHubClient from '../src/DripsHubClient';
 

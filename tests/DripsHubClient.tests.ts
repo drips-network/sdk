@@ -9,7 +9,7 @@ import type { DripsHubLogic as DripsHubContract } from '../contracts';
 import { DripsHubLogic__factory } from '../contracts';
 import * as utils from '../src/utils';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
 
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
