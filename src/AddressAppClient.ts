@@ -2,9 +2,9 @@
 
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { BigNumber, constants } from 'ethers';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import type { AddressApp as AddressAppContract } from '../contracts';
 import { AddressApp__factory } from '../contracts';
 import type { DripsReceiver, NetworkProperties } from './types';

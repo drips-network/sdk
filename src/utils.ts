@@ -1,6 +1,6 @@
 import type { JsonRpcSigner } from '@ethersproject/providers';
-import type { SplitsReceiverStruct } from 'contracts/AddressApp';
 import { Contract, utils } from 'ethers';
+import type { SplitsReceiverStruct } from '../contracts/AddressApp';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiver, NetworkProperties } from './types';
 
