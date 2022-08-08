@@ -18,7 +18,7 @@ describe('utils', () => {
 	describe('NetworkProperties', () => {
 		it('should export only unique and supported chain IDs', () => {
 			// Arrange.
-			const chainIds = [1, 4, 5, 137, 80001];
+			const chainIds = [5];
 
 			// Assert.
 			assert.includeMembers(supportedChainIds as number[], chainIds);

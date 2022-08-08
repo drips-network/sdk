@@ -81,11 +81,7 @@ export default class AddressAppClient {
 	 *  **This signer will be the "user" the new instance will act on behalf of**.
 	 *
 	 * The provider can connect to the following supported networks:
-	 * - 'mainnet': chain ID 1
-	 * - 'rinkeby': chain ID 4
 	 * - 'goerli': chain ID 5
-	 * - 'matic': chain ID 137
-	 * - 'mumbai': chain ID 80001
 	 * @returns A Promise which resolves to the new `AddressAppClient` instance.
 	 * @throws {@link DripsErrors.invalidArgument} if the provider argument has a "falsy" value, or the provider is connected to an unsupported chain.
 	 * @throws {@link DripsErrors.invalidAddress} if the provider's signer address is not valid.
@@ -347,7 +343,7 @@ export default class AddressAppClient {
 			// Encode config to a uint192.
 			.map((r) => ({
 				userId: r.userId,
-				config: r.config.asUint192
+				config: r.config.asUint256
 			}))
 			// Sort by user ID.
 			.sort((a, b) =>

@@ -28,9 +28,9 @@ describe('DripsReceiverConfig', () => {
 			const duration = 2;
 			const amountPerSec = 3;
 
-			let configAsUint192 = BigNumber.from(amountPerSec);
-			configAsUint192 = configAsUint192.shl(32).or(start);
-			configAsUint192 = configAsUint192.shl(32).or(duration);
+			let configAsUint = BigNumber.from(amountPerSec);
+			configAsUint = configAsUint.shl(32).or(start);
+			configAsUint = configAsUint.shl(32).or(duration);
 
 			// Act.
 			const config = DripsReceiverConfig.create(amountPerSec, duration, start);
@@ -38,23 +38,23 @@ describe('DripsReceiverConfig', () => {
 			// Assert.
 			assert(BigNumber.from(config.start).eq(BigNumber.from(start)));
 			assert(BigNumber.from(config.duration).eq(BigNumber.from(duration)));
+			assert(BigNumber.from(config.asUint256).eq(BigNumber.from(configAsUint)));
 			assert(BigNumber.from(config.amountPerSec).eq(BigNumber.from(amountPerSec)));
-			assert(BigNumber.from(config.asUint192).eq(BigNumber.from(configAsUint192)));
 		});
 	});
 
-	describe('fromUint192()', () => {
-		it('should parse correctly from a uint192', () => {
+	describe('fromUint256()', () => {
+		it('should parse correctly from a uint256', () => {
 			// Arrange.
 			const expectedConfig = DripsReceiverConfig.create(1, 2, 3);
 
 			// Act.
-			const actualConfig = DripsReceiverConfig.fromUint192(expectedConfig.asUint192);
+			const actualConfig = DripsReceiverConfig.fromUint256(expectedConfig.asUint256);
 
 			// Assert.
 			assert(BigNumber.from(actualConfig.start).eq(BigNumber.from(expectedConfig.start)));
 			assert(BigNumber.from(actualConfig.duration).eq(BigNumber.from(expectedConfig.duration)));
-			assert(BigNumber.from(actualConfig.asUint192).eq(BigNumber.from(expectedConfig.asUint192)));
+			assert(BigNumber.from(actualConfig.asUint256).eq(BigNumber.from(expectedConfig.asUint256)));
 			assert(BigNumber.from(actualConfig.amountPerSec).eq(BigNumber.from(expectedConfig.amountPerSec)));
 		});
 	});

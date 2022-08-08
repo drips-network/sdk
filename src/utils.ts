@@ -5,35 +5,11 @@ import { DripsErrors } from './DripsError';
 import type { DripsReceiver, NetworkProperties } from './types';
 
 export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = {
-	1: {
-		name: 'mainnet',
-		CONTRACT_DRIPS_HUB: '',
-		CONTRACT_ADDRESS_APP: '',
-		CONTRACT_DRIPS_HUB_LOGIC: ''
-	},
-	4: {
-		name: 'rinkeby',
-		CONTRACT_DRIPS_HUB: '',
-		CONTRACT_ADDRESS_APP: '',
-		CONTRACT_DRIPS_HUB_LOGIC: ''
-	},
 	5: {
 		name: 'goerli',
 		CONTRACT_DRIPS_HUB: '0x4FaAB6032dd0264a8e2671F56fd30F69362f31Ad',
 		CONTRACT_ADDRESS_APP: '0x76F457CD4F60c0a634781bfdB8c5318050633A08',
 		CONTRACT_DRIPS_HUB_LOGIC: '0xB79663c5E27C1a2c93aeE2a35b273b0255638267'
-	},
-	137: {
-		name: 'matic',
-		CONTRACT_DRIPS_HUB: '',
-		CONTRACT_ADDRESS_APP: '',
-		CONTRACT_DRIPS_HUB_LOGIC: ''
-	},
-	80001: {
-		name: 'mumbai',
-		CONTRACT_DRIPS_HUB: '',
-		CONTRACT_ADDRESS_APP: '',
-		CONTRACT_DRIPS_HUB_LOGIC: ''
 	}
 };
 

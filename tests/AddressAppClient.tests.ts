@@ -531,7 +531,7 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint192 }
+				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
 				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
@@ -552,7 +552,7 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint192 }
+				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
 				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
@@ -573,7 +573,7 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint192 }
+				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
 				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
@@ -603,7 +603,7 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint192 }
+				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
 				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },

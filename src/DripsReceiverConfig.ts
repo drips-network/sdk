@@ -9,10 +9,10 @@ export default class DripsReceiverConfig {
 		return this.#start;
 	}
 
-	#asUint192!: BigNumberish;
-	/** The drips configuration encoded as a `uint192`. */
-	public get asUint192(): BigNumberish {
-		return this.#asUint192;
+	#asUint256!: BigNumberish;
+	/** The drips configuration encoded as a `uint256`. */
+	public get asUint256(): BigNumberish {
+		return this.#asUint256;
 	}
 
 	#duration!: BigNumberish;
@@ -49,17 +49,17 @@ export default class DripsReceiverConfig {
 		config.#start = start;
 		config.#duration = duration;
 		config.#amountPerSec = amountPerSec;
-		config.#asUint192 = DripsReceiverConfig.toUint192(config);
+		config.#asUint256 = DripsReceiverConfig.toUint256(config);
 
 		return config;
 	}
 
 	/**
-	 * Converts a `uint192` to a {@link DripsReceiverConfig} object.
-	 * @param  {BigNumberish} dripsConfig The drips configuration as a `uint192`.
+	 * Converts a `uint256` to a {@link DripsReceiverConfig} object.
+	 * @param  {BigNumberish} dripsConfig The drips configuration as a `uint256`.
 	 * @returns The drips configuration.
 	 */
-	public static fromUint192(dripsConfig: BigNumberish): DripsReceiverConfig {
+	public static fromUint256(dripsConfig: BigNumberish): DripsReceiverConfig {
 		const config = BigNumber.from(dripsConfig);
 
 		const amountPerSec = config.shr(64);
@@ -70,21 +70,21 @@ export default class DripsReceiverConfig {
 	}
 
 	/**
-	 * Encodes the drips configuration as a `uint192`.
+	 * Encodes the drips configuration as a `uint256`.
 	 *
 	 * @param  {DripsReceiverConfig} config The drips configuration.
 	 */
-	public static toUint192 = (config: DripsReceiverConfig) => {
+	public static toUint256 = (config: DripsReceiverConfig) => {
 		const start = BigNumber.from(config.start);
 		const duration = BigNumber.from(config.duration);
 		const amountPerSec = BigNumber.from(config.amountPerSec);
 
-		let configAsUint192 = amountPerSec;
-		configAsUint192 = configAsUint192.shl(32);
-		configAsUint192 = configAsUint192.or(start);
-		configAsUint192 = configAsUint192.shl(32);
-		configAsUint192 = configAsUint192.or(duration);
+		let configAsUint256 = amountPerSec;
+		configAsUint256 = configAsUint256.shl(32);
+		configAsUint256 = configAsUint256.or(start);
+		configAsUint256 = configAsUint256.shl(32);
+		configAsUint256 = configAsUint256.or(duration);
 
-		return configAsUint192;
+		return configAsUint256;
 	};
 }
