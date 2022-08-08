@@ -1,6 +1,18 @@
 import type { BigNumberish } from 'ethers';
 import type DripsReceiverConfig from './DripsReceiverConfig';
 
+export type DripsEntry = { id: string; receiverUserId: string; config: DripsReceiverConfig };
+
+export type UserAssetConfig = {
+	id: string;
+	assetId: string;
+	balance: string;
+	sender: { id: string };
+	amountCollected: string;
+	dripsEntries: DripsEntry[];
+	lastUpdatedBlockTimestamp: string;
+};
+
 export type DripsReceiver = {
 	userId: BigNumberish;
 	config: DripsReceiverConfig;

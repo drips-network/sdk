@@ -83,7 +83,7 @@ export default class AddressAppClient {
 	 * The provider can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
 	 * @returns A Promise which resolves to the new `AddressAppClient` instance.
-	 * @throws {@link DripsErrors.invalidArgument} if the provider argument has a "falsy" value, or the provider is connected to an unsupported chain.
+	 * @throws {@link DripsErrors.invalidArgument} if the provider has a "falsy" value, or the provider is connected to an unsupported chain.
 	 * @throws {@link DripsErrors.invalidAddress} if the provider's signer address is not valid.
 	 */
 	public static async create(provider: JsonRpcProvider): Promise<AddressAppClient> {
@@ -158,7 +158,7 @@ export default class AddressAppClient {
 	}
 
 	/**
-	 * Gets the client's signer user ID.
+	 * Returns the client's signer user ID.
 	 * @returns A Promise which resolves to the user ID.
 	 */
 	public async getUserId(): Promise<BigNumber> {
@@ -168,7 +168,7 @@ export default class AddressAppClient {
 	}
 
 	/**
-	 * Gets the user ID for the specified address.
+	 * Returns the user ID for the specified address.
 	 * @param  {string} userAddress The user address.
 	 * @returns A Promise which resolves to the user ID.
 	 * @throws {@link DripsErrors.invalidAddress} if the user address is not valid.

@@ -45,10 +45,10 @@ describe('DripsErrors', () => {
 	describe('subgraphQueryFailed()', () => {
 		it('should return expected error details', () => {
 			// Act.
-			const { code } = DripsErrors.subgraphQueryFailed('');
+			const { code } = DripsErrors.userNotFound('');
 
 			// Assert.
-			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
+			assert.equal(code, DripsErrorCode.USER_NOT_FOUND);
 		});
 	});
 });

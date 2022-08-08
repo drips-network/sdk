@@ -1,11 +1,11 @@
 /* eslint-disable max-classes-per-file */
 
 export enum DripsErrorCode {
+	USER_NOT_FOUND = 'USER_NOT_FOUND',
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	INVALID_OPERATION = 'INVALID_OPERATION',
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
-	SUBGRAPH_QUERY_FAILED = 'SUBGRAPH_QUERY_FAILED',
 	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
 	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER'
 }
@@ -29,8 +29,8 @@ export class DripsErrors {
 		new DripsError(DripsErrorCode.INVALID_ARGUMENT, `${message}`, context);
 	static invalidAddress = (message: string, context?: string) =>
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, `${message}`, context);
-	static subgraphQueryFailed = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.SUBGRAPH_QUERY_FAILED, `${message}`, context);
+	static userNotFound = (message: string, context?: unknown) =>
+		new DripsError(DripsErrorCode.USER_NOT_FOUND, `${message}`, context);
 	static unsupportedNetwork = (message: string, context?: unknown) =>
 		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, `${message}`, context);
 	static invalidDripsReceiver = (message: string, context?: unknown) =>
