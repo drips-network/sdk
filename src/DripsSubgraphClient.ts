@@ -82,14 +82,12 @@ export class DripsSubgraphClient {
 	 */
 	public async getUserAssetConfigById(configId: string): Promise<UserAssetConfig> {
 		type APIResponse = {
-			data: {
-				assetConfig: UserAssetConfig;
-			};
+			assetConfig: UserAssetConfig;
 		};
 
 		const response = await this._query<APIResponse>(gql.getUserAssetConfigById, { configId });
 
-		return response?.data?.data?.assetConfig;
+		return response?.data?.assetConfig;
 	}
 
 	// public async getDripsBySender(address: string): Promise<DripsConfig> {
