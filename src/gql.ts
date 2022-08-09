@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const getUserAssetConfigs = `#graphql
 query getUserAssetConfigs($userId: ID!) {
   user(id: $userId) {
@@ -18,6 +17,26 @@ query getUserAssetConfigs($userId: ID!) {
       lastUpdatedBlockTimestamp
     }
   }
+}
+`;
+
+export const getUserAssetConfigById = `#graphql
+query getUserAssetConfigById($configId: ID!) {
+	userAssetConfig(id: $configId) {
+		id
+		dripsEntries {
+			id
+			receiverUserId
+			config
+			sender {
+				id
+			}
+		}
+		assetId
+		balance
+		amountCollected
+		lastUpdatedBlockTimestamp
+	}
 }
 `;
 

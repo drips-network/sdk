@@ -76,6 +76,23 @@ export class DripsSubgraphClient {
 		return user.assetConfigs;
 	}
 
+	/**
+	 * Returns the user asset configuration for the specified ID.
+	 * @param  {string} configId The user asset configuration ID.
+	 * @returns A Promise which resolves to the user asset configuration.
+	 */
+	public async getUserAssetConfigById(configId: string): Promise<UserAssetConfig> {
+		type APIResponse = {
+			data: {
+				assetConfig: UserAssetConfig;
+			};
+		};
+
+		const response = await this._query<APIResponse>(gql.getUserAssetConfigById, { configId });
+
+		return response?.data?.data?.assetConfig;
+	}
+
 	// public async getDripsBySender(address: string): Promise<DripsConfig> {
 	// 	type APIResponse = { dripsConfigs: DripsConfig[] };
 
