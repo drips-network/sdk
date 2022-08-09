@@ -1,5 +1,4 @@
 import { DripsErrors } from './DripsError';
-import DripsReceiverConfig from './DripsReceiverConfig';
 import * as gql from './gql';
 import type { UserAssetConfig } from './types';
 
