@@ -62,15 +62,7 @@ export class DripsSubgraphClient {
 	public async getUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
 		type APIResponse = {
 			user: {
-				assetConfigs: {
-					id: string;
-					assetId: string;
-					balance: string;
-					sender: { id: string };
-					amountCollected: string;
-					dripsEntries: { id: string; receiverUserId: string; config: string }[];
-					lastUpdatedBlockTimestamp: string;
-				}[];
+				assetConfigs: UserAssetConfig[];
 			};
 		};
 
@@ -81,13 +73,7 @@ export class DripsSubgraphClient {
 			throw DripsErrors.userNotFound(`Subgraph query failed: user with id '${userId}' does not exist.`);
 		}
 
-		return user.assetConfigs.map((config) => ({
-			...config,
-			dripsEntries: config.dripsEntries.map((dripEntry) => ({
-				...dripEntry,
-				config: DripsReceiverConfig.fromUint256(dripEntry.config)
-			}))
-		}));
+		return user.assetConfigs;
 	}
 
 	// public async getDripsBySender(address: string): Promise<DripsConfig> {
