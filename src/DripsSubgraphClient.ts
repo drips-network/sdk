@@ -59,7 +59,7 @@ export class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's asset configurations.
 	 * @throws {@link DripsErrors.userNotFound} if the user for the specified user ID does not exist.
 	 */
-	public async getUserAssetConfigs(userId: BigNumber): Promise<UserAssetConfig[]> {
+	public async getUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
 		type APIResponse = {
 			user: {
 				assetConfigs: UserAssetConfig[];
