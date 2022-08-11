@@ -153,4 +153,9 @@ export class DripsSubgraphClient {
 		// guard against valid config string
 		return BigNumber.from(erc20TokenAddress).toString();
 	}
+
+	public static getTokenAddressFromAssetId(assetId: string): string {
+		// guard against valid config string
+		return BigNumber.from(assetId).toHexString();
+	}
 }
