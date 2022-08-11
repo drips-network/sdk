@@ -1,3 +1,4 @@
+import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
 import type { UserAssetConfig } from './types';
@@ -58,7 +59,7 @@ export class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's asset configurations.
 	 * @throws {@link DripsErrors.userNotFound} if the user for the specified user ID does not exist.
 	 */
-	public async getUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
+	public async getUserAssetConfigs(userId: BigNumber): Promise<UserAssetConfig[]> {
 		type APIResponse = {
 			user: {
 				assetConfigs: UserAssetConfig[];
@@ -136,5 +137,20 @@ export class DripsSubgraphClient {
 		const resp = await this._query<APIResponse>(query, { ...args, first: 100 });
 
 		return resp.data?.splitsEntries || [];
+	}
+
+	public static getUserIdFromUserAssetConfigId(configId: string): string {
+		// guard against valid config string
+		return configId.split('-')[0];
+	}
+
+	public static getAssetIdFromFromUserAssetConfigId(configId: string): string {
+		// guard against valid config string
+		return configId.split('-')[1];
+	}
+
+	public static getAssetIdFromAssetAddress(erc20TokenAddress: string): string {
+		// guard against valid config string
+		return BigNumber.from(erc20TokenAddress).toString();
 	}
 }
