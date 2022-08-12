@@ -161,10 +161,13 @@ export default class AddressAppClient {
 	 * Returns the client's signer user ID.
 	 * @returns A Promise which resolves to the user ID.
 	 */
-	public async getUserId(): Promise<BigNumber> {
+	public async getUserId(): Promise<string> {
 		const signerAddress = await this.#signer.getAddress();
 
-		return this.#addressAppContract.calcUserId(signerAddress);
+		const userId = await this.#addressAppContract.calcUserId(signerAddress);
+
+		// Return the user ID in base-10, as stored on the contract.
+		return userId.toString();
 	}
 
 	/**
@@ -173,10 +176,13 @@ export default class AddressAppClient {
 	 * @returns A Promise which resolves to the user ID.
 	 * @throws {@link DripsErrors.invalidAddress} if the user address is not valid.
 	 */
-	public getUserIdForAddress(userAddress: string): Promise<BigNumber> {
+	public async getUserIdForAddress(userAddress: string): Promise<string> {
 		guardAgainstInvalidAddress(userAddress);
 
-		return this.#addressAppContract.calcUserId(userAddress);
+		const userId = await this.#addressAppContract.calcUserId(userAddress);
+
+		// Return the user ID in base-10, as stored on the contract.
+		return userId.toString();
 	}
 
 	/**

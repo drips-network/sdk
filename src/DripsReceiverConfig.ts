@@ -54,6 +54,12 @@ export default class DripsReceiverConfig {
 		return config;
 	}
 
+	// TODO: Implement
+	public toJsonString(): string {
+		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
+		throw new Error('Not implemented');
+	}
+
 	/**
 	 * Converts a `uint256` to a {@link DripsReceiverConfig} object.
 	 * @param  {BigNumberish} dripsConfig The drips configuration as a `uint256`.
