@@ -54,10 +54,17 @@ export default class DripsReceiverConfig {
 		return config;
 	}
 
-	// TODO: Implement
 	public toJsonString(): string {
 		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
-		throw new Error('Not implemented');
+
+		const obj = {
+			start: this.#start,
+			duration: this.#duration,
+			amountPerSec: this.#amountPerSec,
+			asUint256: this.#asUint256.toString()
+		};
+
+		return JSON.stringify(obj);
 	}
 
 	/**

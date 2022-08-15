@@ -43,6 +43,19 @@ describe('DripsReceiverConfig', () => {
 		});
 	});
 
+	describe('toJson()', () => {
+		it('should return the expected JSON string', () => {
+			// Arrange.
+			const config = DripsReceiverConfig.create(1, 2, 3);
+
+			// Act.
+			const json = config.toJsonString();
+
+			// Assert.
+			assert.equal(json, '{"start":3,"duration":2,"amountPerSec":1,"asUint256":"18446744086594453506"}');
+		});
+	});
+
 	describe('fromUint256()', () => {
 		it('should parse correctly from a uint256', () => {
 			// Arrange.

@@ -4,6 +4,8 @@ import type { SplitsReceiverStruct } from '../contracts/AddressApp';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiver, NetworkProperties } from './types';
 
+const MAX_DRIPS_RECEIVERS = 100;
+
 export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = {
 	5: {
 		name: 'goerli',
@@ -30,7 +32,13 @@ export const guardAgainstInvalidAddress = (...addresses: string[]) => {
 };
 
 export const guardAgainstInvalidDripsReceiver = (...receivers: DripsReceiver[]) => {
-	receivers?.forEach((receiver) => {
+	if (receivers.length > MAX_DRIPS_RECEIVERS) {
+		throw DripsErrors.invalidArgument(
+			`Invalid drip receivers: drip receivers must be less than ${MAX_DRIPS_RECEIVERS}`
+		);
+	}
+
+	receivers.forEach((receiver) => {
 		if (!receiver.userId || !receiver.config?.amountPerSec) {
 			throw DripsErrors.invalidDripsReceiver(
 				`Drips receiver '${JSON.stringify(
@@ -42,7 +50,7 @@ export const guardAgainstInvalidDripsReceiver = (...receivers: DripsReceiver[]) 
 };
 
 export const guardAgainstInvalidSplitsReceiver = (...receivers: SplitsReceiverStruct[]) => {
-	receivers?.forEach((receiver) => {
+	receivers.forEach((receiver) => {
 		if (!receiver.userId || !receiver.weight) {
 			throw DripsErrors.invalidSplitsReceiver(
 				`Splits receiver '${JSON.stringify(

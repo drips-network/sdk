@@ -128,6 +128,19 @@ export default class AddressAppClient {
 		return addressApp;
 	}
 
+	public toJsonString(): string {
+		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
+
+		const obj = {
+			signer: this.#signer,
+			network: this.#network,
+			provider: this.#provider,
+			networkProperties: this.#networkProperties
+		};
+
+		return JSON.stringify(obj);
+	}
+
 	/**
 	 * Sets to the maximum value, for the specified ERC20 token, the allowance of the `AddressApp` smart contract over the client's signer tokens.
 	 * @param  {string} erc20TokenAddress The ERC20 token address to use.

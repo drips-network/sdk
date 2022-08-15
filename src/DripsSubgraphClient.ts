@@ -34,6 +34,16 @@ export default class DripsSubgraphClient {
 		return subgraphClient;
 	}
 
+	public toJsonString(): string {
+		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
+
+		const obj = {
+			apiUrl: this.#apiUrl
+		};
+
+		return JSON.stringify(obj);
+	}
+
 	/**
 	 * Returns all asset configurations for the specified user.
 	 * @param  {string} userId The user ID.
