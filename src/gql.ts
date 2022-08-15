@@ -25,7 +25,7 @@ query getUserAssetConfigs($userId: ID!) {
 `;
 
 export const getSplitEntries = `#graphql
-query getUserAssetConfigs($userId: ID!) {
+query getSplitEntries($userId: ID!) {
   user(id: $userId) {
 		splitsEntries {
 			receiverUserId

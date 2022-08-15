@@ -100,7 +100,7 @@ export class DripsSubgraphClient {
 	public async getSplitEntries(userId: string): Promise<SplitEntry[]> {
 		type APIResponse = {
 			user: {
-				splitEntries: SplitEntry[];
+				splitsEntries: SplitEntry[];
 			};
 		};
 
@@ -111,7 +111,7 @@ export class DripsSubgraphClient {
 			throw DripsErrors.userNotFound(`Subgraph query failed: user with id '${userId}' does not exist.`);
 		}
 
-		return user.splitEntries;
+		return user.splitsEntries;
 	}
 
 	// public async getDripsBySender(address: string): Promise<DripsConfig> {
