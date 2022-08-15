@@ -12,7 +12,7 @@ import {
 	guardAgainstInvalidDripsReceiver,
 	guardAgainstInvalidSplitsReceiver,
 	supportedChainIds
-} from '../src/utils';
+} from '../src/common';
 
 describe('utils', () => {
 	describe('NetworkProperties', () => {

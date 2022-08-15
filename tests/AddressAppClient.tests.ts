@@ -8,7 +8,7 @@ import type { AddressApp as AddressAppContract } from '../contracts';
 import { AddressApp__factory } from '../contracts';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import AddressAppClient from '../src/AddressAppClient';
-import * as utils from '../src/utils';
+import * as utils from '../src/common';
 import type { SplitsReceiverStruct, DripsReceiverStruct } from '../contracts/AddressApp';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
 import type { DripsReceiver } from '../src/types';

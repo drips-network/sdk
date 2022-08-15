@@ -7,7 +7,7 @@ import { Wallet } from 'ethers';
 import DripsHubClient from '../src/DripsHubClient';
 import type { DripsHubLogic as DripsHubContract } from '../contracts';
 import { DripsHubLogic__factory } from '../contracts';
-import * as utils from '../src/utils';
+import * as utils from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
 
