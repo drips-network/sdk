@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
-import type { UserAssetConfig } from './types';
+import type { SplitEntry, UserAssetConfig } from './types';
 
 export type Split = {
 	sender: string;
@@ -89,6 +89,29 @@ export class DripsSubgraphClient {
 		const response = await this._query<APIResponse>(gql.getUserAssetConfigById, { configId });
 
 		return response?.data?.userAssetConfig;
+	}
+
+	/**
+	 * Returns all split entries for the specified user.
+	 * @param  {string} userId The user ID.
+	 * @returns A Promise which resolves to the user's split entries.
+	 * @throws {@link DripsErrors.userNotFound} if the user for the specified user ID does not exist.
+	 */
+	public async getSplitEntries(userId: string): Promise<SplitEntry[]> {
+		type APIResponse = {
+			user: {
+				splitEntries: SplitEntry[];
+			};
+		};
+
+		const response = await this._query<APIResponse>(gql.getSplitEntries, { userId });
+
+		const user = response.data?.user;
+		if (!user) {
+			throw DripsErrors.userNotFound(`Subgraph query failed: user with id '${userId}' does not exist.`);
+		}
+
+		return user.splitEntries;
 	}
 
 	// public async getDripsBySender(address: string): Promise<DripsConfig> {
