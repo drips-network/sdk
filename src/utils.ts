@@ -6,10 +6,10 @@ import type { DripsEntry } from './types';
 
 /**
  * Maps from `DripsEntry` to `DripsReceiverStruct`.
- * @param  {DripsEntry[]} ...dripsEntries The drip entries.
+ * @param  {DripsEntry[]} dripsEntries The drip entries.
  * @returns The mapped drip receiver structs.
  */
-const mapDripEntriesToStructs = (...dripsEntries: DripsEntry[]): DripsReceiverStruct[] => {
+const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruct[] => {
 	const structs: DripsReceiverStruct[] =
 		dripsEntries?.map((d) => ({
 			config: d.config,
