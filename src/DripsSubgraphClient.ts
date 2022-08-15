@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
-import type { UserAssetConfig } from './types';
+import type { SplitEntry, UserAssetConfig } from './types';
 
 export type Split = {
 	sender: string;
@@ -63,6 +63,7 @@ export class DripsSubgraphClient {
 		type APIResponse = {
 			user: {
 				assetConfigs: UserAssetConfig[];
+				splitsEntries: SplitEntry[];
 			};
 		};
 
@@ -151,6 +152,7 @@ export class DripsSubgraphClient {
 
 	public static getAssetIdFromAssetAddress(erc20TokenAddress: string): string {
 		// guard against valid config string
+		// Return the asset ID in base-10, as stored on the contract.
 		return BigNumber.from(erc20TokenAddress).toString();
 	}
 

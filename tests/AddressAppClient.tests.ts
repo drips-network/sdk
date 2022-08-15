@@ -3,7 +3,7 @@ import sinon, { stubConstructor, stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import { constants, Contract, Wallet } from 'ethers';
+import { BigNumber, constants, Contract, Wallet } from 'ethers';
 import type { AddressApp as AddressAppContract } from '../contracts';
 import { AddressApp__factory } from '../contracts';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
@@ -233,6 +233,11 @@ describe('AddressAppClient', () => {
 
 	describe('getUserId()', () => {
 		it('should call the calcUserId() method of the AddressApp contract', async () => {
+			// Arrange.
+			addressAppContractStub.calcUserId
+				.withArgs(await testAddressAppClient.signer.getAddress())
+				.resolves(BigNumber.from(111));
+
 			// Act.
 			await testAddressAppClient.getUserId();
 
@@ -250,6 +255,8 @@ describe('AddressAppClient', () => {
 			const userAddress = Wallet.createRandom().address;
 			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
 
+			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
+
 			// Act.
 			await testAddressAppClient.getUserIdForAddress(userAddress);
 
@@ -260,6 +267,7 @@ describe('AddressAppClient', () => {
 		it('should call the calcUserId() method of the AddressApp contract', async () => {
 			// Arrange.
 			const userAddress = Wallet.createRandom().address;
+			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
 
 			// Act.
 			await testAddressAppClient.getUserIdForAddress(userAddress);

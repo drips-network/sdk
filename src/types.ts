@@ -13,6 +13,11 @@ export type UserAssetConfig = {
 	lastUpdatedBlockTimestamp: string;
 };
 
+export type SplitEntry = {
+	weight: string;
+	receiverUserId: string;
+};
+
 export type DripsReceiver = {
 	userId: BigNumberish;
 	config: DripsReceiverConfig;
