@@ -5,7 +5,7 @@ import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/Dri
 import type { DripsHubLogic as DripsHubContract } from '../contracts';
 import { DripsHubLogic__factory } from '../contracts';
 import type { NetworkProperties } from './types';
-import { chainIdToNetworkPropertiesMap, guardAgainstInvalidAddress, supportedChainIds } from './utils';
+import { chainIdToNetworkPropertiesMap, guardAgainstInvalidAddress, supportedChainIds } from './common';
 import { DripsErrors } from './DripsError';
 
 /**
@@ -18,7 +18,7 @@ export default class DripsHubClient {
 	/**
 	 * The network the client is connected to.
 	 *
-	 * The network _is_ the {@link provider}'s network.
+	 * The network _is_ the `provider`'s network.
 	 */
 	public get network() {
 		return this.#network;
@@ -54,7 +54,7 @@ export default class DripsHubClient {
 	 * - 'matic': chain ID 137
 	 * - 'mumbai': chain ID 80001
 	 * @returns A Promise which resolves to the new `DripsHubClient` instance.
-	 * @throws {@link DripsErrors.invalidArgument} if the provider argument has a "falsy" value, or the provider is connected to an unsupported chain.
+	 * @throws {@link DripsErrors.invalidArgument} if the `provider` has a "falsy" value, or the provider is connected to an unsupported chain.
 	 */
 	public static async create(provider: Provider): Promise<DripsHubClient> {
 		// Validate provider.
@@ -88,16 +88,16 @@ export default class DripsHubClient {
 	/**
 	 * Returns the amount of received funds that are available for collection for a user.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20Address The ERC20 token (address) to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The users's current splits receivers.
 	 * @returns A Promise which resolves to an object with the following properties:
 	 * - `collectedAmt` - The collected amount.
 	 * - `splitAmt` - The amount split to the user's splits receivers.
-	 * @throws {@link DripsErrors.invalidAddress} if the ERC20 token address is not valid.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public getCollectableAll(
 		userId: BigNumberish,
-		erc20Address: string,
+		erc20TokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
 	): Promise<
 		[BigNumber, BigNumber] & {
@@ -105,51 +105,51 @@ export default class DripsHubClient {
 			splitAmt: BigNumber;
 		}
 	> {
-		guardAgainstInvalidAddress(erc20Address);
+		guardAgainstInvalidAddress(erc20TokenAddress);
 
-		return this.#dripsHubContract.collectableAll(userId, erc20Address, currentReceivers);
+		return this.#dripsHubContract.collectableAll(userId, erc20TokenAddress, currentReceivers);
 	}
 
 	/**
 	 * Returns the user's received, but not split yet, funds.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20Address The ERC20 token (address) to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
 	 * @returns A Promise which resolves to the amount received but not split yet.
-	 * @throws {@link DripsErrors.invalidAddress} if the ERC20 token address is not valid.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
-	public getSplittable(userId: BigNumberish, erc20Address: string): Promise<BigNumber> {
-		guardAgainstInvalidAddress(erc20Address);
+	public getSplittable(userId: BigNumberish, erc20TokenAddress: string): Promise<BigNumber> {
+		guardAgainstInvalidAddress(erc20TokenAddress);
 
-		return this.#dripsHubContract.splittable(userId, erc20Address);
+		return this.#dripsHubContract.splittable(userId, erc20TokenAddress);
 	}
 
 	/**
 	 * Returns the user's received funds that are already split and ready to be collected.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20Address The ERC20 token (address) to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
 	 * @returns A Promise which resolves to the collectable amount.
-	 * @throws {@link DripsErrors.invalidAddress} if the ERC20 token address is not valid.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
-	public getCollectable(userId: BigNumberish, erc20Address: string): Promise<BigNumber> {
-		guardAgainstInvalidAddress(erc20Address);
+	public getCollectable(userId: BigNumberish, erc20TokenAddress: string): Promise<BigNumber> {
+		guardAgainstInvalidAddress(erc20TokenAddress);
 
-		return this.#dripsHubContract.collectable(userId, erc20Address);
+		return this.#dripsHubContract.collectable(userId, erc20TokenAddress);
 	}
 
 	/**
 	 * Returns the current user's drips state.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20Address The ERC20 token (address) to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
 	 * @returns A Promise which resolves to an object with the following properties:
 	 * - `dripsHash` - The current drips receivers list hash.
 	 * - `updateTime` - The time when drips have been configured for the last time.
 	 * - `balance` - The balance when drips have been configured for the last time.
 	 * - `defaultEnd` - The end time of drips without a duration.
-	 * @throws {@link DripsErrors.invalidAddress} if the ERC20 token address is not valid.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public getDripsState(
 		userId: BigNumberish,
-		erc20Address: string
+		erc20TokenAddress: string
 	): Promise<
 		[string, number, BigNumber, number] & {
 			dripsHash: string;
@@ -158,29 +158,29 @@ export default class DripsHubClient {
 			defaultEnd: number;
 		}
 	> {
-		guardAgainstInvalidAddress(erc20Address);
+		guardAgainstInvalidAddress(erc20TokenAddress);
 
-		return this.#dripsHubContract.dripsState(userId, erc20Address);
+		return this.#dripsHubContract.dripsState(userId, erc20TokenAddress);
 	}
 
 	/**
 	 * Returns the user's drips balance at a given timestamp.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20Address The ERC20 token (address) to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
 	 * @param  {DripsReceiverStruct[]} receivers The users's current drips receivers.
 	 * @param  {BigNumberish} timestamp The timestamp for which the balance should be calculated. It can't be lower than the timestamp of the last call to `setDrips`.
 	 * If it's bigger than `block.timestamp`, then it's a prediction assuming that `setDrips` won't be called before `timestamp`.
 	 * @returns A Promise which resolves to the user balance on `timestamp`.
-	 * @throws {@link DripsErrors.invalidAddress} if the ERC20 token address is not valid.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public getBalanceAt(
 		userId: BigNumberish,
-		erc20Address: string,
+		erc20TokenAddress: string,
 		receivers: DripsReceiverStruct[],
 		timestamp: BigNumberish
 	) {
-		guardAgainstInvalidAddress(erc20Address);
+		guardAgainstInvalidAddress(erc20TokenAddress);
 
-		return this.#dripsHubContract.balanceAt(userId, erc20Address, receivers, timestamp);
+		return this.#dripsHubContract.balanceAt(userId, erc20TokenAddress, receivers, timestamp);
 	}
 }

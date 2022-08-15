@@ -14,7 +14,7 @@ import {
 	supportedChainIds
 } from '../src/common';
 
-describe('utils', () => {
+describe('common', () => {
 	describe('NetworkProperties', () => {
 		it('should export only unique and supported chain IDs', () => {
 			// Arrange.

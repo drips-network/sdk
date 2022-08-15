@@ -1,9 +1,10 @@
-export * from './utils';
+export * from './common';
 export * from './types';
 export * as gql from './gql';
-export * from './DripsSubgraphClient';
+export { default as utils } from './utils';
 export { default as DripsHubClient } from './DripsHubClient';
 export { default as AddressAppClient } from './AddressAppClient';
+export { default as DripsSubgraphClient } from './DripsSubgraphClient';
 export { default as DripsReceiverConfig } from './DripsReceiverConfig';
 export { DripsError, DripsErrors, DripsErrorCode } from './DripsError';
 

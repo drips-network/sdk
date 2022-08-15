@@ -29,15 +29,15 @@ export default class DripsReceiverConfig {
 
 	private constructor() {}
 
-	/** Creates a new drips configuration.
+	/** Creates a new `DripsReceiverConfig` instance.
 	 * @param  {BigNumberish} amountPerSec The amount per second being dripped. Must never be zero.
 	 * @param  {BigNumberish} start The UNIX timestamp when dripping should start. If set to zero (default value), the smart contract will use the timestamp when drips are configured.
-	 * @param  {BigNumberish} duration The duration of dripping. If set to zero, the smart contract will drip until balance runs out.
-	 * @returns The drips configuration.
+	 * @param  {BigNumberish} duration The duration of dripping. If set to zero (default value), the smart contract will drip until balance runs out.
+	 * @returns The new `DripsReceiverConfig` instance.
 	 */
 	public static create(
 		amountPerSec: BigNumberish,
-		duration: BigNumberish,
+		duration: BigNumberish = 0,
 		start: BigNumberish = 0
 	): DripsReceiverConfig {
 		if (amountPerSec === 0) {

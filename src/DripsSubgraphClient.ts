@@ -1,30 +1,11 @@
-import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
 import type { SplitEntry, UserAssetConfig } from './types';
 
-export type Split = {
-	sender: string;
-	weight: number;
-	receiver: string;
-};
-
-export type Drip = {
-	receiver: string;
-	amtPerSec: string;
-};
-
-export type DripsConfig = {
-	balance?: string;
-	receivers?: Drip[];
-	timestamp?: string;
-	withdrawable?: number;
-};
-
 /**
  * A client for interacting with the Drips Subgraph.
  */
-export class DripsSubgraphClient {
+export default class DripsSubgraphClient {
 	#apiUrl!: string;
 	/**
 	 * The Subgraph URL.
@@ -114,30 +95,6 @@ export class DripsSubgraphClient {
 		return user.splitsEntries;
 	}
 
-	// public async getDripsBySender(address: string): Promise<DripsConfig> {
-	// 	type APIResponse = { dripsConfigs: DripsConfig[] };
-
-	// 	const resp = await this._query<APIResponse>(gql.dripsConfigByID, { id: address });
-
-	// 	return resp.data?.dripsConfigs?.length ? resp.data?.dripsConfigs[0] : ({} as DripsConfig);
-	// }
-
-	// public async getDripsByReceiver(receiver: string): Promise<Drip[]> {
-	// 	type APIResponse = { dripsEntries: Drip[] };
-
-	// 	const resp = await this._query<APIResponse>(gql.dripsByReceiver, { receiver });
-
-	// 	return resp.data?.dripsEntries;
-	// }
-
-	// public getSplitsBySender(sender: string): Promise<Split[]> {
-	// 	return this._getSplits(gql.splitsBySender, { sender });
-	// }
-
-	// public getSplitsByReceiver(receiver: string): Promise<Split[]> {
-	// 	return this._getSplits(gql.splitsByReceiver, { receiver });
-	// }
-
 	private async _query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
@@ -152,34 +109,5 @@ export class DripsSubgraphClient {
 		}
 
 		throw new Error(`Subgraph query failed: ${resp.statusText}`);
-	}
-
-	private async _getSplits(query: string, args: { sender: string } | { receiver: string }): Promise<Split[]> {
-		type APIResponse = { splitsEntries: Split[] };
-
-		const resp = await this._query<APIResponse>(query, { ...args, first: 100 });
-
-		return resp.data?.splitsEntries || [];
-	}
-
-	public static getUserIdFromUserAssetConfigId(configId: string): string {
-		// guard against valid config string
-		return configId.split('-')[0];
-	}
-
-	public static getAssetIdFromFromUserAssetConfigId(configId: string): string {
-		// guard against valid config string
-		return configId.split('-')[1];
-	}
-
-	public static getAssetIdFromAssetAddress(erc20TokenAddress: string): string {
-		// guard against valid config string
-		// Return the asset ID in base-10, as stored on the contract.
-		return BigNumber.from(erc20TokenAddress).toString();
-	}
-
-	public static getTokenAddressFromAssetId(assetId: string): string {
-		// guard against valid config string
-		return BigNumber.from(assetId).toHexString();
 	}
 }
