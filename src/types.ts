@@ -10,6 +10,7 @@ export type UserAssetConfig = {
 	sender: { id: string };
 	amountCollected: string;
 	dripsEntries: DripsEntry[];
+	splitsEntries: SplitEntry[];
 	lastUpdatedBlockTimestamp: string;
 };
 

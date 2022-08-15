@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
-import type { SplitEntry, UserAssetConfig } from './types';
+import type { UserAssetConfig } from './types';
 
 export type Split = {
 	sender: string;
@@ -63,7 +63,6 @@ export class DripsSubgraphClient {
 		type APIResponse = {
 			user: {
 				assetConfigs: UserAssetConfig[];
-				splitsEntries: SplitEntry[];
 			};
 		};
 
