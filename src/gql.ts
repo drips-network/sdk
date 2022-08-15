@@ -1,10 +1,6 @@
 export const getUserAssetConfigs = `#graphql
 query getUserAssetConfigs($userId: ID!) {
   user(id: $userId) {
-		splitsEntries {
-			receiverUserId
-			weight
-		}
     assetConfigs {
       id
       dripsEntries {
@@ -39,10 +35,6 @@ export const getUserAssetConfigById = `#graphql
 query getUserAssetConfigById($configId: ID!) {
 	userAssetConfig(id: $configId) {
 		id
-		splitsEntries {
-			receiverUserId
-			weight
-		}
 		dripsEntries {
 			id
 			receiverUserId
