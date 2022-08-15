@@ -25,7 +25,7 @@ export default class DripsSubgraphClient {
 	 */
 	public static create(apiUrl: string): DripsSubgraphClient {
 		if (!apiUrl) {
-			throw DripsErrors.invalidArgument('Cannot create instance: API URL is missing.');
+			throw DripsErrors.invalidArgument('Cannot create instance: API URL is missing.', 'create()');
 		}
 
 		const subgraphClient = new DripsSubgraphClient();
@@ -61,7 +61,10 @@ export default class DripsSubgraphClient {
 
 		const user = response.data?.user;
 		if (!user) {
-			throw DripsErrors.userNotFound(`Subgraph query failed: user with id '${userId}' does not exist.`);
+			throw DripsErrors.userNotFound(
+				`Subgraph query failed: user with id '${userId}' does not exist.`,
+				'getUserAssetConfigs()'
+			);
 		}
 
 		return user.assetConfigs;
@@ -99,7 +102,10 @@ export default class DripsSubgraphClient {
 
 		const user = response.data?.user;
 		if (!user) {
-			throw DripsErrors.userNotFound(`Subgraph query failed: user with id '${userId}' does not exist.`);
+			throw DripsErrors.userNotFound(
+				`Subgraph query failed: user with id '${userId}' does not exist.`,
+				'getSplitEntries()'
+			);
 		}
 
 		return user.splitsEntries;

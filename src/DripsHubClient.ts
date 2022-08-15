@@ -60,7 +60,8 @@ export default class DripsHubClient {
 		// Validate provider.
 		if (!provider) {
 			throw DripsErrors.invalidArgument(
-				'Could not create a new DripsHubClient: the provider was missing but is required.'
+				'Could not create a new DripsHubClient: the provider was missing but is required.',
+				'create()'
 			);
 		}
 
@@ -71,7 +72,8 @@ export default class DripsHubClient {
 			throw DripsErrors.unsupportedNetwork(
 				`Could not create a new DripsHubClient: the provider is connected to an unsupported chain (chain ID: ${
 					network.chainId
-				})'. Supported chain IDs are: '${supportedChainIds.toString()}'.`
+				})'. Supported chain IDs are: '${supportedChainIds.toString()}'.`,
+				'create()'
 			);
 		}
 

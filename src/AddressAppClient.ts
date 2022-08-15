@@ -90,7 +90,8 @@ export default class AddressAppClient {
 		// Validate provider.
 		if (!provider) {
 			throw DripsErrors.invalidArgument(
-				'Could not create a new AddressAppClient: the provider was missing but is required.'
+				'Could not create a new AddressAppClient: the provider was missing but is required.',
+				'create()'
 			);
 		}
 
@@ -100,7 +101,7 @@ export default class AddressAppClient {
 		if (!signerAddress) {
 			throw DripsErrors.invalidArgument(
 				"Could not create a new AddressAppClient: the provider's signer was missing but is required.",
-				signer
+				'create()'
 			);
 		}
 		guardAgainstInvalidAddress(signerAddress);
@@ -112,7 +113,8 @@ export default class AddressAppClient {
 			throw DripsErrors.unsupportedNetwork(
 				`Could not create a new AddressAppClient: the provider is connected to an unsupported chain (chain ID: ${
 					network?.chainId
-				}). Supported chain IDs are: ${supportedChainIds.toString()}.`
+				}). Supported chain IDs are: ${supportedChainIds.toString()}.`,
+				'create()'
 			);
 		}
 

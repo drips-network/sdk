@@ -20,13 +20,9 @@ export const supportedChainIds: readonly number[] = Object.freeze(
 );
 
 export const guardAgainstInvalidAddress = (...addresses: string[]) => {
-	if (!addresses) {
-		throw DripsErrors.invalidAddress(`'${addresses}' is not a valid addresses object.`);
-	}
-
-	addresses?.forEach((address) => {
+	addresses.forEach((address) => {
 		if (!utils.isAddress(address)) {
-			throw DripsErrors.invalidAddress(`Address '${address}' is not valid.`);
+			throw DripsErrors.invalidAddress(`Address '${address}' is not valid.`, 'guardAgainstInvalidAddress()');
 		}
 	});
 };
@@ -34,7 +30,8 @@ export const guardAgainstInvalidAddress = (...addresses: string[]) => {
 export const guardAgainstInvalidDripsReceiver = (...receivers: DripsReceiver[]) => {
 	if (receivers.length > MAX_DRIPS_RECEIVERS) {
 		throw DripsErrors.invalidArgument(
-			`Invalid drip receivers: drip receivers must be less than ${MAX_DRIPS_RECEIVERS}`
+			`Invalid drip receivers: drip receivers must be less than ${MAX_DRIPS_RECEIVERS}`,
+			'guardAgainstInvalidDripsReceiver()'
 		);
 	}
 
@@ -43,7 +40,8 @@ export const guardAgainstInvalidDripsReceiver = (...receivers: DripsReceiver[]) 
 			throw DripsErrors.invalidDripsReceiver(
 				`Drips receiver '${JSON.stringify(
 					receiver
-				)}' is not valid. A receiver must have a user ID and an amountPerSec > 0.`
+				)}' is not valid. A receiver must have a user ID and an amountPerSec > 0.`,
+				'guardAgainstInvalidDripsReceiver()'
 			);
 		}
 	});
@@ -55,7 +53,8 @@ export const guardAgainstInvalidSplitsReceiver = (...receivers: SplitsReceiverSt
 			throw DripsErrors.invalidSplitsReceiver(
 				`Splits receiver '${JSON.stringify(
 					receiver
-				)}' is not valid. A receiver must have a user ID, an amountPerSec > 0`
+				)}' is not valid. A receiver must have a user ID, an amountPerSec > 0`,
+				'guardAgainstInvalidSplitsReceiver()'
 			);
 		}
 	});

@@ -41,7 +41,10 @@ export default class DripsReceiverConfig {
 		start: BigNumberish = 0
 	): DripsReceiverConfig {
 		if (amountPerSec === 0) {
-			throw DripsErrors.invalidArgument(`Could not create a new DripsReceiverConfig: amountPerSec cannot be 0.`);
+			throw DripsErrors.invalidArgument(
+				`Could not create a new DripsReceiverConfig: amountPerSec cannot be 0.`,
+				'create()'
+			);
 		}
 
 		const config = new DripsReceiverConfig();

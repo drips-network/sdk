@@ -38,7 +38,7 @@ const destructUserAssetConfigId = (
 	if (!configId || !configId.includes('-')) {
 		throw DripsErrors.invalidArgument(
 			`Could not destruct user asset configuration ID: '${configId}' is not a valid user asset configuration ID.`,
-			destructUserAssetConfigId
+			'destructUserAssetConfigId()'
 		);
 	}
 	return {
