@@ -39,6 +39,10 @@
 		dripsSubgraphClient = null;
 		errorMessage = event.detail.errorMessage;
 	};
+
+	console.log(
+		"\r\n______      _              ___ _____         _____  _____ \r\n|  _  \\    (_)            |_  /  ___|       |  _  |/ __  \\\r\n| | | |_ __ _ _ __  ___     | \\ `--.  __   _| |/' |`' / /'\r\n| | | | '__| | '_ \\/ __|    | |`--. \\ \\ \\ / /  /| |  / /  \r\n| |/ /| |  | | |_) \\__ \\/\\__/ /\\__/ /  \\ V /\\ |_/ /./ /___\r\n|___/ |_|  |_| .__/|___/\\____/\\____/    \\_/  \\___(_)_____/\r\n             | |                                          \r\n             |_|                                          \r\n"
+	);
 </script>
 
 <main class="terminal">
@@ -60,7 +64,13 @@
 
 	<TokenApproval {addressAppClient} />
 
-	<TopUp {addressAppClient} {dripsSubgraphClient} />
+	<TopUp
+		{addressAppClient}
+		{dripsSubgraphClient}
+		on:topUpDone={() => {
+			setTimeout(() => refresh(), 5000);
+		}}
+	/>
 
 	<UserAssetConfigs {addressAppClient} {dripsSubgraphClient} bind:getUserAssetConfigs={refresh} />
 
@@ -70,7 +80,7 @@
 
 	<UpdateSplits {addressAppClient} on:userAssetConfigUpdated={refresh} />
 
-	<Give />
+	<Give {addressAppClient} />
 
 	<Collect />
 

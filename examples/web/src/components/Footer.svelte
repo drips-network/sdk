@@ -1,5 +1,8 @@
 <footer>
 	<p>
+		Code is for demonstation purposes only - <strong>not for production</strong>.
+	</p>
+	<p>
 		CSS:
 		<a href="https://terminalcss.xyz/" target="_blank">Terminal CSS</a>
 	</p>

@@ -123,7 +123,6 @@
 						class="btn btn-default"
 						disabled={!isConnected}
 						type="button"
-						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
 						on:click={() => getAllowance(tokenToGetAllowance)}>Get Allowance</button
 					>
 				</div>

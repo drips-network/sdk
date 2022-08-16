@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { AddressAppClient, DripsReceiverConfig, DripsSubgraphClient, utils } from 'drips-sdk';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
+	import { createEventDispatcher } from 'svelte';
 
 	export let addressAppClient: AddressAppClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
+
+	const dispatch = createEventDispatcher();
 
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getUserId();
@@ -52,6 +55,8 @@
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
+
+			dispatch('topUpDone');
 		} catch (error) {
 			errorMessage = error.message;
 			console.log(error);

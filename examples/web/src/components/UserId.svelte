@@ -31,13 +31,13 @@
 			<h2>User ID</h2>
 		</header>
 
-		<form class="allowance">
+		<form class="userid-form">
 			<fieldset>
 				<legend>User Address</legend>
 				<div class="form-group">
 					<input
 						type="text"
-						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
+						placeholder="User Address (e.g. 0x945AFA63507e56748368D3F31ccC35043efDbd4b)"
 						bind:value={userAddress}
 					/>
 				</div>
@@ -46,7 +46,6 @@
 						class="btn btn-default"
 						disabled={!isConnected}
 						type="button"
-						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
 						on:click={() => getUserIdForAddress(userAddress)}>Get User ID</button
 					>
 				</div>
@@ -66,7 +65,7 @@
 </div>
 
 <style>
-	.allowance {
+	.userid-form {
 		margin: calc(var(--global-space) * 2) 0;
 	}
 </style>

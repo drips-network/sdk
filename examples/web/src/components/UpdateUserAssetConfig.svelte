@@ -69,7 +69,7 @@
 					.filter((d) => d.config.amountPerSec && d.userAddress.length)
 					.map(async (d) => ({
 						userId: await addressAppClient.getUserIdForAddress(d.userAddress),
-						config: DripsReceiverConfig.create(d.config.amountPerSec, d.config?.duration, d.config?.start)
+						config: new DripsReceiverConfig(d.config.amountPerSec, d.config?.duration, d.config?.start)
 					}))
 			);
 
