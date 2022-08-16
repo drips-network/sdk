@@ -14,8 +14,7 @@ import {
 	createErc20Contract,
 	chainIdToNetworkPropertiesMap,
 	guardAgainstInvalidAddress,
-	supportedChainIds,
-	customStringify
+	supportedChainIds
 } from './common';
 import { DripsErrors } from './DripsError';
 import DripsHubClient from './DripsHubClient';
@@ -131,14 +130,13 @@ export default class AddressAppClient {
 		return addressApp;
 	}
 
-	public async toJsonString(): Promise<string> {
+	public toJsonString(): string {
 		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
 
 		const obj = {
+			signer: this.#signer,
 			network: this.#network,
-			provider: this.#provider,
-			networkProperties: this.#networkProperties,
-			signerAddress: await this.#signer.getAddress()
+			networkProperties: this.#networkProperties
 		};
 
 		return JSON.stringify(obj);

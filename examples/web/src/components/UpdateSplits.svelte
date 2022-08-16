@@ -1,86 +1,98 @@
 <script lang="ts">
-  import { SubgraphClient, DripsClient, formatSplits } from 'drips-sdk';
-  import type { ContractReceipt, ContractTransaction } from 'ethers';
-  import { createEventDispatcher } from 'svelte';
+	import type { AddressApp, AddressAppClient, DripsSubgraphClient } from 'drips-sdk';
+	import type { BigNumber, BigNumberish, ContractReceipt, ContractTransaction } from 'ethers';
+	import { createEventDispatcher } from 'svelte';
 
-  export let dripsClient: DripsClient;
-  export let subgraphClient: SubgraphClient;
+	export let addressAppClient: AddressAppClient;
 
-  const dispatch = createEventDispatcher<{updated: void}>();
+	const dispatch = createEventDispatcher();
 
-  const splitsInputs = [
-    {address: '', percent: null as number},
-    {address: '', percent: null as number},
-    {address: '', percent: null as number},  
-  ];
+	const splitsInputs = [
+		{ address: '', weight: null as BigNumber },
+		{ address: '', weight: null as BigNumber }
+	];
 
-  let started = false;
-  let transaction: ContractTransaction;
-  let txReceipt: ContractReceipt;
-  
-  async function updateSplitsWithInputs () {
-    started = false;
-    transaction = null;
-    txReceipt = null;
-  
-    const formattedReceivers = formatSplits(splitsInputs)
-    const currentReceivers = await subgraphClient.getSplitsBySender(dripsClient.address)
-    
-    started = true;
-    transaction = await dripsClient.updateUserSplits(currentReceivers, formattedReceivers)
-    txReceipt = await transaction.wait()
+	let started = false;
+	let configId: string;
+	let errorMessage: string;
+	let tx: ContractTransaction;
+	let txReceipt: ContractReceipt;
 
-    dispatch('updated');
-  }
+	$: isConnected = Boolean(addressAppClient);
 
+	const setSplits = async () => {
+		tx = null;
+		started = true;
+		txReceipt = null;
+		errorMessage = null;
+
+		try {
+			const receivers: AddressApp.SplitsReceiverStruct[] = await Promise.all(
+				splitsInputs.map(async (s) => ({
+					weight: s.weight,
+					userId: await addressAppClient.getUserIdForAddress(s.address)
+				}))
+			);
+
+			console.log(receivers);
+
+			tx = await addressAppClient.setSplits(receivers);
+			console.log(tx);
+
+			txReceipt = await tx.wait();
+			console.log(txReceipt);
+
+			dispatch('userAssetConfigUpdated', {});
+		} catch (error) {
+			errorMessage = error.message;
+
+			console.log(error);
+		}
+
+		started = false;
+	};
 </script>
 
-<h3>Splits Entries (address / percent):</h3>
+<div class="container">
+	<section>
+		<header>
+			<h2>Update Splits</h2>
+		</header>
 
-<div class="inputs">
-  {#each splitsInputs as splitsInput, i}
-    <div class="input-row">
-      <span>{i+1}.</span>
-      <input size="46" type="text" bind:value={splitsInput.address}/>
-      <input type="number" bind:value={splitsInput.percent}/>
-    </div>
-  {/each}
+		<form>
+			<fieldset>
+				<legend>Splits Configuration</legend>
+
+				<div class="form-group">
+					{#each splitsInputs as splitInput, i}
+						<div class="input-row form-group">
+							<span>{i + 1}# Splits Receiver:</span>
+							<input
+								type="text"
+								placeholder="User Address (e.g. 0x945AFA63507e56748368D3F31ccC35043efDbd4b)"
+								bind:value={splitInput.address}
+							/>
+							<input type="text" placeholder="Amount per second" bind:value={splitInput.weight} />
+						</div>
+					{/each}
+				</div>
+
+				<div class="form-group">
+					<div>
+						<button class="btn btn-default" type="button" disabled={!isConnected} on:click={setSplits}>Update</button>
+						{#if errorMessage}
+							<p>{errorMessage}</p>
+						{:else if txReceipt}
+							<p>Updated ✅</p>
+						{:else if tx}
+							<p>Awaiting confirmations... ⏳</p>
+						{:else if started}
+							<p>Confirm the transaction 👉</p>
+						{/if}
+					</div>
+				</div>
+			</fieldset>
+		</form>
+	</section>
+	<hr />
 </div>
-
-<div class="button-container">
-  <button on:click={updateSplitsWithInputs} disabled={!dripsClient?.connected}>Update Splits</button>
-  <div class="status">
-    {#if txReceipt}
-      Updated!
-    {:else if transaction}
-      Awaiting confirmations
-    {:else if started}
-      Confirm the transaction
-    {/if}
-  </div>
-</div>
-
-<style>
-  .status {
-    color: #333;
-  }
-  .inputs {
-    display: grid;
-    grid-template-columns: 15px auto 100px;
-    grid-gap: 10px;
-    margin: 10px 0;
-  }
-  .input-row {
-    display: contents;
-  }
-  .input-row > * {
-    display: flex;
-    align-items: center;
-    margin: 0;
-  }
-  .button-container {
-    display: flex;
-    align-items: center;
-    column-gap: 10px;
-  }
-</style>
