@@ -9,6 +9,9 @@
 	import UpdateUserAssetConfig from './components/UpdateUserAssetConfig.svelte';
 	import UpdateSplits from './components/UpdateSplits.svelte';
 	import UserAssetConfigs from './components/UserAssetConfigs.svelte';
+	import UserId from './components/UserId.svelte';
+	import Give from './components/Give.svelte';
+	import Collect from './components/Collect.svelte';
 
 	let errorMessage: string;
 	let addressAppClient: AddressAppClient;
@@ -53,6 +56,8 @@
 		</div>
 	{/if}
 
+	<UserId {addressAppClient} />
+
 	<TokenApproval {addressAppClient} />
 
 	<TopUp {addressAppClient} {dripsSubgraphClient} />
@@ -64,6 +69,10 @@
 	<SplitEntries {addressAppClient} {dripsSubgraphClient} bind:getSplitEntries={refresh} />
 
 	<UpdateSplits {addressAppClient} on:userAssetConfigUpdated={refresh} />
+
+	<Give />
+
+	<Collect />
 
 	<Footer />
 </main>

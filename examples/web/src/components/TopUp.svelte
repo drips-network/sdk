@@ -67,7 +67,7 @@
 			<h2>TopUp User Asset Configuration</h2>
 		</header>
 
-		<p>Make sure the ERC20 Token is approved first, or else, the transaction will fail.</p>
+		<p>Make sure the ERC20 Token is approved first, or else the transaction will fail.</p>
 
 		<!-- Approval Form -->
 		<form>

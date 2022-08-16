@@ -47,10 +47,12 @@
 
 	const getAllowance = async (token: string) => {
 		try {
+			allowance = null;
 			allowanceErrorMessage = null;
 
 			allowance = await addressAppClient.getAllowance(token);
 		} catch (error) {
+			allowance = null;
 			allowanceErrorMessage = error.message;
 
 			console.log(error);
