@@ -14,7 +14,8 @@ import {
 	createErc20Contract,
 	chainIdToNetworkPropertiesMap,
 	guardAgainstInvalidAddress,
-	supportedChainIds
+	supportedChainIds,
+	customStringify
 } from './common';
 import { DripsErrors } from './DripsError';
 import DripsHubClient from './DripsHubClient';
@@ -140,7 +141,7 @@ export default class AddressAppClient {
 			networkProperties: this.#networkProperties
 		};
 
-		return JSON.stringify(obj);
+		return customStringify(obj);
 	}
 
 	/**
