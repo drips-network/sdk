@@ -126,7 +126,7 @@ describe('common', () => {
 				// Arrange.
 				let threw = false;
 				const receivers: DripsReceiver[] = [
-					{ userId: undefined as unknown as number, config: DripsReceiverConfig.create(1, 1) }
+					{ userId: undefined as unknown as number, config: new DripsReceiverConfig(1, 1) }
 				];
 
 				try {

@@ -11,7 +11,8 @@ describe('DripsReceiverConfig', () => {
 
 			try {
 				// Act.
-				DripsReceiverConfig.create(0, 1, 2);
+				// eslint-disable-next-line no-new
+				new DripsReceiverConfig(0, 1, 2);
 			} catch (error) {
 				// Assert.
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -33,7 +34,7 @@ describe('DripsReceiverConfig', () => {
 			configAsUint = configAsUint.shl(32).or(duration);
 
 			// Act.
-			const config = DripsReceiverConfig.create(amountPerSec, duration, start);
+			const config = new DripsReceiverConfig(amountPerSec, duration, start);
 
 			// Assert.
 			assert(BigNumber.from(config.start).eq(BigNumber.from(start)));
@@ -43,23 +44,10 @@ describe('DripsReceiverConfig', () => {
 		});
 	});
 
-	describe('toJson()', () => {
-		it('should return the expected JSON string', () => {
-			// Arrange.
-			const config = DripsReceiverConfig.create(1, 2, 3);
-
-			// Act.
-			const json = config.toJsonString();
-
-			// Assert.
-			assert.equal(json, '{"start":3,"duration":2,"amountPerSec":1,"asUint256":"18446744086594453506"}');
-		});
-	});
-
 	describe('fromUint256()', () => {
 		it('should parse correctly from a uint256', () => {
 			// Arrange.
-			const expectedConfig = DripsReceiverConfig.create(1, 2, 3);
+			const expectedConfig = new DripsReceiverConfig(1, 2, 3);
 
 			// Act.
 			const actualConfig = DripsReceiverConfig.fromUint256(expectedConfig.asUint256);

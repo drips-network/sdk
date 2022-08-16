@@ -130,15 +130,19 @@ export default class AddressAppClient {
 		return addressApp;
 	}
 
-	public toJsonString(): string {
-		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
-
-		return JSON.stringify({
-			signer: JSON.stringify(this.#signer),
-			network: JSON.stringify(this.#network),
-			provider: JSON.stringify(this.#provider),
-			networkProperties: JSON.stringify(this.#networkProperties)
-		});
+	/**
+	 * Helper method for debugging.
+	 *
+	 * Because `AddressAppClient` uses _private_ members for encapsulation, when calling `console.log` or `JSON.stringify` on "this", results in an empty object `{}`.
+	 * Use this method to inspect the client's important properties.
+	 */
+	public debug() {
+		return {
+			signer: this.signer,
+			network: this.network,
+			provider: this.provider,
+			networkProperties: this.networkProperties
+		};
 	}
 
 	/**

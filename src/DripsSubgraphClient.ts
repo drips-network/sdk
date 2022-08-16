@@ -34,14 +34,16 @@ export default class DripsSubgraphClient {
 		return subgraphClient;
 	}
 
-	public toJsonString(): string {
-		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
-
-		const obj = {
-			apiUrl: this.#apiUrl
+	/**
+	 * Helper method for debugging.
+	 *
+	 * Because `DripsSubgraphClient` uses _private_ members for encapsulation, when calling `console.log` or `JSON.stringify` on "this", results in an empty object `{}`.
+	 * Use this method to inspect the client's important properties.
+	 */
+	public debug() {
+		return {
+			apiUrl: this.apiUrl
 		};
-
-		return JSON.stringify(obj);
 	}
 
 	/**

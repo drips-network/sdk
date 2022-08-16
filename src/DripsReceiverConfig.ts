@@ -3,43 +3,24 @@ import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 
 export default class DripsReceiverConfig {
-	#start!: BigNumberish;
 	/** The UNIX timestamp when dripping should start. If set to zero, the smart contract will use the timestamp when drips are configured. */
-	public get start(): BigNumberish {
-		return this.#start;
-	}
+	public readonly start: BigNumberish;
 
-	#asUint256!: BigNumberish;
-	/** The drips configuration encoded as a `uint256`. */
-	public get asUint256(): BigNumberish {
-		return this.#asUint256;
-	}
-
-	#duration!: BigNumberish;
 	/** The duration (in seconds) of dripping. If set to zero, the smart contract will drip until the balance runs out. */
-	public get duration(): BigNumberish {
-		return this.#duration;
-	}
+	public readonly duration: BigNumberish;
 
-	#amountPerSec!: BigNumberish;
+	/** The drips configuration encoded as a `uint256`. */
+	public readonly asUint256: BigNumberish;
+
 	/** The amount per second being dripped. Must never be zero. */
-	public get amountPerSec(): BigNumberish {
-		return this.#amountPerSec;
-	}
-
-	private constructor() {}
+	public readonly amountPerSec: BigNumberish;
 
 	/** Creates a new `DripsReceiverConfig` instance.
 	 * @param  {BigNumberish} amountPerSec The amount per second being dripped. Must never be zero.
 	 * @param  {BigNumberish} start The UNIX timestamp when dripping should start. If set to zero (default value), the smart contract will use the timestamp when drips are configured.
 	 * @param  {BigNumberish} duration The duration of dripping. If set to zero (default value), the smart contract will drip until balance runs out.
-	 * @returns The new `DripsReceiverConfig` instance.
 	 */
-	public static create(
-		amountPerSec: BigNumberish,
-		duration: BigNumberish = 0,
-		start: BigNumberish = 0
-	): DripsReceiverConfig {
+	public constructor(amountPerSec: BigNumberish, duration: BigNumberish = 0, start: BigNumberish = 0) {
 		if (amountPerSec === 0) {
 			throw DripsErrors.invalidArgument(
 				`Could not create a new DripsReceiverConfig: amountPerSec cannot be 0.`,
@@ -47,27 +28,10 @@ export default class DripsReceiverConfig {
 			);
 		}
 
-		const config = new DripsReceiverConfig();
-
-		config.#start = start;
-		config.#duration = duration;
-		config.#amountPerSec = amountPerSec;
-		config.#asUint256 = DripsReceiverConfig.toUint256(config);
-
-		return config;
-	}
-
-	public toJsonString(): string {
-		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
-
-		const obj = {
-			start: this.#start,
-			duration: this.#duration,
-			amountPerSec: this.#amountPerSec,
-			asUint256: this.#asUint256.toString()
-		};
-
-		return JSON.stringify(obj);
+		this.start = start;
+		this.duration = duration;
+		this.amountPerSec = amountPerSec;
+		this.asUint256 = DripsReceiverConfig.toUint256(this);
 	}
 
 	/**
@@ -82,7 +46,7 @@ export default class DripsReceiverConfig {
 		const duration = config.and(2 ** 32 - 1);
 		const start = config.shr(32).and(2 ** 32 - 1);
 
-		return DripsReceiverConfig.create(amountPerSec, duration, start);
+		return new DripsReceiverConfig(amountPerSec, duration, start);
 	}
 
 	/**

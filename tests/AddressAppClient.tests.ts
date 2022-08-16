@@ -145,18 +145,22 @@ describe('AddressAppClient', () => {
 		});
 	});
 
-	describe('toJson()', () => {
-		it('should return the expected JSON string', async () => {
-			// Arrange.
-			const address = await testAddressAppClient.signer.getAddress();
-
+	describe('debug', () => {
+		it('should return the expected object', async () => {
 			// Act.
-			const json = await testAddressAppClient.toJsonString();
+			const debugObj = testAddressAppClient.debug();
 
 			// Assert.
+			assert.equal(debugObj.network.chainId, testAddressAppClient.network.chainId);
+			assert.equal(debugObj.networkProperties, testAddressAppClient.networkProperties);
+			assert.equal(await debugObj.signer.getAddress(), await testAddressAppClient.signer.getAddress());
 			assert.equal(
-				json,
-				`{"network":{"chainId":5},"networkProperties":{"name":"goerli","CONTRACT_DRIPS_HUB":"0x4FaAB6032dd0264a8e2671F56fd30F69362f31Ad","CONTRACT_ADDRESS_APP":"0x76F457CD4F60c0a634781bfdB8c5318050633A08","CONTRACT_DRIPS_HUB_LOGIC":"0xB79663c5E27C1a2c93aeE2a35b273b0255638267"},"signerAddress":"${address}"}`
+				await (
+					await debugObj.provider.getNetwork()
+				).chainId,
+				await (
+					await testAddressAppClient.provider.getNetwork()
+				).chainId
 			);
 		});
 	});
@@ -555,12 +559,12 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
+				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 1, config: DripsReceiverConfig.create(2, 2, 2) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
 			];
 
 			const guardAgainstInvalidDripsReceiverStub = sinon.stub(utils, 'guardAgainstInvalidDripsReceiver');
@@ -576,12 +580,12 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
+				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 1, config: DripsReceiverConfig.create(2, 2, 2) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
 			];
 
 			const guardAgainstInvalidDripsReceiverStub = sinon.stub(utils, 'guardAgainstInvalidDripsReceiver');
@@ -597,12 +601,12 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
+				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 1, config: DripsReceiverConfig.create(2, 2, 2) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
 			];
 
 			// Act.
@@ -627,12 +631,12 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: DripsReceiverConfig.create(3, 3, 3).asUint256 }
+				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 1, config: DripsReceiverConfig.create(2, 2, 2) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
 			];
 
 			// Act.
@@ -657,9 +661,9 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiver[] = [
-				{ userId: 1, config: DripsReceiverConfig.create(2, 2, 2) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) }
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) }
 			];
 
 			// Act.
@@ -689,8 +693,8 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 200) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 200) }
 			];
 
 			// Act.
@@ -717,8 +721,8 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 200) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 200) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) }
 			];
 
 			// Act.
@@ -745,12 +749,12 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 2) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(1, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(2, 1, 1) },
-				{ userId: 2, config: DripsReceiverConfig.create(2, 1, 2) },
-				{ userId: 2, config: DripsReceiverConfig.create(2, 1, 2) }
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 2) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(2, 1, 1) },
+				{ userId: 2, config: new DripsReceiverConfig(2, 1, 2) },
+				{ userId: 2, config: new DripsReceiverConfig(2, 1, 2) }
 			];
 
 			// Act.
@@ -779,8 +783,8 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiver[] = [
-				{ userId: 100, config: DripsReceiverConfig.create(100, 1, 1) },
-				{ userId: 1, config: DripsReceiverConfig.create(1, 1, 200) }
+				{ userId: 100, config: new DripsReceiverConfig(100, 1, 1) },
+				{ userId: 1, config: new DripsReceiverConfig(1, 1, 200) }
 			];
 
 			// Act.
@@ -807,8 +811,8 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiver[] = [
-				{ userId: 1, config: DripsReceiverConfig.create(1, 1, 200) },
-				{ userId: 100, config: DripsReceiverConfig.create(100, 1, 1) }
+				{ userId: 1, config: new DripsReceiverConfig(1, 1, 200) },
+				{ userId: 100, config: new DripsReceiverConfig(100, 1, 1) }
 			];
 
 			// Act.
