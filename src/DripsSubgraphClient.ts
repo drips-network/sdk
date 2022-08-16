@@ -35,18 +35,6 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Helper method for debugging.
-	 *
-	 * Because `DripsSubgraphClient` uses _private_ members for encapsulation, when calling `console.log` or `JSON.stringify` on "this", results in an empty object `{}`.
-	 * Use this method to inspect the client's important properties.
-	 */
-	public debug() {
-		return {
-			apiUrl: this.apiUrl
-		};
-	}
-
-	/**
 	 * Returns all asset configurations for the specified user.
 	 * @param  {string} userId The user ID.
 	 * @returns A Promise which resolves to the user's asset configurations.

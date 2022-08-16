@@ -145,19 +145,6 @@ describe('AddressAppClient', () => {
 		});
 	});
 
-	describe('toJsonString', () => {
-		it('should return the expected object', async () => {
-			// Act.
-			const json = testAddressAppClient.toJsonString();
-
-			// Assert.
-			assert.equal(
-				json,
-				'{"network":"{"chainId":5}","networkProperties":"{"name":"goerli","CONTRACT_DRIPS_HUB":"0x4FaAB6032dd0264a8e2671F56fd30F69362f31Ad","CONTRACT_ADDRESS_APP":"0x76F457CD4F60c0a634781bfdB8c5318050633A08","CONTRACT_DRIPS_HUB_LOGIC":"0xB79663c5E27C1a2c93aeE2a35b273b0255638267"}"}'
-			);
-		});
-	});
-
 	describe('approve()', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.

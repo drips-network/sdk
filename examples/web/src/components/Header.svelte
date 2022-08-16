@@ -39,8 +39,8 @@
 			addressAppClient = await AddressAppClient.create(provider);
 			dripsSubgraphClient = DripsSubgraphClient.create(subgraphUrl);
 
-			console.log(`AddressAppClient created: ${JSON.stringify(addressAppClient.debug())}`);
-			console.log(`DripsSubgraphClient created: ${JSON.stringify(dripsSubgraphClient.debug())}`);
+			console.log(`AddressAppClient created: ${JSON.stringify(addressAppClient)}`);
+			console.log(addressAppClient);
 
 			dispatch('connected', {
 				addressAppClient,
