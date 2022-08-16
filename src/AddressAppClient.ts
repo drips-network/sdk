@@ -130,19 +130,18 @@ export default class AddressAppClient {
 		return addressApp;
 	}
 
-	/**
-	 * Helper method for debugging.
-	 *
-	 * Because `AddressAppClient` uses _private_ members for encapsulation, when calling `console.log` or `JSON.stringify` on "this", results in an empty object `{}`.
-	 * Use this method to inspect the client's important properties.
-	 */
-	public debug() {
-		return {
-			signer: this.signer,
-			network: this.network,
-			provider: this.provider,
-			networkProperties: this.networkProperties
-		};
+	public toJsonString(): string {
+		const signer = JSON.stringify(this.#signer);
+		const network = JSON.stringify(this.#network);
+		const provider = JSON.stringify(this.#provider);
+		const networkProperties = JSON.stringify(this.#networkProperties);
+
+		return JSON.stringify({
+			signer,
+			network,
+			provider,
+			networkProperties
+		}).replace(/\\"/g, '"');
 	}
 
 	/**
