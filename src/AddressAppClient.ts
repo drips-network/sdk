@@ -133,13 +133,12 @@ export default class AddressAppClient {
 	public toJsonString(): string {
 		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
 
-		const obj = {
-			signer: this.#signer,
-			network: this.#network,
-			networkProperties: this.#networkProperties
-		};
-
-		return JSON.stringify(obj);
+		return JSON.stringify({
+			signer: JSON.stringify(this.#signer),
+			network: JSON.stringify(this.#network),
+			provider: JSON.stringify(this.#provider),
+			networkProperties: JSON.stringify(this.#networkProperties)
+		});
 	}
 
 	/**
