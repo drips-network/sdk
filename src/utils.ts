@@ -1,8 +1,8 @@
-import type { DripsReceiverStruct } from 'contracts/AddressApp';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
 import { BigNumber } from 'ethers';
 import { guardAgainstInvalidAddress } from './common';
 import { DripsErrors } from './DripsError';
-import type { DripsEntry } from './types';
+import type { DripsEntry, SplitEntry } from './types';
 
 /**
  * Maps from `DripsEntry` to `DripsReceiverStruct`.
@@ -14,6 +14,21 @@ const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruc
 		dripsEntries?.map((d) => ({
 			config: d.config,
 			userId: d.receiverUserId
+		})) || [];
+
+	return structs;
+};
+
+/**
+ * Maps from `SplitEntry` to `SplitReceiverStruct`.
+ * @param  {DripsEntry[]} splitEntries The split entries.
+ * @returns The mapped split receiver structs.
+ */
+const mapSplitEntriesToStructs = (splitEntries: SplitEntry[]): SplitsReceiverStruct[] => {
+	const structs: SplitsReceiverStruct[] =
+		splitEntries?.map((s) => ({
+			userId: s.receiverUserId,
+			weight: s.weight
 		})) || [];
 
 	return structs;
@@ -69,6 +84,7 @@ const getTokenAddressFromAssetId = (assetId: string): string => BigNumber.from(a
 const utils = {
 	getAssetIdFromAddress,
 	mapDripEntriesToStructs,
+	mapSplitEntriesToStructs,
 	destructUserAssetConfigId,
 	getTokenAddressFromAssetId
 };
