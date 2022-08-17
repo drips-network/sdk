@@ -14,9 +14,9 @@
 	import Collect from './components/Collect.svelte';
 
 	let errorMessage: string;
+	let refresh: () => Promise<void>;
 	let addressAppClient: AddressAppClient;
 	let dripsSubgraphClient: DripsSubgraphClient;
-	let refresh: () => Promise<void>;
 
 	const handleConnected = (event: {
 		detail: { addressAppClient: AddressAppClient; dripsSubgraphClient: DripsSubgraphClient };
@@ -82,7 +82,7 @@
 
 	<Give {addressAppClient} />
 
-	<Collect />
+	<Collect {addressAppClient} {dripsSubgraphClient} />
 
 	<Footer />
 </main>
