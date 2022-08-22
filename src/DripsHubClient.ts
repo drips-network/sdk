@@ -87,18 +87,6 @@ export default class DripsHubClient {
 		return dripsHub;
 	}
 
-	public toJsonString(): string {
-		// https://stackoverflow.com/questions/40080473/using-json-stringify-in-conjunction-with-typescript-getter-setter
-
-		const obj = {
-			network: this.#network,
-			provider: this.#provider,
-			networkProperties: this.#networkProperties
-		};
-
-		return JSON.stringify(obj);
-	}
-
 	/**
 	 * Returns the amount of received funds that are available for collection for a user.
 	 * @param  {BigNumberish} userId The user ID.

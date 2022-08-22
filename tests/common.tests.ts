@@ -122,6 +122,27 @@ describe('common', () => {
 		});
 
 		describe('guardAgainstInvalidDripsReceiver()', () => {
+			it('should throw invalidDripsReceiver error when receivers are more than the max number', async () => {
+				// Arrange.
+				let threw = false;
+				const receivers: DripsReceiver[] = Array(101).fill({
+					userId: undefined as unknown as number,
+					config: new DripsReceiverConfig(1, 1)
+				});
+
+				try {
+					// Act.
+					guardAgainstInvalidDripsReceiver(...receivers);
+				} catch (error) {
+					// Assert.
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+					threw = true;
+				}
+
+				// Assert.
+				assert.isTrue(threw, "Expected to throw but it didn't");
+			});
+
 			it('should throw invalidDripsReceiver error when any receiver user ID is missing', async () => {
 				// Arrange.
 				let threw = false;

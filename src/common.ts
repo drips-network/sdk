@@ -115,26 +115,3 @@ export const erc20Abi = [
 
 export const createErc20Contract = (erc20Address: string, signer: JsonRpcSigner): Contract =>
 	new Contract(erc20Address, erc20Abi, signer);
-
-export const customStringify = (v: any) => {
-	// https://stackoverflow.com/questions/11616630/how-can-i-print-a-circular-structure-in-a-json-like-format
-	const cache = new Set();
-	return JSON.stringify(v, (key, value) => {
-		if (typeof value === 'object' && value !== null) {
-			if (cache.has(value)) {
-				// Circular reference found
-				try {
-					// If this value does not reference a parent it can be deduped
-					return JSON.parse(JSON.stringify(value));
-				} catch (err) {
-					// discard key if value cannot be deduped
-					// eslint-disable-next-line consistent-return
-					return;
-				}
-			}
-			// Store value in our set
-			cache.add(value);
-		}
-		return value;
-	});
-};

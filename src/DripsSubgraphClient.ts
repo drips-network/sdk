@@ -47,7 +47,7 @@ export default class DripsSubgraphClient {
 			};
 		};
 
-		const response = await this._query<APIResponse>(gql.getUserAssetConfigs, { userId });
+		const response = await this.query<APIResponse>(gql.getUserAssetConfigs, { userId });
 
 		const user = response.data?.user;
 		if (!user) {
@@ -70,7 +70,7 @@ export default class DripsSubgraphClient {
 			userAssetConfig: UserAssetConfig;
 		};
 
-		const response = await this._query<APIResponse>(gql.getUserAssetConfigById, { configId });
+		const response = await this.query<APIResponse>(gql.getUserAssetConfigById, { configId });
 
 		return response?.data?.userAssetConfig;
 	}
@@ -88,7 +88,7 @@ export default class DripsSubgraphClient {
 			};
 		};
 
-		const response = await this._query<APIResponse>(gql.getSplitEntries, { userId });
+		const response = await this.query<APIResponse>(gql.getSplitEntries, { userId });
 
 		const user = response.data?.user;
 		if (!user) {
@@ -101,7 +101,7 @@ export default class DripsSubgraphClient {
 		return user.splitsEntries;
 	}
 
-	private async _query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
+	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
 			headers: {

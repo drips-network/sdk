@@ -10,11 +10,10 @@ import type { DripsEntry, SplitEntry } from './types';
  * @returns The mapped drip receiver structs.
  */
 const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruct[] => {
-	const structs: DripsReceiverStruct[] =
-		dripsEntries?.map((d) => ({
-			config: d.config,
-			userId: d.receiverUserId
-		})) || [];
+	const structs: DripsReceiverStruct[] = dripsEntries.map((d) => ({
+		config: d.config,
+		userId: d.receiverUserId
+	}));
 
 	return structs;
 };
@@ -25,11 +24,10 @@ const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruc
  * @returns The mapped split receiver structs.
  */
 const mapSplitEntriesToStructs = (splitEntries: SplitEntry[]): SplitsReceiverStruct[] => {
-	const structs: SplitsReceiverStruct[] =
-		splitEntries?.map((s) => ({
-			userId: s.receiverUserId,
-			weight: s.weight
-		})) || [];
+	const structs: SplitsReceiverStruct[] = splitEntries.map((s) => ({
+		userId: s.receiverUserId,
+		weight: s.weight
+	}));
 
 	return structs;
 };
