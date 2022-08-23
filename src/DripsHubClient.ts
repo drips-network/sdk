@@ -1,7 +1,7 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
-import type { BigNumber, BigNumberish } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
+import type { BigNumber, BigNumberish, BytesLike, ContractTransaction } from 'ethers';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
 import type { DripsHubLogic as DripsHubContract } from '../contracts';
 import { DripsHubLogic__factory } from '../contracts';
 import type { NetworkProperties } from './types';
@@ -101,12 +101,10 @@ export default class DripsHubClient {
 		userId: BigNumberish,
 		erc20TokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
-	): Promise<
-		[BigNumber, BigNumber] & {
-			collectedAmt: BigNumber;
-			splitAmt: BigNumber;
-		}
-	> {
+	): Promise<{
+		collectedAmt: BigNumber;
+		splitAmt: BigNumber;
+	}> {
 		guardAgainstInvalidAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.collectableAll(userId, erc20TokenAddress, currentReceivers);
@@ -153,11 +151,12 @@ export default class DripsHubClient {
 		userId: BigNumberish,
 		erc20TokenAddress: string
 	): Promise<
-		[string, number, BigNumber, number] & {
+		[string, string, number, BigNumber, number] & {
 			dripsHash: string;
+			dripsHistoryHash: string;
 			updateTime: number;
 			balance: BigNumber;
-			defaultEnd: number;
+			maxEnd: number;
 		}
 	> {
 		guardAgainstInvalidAddress(erc20TokenAddress);
@@ -184,5 +183,61 @@ export default class DripsHubClient {
 		guardAgainstInvalidAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.balanceAt(userId, erc20TokenAddress, receivers, timestamp);
+	}
+
+	/**
+	 * Calculates the effects of calling {@link squeezeDrips} with the given parameters.
+	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
+	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
+	 * they set up the sequence of configurations described by `dripsHistory`.
+	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
+	 * @returns A Promise which resolves to an object with the following properties:
+	 * - `amt` - The squeezed amount.
+	 * - `nextSqueezed` - The next timestamp that can be squeezed.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
+	 */
+	public getSqueezableDrips(
+		userId: BigNumberish,
+		erc20TokenAddress: string,
+		senderId: BigNumberish,
+		historyHash: BytesLike,
+		dripsHistory: DripsHistoryStruct[]
+	): Promise<{
+		amt: BigNumber;
+		nextSqueezed: number;
+	}> {
+		guardAgainstInvalidAddress(erc20TokenAddress);
+
+		return this.#dripsHubContract.squeezableDrips(userId, erc20TokenAddress, senderId, historyHash, dripsHistory);
+	}
+
+	/**
+	 * Receives drips from the currently running cycle from a single sender.
+	 * It doesn't receive drips from the previous, finished cycles.
+	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
+	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
+	 * they set up the sequence of configurations described by `dripsHistory`.
+	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
+	 * It can start at an arbitrary past configuration, but must describe all the configurations
+	 * which have been used since then including the current one, in the chronological order.
+	 * Only drips described by `dripsHistory` will be squeezed.
+	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
+	 * @returns A Promise which resolves to the contract transaction.
+	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
+	 */
+	public squeezeDrips(
+		userId: BigNumberish,
+		erc20TokenAddress: string,
+		senderId: BigNumberish,
+		historyHash: BytesLike,
+		dripsHistory: DripsHistoryStruct[]
+	): Promise<ContractTransaction> {
+		guardAgainstInvalidAddress(erc20TokenAddress);
+
+		return this.#dripsHubContract.squeezeDrips(userId, erc20TokenAddress, senderId, historyHash, dripsHistory);
 	}
 }

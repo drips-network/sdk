@@ -9,7 +9,7 @@ import type { DripsHubLogic as DripsHubContract } from '../contracts';
 import { DripsHubLogic__factory } from '../contracts';
 import * as utils from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
 
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -258,6 +258,90 @@ describe('DripsHubClient', () => {
 			assert(
 				dripsHubContractStub.balanceAt.calledOnceWithExactly(userId, erc20Address, receivers, timestamp),
 				`Expected getDripsState() method to be called with different arguments`
+			);
+		});
+	});
+
+	describe('getSqueezableDrips()', () => {
+		it('should guard against invalid ERC20 address', async () => {
+			// Arrange.
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
+
+			// Act.
+			try {
+				await testDripsHubClient.getSqueezableDrips(1, erc20Address, 2, 'historyHash', []);
+			} catch (error) {
+				// Just for the test to continue.
+			}
+
+			// Assert.
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+		});
+
+		it('should call the getSplittable() method of the drips hub contract', async () => {
+			// Arrange.
+			const userId = 1;
+			const senderId = 2;
+			const historyHash = 'bytes';
+			const dripsHistory: DripsHistoryStruct[] = [];
+			const erc20Address = Wallet.createRandom().address;
+			// Act.
+			await testDripsHubClient.getSqueezableDrips(userId, erc20Address, senderId, historyHash, dripsHistory);
+
+			// Assert.
+			assert(
+				dripsHubContractStub.squeezableDrips.calledOnceWithExactly(
+					userId,
+					erc20Address,
+					senderId,
+					historyHash,
+					dripsHistory
+				),
+				`Expected getSplittable() method to be called with different arguments`
+			);
+		});
+	});
+
+	describe('squeezeDrips()', () => {
+		it('should guard against invalid ERC20 address', async () => {
+			// Arrange.
+			const erc20Address = 'invalid address';
+			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
+
+			// Act.
+			try {
+				await testDripsHubClient.squeezeDrips(1, erc20Address, 2, 'historyHash', []);
+			} catch (error) {
+				// Just for the test to continue.
+			}
+
+			// Assert.
+			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+		});
+
+		it('should call the getSplittable() method of the drips hub contract', async () => {
+			// Arrange.
+			const userId = 1;
+			const senderId = 2;
+			const historyHash = 'bytes';
+			const dripsHistory: DripsHistoryStruct[] = [];
+			const erc20Address = Wallet.createRandom().address;
+			// Act.
+			await testDripsHubClient.squeezeDrips(userId, erc20Address, senderId, historyHash, dripsHistory);
+
+			// Assert.
+			assert(
+				dripsHubContractStub.squeezeDrips.calledOnceWithExactly(
+					userId,
+					erc20Address,
+					senderId,
+					historyHash,
+					dripsHistory
+				),
+				`Expected getSplittable() method to be called with different arguments`
 			);
 		});
 	});
