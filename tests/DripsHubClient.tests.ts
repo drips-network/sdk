@@ -5,11 +5,11 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { Wallet } from 'ethers';
 import DripsHubClient from '../src/DripsHubClient';
-import type { DripsHubLogic as DripsHubContract } from '../contracts';
-import { DripsHubLogic__factory } from '../contracts';
+import type { DripsHub as DripsHubContract } from '../contracts';
+import { DripsHub__factory } from '../contracts';
 import * as utils from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHub';
 
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -31,7 +31,7 @@ describe('DripsHubClient', () => {
 		dripsHubContractStub = stubInterface<DripsHubContract>();
 
 		sinon
-			.stub(DripsHubLogic__factory, 'connect')
+			.stub(DripsHub__factory, 'connect')
 			.withArgs(utils.chainIdToNetworkPropertiesMap[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
 			.returns(dripsHubContractStub);
 

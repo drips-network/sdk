@@ -11,11 +11,11 @@
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getUserId();
 
+	let userId: string;
 	let started = false;
 	let topUpToken: string;
 	let topUpAmount: string;
 	let errorMessage: string;
-	let userId: string = null;
 	let tx: ContractTransaction;
 	let txReceipt: ContractReceipt;
 
@@ -74,7 +74,6 @@
 
 		<p>Make sure the ERC20 Token is approved first, or else the transaction will fail.</p>
 
-		<!-- Approval Form -->
 		<form>
 			<fieldset>
 				<legend>TopUp</legend>

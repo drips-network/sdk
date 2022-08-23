@@ -1,9 +1,9 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumber, BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubLogic';
-import type { DripsHubLogic as DripsHubContract } from '../contracts';
-import { DripsHubLogic__factory } from '../contracts';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHub';
+import type { DripsHub as DripsHubContract } from '../contracts';
+import { DripsHub__factory } from '../contracts';
 import type { NetworkProperties } from './types';
 import { chainIdToNetworkPropertiesMap, guardAgainstInvalidAddress, supportedChainIds } from './common';
 import { DripsErrors } from './DripsError';
@@ -82,7 +82,7 @@ export default class DripsHubClient {
 		dripsHub.#network = network;
 		dripsHub.#provider = provider;
 		dripsHub.#networkProperties = networkProperties;
-		dripsHub.#dripsHubContract = DripsHubLogic__factory.connect(networkProperties.CONTRACT_DRIPS_HUB, provider);
+		dripsHub.#dripsHubContract = DripsHub__factory.connect(networkProperties.CONTRACT_DRIPS_HUB, provider);
 
 		return dripsHub;
 	}

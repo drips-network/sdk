@@ -12,6 +12,7 @@
 	import UserId from './components/UserId.svelte';
 	import Give from './components/Give.svelte';
 	import Collect from './components/Collect.svelte';
+	import Squeeze from './components/Squeeze.svelte';
 
 	let errorMessage: string;
 	let refresh: () => Promise<void>;
@@ -83,6 +84,8 @@
 	<Give {addressAppClient} />
 
 	<Collect {addressAppClient} {dripsSubgraphClient} />
+
+	<Squeeze {addressAppClient} {dripsSubgraphClient} />
 
 	<Footer />
 </main>
