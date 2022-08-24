@@ -8,11 +8,20 @@ const MAX_DRIPS_RECEIVERS = 100;
 
 export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = {
 	5: {
-		name: 'goerli',
-		CONTRACT_DRIPS_HUB: '0x4FaAB6032dd0264a8e2671F56fd30F69362f31Ad',
-		CONTRACT_ADDRESS_APP: '0x76F457CD4F60c0a634781bfdB8c5318050633A08',
-		CONTRACT_DRIPS_HUB_LOGIC: '0xB79663c5E27C1a2c93aeE2a35b273b0255638267'
+		NAME: 'goerli',
+		CYCLE_SECS: '604800',
+		CONTRACT_DRIPS_HUB: '0x8dA62FE714e5Cd7681ef25A845B7C5C0b9add089',
+		CONTRACT_ADDRESS_APP: '0xaB09588616214604eBeaE1488eab8533c956b7da',
+		CONTRACT_DRIPS_HUB_LOGIC: '0x6B94233AEdf8Ad4f505088Da81EAc225B691e99C',
+		CONTRACT_ADDRESS_APP_LOGIC: '0x10fCa1A8f390b611f8437d43A52691566ffC8246',
+		// TODO: Update Subgraph URL after hosted service is gone.
+		SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
 	}
+};
+
+export const getNetworkProperties = (networkName: string): NetworkProperties | undefined => {
+	const values = Object.values(chainIdToNetworkPropertiesMap);
+	return values.find((v) => v.NAME === networkName.toLowerCase());
 };
 
 export const supportedChainIds: readonly number[] = Object.freeze(

@@ -226,6 +226,9 @@ export default class DripsHubClient {
 	 * which have been used since then including the current one, in the chronological order.
 	 * Only drips described by `dripsHistory` will be squeezed.
 	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
+	 * The next call to `squeezeDrips` will be able to squeeze only funds which
+	 * have been dripped after the last timestamp squeezed in this call.
+	 * This may cause some funds to be unreceivable until the current cycle ends.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */

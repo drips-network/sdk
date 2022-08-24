@@ -1,16 +1,16 @@
 import type { BigNumberish } from 'ethers';
 import type DripsReceiverConfig from './DripsReceiverConfig';
 
-export type DripsEntry = { id: string; receiverUserId: string; config: BigNumberish };
+export type DripsEntry = { readonly id: string; readonly receiverUserId: string; readonly config: BigNumberish };
 
 export type UserAssetConfig = {
-	id: string;
-	assetId: string;
-	balance: BigNumberish;
-	sender: { id: string };
-	amountCollected: string;
-	dripsEntries: DripsEntry[];
-	lastUpdatedBlockTimestamp: string;
+	readonly id: string;
+	readonly assetId: string;
+	readonly balance: BigNumberish;
+	readonly sender: { id: string };
+	readonly amountCollected: string;
+	readonly dripsEntries: DripsEntry[];
+	readonly lastUpdatedBlockTimestamp: string;
 };
 
 export type SplitEntry = {
@@ -24,8 +24,11 @@ export type DripsReceiver = {
 };
 
 export type NetworkProperties = {
-	readonly name: string;
+	readonly NAME: string;
+	readonly CYCLE_SECS: string;
+	readonly SUBGRAPH_URL: string;
 	readonly CONTRACT_DRIPS_HUB: string;
 	readonly CONTRACT_ADDRESS_APP: string;
 	readonly CONTRACT_DRIPS_HUB_LOGIC: string;
+	readonly CONTRACT_ADDRESS_APP_LOGIC: string;
 };
