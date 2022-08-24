@@ -37,7 +37,7 @@ describe('common', () => {
 			const actualProps = getNetworkProperties('gOerLi');
 
 			// Assert.
-			assert.equal(actualProps, expectedProps);
+			assert.deepEqual(actualProps, expectedProps);
 		});
 	});
 
