@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import { BigNumber } from 'ethers';
 import sinon from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
+import { chainIdToNetworkPropertiesMap } from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import type { DripsEntry, SplitEntry } from '../src/types';
 import utils from '../src/utils';
@@ -28,6 +29,19 @@ describe('utils', () => {
 			assert.equal(dripStructs.length, 1);
 			assert.equal(dripStructs[0].config, dripsEntry.config);
 			assert.equal(dripStructs[0].userId, dripsEntry.receiverUserId);
+		});
+	});
+
+	describe('getNetworkProperties', () => {
+		it('should return the expected result', () => {
+			// Arrange.
+			const expectedProps = chainIdToNetworkPropertiesMap[5];
+
+			// Act.
+			const actualProps = utils.getNetworkProperties('gOerLi');
+
+			// Assert.
+			assert.deepEqual(actualProps, expectedProps);
 		});
 	});
 

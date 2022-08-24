@@ -1,8 +1,8 @@
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
 import { BigNumber } from 'ethers';
-import { guardAgainstInvalidAddress } from './common';
+import { chainIdToNetworkPropertiesMap, guardAgainstInvalidAddress } from './common';
 import { DripsErrors } from './DripsError';
-import type { DripsEntry, SplitEntry } from './types';
+import type { DripsEntry, NetworkProperties, SplitEntry } from './types';
 
 /**
  * Maps from `DripsEntry` to `DripsReceiverStruct`.
@@ -79,7 +79,18 @@ const getAssetIdFromAddress = (erc20TokenAddress: string): string => {
  */
 const getTokenAddressFromAssetId = (assetId: string): string => BigNumber.from(assetId).toHexString();
 
+/**
+ * Returns the {@link NetworkProperties} for the specified network name.
+ * @param  {string} networkName The network name.
+ * @returns NetworkProperties
+ */
+const getNetworkProperties = (networkName: string): NetworkProperties | undefined => {
+	const values = Object.values(chainIdToNetworkPropertiesMap);
+	return values.find((v) => v.NAME === networkName.toLowerCase());
+};
+
 const utils = {
+	getNetworkProperties,
 	getAssetIdFromAddress,
 	mapDripEntriesToStructs,
 	mapSplitEntriesToStructs,

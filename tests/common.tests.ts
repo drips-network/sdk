@@ -7,9 +7,7 @@ import { DripsErrorCode } from '../src/DripsError';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
 import type { DripsReceiver } from '../src/types';
 import {
-	chainIdToNetworkPropertiesMap,
 	createErc20Contract,
-	getNetworkProperties,
 	guardAgainstInvalidAddress,
 	guardAgainstInvalidDripsReceiver,
 	guardAgainstInvalidSplitsReceiver,
@@ -25,19 +23,6 @@ describe('common', () => {
 			// Assert.
 			assert.includeMembers(supportedChainIds as number[], chainIds);
 			assert.equal([...new Set(supportedChainIds)].length, [...new Set(chainIds)].length);
-		});
-	});
-
-	describe('getNetworkProperties', () => {
-		it('should return the expected result', () => {
-			// Arrange.
-			const expectedProps = chainIdToNetworkPropertiesMap[5];
-
-			// Act.
-			const actualProps = getNetworkProperties('gOerLi');
-
-			// Assert.
-			assert.deepEqual(actualProps, expectedProps);
 		});
 	});
 

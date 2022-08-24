@@ -19,11 +19,6 @@ export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = 
 	}
 };
 
-export const getNetworkProperties = (networkName: string): NetworkProperties | undefined => {
-	const values = Object.values(chainIdToNetworkPropertiesMap);
-	return values.find((v) => v.NAME === networkName.toLowerCase());
-};
-
 export const supportedChainIds: readonly number[] = Object.freeze(
 	Object.keys(chainIdToNetworkPropertiesMap).map((chainId) => parseInt(chainId, 10))
 );
