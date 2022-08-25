@@ -11,7 +11,6 @@ import AddressAppClient from '../src/AddressAppClient';
 import * as common from '../src/common';
 import type { SplitsReceiverStruct, DripsReceiverStruct } from '../contracts/AddressApp';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
-import type { DripsReceiver } from '../src/types';
 import DripsHubClient from '../src/DripsHubClient';
 
 describe('AddressAppClient', () => {

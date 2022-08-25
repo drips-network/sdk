@@ -6,7 +6,6 @@ import { stubInterface } from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import { DripsErrorCode } from '../src/DripsError';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
-import type { DripsReceiver } from '../src/types';
 import { validators, supportedChainIds, createErc20Contract } from '../src/common';
 
 describe('common', () => {
