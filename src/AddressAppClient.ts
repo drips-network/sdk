@@ -7,15 +7,8 @@ import { BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import type { AddressApp as AddressAppContract } from '../contracts';
 import { AddressApp__factory } from '../contracts';
-import type { DripsReceiver, NetworkProperties } from './types';
-import {
-	guardAgainstInvalidSplitsReceiver,
-	guardAgainstInvalidDripsReceiver,
-	createErc20Contract,
-	chainIdToNetworkPropertiesMap,
-	guardAgainstInvalidAddress,
-	supportedChainIds
-} from './common';
+import type { NetworkProperties } from './types';
+import { validators, supportedChainIds, createErc20Contract, chainIdToNetworkPropertiesMap } from './common';
 import { DripsErrors } from './DripsError';
 import DripsHubClient from './DripsHubClient';
 
@@ -87,26 +80,23 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if the `provider`'s signer address is not valid.
 	 */
 	public static async create(provider: JsonRpcProvider): Promise<AddressAppClient> {
-		// Validate provider.
 		if (!provider) {
 			throw DripsErrors.invalidArgument(
 				'Could not create a new AddressAppClient: the provider was missing but is required.',
-				'create()'
+				'AddressAppClient.create()'
 			);
 		}
 
-		// Validate signer.
 		const signer = provider.getSigner();
 		const signerAddress = await signer?.getAddress();
 		if (!signerAddress) {
 			throw DripsErrors.invalidArgument(
 				"Could not create a new AddressAppClient: the provider's signer was missing but is required.",
-				'create()'
+				'AddressAppClient.create()'
 			);
 		}
-		guardAgainstInvalidAddress(signerAddress);
+		validators.validateAddress(signerAddress);
 
-		// Validate network.
 		const network = await provider.getNetwork();
 		const networkProperties = chainIdToNetworkPropertiesMap[network?.chainId];
 		if (!networkProperties?.CONTRACT_ADDRESS_APP) {
@@ -114,11 +104,10 @@ export default class AddressAppClient {
 				`Could not create a new AddressAppClient: the provider is connected to an unsupported chain (chain ID: ${
 					network?.chainId
 				}). Supported chain IDs are: ${supportedChainIds.toString()}.`,
-				'create()'
+				'AddressAppClient.create()'
 			);
 		}
 
-		// Safely create a new client instance.
 		const addressApp = new AddressAppClient();
 		addressApp.#signer = signer;
 		addressApp.#network = network;
@@ -137,7 +126,7 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public approve(erc20TokenAddress: string): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		const signerAsErc20Contract = createErc20Contract(erc20TokenAddress, this.#signer);
 
@@ -151,7 +140,7 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public async getAllowance(erc20TokenAddress: string): Promise<BigNumber> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		const signerAsErc20Contract = createErc20Contract(erc20TokenAddress, this.#signer);
 		const signerAddress = await this.#signer.getAddress();
@@ -179,7 +168,7 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `userAddress` address is not valid.
 	 */
 	public async getUserIdForAddress(userAddress: string): Promise<string> {
-		guardAgainstInvalidAddress(userAddress);
+		validators.validateAddress(userAddress);
 
 		const userId = await this.#addressAppContract.calcUserId(userAddress);
 
@@ -194,7 +183,7 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public async collect(erc20TokenAddress: string): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		const signerAddress = await this.#signer.getAddress();
 
@@ -209,7 +198,8 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public collectForAddress(userAddress: string, erc20TokenAddress: string): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(userAddress, erc20TokenAddress);
+		validators.validateAddress(userAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#addressAppContract.collect(userAddress, erc20TokenAddress);
 	}
@@ -225,7 +215,7 @@ export default class AddressAppClient {
 		erc20TokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		const signerAddress = await this.#signer.getAddress();
 
@@ -245,7 +235,8 @@ export default class AddressAppClient {
 		erc20TokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(userAddress, erc20TokenAddress);
+		validators.validateAddress(userAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#addressAppContract.collectAll(userAddress, erc20TokenAddress, currentReceivers);
 	}
@@ -260,7 +251,7 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public give(receiverId: BigNumberish, erc20TokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#addressAppContract.give(receiverId, erc20TokenAddress, amount);
 	}
@@ -274,7 +265,7 @@ export default class AddressAppClient {
 	 * @throws {@link DripsErrors.invalidSplitsReceiver} if any of the new receivers is not valid.
 	 */
 	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
-		guardAgainstInvalidSplitsReceiver(...receivers);
+		validators.validateSplitsReceivers(receivers);
 
 		// Splits receivers must be sorted by user ID, deduplicated and without 0 weights.
 		// There is no need to check for 0 weights. At this point, a validation has already been performed.
@@ -315,10 +306,10 @@ export default class AddressAppClient {
 		erc20TokenAddress: string,
 		currentReceivers: DripsReceiverStruct[],
 		balanceDelta: BigNumberish,
-		newReceivers: DripsReceiver[]
+		newReceivers: DripsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
-		guardAgainstInvalidDripsReceiver(...newReceivers);
+		validators.validateAddress(erc20TokenAddress);
+		validators.validateDripsReceivers(newReceivers);
 
 		return this.#addressAppContract.setDrips(
 			erc20TokenAddress,
@@ -328,18 +319,15 @@ export default class AddressAppClient {
 		);
 	}
 
-	private _getFormattedReceivers(newReceivers: DripsReceiver[]): DripsReceiverStruct[] {
+	private _getFormattedReceivers(newReceivers: DripsReceiverStruct[]): DripsReceiverStruct[] {
 		// Drips receivers must be sorted by user ID and config, deduplicated and without 0 amtPerSecs.
 		// There is no need to check for 0 amtPerSecs. At this point, a validation has already been performed.
 
-		const uniqueReceivers = newReceivers.reduce((unique: DripsReceiver[], o) => {
+		const uniqueReceivers = newReceivers.reduce((unique: DripsReceiverStruct[], o) => {
 			if (
 				!unique.some(
-					(obj: DripsReceiver) =>
-						obj.userId === o.userId &&
-						obj.config.amountPerSec === o.config.amountPerSec &&
-						obj.config.duration === o.config.duration &&
-						obj.config.start === o.config.start
+					(obj: DripsReceiverStruct) =>
+						obj.userId === o.userId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
 				)
 			) {
 				unique.push(o);
@@ -348,11 +336,6 @@ export default class AddressAppClient {
 		}, []);
 
 		const receivers = uniqueReceivers
-			// Encode config to a uint192.
-			.map((r) => ({
-				userId: r.userId,
-				config: r.config.asUint256
-			}))
 			// Sort by user ID.
 			.sort((a, b) =>
 				BigNumber.from(a.userId).gt(BigNumber.from(b.userId))

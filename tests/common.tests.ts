@@ -1,18 +1,13 @@
 import type { JsonRpcSigner } from '@ethersproject/providers';
 import { assert } from 'chai';
+import type { BigNumberish } from 'ethers';
 import { Wallet } from 'ethers';
 import { stubInterface } from 'ts-sinon';
-import type { SplitsReceiverStruct } from '../contracts/AddressApp';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import { DripsErrorCode } from '../src/DripsError';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
 import type { DripsReceiver } from '../src/types';
-import {
-	createErc20Contract,
-	guardAgainstInvalidAddress,
-	guardAgainstInvalidDripsReceiver,
-	guardAgainstInvalidSplitsReceiver,
-	supportedChainIds
-} from '../src/common';
+import { validators, supportedChainIds, createErc20Contract } from '../src/common';
 
 describe('common', () => {
 	describe('NetworkProperties', () => {
@@ -38,8 +33,8 @@ describe('common', () => {
 		assert.equal(result.address, erc20Address);
 	});
 
-	describe('guards', () => {
-		describe('guardAgainstInvalidAddress()', () => {
+	describe('validators', () => {
+		describe('validateAddress()', () => {
 			it('should throw invalidArgument error when the input is falsy', () => {
 				// Arrange.
 				let threw = false;
@@ -47,7 +42,7 @@ describe('common', () => {
 				// Act.
 				try {
 					// Act.
-					guardAgainstInvalidAddress(undefined as unknown as string);
+					validators.validateAddress(undefined as unknown as string);
 				} catch (error) {
 					// Assert.
 					assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
@@ -58,15 +53,15 @@ describe('common', () => {
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
-			it('should throw invalidArgument error when any address is not valid', () => {
+			it('should throw invalidArgument error when the address is not valid', () => {
 				// Arrange.
 				let threw = false;
-				const addresses = [Wallet.createRandom().address, 'invalid address'];
+				const address = 'invalid address';
 
 				// Act.
 				try {
 					// Act.
-					guardAgainstInvalidAddress(...addresses);
+					validators.validateAddress(address);
 				} catch (error) {
 					// Assert.
 					assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
@@ -78,7 +73,7 @@ describe('common', () => {
 			});
 		});
 
-		describe('guardAgainstInvalidSplitsReceiver()', () => {
+		describe('validateSplitsReceiver()', () => {
 			it('should throw invalidSplitsReceiver error when any receiver user ID is missing', async () => {
 				// Arrange.
 				let threw = false;
@@ -86,7 +81,7 @@ describe('common', () => {
 
 				try {
 					// Act.
-					guardAgainstInvalidSplitsReceiver(...receivers);
+					validators.validateSplitsReceivers(receivers);
 				} catch (error) {
 					// Assert.
 					assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
@@ -109,7 +104,7 @@ describe('common', () => {
 
 				try {
 					// Act.
-					guardAgainstInvalidSplitsReceiver(...receivers);
+					validators.validateSplitsReceivers(receivers);
 				} catch (error) {
 					// Assert.
 					assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
@@ -121,18 +116,18 @@ describe('common', () => {
 			});
 		});
 
-		describe('guardAgainstInvalidDripsReceiver()', () => {
+		describe('validateDripsReceiver()', () => {
 			it('should throw invalidDripsReceiver error when receivers are more than the max number', async () => {
 				// Arrange.
 				let threw = false;
-				const receivers: DripsReceiver[] = Array(101).fill({
+				const receivers: DripsReceiverStruct[] = Array(101).fill({
 					userId: undefined as unknown as number,
-					config: new DripsReceiverConfig(1, 1)
+					config: new DripsReceiverConfig(1, 1).asUint256
 				});
 
 				try {
 					// Act.
-					guardAgainstInvalidDripsReceiver(...receivers);
+					validators.validateDripsReceivers(receivers);
 				} catch (error) {
 					// Assert.
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -146,13 +141,13 @@ describe('common', () => {
 			it('should throw invalidDripsReceiver error when any receiver user ID is missing', async () => {
 				// Arrange.
 				let threw = false;
-				const receivers: DripsReceiver[] = [
-					{ userId: undefined as unknown as number, config: new DripsReceiverConfig(1, 1) }
+				const receivers: DripsReceiverStruct[] = [
+					{ userId: undefined as unknown as number, config: new DripsReceiverConfig(1, 1).asUint256 }
 				];
 
 				try {
 					// Act.
-					guardAgainstInvalidDripsReceiver(...receivers);
+					validators.validateDripsReceivers(receivers);
 				} catch (error) {
 					// Assert.
 					assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -169,16 +164,16 @@ describe('common', () => {
 				const receivers = [
 					{
 						userId: 1,
-						config: undefined as unknown as DripsReceiverConfig
+						config: undefined as unknown as BigNumberish
 					}
 				];
 
 				try {
 					// Act.
-					guardAgainstInvalidDripsReceiver(...receivers);
+					validators.validateDripsReceivers(receivers);
 				} catch (error) {
 					// Assert.
-					assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 

@@ -1,5 +1,5 @@
-export const getUserAssetConfigs = `#graphql
-query getUserAssetConfigs($userId: ID!) {
+export const getAllUserAssetConfigs = `#graphql
+query getAllUserAssetConfigs($userId: ID!) {
   user(id: $userId) {
     assetConfigs {
       id

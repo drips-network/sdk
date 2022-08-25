@@ -5,9 +5,8 @@ import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } fr
 import type { DripsHub as DripsHubContract } from '../contracts';
 import { DripsHub__factory } from '../contracts';
 import type { NetworkProperties } from './types';
-import { chainIdToNetworkPropertiesMap, guardAgainstInvalidAddress, supportedChainIds } from './common';
+import { validators, supportedChainIds, chainIdToNetworkPropertiesMap } from './common';
 import { DripsErrors } from './DripsError';
-import utils from './utils';
 
 /**
  * A readonly client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} smart contract.
@@ -58,15 +57,13 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.invalidArgument} if the `provider` has a "falsy" value, or the provider is connected to an unsupported chain.
 	 */
 	public static async create(provider: Provider): Promise<DripsHubClient> {
-		// Validate provider.
 		if (!provider) {
 			throw DripsErrors.invalidArgument(
 				'Could not create a new DripsHubClient: the provider was missing but is required.',
-				'create()'
+				'DripsHubClient.create()'
 			);
 		}
 
-		// Validate network.
 		const network = await provider.getNetwork();
 		const networkProperties = chainIdToNetworkPropertiesMap[network.chainId];
 		if (!networkProperties?.CONTRACT_DRIPS_HUB) {
@@ -74,11 +71,10 @@ export default class DripsHubClient {
 				`Could not create a new DripsHubClient: the provider is connected to an unsupported chain (chain ID: ${
 					network.chainId
 				})'. Supported chain IDs are: '${supportedChainIds.toString()}'.`,
-				'create()'
+				'DripsHubClient.create()'
 			);
 		}
 
-		// Safely create a new client instance.
 		const dripsHub = new DripsHubClient();
 		dripsHub.#network = network;
 		dripsHub.#provider = provider;
@@ -106,7 +102,7 @@ export default class DripsHubClient {
 		collectedAmt: BigNumber;
 		splitAmt: BigNumber;
 	}> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.collectableAll(userId, erc20TokenAddress, currentReceivers);
 	}
@@ -119,7 +115,7 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public getSplittable(userId: BigNumberish, erc20TokenAddress: string): Promise<BigNumber> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.splittable(userId, erc20TokenAddress);
 	}
@@ -132,7 +128,7 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
 	public getCollectable(userId: BigNumberish, erc20TokenAddress: string): Promise<BigNumber> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.collectable(userId, erc20TokenAddress);
 	}
@@ -160,7 +156,7 @@ export default class DripsHubClient {
 			maxEnd: number;
 		}
 	> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.dripsState(userId, erc20TokenAddress);
 	}
@@ -181,7 +177,7 @@ export default class DripsHubClient {
 		receivers: DripsReceiverStruct[],
 		timestamp: BigNumberish
 	) {
-		guardAgainstInvalidAddress(erc20TokenAddress);
+		validators.validateAddress(erc20TokenAddress);
 
 		return this.#dripsHubContract.balanceAt(userId, erc20TokenAddress, receivers, timestamp);
 	}
@@ -189,7 +185,7 @@ export default class DripsHubClient {
 	/**
 	 * Calculates the effects of calling {@link squeezeDrips} with the given parameters.
 	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {string} assetId The asset ID.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
@@ -201,7 +197,7 @@ export default class DripsHubClient {
 	 */
 	public getSqueezableDrips(
 		userId: BigNumberish,
-		erc20TokenAddress: string,
+		assetId: string,
 		senderId: BigNumberish,
 		historyHash: BytesLike,
 		dripsHistory: DripsHistoryStruct[]
@@ -209,16 +205,14 @@ export default class DripsHubClient {
 		amt: BigNumber;
 		nextSqueezed: number;
 	}> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
-
-		return this.#dripsHubContract.squeezableDrips(userId, erc20TokenAddress, senderId, historyHash, dripsHistory);
+		return this.#dripsHubContract.squeezableDrips(userId, assetId, senderId, historyHash, dripsHistory);
 	}
 
 	/**
 	 * Receives drips from the currently running cycle from a single sender.
 	 * It doesn't receive drips from the previous, finished cycles.
 	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {string} assetId The asset ID.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
@@ -235,19 +229,11 @@ export default class DripsHubClient {
 	 */
 	public squeezeDrips(
 		userId: BigNumberish,
-		erc20TokenAddress: string,
+		assetId: string,
 		senderId: BigNumberish,
 		historyHash: BytesLike,
 		dripsHistory: DripsHistoryStruct[]
 	): Promise<ContractTransaction> {
-		guardAgainstInvalidAddress(erc20TokenAddress);
-
-		return this.#dripsHubContract.squeezeDrips(
-			userId,
-			utils.getAssetIdFromAddress(erc20TokenAddress),
-			senderId,
-			historyHash,
-			dripsHistory
-		);
+		return this.#dripsHubContract.squeezeDrips(userId, assetId, senderId, historyHash, dripsHistory);
 	}
 }

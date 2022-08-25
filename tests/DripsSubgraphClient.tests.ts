@@ -5,6 +5,7 @@ import DripsSubgraphClient from '../src/DripsSubgraphClient';
 import * as gql from '../src/gql';
 import { DripsErrorCode } from '../src/DripsError';
 import type { SplitEntry, UserAssetConfig } from '../src/types';
+import utils from '../src/utils';
 
 describe('DripsSubgraphClient', () => {
 	const API_URL = 'https://api.graphql';
@@ -43,17 +44,17 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getUserAssetConfigs', () => {
+	describe('getAllUserAssetConfigs', () => {
 		it('should return empty array when user does not exist', async () => {
 			// Arrange.
 			const userId = '12342';
 
-			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getUserAssetConfigs, { userId }).resolves({
+			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getAllUserAssetConfigs, { userId }).resolves({
 				data: {}
 			});
 
 			// Act.
-			const configs = await testSubgraphClient.getUserAssetConfigs(userId);
+			const configs = await testSubgraphClient.getAllUserAssetConfigs(userId);
 
 			// Assert.
 			assert.isEmpty(configs);
@@ -70,7 +71,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserAssetConfigs, { userId })
+				.withArgs(gql.getAllUserAssetConfigs, { userId })
 				.resolves({
 					data: {
 						user: {
@@ -80,21 +81,23 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act.
-			const configs = await testSubgraphClient.getUserAssetConfigs(userId);
+			const configs = await testSubgraphClient.getAllUserAssetConfigs(userId);
 
 			// Assert.
 			assert.equal(configs, assetConfigs);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getUserAssetConfigs, { userId }),
+				clientStub.calledOnceWithExactly(gql.getAllUserAssetConfigs, { userId }),
 				`Expected query() method to be called with different arguments`
 			);
 		});
 	});
 
-	describe('getUserAssetConfigById', () => {
+	describe('getUserAssetConfig', () => {
 		it('should return the expected user asset config', async () => {
 			// Arrange.
-			const configId = '12342';
+			const userId = '12342';
+			const assetId = '78900';
+			const configId = utils.constructUserAssetConfigId(userId, assetId);
 			const userAssetConfig: UserAssetConfig = {
 				id: '1'
 			} as UserAssetConfig;
@@ -108,7 +111,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act.
-			const config = await testSubgraphClient.getUserAssetConfigById(configId);
+			const config = await testSubgraphClient.getUserAssetConfig(userId, assetId);
 
 			// Assert.
 			assert.equal(config, userAssetConfig);

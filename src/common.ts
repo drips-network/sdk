@@ -1,8 +1,10 @@
 import type { JsonRpcSigner } from '@ethersproject/providers';
+import type { DripsReceiverStruct } from 'contracts/DripsHub';
 import { Contract, utils } from 'ethers';
 import type { SplitsReceiverStruct } from '../contracts/AddressApp';
 import { DripsErrors } from './DripsError';
-import type { DripsReceiver, NetworkProperties } from './types';
+import DripsReceiverConfig from './DripsReceiverConfig';
+import type { NetworkProperties } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 
@@ -23,45 +25,47 @@ export const supportedChainIds: readonly number[] = Object.freeze(
 	Object.keys(chainIdToNetworkPropertiesMap).map((chainId) => parseInt(chainId, 10))
 );
 
-export const guardAgainstInvalidAddress = (...addresses: string[]) => {
-	addresses.forEach((address) => {
-		if (!utils.isAddress(address)) {
-			throw DripsErrors.invalidAddress(`Address '${address}' is not valid.`, 'guardAgainstInvalidAddress()');
-		}
-	});
+const validateAddress = (address: string) => {
+	if (!utils.isAddress(address)) {
+		throw DripsErrors.invalidAddress(`Address '${address}' is not valid.`, 'common.validateAddress()');
+	}
 };
 
-export const guardAgainstInvalidDripsReceiver = (...receivers: DripsReceiver[]) => {
+const validateDripsReceivers = (receivers: DripsReceiverStruct[]) => {
 	if (receivers.length > MAX_DRIPS_RECEIVERS) {
 		throw DripsErrors.invalidArgument(
 			`Invalid drip receivers: drip receivers must be less than ${MAX_DRIPS_RECEIVERS}`,
-			'guardAgainstInvalidDripsReceiver()'
+			'common.validateDripsReceivers()'
 		);
 	}
 
 	receivers.forEach((receiver) => {
-		if (!receiver.userId || !receiver.config?.amountPerSec) {
+		if (!receiver.userId || !DripsReceiverConfig.fromUint256(receiver.config)) {
 			throw DripsErrors.invalidDripsReceiver(
 				`Drips receiver '${JSON.stringify(
 					receiver
-				)}' is not valid. A receiver must have a user ID and an amountPerSec > 0.`,
-				'guardAgainstInvalidDripsReceiver()'
+				)}' is not valid. A receiver must have a user ID and at least a config with an amountPerSec > 0.`,
+				'common.validateDripsReceivers()'
 			);
 		}
 	});
 };
 
-export const guardAgainstInvalidSplitsReceiver = (...receivers: SplitsReceiverStruct[]) => {
+const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 	receivers.forEach((receiver) => {
 		if (!receiver.userId || !receiver.weight) {
 			throw DripsErrors.invalidSplitsReceiver(
-				`Splits receiver '${JSON.stringify(
-					receiver
-				)}' is not valid. A receiver must have a user ID, an amountPerSec > 0`,
-				'guardAgainstInvalidSplitsReceiver()'
+				`Splits receiver '${JSON.stringify(receiver)}' is not valid. A receiver must have a user ID and a weight > 0`,
+				'common.validateSplitsReceivers()'
 			);
 		}
 	});
+};
+
+export const validators = {
+	validateAddress,
+	validateDripsReceivers,
+	validateSplitsReceivers
 };
 
 // All ERC20 tokens implement the same (IERC20) interface.

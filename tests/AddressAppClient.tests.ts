@@ -146,11 +146,11 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('approve()', () => {
-		it('should guard against invalid ERC20 address', async () => {
+		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
-			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
+			validateInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
 			try {
@@ -160,7 +160,7 @@ describe('AddressAppClient', () => {
 			}
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+			assert(validateInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the approve() method of the ERC20 contract', async () => {
@@ -189,11 +189,11 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('getAllowance()', () => {
-		it('should guard against invalid ERC20 address', async () => {
+		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
-			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
+			validateInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
 			try {
@@ -203,7 +203,7 @@ describe('AddressAppClient', () => {
 			}
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+			assert(validateInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the getAllowance() method of the ERC20 contract', async () => {
@@ -250,10 +250,10 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('getUserIdForAddress()', () => {
-		it('should guard against invalid user address', async () => {
+		it('should validate user address', async () => {
 			// Arrange.
 			const userAddress = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
 
 			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
 
@@ -261,7 +261,7 @@ describe('AddressAppClient', () => {
 			await testAddressAppClient.getUserIdForAddress(userAddress);
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(userAddress));
+			assert(validateInvalidAddressStub.calledOnceWithExactly(userAddress));
 		});
 
 		it('should call the calcUserId() method of the AddressApp contract', async () => {
@@ -281,16 +281,16 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('collect()', () => {
-		it('should guard against invalid ERC20 address', async () => {
+		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
 
 			// Act.
 			await testAddressAppClient.collect(erc20Address);
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+			assert(validateInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the collect() method of the AddressApp contract', async () => {
@@ -312,17 +312,19 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('collectForAddress()', () => {
-		it('should guard against invalid ERC20 and user address', async () => {
+		it('should validate ERC20 and user address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const userAddress = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
 
 			// Act.
 			await testAddressAppClient.collectForAddress(userAddress, erc20Address);
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(userAddress, erc20Address));
+			assert(validateInvalidAddressStub.calledTwice);
+			assert(validateInvalidAddressStub.calledWithExactly(userAddress));
+			assert(validateInvalidAddressStub.calledWithExactly(erc20Address));
 		});
 
 		it('should call the collect() method of the AddressApp contract', async () => {
@@ -342,16 +344,16 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('collectAll()', () => {
-		it('should guard against invalid ERC20 address', async () => {
+		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
 
 			// Act.
 			await testAddressAppClient.collectAll(erc20Address, []);
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+			assert(validateInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the collectAll() method of the AddressApp contract', async () => {
@@ -375,17 +377,19 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('collectAllForAddress()', () => {
-		it('should guard against invalid ERC20 and user address', async () => {
+		it('should validate ERC20 and user address', async () => {
 			// Arrange.
 			const userAddress = Wallet.createRandom().address;
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
 
 			// Act.
 			await testAddressAppClient.collectAllForAddress(userAddress, erc20Address, []);
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(userAddress, erc20Address));
+			assert(validateInvalidAddressStub.calledTwice);
+			assert(validateInvalidAddressStub.calledWithExactly(userAddress));
+			assert(validateInvalidAddressStub.calledWithExactly(erc20Address));
 		});
 
 		it('should call the collectAll() method of the AddressApp contract', async () => {
@@ -406,16 +410,16 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('give()', () => {
-		it('should guard against invalid ERC20 address', async () => {
+		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
+			const validateInvalidAddressStub = sinon.stub(common.validators, 'validateAddress');
 
 			// Act.
 			await testAddressAppClient.give(1, erc20Address, 1);
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+			assert(validateInvalidAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the give() method of the AddressApp contract', async () => {
@@ -436,20 +440,20 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('setSplits()', () => {
-		it('should guard against invalid splits receivers', async () => {
+		it('should validate splits receivers', async () => {
 			// Arrange.
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 1, weight: 1 },
 				{ userId: 2, weight: 2 }
 			];
 
-			const guardAgainstInvalidSplitsReceiverStub = sinon.stub(common, 'guardAgainstInvalidSplitsReceiver');
+			const validateInvalidSplitsReceiverStub = sinon.stub(common.validators, 'validateSplitsReceivers');
 
 			// Act.
 			await testAddressAppClient.setSplits(receivers);
 
 			// Assert.
-			assert(guardAgainstInvalidSplitsReceiverStub.calledOnceWithExactly(...receivers));
+			assert(validateInvalidSplitsReceiverStub.calledOnceWithExactly(receivers));
 		});
 
 		it('should call the setSplits() method of the AddressApp contract', async () => {
@@ -535,46 +539,46 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('setDrips()', () => {
-		it('should guard against invalid ERC20 address', async () => {
+		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
 				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2).asUint256 }
 			];
 
-			const guardAgainstInvalidDripsReceiverStub = sinon.stub(common, 'guardAgainstInvalidDripsReceiver');
+			const validateInvalidDripsReceiverStub = sinon.stub(common.validators, 'validateDripsReceivers');
 
 			// Act.
 			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
 
 			// Assert.
-			assert(guardAgainstInvalidDripsReceiverStub.calledOnceWithExactly(...receivers));
+			assert(validateInvalidDripsReceiverStub.calledOnceWithExactly(receivers));
 		});
 
-		it('should guard against invalid drips receivers', async () => {
+		it('should validate drips receivers', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
 				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2).asUint256 }
 			];
 
-			const guardAgainstInvalidDripsReceiverStub = sinon.stub(common, 'guardAgainstInvalidDripsReceiver');
+			const validateInvalidDripsReceiverStub = sinon.stub(common.validators, 'validateDripsReceivers');
 
 			// Act.
 			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
 
 			// Assert.
-			assert(guardAgainstInvalidDripsReceiverStub.calledOnceWithExactly(...receivers));
+			assert(validateInvalidDripsReceiverStub.calledOnceWithExactly(receivers));
 		});
 
 		it('should call the setDrips() method of the AddressApp contract', async () => {
@@ -583,10 +587,10 @@ describe('AddressAppClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2).asUint256 }
 			];
 
 			// Act.
@@ -613,10 +617,10 @@ describe('AddressAppClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
 			];
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2).asUint256 }
 			];
 
 			// Act.
@@ -640,10 +644,10 @@ describe('AddressAppClient', () => {
 		it('should set default values when required parameters are falsy', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiver[] = [
-				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 }
 			];
 
 			// Act.
@@ -672,9 +676,9 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1=userID2 but config1<config2', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 200) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 200).asUint256 }
 			];
 
 			// Act.
@@ -700,9 +704,9 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1=userID2 but config1>config2', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 200) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 200).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 }
 			];
 
 			// Act.
@@ -728,13 +732,13 @@ describe('AddressAppClient', () => {
 		it('should remove duplicates', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiver[] = [
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 2) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(2, 1, 1) },
-				{ userId: 2, config: new DripsReceiverConfig(2, 1, 2) },
-				{ userId: 2, config: new DripsReceiverConfig(2, 1, 2) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 2).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(2, 1, 1).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(2, 1, 2).asUint256 },
+				{ userId: 2, config: new DripsReceiverConfig(2, 1, 2).asUint256 }
 			];
 
 			// Act.
@@ -762,9 +766,9 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiver[] = [
-				{ userId: 100, config: new DripsReceiverConfig(100, 1, 1) },
-				{ userId: 1, config: new DripsReceiverConfig(1, 1, 200) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 100, config: new DripsReceiverConfig(100, 1, 1).asUint256 },
+				{ userId: 1, config: new DripsReceiverConfig(1, 1, 200).asUint256 }
 			];
 
 			// Act.
@@ -790,9 +794,9 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiver[] = [
-				{ userId: 1, config: new DripsReceiverConfig(1, 1, 200) },
-				{ userId: 100, config: new DripsReceiverConfig(100, 1, 1) }
+			const receivers: DripsReceiverStruct[] = [
+				{ userId: 1, config: new DripsReceiverConfig(1, 1, 200).asUint256 },
+				{ userId: 100, config: new DripsReceiverConfig(100, 1, 1).asUint256 }
 			];
 
 			// Act.

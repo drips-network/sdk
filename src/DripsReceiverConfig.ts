@@ -24,7 +24,7 @@ export default class DripsReceiverConfig {
 		if (amountPerSec === 0) {
 			throw DripsErrors.invalidArgument(
 				`Could not create a new DripsReceiverConfig: amountPerSec cannot be 0.`,
-				'create()'
+				'DripsReceiverConfig.create()'
 			);
 		}
 

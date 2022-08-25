@@ -1,6 +1,7 @@
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
 import type { SplitEntry, UserAssetConfig } from './types';
+import utils from './utils';
 
 /**
  * A client for interacting with the Drips Subgraph.
@@ -25,7 +26,10 @@ export default class DripsSubgraphClient {
 	 */
 	public static create(apiUrl: string): DripsSubgraphClient {
 		if (!apiUrl) {
-			throw DripsErrors.invalidArgument('Cannot create instance: API URL is missing.', 'create()');
+			throw DripsErrors.invalidArgument(
+				'Cannot create instance: the API URL is missing.',
+				'DripsSubgraphClient.create()'
+			);
 		}
 
 		const subgraphClient = new DripsSubgraphClient();
@@ -39,14 +43,14 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The user ID.
 	 * @returns A Promise which resolves to the user's asset configurations.
 	 */
-	public async getUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
 		type APIResponse = {
 			user: {
 				assetConfigs: UserAssetConfig[];
 			};
 		};
 
-		const response = await this.query<APIResponse>(gql.getUserAssetConfigs, { userId });
+		const response = await this.query<APIResponse>(gql.getAllUserAssetConfigs, { userId });
 
 		const user = response.data?.user;
 
@@ -54,16 +58,19 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the user asset configuration for the specified ID.
-	 * @param  {string} configId The user asset configuration ID.
+	 * Returns the user's drips configuration for the specified asset.
+	 * @param  {string} userId The user ID.
+	 * @param  {string} assetId The asset ID.
 	 * @returns A Promise which resolves to the user asset configuration.
 	 */
-	public async getUserAssetConfigById(configId: string): Promise<UserAssetConfig> {
+	public async getUserAssetConfig(userId: string, assetId: string): Promise<UserAssetConfig> {
 		type APIResponse = {
 			userAssetConfig: UserAssetConfig;
 		};
 
-		const response = await this.query<APIResponse>(gql.getUserAssetConfigById, { configId });
+		const response = await this.query<APIResponse>(gql.getUserAssetConfigById, {
+			configId: utils.constructUserAssetConfigId(userId, assetId)
+		});
 
 		return response?.data?.userAssetConfig;
 	}

@@ -117,10 +117,10 @@ describe('utils', () => {
 	});
 
 	describe('getAssetIdFromAddress', () => {
-		it('should guard against invalid ERC20 address', () => {
+		it('should validate ERC20 address', () => {
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
-			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
+			const validateAddressStub = sinon.stub(common.validators, 'validateAddress');
+			validateAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
 			try {
@@ -130,7 +130,7 @@ describe('utils', () => {
 			}
 
 			// Assert.
-			assert(guardAgainstInvalidAddressStub.calledOnceWithExactly(erc20Address));
+			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should return the expected result', () => {
@@ -155,6 +155,52 @@ describe('utils', () => {
 
 			// Assert.
 			assert.equal(token, BigNumber.from(assetId).toHexString());
+		});
+	});
+
+	describe('constructUserAssetConfigId', () => {
+		it('should throw invalidArgument error when user ID is missing', async () => {
+			// Arrange.
+			let threw = false;
+
+			// Act.
+			try {
+				utils.constructUserAssetConfigId(undefined as unknown as string, 'assetId');
+			} catch (error) {
+				// Assert.
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
+		it('should throw invalidArgument error when asset ID is missing', async () => {
+			// Arrange.
+			let threw = false;
+
+			// Act.
+			try {
+				utils.constructUserAssetConfigId('userId', undefined as unknown as string);
+			} catch (error) {
+				// Assert.
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert.
+			assert.isTrue(threw, "Expected to throw but it didn't");
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange.
+
+			// Act.
+			const configId = utils.constructUserAssetConfigId('userId', 'assetId');
+
+			// Assert.
+			assert.equal(configId, 'userId-assetId');
 		});
 	});
 });
