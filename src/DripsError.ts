@@ -1,7 +1,6 @@
 /* eslint-disable max-classes-per-file */
 
 export enum DripsErrorCode {
-	USER_NOT_FOUND = 'USER_NOT_FOUND',
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	INVALID_OPERATION = 'INVALID_OPERATION',
@@ -29,8 +28,6 @@ export class DripsErrors {
 		new DripsError(DripsErrorCode.INVALID_ARGUMENT, `${message}`, context);
 	static invalidAddress = (message: string, context?: string) =>
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, `${message}`, context);
-	static userNotFound = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.USER_NOT_FOUND, `${message}`, context);
 	static unsupportedNetwork = (message: string, context?: unknown) =>
 		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, `${message}`, context);
 	static invalidDripsReceiver = (message: string, context?: unknown) =>

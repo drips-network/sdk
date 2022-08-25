@@ -8,7 +8,7 @@ import type { AddressApp as AddressAppContract } from '../contracts';
 import { AddressApp__factory } from '../contracts';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import AddressAppClient from '../src/AddressAppClient';
-import * as utils from '../src/common';
+import * as common from '../src/common';
 import type { SplitsReceiverStruct, DripsReceiverStruct } from '../contracts/AddressApp';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
 import type { DripsReceiver } from '../src/types';
@@ -43,7 +43,7 @@ describe('AddressAppClient', () => {
 
 		sinon
 			.stub(AddressApp__factory, 'connect')
-			.withArgs(utils.chainIdToNetworkPropertiesMap[TEST_CHAIN_ID].CONTRACT_ADDRESS_APP, signerStub)
+			.withArgs(common.chainIdToNetworkPropertiesMap[TEST_CHAIN_ID].CONTRACT_ADDRESS_APP, signerStub)
 			.returns(addressAppContractStub);
 
 		dripsHubClientStub = {} as DripsHubClient;
@@ -139,7 +139,7 @@ describe('AddressAppClient', () => {
 			);
 			assert.equal(
 				testAddressAppClient.networkProperties,
-				utils.chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
+				common.chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
 			);
 			assert.equal(testAddressAppClient.dripsHub, dripsHubClientStub);
 		});
@@ -149,7 +149,7 @@ describe('AddressAppClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -167,10 +167,10 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 
-			const erc20ContractStub = stubConstructor(Contract, erc20Address, utils.erc20Abi, testAddressAppClient.signer);
+			const erc20ContractStub = stubConstructor(Contract, erc20Address, common.erc20Abi, testAddressAppClient.signer);
 
 			sinon
-				.stub(utils, 'createErc20Contract')
+				.stub(common, 'createErc20Contract')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
@@ -192,7 +192,7 @@ describe('AddressAppClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -210,10 +210,10 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 
-			const erc20ContractStub = stubConstructor(Contract, erc20Address, utils.erc20Abi, testAddressAppClient.signer);
+			const erc20ContractStub = stubConstructor(Contract, erc20Address, common.erc20Abi, testAddressAppClient.signer);
 
 			sinon
-				.stub(utils, 'createErc20Contract')
+				.stub(common, 'createErc20Contract')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
@@ -253,7 +253,7 @@ describe('AddressAppClient', () => {
 		it('should guard against invalid user address', async () => {
 			// Arrange.
 			const userAddress = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 
 			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
 
@@ -284,7 +284,7 @@ describe('AddressAppClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 
 			// Act.
 			await testAddressAppClient.collect(erc20Address);
@@ -316,7 +316,7 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
 			const userAddress = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 
 			// Act.
 			await testAddressAppClient.collectForAddress(userAddress, erc20Address);
@@ -345,7 +345,7 @@ describe('AddressAppClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 
 			// Act.
 			await testAddressAppClient.collectAll(erc20Address, []);
@@ -379,7 +379,7 @@ describe('AddressAppClient', () => {
 			// Arrange.
 			const userAddress = Wallet.createRandom().address;
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 
 			// Act.
 			await testAddressAppClient.collectAllForAddress(userAddress, erc20Address, []);
@@ -409,7 +409,7 @@ describe('AddressAppClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 
 			// Act.
 			await testAddressAppClient.give(1, erc20Address, 1);
@@ -443,7 +443,7 @@ describe('AddressAppClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const guardAgainstInvalidSplitsReceiverStub = sinon.stub(utils, 'guardAgainstInvalidSplitsReceiver');
+			const guardAgainstInvalidSplitsReceiverStub = sinon.stub(common, 'guardAgainstInvalidSplitsReceiver');
 
 			// Act.
 			await testAddressAppClient.setSplits(receivers);
@@ -547,7 +547,7 @@ describe('AddressAppClient', () => {
 				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
 			];
 
-			const guardAgainstInvalidDripsReceiverStub = sinon.stub(utils, 'guardAgainstInvalidDripsReceiver');
+			const guardAgainstInvalidDripsReceiverStub = sinon.stub(common, 'guardAgainstInvalidDripsReceiver');
 
 			// Act.
 			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
@@ -568,7 +568,7 @@ describe('AddressAppClient', () => {
 				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2) }
 			];
 
-			const guardAgainstInvalidDripsReceiverStub = sinon.stub(utils, 'guardAgainstInvalidDripsReceiver');
+			const guardAgainstInvalidDripsReceiverStub = sinon.stub(common, 'guardAgainstInvalidDripsReceiver');
 
 			// Act.
 			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);

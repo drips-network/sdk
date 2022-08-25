@@ -132,7 +132,7 @@ export default class AddressAppClient {
 
 	/**
 	 * Sets to the maximum value, for the specified ERC20 token, the allowance of the `AddressApp` smart contract over the client's signer tokens.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
@@ -146,7 +146,7 @@ export default class AddressAppClient {
 
 	/**
 	 * Returns the remaining number of the specified ERC20 tokens that the `AddressApp` smart contract will be allowed to spend on behalf of the client's signer.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the remaining number of tokens the smart contract is allowed to spend on behalf of the signer.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
@@ -189,7 +189,7 @@ export default class AddressAppClient {
 
 	/**
 	 * Collects the received and already split funds for the client's signer, and transfers them out of the smart contract to that signer.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
@@ -204,7 +204,7 @@ export default class AddressAppClient {
 	/**
 	 * Collects the received and already split funds for the specified user, and transfers them out of the smart contract to that user.
 	 * @param  {string} userAddress The user address.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
@@ -216,7 +216,7 @@ export default class AddressAppClient {
 
 	/**
 	 * Collects all received funds available for the client't signer  and transfers them out of the smart contract to that signer.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The signer's current splits receivers.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
@@ -235,7 +235,7 @@ export default class AddressAppClient {
 	/**
 	 * Collects all received funds available for the specified user and transfers them out of the smart contract to that user.
 	 * @param  {string} userAddress The user address.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The user's current splits receivers.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
@@ -254,7 +254,7 @@ export default class AddressAppClient {
 	 * Gives funds from the client's signer to the receiver.
 	 * The receiver can collect them immediately.
 	 * @param  {BigNumberish} receiverId The receiver user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
@@ -300,7 +300,7 @@ export default class AddressAppClient {
 
 	/**
 	 * Sets the client's signer drips configuration.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The signer's drips receivers that were set in the last drips configuration update. If this is the first update, pass an empty array. The default value is an empty array.
 	 * @param  {BigNumberish} balanceDelta The drips balance change to be applied. Positive to add funds to the drips balance, negative to remove them. The default value is 0.
 	 * @param  {DripsReceiver[]} newReceivers The new signer's drips receivers.

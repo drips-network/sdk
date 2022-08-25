@@ -7,6 +7,7 @@ import { DripsHub__factory } from '../contracts';
 import type { NetworkProperties } from './types';
 import { chainIdToNetworkPropertiesMap, guardAgainstInvalidAddress, supportedChainIds } from './common';
 import { DripsErrors } from './DripsError';
+import utils from './utils';
 
 /**
  * A readonly client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} smart contract.
@@ -90,7 +91,7 @@ export default class DripsHubClient {
 	/**
 	 * Returns the amount of received funds that are available for collection for a user.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The users's current splits receivers.
 	 * @returns A Promise which resolves to an object with the following properties:
 	 * - `collectedAmt` - The collected amount.
@@ -113,7 +114,7 @@ export default class DripsHubClient {
 	/**
 	 * Returns the user's received, but not split yet, funds.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the amount received but not split yet.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
@@ -126,7 +127,7 @@ export default class DripsHubClient {
 	/**
 	 * Returns the user's received funds that are already split and ready to be collected.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the collectable amount.
 	 * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
 	 */
@@ -139,7 +140,7 @@ export default class DripsHubClient {
 	/**
 	 * Returns the current user's drips state.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to an object with the following properties:
 	 * - `dripsHash` - The current drips receivers list hash.
 	 * - `updateTime` - The time when drips have been configured for the last time.
@@ -167,7 +168,7 @@ export default class DripsHubClient {
 	/**
 	 * Returns the user's drips balance at a given timestamp.
 	 * @param  {BigNumberish} userId The user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} receivers The users's current drips receivers.
 	 * @param  {BigNumberish} timestamp The timestamp for which the balance should be calculated. It can't be lower than the timestamp of the last call to `setDrips`.
 	 * If it's bigger than `block.timestamp`, then it's a prediction assuming that `setDrips` won't be called before `timestamp`.
@@ -188,7 +189,7 @@ export default class DripsHubClient {
 	/**
 	 * Calculates the effects of calling {@link squeezeDrips} with the given parameters.
 	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
@@ -217,14 +218,14 @@ export default class DripsHubClient {
 	 * Receives drips from the currently running cycle from a single sender.
 	 * It doesn't receive drips from the previous, finished cycles.
 	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
-	 * @param  {string} erc20TokenAddress The ERC20 token address to use.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
 	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
 	 * It can start at an arbitrary past configuration, but must describe all the configurations
 	 * which have been used since then including the current one, in the chronological order.
-	 * Only drips described by `dripsHistory` will be squeezed.
+	 * **Only drips described by** `dripsHistory` **will be squeezed**.
 	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
 	 * The next call to `squeezeDrips` will be able to squeeze only funds which
 	 * have been dripped after the last timestamp squeezed in this call.
@@ -241,6 +242,12 @@ export default class DripsHubClient {
 	): Promise<ContractTransaction> {
 		guardAgainstInvalidAddress(erc20TokenAddress);
 
-		return this.#dripsHubContract.squeezeDrips(userId, erc20TokenAddress, senderId, historyHash, dripsHistory);
+		return this.#dripsHubContract.squeezeDrips(
+			userId,
+			utils.getAssetIdFromAddress(erc20TokenAddress),
+			senderId,
+			historyHash,
+			dripsHistory
+		);
 	}
 }

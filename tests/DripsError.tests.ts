@@ -41,14 +41,4 @@ describe('DripsErrors', () => {
 			assert.equal(code, DripsErrorCode.INVALID_ARGUMENT);
 		});
 	});
-
-	describe('subgraphQueryFailed()', () => {
-		it('should return expected error details', () => {
-			// Act.
-			const { code } = DripsErrors.userNotFound('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.USER_NOT_FOUND);
-		});
-	});
 });

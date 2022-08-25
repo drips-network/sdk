@@ -38,7 +38,6 @@ export default class DripsSubgraphClient {
 	 * Returns all asset configurations for the specified user.
 	 * @param  {string} userId The user ID.
 	 * @returns A Promise which resolves to the user's asset configurations.
-	 * @throws {@link DripsErrors.userNotFound} if the user for the specified user ID does not exist.
 	 */
 	public async getUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
 		type APIResponse = {
@@ -50,14 +49,8 @@ export default class DripsSubgraphClient {
 		const response = await this.query<APIResponse>(gql.getUserAssetConfigs, { userId });
 
 		const user = response.data?.user;
-		if (!user) {
-			throw DripsErrors.userNotFound(
-				`Subgraph query failed: user with id '${userId}' does not exist.`,
-				'getUserAssetConfigs()'
-			);
-		}
 
-		return user.assetConfigs;
+		return user?.assetConfigs || [];
 	}
 
 	/**
@@ -79,7 +72,6 @@ export default class DripsSubgraphClient {
 	 * Returns all split entries for the specified user.
 	 * @param  {string} userId The user ID.
 	 * @returns A Promise which resolves to the user's split entries.
-	 * @throws {@link DripsErrors.userNotFound} if the user for the specified user ID does not exist.
 	 */
 	public async getSplitEntries(userId: string): Promise<SplitEntry[]> {
 		type APIResponse = {
@@ -91,14 +83,8 @@ export default class DripsSubgraphClient {
 		const response = await this.query<APIResponse>(gql.getSplitEntries, { userId });
 
 		const user = response.data?.user;
-		if (!user) {
-			throw DripsErrors.userNotFound(
-				`Subgraph query failed: user with id '${userId}' does not exist.`,
-				'getSplitEntries()'
-			);
-		}
 
-		return user.splitsEntries;
+		return user?.splitsEntries || [];
 	}
 
 	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {

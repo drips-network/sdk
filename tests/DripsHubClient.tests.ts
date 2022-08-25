@@ -7,9 +7,10 @@ import { Wallet } from 'ethers';
 import DripsHubClient from '../src/DripsHubClient';
 import type { DripsHub as DripsHubContract } from '../contracts';
 import { DripsHub__factory } from '../contracts';
-import * as utils from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHub';
+import utils from '../src/utils';
+import * as common from '../src/common';
 
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -32,7 +33,7 @@ describe('DripsHubClient', () => {
 
 		sinon
 			.stub(DripsHub__factory, 'connect')
-			.withArgs(utils.chainIdToNetworkPropertiesMap[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
+			.withArgs(common.chainIdToNetworkPropertiesMap[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, providerStub)
 			.returns(dripsHubContractStub);
 
 		testDripsHubClient = await DripsHubClient.create(providerStub);
@@ -83,7 +84,7 @@ describe('DripsHubClient', () => {
 			assert.equal(testDripsHubClient.network.chainId, networkStub.chainId);
 			assert.equal(
 				testDripsHubClient.networkProperties,
-				utils.chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
+				common.chainIdToNetworkPropertiesMap[(await providerStub.getNetwork()).chainId]
 			);
 			assert.equal(await testDripsHubClient.provider.getNetwork(), networkStub);
 		});
@@ -93,7 +94,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -128,7 +129,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -162,7 +163,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -196,7 +197,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -230,7 +231,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -266,7 +267,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -308,7 +309,7 @@ describe('DripsHubClient', () => {
 		it('should guard against invalid ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = 'invalid address';
-			const guardAgainstInvalidAddressStub = sinon.stub(utils, 'guardAgainstInvalidAddress');
+			const guardAgainstInvalidAddressStub = sinon.stub(common, 'guardAgainstInvalidAddress');
 			guardAgainstInvalidAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
 			// Act.
@@ -336,7 +337,7 @@ describe('DripsHubClient', () => {
 			assert(
 				dripsHubContractStub.squeezeDrips.calledOnceWithExactly(
 					userId,
-					erc20Address,
+					utils.getAssetIdFromAddress(erc20Address),
 					senderId,
 					historyHash,
 					dripsHistory

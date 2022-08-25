@@ -44,7 +44,7 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getUserAssetConfigs', () => {
-		it('should throw userNotFound error when user does not exist', async () => {
+		it('should return empty array when user does not exist', async () => {
 			// Arrange.
 			const userId = '12342';
 
@@ -52,19 +52,11 @@ describe('DripsSubgraphClient', () => {
 				data: {}
 			});
 
-			let threw = false;
-
 			// Act.
-			try {
-				await testSubgraphClient.getUserAssetConfigs(userId);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.USER_NOT_FOUND);
-				threw = true;
-			}
+			const configs = await testSubgraphClient.getUserAssetConfigs(userId);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.isEmpty(configs);
 		});
 
 		it('should return the expected user asset configs', async () => {
@@ -128,7 +120,7 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getSplitEntries', () => {
-		it('should throw userNotFound error when user does not exist', async () => {
+		it('should return empty array when user does not exist', async () => {
 			// Arrange.
 			const userId = '12342';
 
@@ -136,19 +128,11 @@ describe('DripsSubgraphClient', () => {
 				data: {}
 			});
 
-			let threw = false;
-
 			// Act.
-			try {
-				await testSubgraphClient.getSplitEntries(userId);
-			} catch (error) {
-				// Assert.
-				assert.equal(error.code, DripsErrorCode.USER_NOT_FOUND);
-				threw = true;
-			}
+			const splits = await testSubgraphClient.getSplitEntries(userId);
 
 			// Assert.
-			assert.isTrue(threw, "Expected to throw but it didn't");
+			assert.isEmpty(splits);
 		});
 
 		it('should return the expected split entries', async () => {

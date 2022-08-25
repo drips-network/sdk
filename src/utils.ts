@@ -62,7 +62,7 @@ const destructUserAssetConfigId = (
 
 /**
  * Returns the asset ID for the specified ERC20 token.
- * @param  {string} erc20TokenAddress The ERC20 token address to use.
+ * @param  {string} erc20TokenAddress The ERC20 token address.
  * @throws {@link DripsErrors.invalidAddress} if `erc20TokenAddress` address is not valid.
  * @returns The asset ID.
  */
