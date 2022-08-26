@@ -10,7 +10,7 @@ import type { DripsEntry, NetworkProperties, SplitEntry } from './types';
  * @returns The mapped drip receiver structs.
  */
 const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruct[] => {
-	const structs: DripsReceiverStruct[] = dripsEntries.map((d) => ({
+	const structs: DripsReceiverStruct[] = dripsEntries?.map((d) => ({
 		config: d.config,
 		userId: d.receiverUserId
 	}));
@@ -24,7 +24,7 @@ const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruc
  * @returns The mapped split receiver structs.
  */
 const mapSplitEntriesToStructs = (splitEntries: SplitEntry[]): SplitsReceiverStruct[] => {
-	const structs: SplitsReceiverStruct[] = splitEntries.map((s) => ({
+	const structs: SplitsReceiverStruct[] = splitEntries?.map((s) => ({
 		userId: s.receiverUserId,
 		weight: s.weight
 	}));
