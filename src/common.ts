@@ -17,7 +17,7 @@ export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = 
 		CONTRACT_DRIPS_HUB_LOGIC: '0x6B94233AEdf8Ad4f505088Da81EAc225B691e99C',
 		CONTRACT_ADDRESS_APP_LOGIC: '0x10fCa1A8f390b611f8437d43A52691566ffC8246',
 		// TODO: Update Subgraph URL after hosted service is gone.
-		SUBGRAPH_URL: 'https://thegraph.com/hosted-service/subgraph/gh0stwheel/drips-v02-on-goerli'
+		SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
 	}
 };
 
