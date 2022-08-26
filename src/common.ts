@@ -17,7 +17,7 @@ export const chainIdToNetworkPropertiesMap: Record<number, NetworkProperties> = 
 		CONTRACT_DRIPS_HUB_LOGIC: '0x6B94233AEdf8Ad4f505088Da81EAc225B691e99C',
 		CONTRACT_ADDRESS_APP_LOGIC: '0x10fCa1A8f390b611f8437d43A52691566ffC8246',
 		// TODO: Update Subgraph URL after hosted service is gone.
-		SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+		SUBGRAPH_URL: 'https://thegraph.com/hosted-service/subgraph/gh0stwheel/drips-v02-on-goerli'
 	}
 };
 
@@ -32,14 +32,14 @@ const validateAddress = (address: string) => {
 };
 
 const validateDripsReceivers = (receivers: DripsReceiverStruct[]) => {
-	if (receivers.length > MAX_DRIPS_RECEIVERS) {
+	if (receivers?.length > MAX_DRIPS_RECEIVERS) {
 		throw DripsErrors.invalidArgument(
 			`Invalid drip receivers: drip receivers must be less than ${MAX_DRIPS_RECEIVERS}`,
 			'common.validateDripsReceivers()'
 		);
 	}
 
-	receivers.forEach((receiver) => {
+	receivers?.forEach((receiver) => {
 		if (!receiver.userId || !DripsReceiverConfig.fromUint256(receiver.config)) {
 			throw DripsErrors.invalidDripsReceiver(
 				`Drips receiver '${JSON.stringify(
@@ -52,7 +52,7 @@ const validateDripsReceivers = (receivers: DripsReceiverStruct[]) => {
 };
 
 const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
-	receivers.forEach((receiver) => {
+	receivers?.forEach((receiver) => {
 		if (!receiver.userId || !receiver.weight) {
 			throw DripsErrors.invalidSplitsReceiver(
 				`Splits receiver '${JSON.stringify(receiver)}' is not valid. A receiver must have a user ID and a weight > 0`,
