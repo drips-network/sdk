@@ -4,7 +4,7 @@ import { validators } from './common';
 import { DripsErrors } from './DripsError';
 import DripsReceiverConfig from './DripsReceiverConfig';
 import * as gql from './gql';
-import type { SplitEntry, DripsConfiguration, DripsEntry } from './types';
+import type { Split, DripsConfiguration, Drip } from './types';
 import utils from './utils';
 
 /**
@@ -128,10 +128,10 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The user ID.
 	 * @returns A Promise which resolves to the user's splits configuration.
 	 */
-	public async getSplitsConfiguration(userId: string): Promise<SplitEntry[]> {
+	public async getSplitsConfiguration(userId: string): Promise<Split[]> {
 		type ApiResponse = {
 			user: {
-				splitsEntries: SplitEntry[];
+				splitsEntries: Split[];
 			};
 		};
 
@@ -164,7 +164,7 @@ export default class DripsSubgraphClient {
 			config: BigNumberish;
 			receiverUserId: string;
 		}[]
-	): DripsEntry[] {
+	): Drip[] {
 		return dripsEntries?.map((drip) => {
 			// Return config as an object instead of as a BigNumberish.
 
@@ -174,7 +174,7 @@ export default class DripsSubgraphClient {
 			// Get the *new* config as uint256.
 			const configToReturnAsNum = BigNumber.from(configToReturn.asUint256);
 
-			// Compare the received with the new values.
+			// Compare the received with the new value.
 			if (!configToReturnAsNum.eq(drip.config)) {
 				throw new Error('Cannot map results from subgraph query: configs do not match.');
 			}

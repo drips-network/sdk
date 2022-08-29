@@ -4,7 +4,7 @@ import { BigNumber, Wallet } from 'ethers';
 import DripsSubgraphClient from '../src/DripsSubgraphClient';
 import * as gql from '../src/gql';
 import { DripsErrorCode } from '../src/DripsError';
-import type { SplitEntry } from '../src/types';
+import type { Split } from '../src/types';
 import utils from '../src/utils';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
 
@@ -222,7 +222,7 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected split entries', async () => {
 			// Arrange
 			const userId = '12342';
-			const splitsEntries: SplitEntry[] = [
+			const splitsEntries: Split[] = [
 				{
 					weight: '1',
 					receiverUserId: '1'

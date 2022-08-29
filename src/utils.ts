@@ -4,15 +4,15 @@ import { BigNumber, ethers } from 'ethers';
 import { chainIdToNetworkPropertiesMap, validators } from './common';
 import { DripsErrors } from './DripsError';
 import DripsReceiverConfig from './DripsReceiverConfig';
-import type { DripsEntry, NetworkProperties, SplitEntry } from './types';
+import type { Drip, NetworkProperties, Split } from './types';
 
 // TODO: Public util.
 /**
- * Maps from `DripsEntry` to `DripsReceiverStruct`.
- * @param  {DripsEntry[]} dripsEntries The drip entries.
+ * Maps from `Drip` to `DripsReceiverStruct`.
+ * @param  {Drip[]} dripsEntries The drip entries.
  * @returns The mapped drip receiver structs.
  */
-const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruct[] => {
+const mapDripEntriesToStructs = (dripsEntries: Drip[]): DripsReceiverStruct[] => {
 	const structs: DripsReceiverStruct[] = dripsEntries?.map((d) => ({
 		config: new DripsReceiverConfig(d.config.amountPerSec, d.config.duration, d.config.start).asUint256,
 		userId: d.receiverUserId
@@ -22,11 +22,11 @@ const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruc
 };
 
 /**
- * Maps from `SplitEntry` to `SplitReceiverStruct`.
- * @param  {DripsEntry[]} splitEntries The split entries.
+ * Maps from `Split` to `SplitReceiverStruct`.
+ * @param  {Drip[]} splitEntries The split entries.
  * @returns The mapped split receiver structs.
  */
-const mapSplitEntriesToStructs = (splitEntries: SplitEntry[]): SplitsReceiverStruct[] => {
+const mapSplitEntriesToStructs = (splitEntries: Split[]): SplitsReceiverStruct[] => {
 	const structs: SplitsReceiverStruct[] = splitEntries?.map((s) => ({
 		userId: s.receiverUserId,
 		weight: s.weight

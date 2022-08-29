@@ -4,7 +4,7 @@ import sinon from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import { chainIdToNetworkPropertiesMap } from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-import type { DripsEntry, SplitEntry } from '../src/types';
+import type { Drip, Split } from '../src/types';
 import utils from '../src/utils';
 import * as common from '../src/common';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
@@ -17,19 +17,19 @@ describe('utils', () => {
 	describe('mapDripEntriesToStructs()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const dripsEntry: DripsEntry = {
+			const Drip: Drip = {
 				id: '1',
 				config: new DripsReceiverConfig(1, 1, 1),
 				receiverUserId: '2'
 			};
 
 			// Act
-			const dripStructs: DripsReceiverStruct[] = utils.mapDripEntriesToStructs([dripsEntry]);
+			const dripStructs: DripsReceiverStruct[] = utils.mapDripEntriesToStructs([Drip]);
 
 			// Assert
 			assert.equal(dripStructs.length, 1);
-			assert.isTrue(BigNumber.from(dripStructs[0].config).eq(dripsEntry.config.asUint256));
-			assert.isTrue(BigNumber.from(dripStructs[0].userId).eq(dripsEntry.receiverUserId));
+			assert.isTrue(BigNumber.from(dripStructs[0].config).eq(Drip.config.asUint256));
+			assert.isTrue(BigNumber.from(dripStructs[0].userId).eq(Drip.receiverUserId));
 		});
 	});
 
@@ -49,7 +49,7 @@ describe('utils', () => {
 	describe('mapSplitEntriesToStructs()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const splitsEntry: SplitEntry = {
+			const splitsEntry: Split = {
 				weight: '1234',
 				receiverUserId: '2'
 			};

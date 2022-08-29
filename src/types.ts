@@ -1,7 +1,7 @@
 import type { BigNumberish } from 'ethers';
 import type DripsReceiverConfig from './DripsReceiverConfig';
 
-export type DripsEntry = {
+export type Drip = {
 	readonly id: BigNumberish;
 	readonly receiverUserId: BigNumberish;
 	readonly config: DripsReceiverConfig;
@@ -14,11 +14,11 @@ export type DripsConfiguration = {
 	readonly balance: BigNumberish;
 	readonly sender: { id: string };
 	readonly amountCollected: BigNumberish;
-	readonly dripsEntries: DripsEntry[];
+	readonly dripsEntries: Drip[];
 	readonly lastUpdatedBlockTimestamp: string;
 };
 
-export type SplitEntry = {
+export type Split = {
 	weight: BigNumberish;
 	receiverUserId: BigNumberish;
 };
