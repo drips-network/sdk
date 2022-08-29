@@ -4,7 +4,7 @@ import { BigNumber, Wallet } from 'ethers';
 import DripsSubgraphClient from '../src/DripsSubgraphClient';
 import * as gql from '../src/gql';
 import { DripsErrorCode } from '../src/DripsError';
-import type { SplitEntry, DripsConfiguration } from '../src/types';
+import type { SplitEntry } from '../src/types';
 import utils from '../src/utils';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
 

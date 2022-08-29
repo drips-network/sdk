@@ -179,17 +179,15 @@ export default class DripsSubgraphClient {
 				throw new Error('Cannot map results from subgraph query: configs do not match.');
 			}
 
-			const s = {
+			return {
 				...drip,
 				config: {
-					start: configToReturn.start,
-					duration: configToReturn.duration,
-					asUint256: configToReturn.asUint256,
-					amountPerSec: configToReturn.amountPerSec
+					start: configToReturn.start.toString(),
+					duration: configToReturn.duration.toString(),
+					asUint256: configToReturn.asUint256.toString(),
+					amountPerSec: configToReturn.amountPerSec.toString()
 				}
 			};
-
-			return s;
 		});
 	}
 }
