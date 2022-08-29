@@ -181,7 +181,7 @@ export default class DripsSubgraphClient {
 
 			return {
 				...drip,
-				config: configToReturn
+				config: { ...configToReturn }
 			};
 		});
 	}
