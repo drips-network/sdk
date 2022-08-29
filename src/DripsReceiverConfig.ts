@@ -21,7 +21,7 @@ export default class DripsReceiverConfig {
 	 * @param  {BigNumberish} duration The duration of dripping. If set to zero (default value), the smart contract will drip until balance runs out.
 	 */
 	public constructor(amountPerSec: BigNumberish, duration: BigNumberish = 0, start: BigNumberish = 0) {
-		if (amountPerSec === 0) {
+		if (BigNumber.from(amountPerSec).eq(0)) {
 			throw DripsErrors.invalidArgument(
 				`Could not create a new DripsReceiverConfig: amountPerSec cannot be 0.`,
 				'DripsReceiverConfig.create()'

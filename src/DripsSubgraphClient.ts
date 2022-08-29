@@ -1,7 +1,10 @@
+import type { BigNumberish } from 'ethers';
+import { BigNumber } from 'ethers';
 import { validators } from './common';
 import { DripsErrors } from './DripsError';
+import DripsReceiverConfig from './DripsReceiverConfig';
 import * as gql from './gql';
-import type { SplitEntry, DripsConfiguration } from './types';
+import type { SplitEntry, DripsConfiguration, DripsEntry } from './types';
 import utils from './utils';
 
 /**
@@ -45,17 +48,31 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's drips configurations.
 	 */
 	public async getAllDripsConfigurations(userId: string): Promise<DripsConfiguration[]> {
-		type APIResponse = {
+		type ApiResponse = {
 			user: {
-				assetConfigs: DripsConfiguration[];
+				assetConfigs: {
+					id: string;
+					assetId: string;
+					tokenAddress: string;
+					balance: BigNumberish;
+					sender: { id: string };
+					amountCollected: BigNumberish;
+					dripsEntries: {
+						id: string;
+						config: BigNumberish;
+						receiverUserId: string;
+					}[];
+					lastUpdatedBlockTimestamp: string;
+				}[];
 			};
 		};
 
-		const response = await this.query<APIResponse>(gql.getAllUserAssetConfigs, { userId });
+		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigs, { userId });
 
 		const assetConfigs = response?.data?.user?.assetConfigs?.map((config) => ({
 			...config,
-			tokenAddress: utils.getTokenAddressFromAssetId(config.assetId)
+			tokenAddress: utils.getTokenAddressFromAssetId(config.assetId),
+			dripsEntries: this._mapDripEntries(config.dripsEntries)
 		}));
 
 		return assetConfigs || [];
@@ -68,20 +85,42 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's drips configuration.
 	 * @throws {@link DripsErrors.invalidAddress} if the `erc20TokenAddress` address is not valid.
 	 */
-	public async getDripsConfiguration(userId: string, erc20TokenAddress: string): Promise<DripsConfiguration> {
+	public async getDripsConfiguration(userId: string, erc20TokenAddress: string): Promise<DripsConfiguration | null> {
 		validators.validateAddress(erc20TokenAddress);
 
-		type APIResponse = {
-			userAssetConfig: DripsConfiguration;
+		type ApiResponse = {
+			userAssetConfig: {
+				id: BigNumberish;
+				assetId: BigNumberish;
+				tokenAddress: string;
+				balance: BigNumberish;
+				sender: { id: string };
+				amountCollected: BigNumberish;
+				dripsEntries: {
+					id: string;
+					config: BigNumberish;
+					receiverUserId: string;
+				}[];
+				lastUpdatedBlockTimestamp: string;
+			};
 		};
 
 		const assetId = utils.getAssetIdFromAddress(erc20TokenAddress);
 
-		const response = await this.query<APIResponse>(gql.getUserAssetConfigById, {
+		const response = await this.query<ApiResponse>(gql.getUserAssetConfigById, {
 			configId: utils.constructUserAssetConfigId(userId, assetId)
 		});
 
-		return response?.data?.userAssetConfig;
+		const userAssetConfig = response?.data?.userAssetConfig;
+
+		if (userAssetConfig) {
+			return {
+				...userAssetConfig,
+				dripsEntries: this._mapDripEntries(userAssetConfig.dripsEntries)
+			};
+		}
+
+		return null;
 	}
 
 	/**
@@ -90,13 +129,13 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's splits configuration.
 	 */
 	public async getSplitsConfiguration(userId: string): Promise<SplitEntry[]> {
-		type APIResponse = {
+		type ApiResponse = {
 			user: {
 				splitsEntries: SplitEntry[];
 			};
 		};
 
-		const response = await this.query<APIResponse>(gql.getSplitEntries, { userId });
+		const response = await this.query<ApiResponse>(gql.getSplitEntries, { userId });
 
 		const splitsEntries = response?.data?.user?.splitsEntries;
 
@@ -117,5 +156,33 @@ export default class DripsSubgraphClient {
 		}
 
 		throw new Error(`Subgraph query failed: ${resp.statusText}`);
+	}
+
+	private _mapDripEntries(
+		dripsEntries: {
+			id: string;
+			config: BigNumberish;
+			receiverUserId: string;
+		}[]
+	): DripsEntry[] {
+		return dripsEntries?.map((drip) => {
+			// Return config as an object instead of as a BigNumberish.
+
+			// Create a new config from the uint256 value returned from the subgraph.
+			const configToReturn = DripsReceiverConfig.fromUint256(BigNumber.from(drip.config));
+
+			// Get the *new* config as uint256.
+			const configToReturnAsNum = BigNumber.from(configToReturn.asUint256);
+
+			// Compare the received with the new values.
+			if (!configToReturnAsNum.eq(drip.config)) {
+				throw new Error('Cannot map results from subgraph query: configs do not match.');
+			}
+
+			return {
+				...drip,
+				config: configToReturn
+			};
+		});
 	}
 }

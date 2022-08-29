@@ -11,88 +11,88 @@ import { validators, supportedChainIds, createErc20Contract } from '../src/commo
 describe('common', () => {
 	describe('NetworkProperties', () => {
 		it('should export only unique and supported chain IDs', () => {
-			// Arrange.
+			// Arrange
 			const chainIds = [5];
 
-			// Assert.
+			// Assert
 			assert.includeMembers(supportedChainIds as number[], chainIds);
 			assert.equal([...new Set(supportedChainIds)].length, [...new Set(chainIds)].length);
 		});
 	});
 
 	describe('createErc20Contract()', () => {
-		// Arrange.
+		// Arrange
 		const erc20Address = Wallet.createRandom().address;
 		const signerStub = stubInterface<JsonRpcSigner>();
 
-		// Act.
+		// Act
 		const result = createErc20Contract(erc20Address, signerStub);
 
-		// Assert.
+		// Assert
 		assert.equal(result.address, erc20Address);
 	});
 
 	describe('validators', () => {
 		describe('validateAddress()', () => {
 			it('should throw invalidArgument error when the input is falsy', () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 
-				// Act.
+				// Act
 				try {
-					// Act.
+					// Act
 					validators.validateAddress(undefined as unknown as string);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
 			it('should throw invalidArgument error when the address is not valid', () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 				const address = 'invalid address';
 
-				// Act.
+				// Act
 				try {
-					// Act.
+					// Act
 					validators.validateAddress(address);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 		});
 
 		describe('validateSplitsReceiver()', () => {
 			it('should throw invalidArgument error when any receiver user ID is missing', async () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 				const receivers: SplitsReceiverStruct[] = [{ userId: undefined as unknown as number, weight: 2 }];
 
 				try {
-					// Act.
+					// Act
 					validators.validateSplitsReceivers(receivers);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
 			it('should throw invalidArgument error when any receiver weight is missing', async () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 				const receivers: SplitsReceiverStruct[] = [
 					{
@@ -102,22 +102,22 @@ describe('common', () => {
 				];
 
 				try {
-					// Act.
+					// Act
 					validators.validateSplitsReceivers(receivers);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 		});
 
 		describe('validateDripsReceiver()', () => {
 			it('should throw invalidDripsReceiver error when receivers are more than the max number', async () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 				const receivers: DripsReceiverStruct[] = Array(101).fill({
 					userId: undefined as unknown as number,
@@ -125,40 +125,40 @@ describe('common', () => {
 				});
 
 				try {
-					// Act.
+					// Act
 					validators.validateDripsReceivers(receivers);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
 			it('should throw invalidArgument error when any receiver user ID is missing', async () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 				const receivers: DripsReceiverStruct[] = [
 					{ userId: undefined as unknown as number, config: new DripsReceiverConfig(1, 1).asUint256 }
 				];
 
 				try {
-					// Act.
+					// Act
 					validators.validateDripsReceivers(receivers);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
 			it('should throw invalidDripsReceiver error when any receiver config is missing', async () => {
-				// Arrange.
+				// Arrange
 				let threw = false;
 				const receivers = [
 					{
@@ -168,15 +168,15 @@ describe('common', () => {
 				];
 
 				try {
-					// Act.
+					// Act
 					validators.validateDripsReceivers(receivers);
 				} catch (error) {
-					// Assert.
+					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
-				// Assert.
+				// Assert
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 		});

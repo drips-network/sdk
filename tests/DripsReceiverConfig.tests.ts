@@ -6,25 +6,25 @@ import DripsReceiverConfig from '../src/DripsReceiverConfig';
 describe('DripsReceiverConfig', () => {
 	describe('create()', () => {
 		it('should throw invalidArgument error when the amountPerSec is 0', () => {
-			// Arrange.
+			// Arrange
 			let threw = false;
 
 			try {
-				// Act.
+				// Act
 				// eslint-disable-next-line no-new
 				new DripsReceiverConfig(0, 1, 2);
 			} catch (error) {
-				// Assert.
+				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
-			// Assert.
+			// Assert
 			assert.isTrue(threw, "Expected to throw but it didn't");
 		});
 
 		it('should create a DripsReceiverConfig with the expected properties', () => {
-			// Arrange.
+			// Arrange
 			const start = 1;
 			const duration = 2;
 			const amountPerSec = 3;
@@ -33,10 +33,10 @@ describe('DripsReceiverConfig', () => {
 			configAsUint = configAsUint.shl(32).or(start);
 			configAsUint = configAsUint.shl(32).or(duration);
 
-			// Act.
+			// Act
 			const config = new DripsReceiverConfig(amountPerSec, duration, start);
 
-			// Assert.
+			// Assert
 			assert(BigNumber.from(config.start).eq(BigNumber.from(start)));
 			assert(BigNumber.from(config.duration).eq(BigNumber.from(duration)));
 			assert(BigNumber.from(config.asUint256).eq(BigNumber.from(configAsUint)));
@@ -46,17 +46,36 @@ describe('DripsReceiverConfig', () => {
 
 	describe('fromUint256()', () => {
 		it('should parse correctly from a uint256', () => {
-			// Arrange.
+			// Arrange
 			const expectedConfig = new DripsReceiverConfig(1, 2, 3);
 
-			// Act.
+			// Act
 			const actualConfig = DripsReceiverConfig.fromUint256(expectedConfig.asUint256);
 
-			// Assert.
+			// Assert
 			assert(BigNumber.from(actualConfig.start).eq(BigNumber.from(expectedConfig.start)));
 			assert(BigNumber.from(actualConfig.duration).eq(BigNumber.from(expectedConfig.duration)));
 			assert(BigNumber.from(actualConfig.asUint256).eq(BigNumber.from(expectedConfig.asUint256)));
 			assert(BigNumber.from(actualConfig.amountPerSec).eq(BigNumber.from(expectedConfig.amountPerSec)));
+		});
+	});
+
+	describe('toUint256()', () => {
+		it('should transform correctly to a uint256', () => {
+			// Arrange
+			const config = new DripsReceiverConfig(1, 2, 3);
+
+			// Act
+			const configAsUint256 = DripsReceiverConfig.toUint256(config);
+
+			// Assert
+
+			const recreatedConfig = DripsReceiverConfig.fromUint256(configAsUint256);
+
+			assert(BigNumber.from(recreatedConfig.start).eq(config.start));
+			assert(BigNumber.from(recreatedConfig.duration).eq(config.duration));
+			assert(BigNumber.from(recreatedConfig.asUint256).eq(config.asUint256));
+			assert(BigNumber.from(recreatedConfig.amountPerSec).eq(config.amountPerSec));
 		});
 	});
 });

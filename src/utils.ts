@@ -1,9 +1,12 @@
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
+import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { chainIdToNetworkPropertiesMap, validators } from './common';
 import { DripsErrors } from './DripsError';
+import DripsReceiverConfig from './DripsReceiverConfig';
 import type { DripsEntry, NetworkProperties, SplitEntry } from './types';
 
+// TODO: Public util.
 /**
  * Maps from `DripsEntry` to `DripsReceiverStruct`.
  * @param  {DripsEntry[]} dripsEntries The drip entries.
@@ -11,7 +14,7 @@ import type { DripsEntry, NetworkProperties, SplitEntry } from './types';
  */
 const mapDripEntriesToStructs = (dripsEntries: DripsEntry[]): DripsReceiverStruct[] => {
 	const structs: DripsReceiverStruct[] = dripsEntries?.map((d) => ({
-		config: d.config,
+		config: new DripsReceiverConfig(d.config.amountPerSec, d.config.duration, d.config.start).asUint256,
 		userId: d.receiverUserId
 	}));
 
@@ -49,7 +52,7 @@ const getAssetIdFromAddress = (erc20TokenAddress: string): string => {
  * @param  {string} assetId The asset ID to use.
  * @returns The ERC20 token address.
  */
-const getTokenAddressFromAssetId = (assetId: string): string =>
+const getTokenAddressFromAssetId = (assetId: BigNumberish): string =>
 	ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
 
 /**
@@ -87,7 +90,7 @@ const destructUserAssetConfigId = (
  * @param  {string} assetId The asset ID.
  * @returns The user asset configuration ID.
  */
-const constructUserAssetConfigId = (userId: string, assetId: string): string => {
+const constructUserAssetConfigId = (userId: BigNumberish, assetId: BigNumberish): string => {
 	if (!userId || !assetId) {
 		throw DripsErrors.invalidArgument(
 			`Could not create user asset configuration ID: Both the user ID and the ERC20 token address are required.`,

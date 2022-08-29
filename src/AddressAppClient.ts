@@ -7,8 +7,7 @@ import { BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import type { AddressApp as AddressAppContract } from '../contracts';
 import { AddressApp__factory } from '../contracts';
-// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-import type { NetworkProperties, DripsReceiver } from './types';
+import type { NetworkProperties } from './types';
 import { validators, supportedChainIds, createErc20Contract, chainIdToNetworkPropertiesMap } from './common';
 import { DripsErrors } from './DripsError';
 import DripsHubClient from './DripsHubClient';
@@ -284,7 +283,7 @@ export default class AddressAppClient {
 	 * - Positive to add funds to the drips balance.
 	 * - Negative to remove funds from the drips balance.
 	 * - `0` to leave drips balance as is (default value).
-	 * @param  {DripsReceiver[]} newReceivers The new drips receivers.
+	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers.
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 *
 	 * Pass an empty array if you want to clear all receivers from this configuration.

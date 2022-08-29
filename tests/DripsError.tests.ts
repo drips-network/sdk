@@ -3,31 +3,31 @@ import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 
 describe('DripsErrors', () => {
 	it('should have unique error codes', () => {
-		// Arrange.
+		// Arrange
 		const methods = Object.keys(DripsErrors);
 		const getErrorCode = (methodName: string): DripsErrorCode => DripsErrors[methodName]().code;
 		const uniqueCodes = [...new Set(Object.keys(DripsErrors).map((error) => getErrorCode(error)))];
 
-		// Assert.
+		// Assert
 		assert.equal(uniqueCodes.length, methods.length);
 	});
 
 	describe('invalidAddress()', () => {
 		it('should return expected error details', () => {
-			// Act.
+			// Act
 			const { code } = DripsErrors.invalidAddress('');
 
-			// Assert.
+			// Assert
 			assert.equal(code, DripsErrorCode.INVALID_ADDRESS);
 		});
 	});
 
 	describe('invalidArgument()', () => {
 		it('should return expected error details', () => {
-			// Act.
+			// Act
 			const { code } = DripsErrors.invalidArgument('');
 
-			// Assert.
+			// Assert
 			assert.equal(code, DripsErrorCode.INVALID_ARGUMENT);
 		});
 	});

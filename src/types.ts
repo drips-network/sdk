@@ -1,27 +1,26 @@
 import type { BigNumberish } from 'ethers';
 import type DripsReceiverConfig from './DripsReceiverConfig';
 
-export type DripsEntry = { readonly id: string; readonly receiverUserId: string; readonly config: BigNumberish };
+export type DripsEntry = {
+	readonly id: BigNumberish;
+	readonly receiverUserId: BigNumberish;
+	readonly config: DripsReceiverConfig;
+};
 
 export type DripsConfiguration = {
-	readonly id: string;
-	readonly assetId: string;
+	readonly id: BigNumberish;
+	readonly assetId: BigNumberish;
 	readonly tokenAddress: string;
 	readonly balance: BigNumberish;
 	readonly sender: { id: string };
-	readonly amountCollected: string;
+	readonly amountCollected: BigNumberish;
 	readonly dripsEntries: DripsEntry[];
 	readonly lastUpdatedBlockTimestamp: string;
 };
 
 export type SplitEntry = {
-	weight: string;
-	receiverUserId: string;
-};
-
-export type DripsReceiver = {
-	userId: BigNumberish;
-	config: DripsReceiverConfig;
+	weight: BigNumberish;
+	receiverUserId: BigNumberish;
 };
 
 export type NetworkProperties = {

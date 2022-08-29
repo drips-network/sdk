@@ -44,42 +44,42 @@ describe('DripsHubClient', () => {
 
 	describe('create()', () => {
 		it('should throw invalidArgument error when the provider argument is missing', async () => {
-			// Arrange.
+			// Arrange
 			let threw = false;
 
 			try {
-				// Act.
+				// Act
 				await DripsHubClient.create(undefined as unknown as JsonRpcProvider);
 			} catch (error) {
-				// Assert.
+				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
-			// Assert.
+			// Assert
 			assert.isTrue(threw, "Expected to throw but it didn't");
 		});
 
 		it('should throw unsupportedNetwork error when the provider is connected to an unsupported chain', async () => {
-			// Arrange.
+			// Arrange
 			let threw = false;
 			providerStub.getNetwork.resolves({ chainId: TEST_CHAIN_ID + 1 } as Network);
 
 			try {
-				// Act.
+				// Act
 				await DripsHubClient.create(providerStub);
 			} catch (error) {
-				// Assert.
+				// Assert
 				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
 				threw = true;
 			}
 
-			// Assert.
+			// Assert
 			assert.isTrue(threw, "Expected to throw but it didn't");
 		});
 
 		it('should create a fully initialized client instance', async () => {
-			// Assert.
+			// Assert
 			assert.equal(testDripsHubClient.network.chainId, networkStub.chainId);
 			assert.equal(
 				testDripsHubClient.networkProperties,
@@ -91,32 +91,32 @@ describe('DripsHubClient', () => {
 
 	describe('getCollectableAll()', () => {
 		it('should validate ERC20 address', async () => {
-			// Arrange.
+			// Arrange
 			const erc20Address = 'invalid address';
 			const validateAddressStub = sinon.stub(common.validators, 'validateAddress');
 			validateAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			// Act.
+			// Act
 			try {
 				await testDripsHubClient.getCollectableAll(1, erc20Address, []);
 			} catch (error) {
 				// Just for the test to continue.
 			}
 
-			// Assert.
+			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the collectableAll() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const currentReceivers: SplitsReceiverStruct[] = [];
 			const erc20Address = Wallet.createRandom().address;
 
-			// Act.
+			// Act
 			await testDripsHubClient.getCollectableAll(userId, erc20Address, currentReceivers);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.collectableAll.calledOnceWithExactly(userId, erc20Address, currentReceivers),
 				`Expected collectableAll() method to be called with different arguments`
@@ -126,31 +126,31 @@ describe('DripsHubClient', () => {
 
 	describe('getSplittable()', () => {
 		it('should validate ERC20 address', async () => {
-			// Arrange.
+			// Arrange
 			const erc20Address = 'invalid address';
 			const validateAddressStub = sinon.stub(common.validators, 'validateAddress');
 			validateAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			// Act.
+			// Act
 			try {
 				await testDripsHubClient.getSplittable(1, erc20Address);
 			} catch (error) {
 				// Just for the test to continue.
 			}
 
-			// Assert.
+			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the getSplittable() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const erc20Address = Wallet.createRandom().address;
 
-			// Act.
+			// Act
 			await testDripsHubClient.getSplittable(userId, erc20Address);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.splittable.calledOnceWithExactly(userId, erc20Address),
 				`Expected getSplittable() method to be called with different arguments`
@@ -160,31 +160,31 @@ describe('DripsHubClient', () => {
 
 	describe('getCollectable()', () => {
 		it('should validate ERC20 address', async () => {
-			// Arrange.
+			// Arrange
 			const erc20Address = 'invalid address';
 			const validateAddressStub = sinon.stub(common.validators, 'validateAddress');
 			validateAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			// Act.
+			// Act
 			try {
 				await testDripsHubClient.getCollectable(1, erc20Address);
 			} catch (error) {
 				// Just for the test to continue.
 			}
 
-			// Assert.
+			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the getCollectable() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const erc20Address = Wallet.createRandom().address;
 
-			// Act.
+			// Act
 			await testDripsHubClient.getCollectable(userId, erc20Address);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.collectable.calledOnceWithExactly(userId, erc20Address),
 				`Expected getCollectable() method to be called with different arguments`
@@ -194,31 +194,31 @@ describe('DripsHubClient', () => {
 
 	describe('getDripsState()', () => {
 		it('should validate ERC20 address', async () => {
-			// Arrange.
+			// Arrange
 			const erc20Address = 'invalid address';
 			const validateAddressStub = sinon.stub(common.validators, 'validateAddress');
 			validateAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			// Act.
+			// Act
 			try {
 				await testDripsHubClient.getDripsState(1, erc20Address);
 			} catch (error) {
 				// Just for the test to continue.
 			}
 
-			// Assert.
+			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the getDripsState() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const erc20Address = Wallet.createRandom().address;
 
-			// Act.
+			// Act
 			await testDripsHubClient.getDripsState(userId, erc20Address);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.dripsState.calledOnceWithExactly(userId, erc20Address),
 				`Expected getDripsState() method to be called with different arguments`
@@ -228,33 +228,33 @@ describe('DripsHubClient', () => {
 
 	describe('getBalanceAt()', () => {
 		it('should validate ERC20 address', async () => {
-			// Arrange.
+			// Arrange
 			const erc20Address = 'invalid address';
 			const validateAddressStub = sinon.stub(common.validators, 'validateAddress');
 			validateAddressStub.throws(DripsErrors.invalidAddress('Error'));
 
-			// Act.
+			// Act
 			try {
 				await testDripsHubClient.getBalanceAt(1, erc20Address, [], 1);
 			} catch (error) {
 				// Just for the test to continue.
 			}
 
-			// Assert.
+			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
 		it('should call the getBalanceAt() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const timestamp = 1;
 			const receivers: DripsReceiverStruct[] = [];
 			const erc20Address = Wallet.createRandom().address;
 
-			// Act.
+			// Act
 			await testDripsHubClient.getBalanceAt(userId, erc20Address, receivers, timestamp);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.balanceAt.calledOnceWithExactly(userId, erc20Address, receivers, timestamp),
 				`Expected getDripsState() method to be called with different arguments`
@@ -264,17 +264,17 @@ describe('DripsHubClient', () => {
 
 	describe('getSqueezableDrips()', () => {
 		it('should call the getSplittable() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const senderId = 2;
 			const assetId = '1234';
 			const historyHash = 'bytes';
 			const dripsHistory: DripsHistoryStruct[] = [];
 
-			// Act.
+			// Act
 			await testDripsHubClient.getSqueezableDrips(userId, assetId, senderId, historyHash, dripsHistory);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.squeezableDrips.calledOnceWithExactly(
 					userId,
@@ -290,17 +290,17 @@ describe('DripsHubClient', () => {
 
 	describe('squeezeDrips()', () => {
 		it('should call the getSplittable() method of the drips hub contract', async () => {
-			// Arrange.
+			// Arrange
 			const userId = 1;
 			const senderId = 2;
 			const assetId = '1234';
 			const historyHash = 'bytes';
 			const dripsHistory: DripsHistoryStruct[] = [];
 
-			// Act.
+			// Act
 			await testDripsHubClient.squeezeDrips(userId, assetId, senderId, historyHash, dripsHistory);
 
-			// Assert.
+			// Assert
 			assert(
 				dripsHubContractStub.squeezeDrips.calledOnceWithExactly(userId, assetId, senderId, historyHash, dripsHistory),
 				`Expected getSplittable() method to be called with different arguments`
