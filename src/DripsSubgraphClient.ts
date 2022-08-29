@@ -179,7 +179,7 @@ export default class DripsSubgraphClient {
 				throw new Error('Cannot map results from subgraph query: configs do not match.');
 			}
 
-			return {
+			const s = {
 				...drip,
 				config: {
 					start: configToReturn.start,
@@ -188,6 +188,8 @@ export default class DripsSubgraphClient {
 					amountPerSec: configToReturn.amountPerSec
 				}
 			};
+
+			return s;
 		});
 	}
 }

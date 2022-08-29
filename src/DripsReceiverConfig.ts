@@ -4,21 +4,21 @@ import { DripsErrors } from './DripsError';
 
 export default class DripsReceiverConfig {
 	/** The UNIX timestamp when dripping should start. If set to zero, the smart contract will use the timestamp when drips are configured. */
-	public readonly start: BigNumberish;
+	public readonly start: BigNumber;
 
 	/** The duration (in seconds) of dripping. If set to zero, the smart contract will drip until the balance runs out. */
-	public readonly duration: BigNumberish;
+	public readonly duration: BigNumber;
 
 	/** The drips configuration encoded as a `uint256`. */
-	public readonly asUint256: BigNumberish;
+	public readonly asUint256: BigNumber;
 
 	/** The amount per second being dripped. Must never be zero. */
-	public readonly amountPerSec: BigNumberish;
+	public readonly amountPerSec: BigNumber;
 
 	/** Creates a new `DripsReceiverConfig` instance.
-	 * @param  {BigNumberish} amountPerSec The amount per second being dripped. Must never be zero.
-	 * @param  {BigNumberish} start The UNIX timestamp when dripping should start. If set to zero (default value), the smart contract will use the timestamp when drips are configured.
-	 * @param  {BigNumberish} duration The duration of dripping. If set to zero (default value), the smart contract will drip until balance runs out.
+	 * @param  {BigNumber} amountPerSec The amount per second being dripped. Must never be zero.
+	 * @param  {BigNumber} start The UNIX timestamp when dripping should start. If set to zero (default value), the smart contract will use the timestamp when drips are configured.
+	 * @param  {BigNumber} duration The duration of dripping. If set to zero (default value), the smart contract will drip until balance runs out.
 	 */
 	public constructor(amountPerSec: BigNumberish, duration: BigNumberish = 0, start: BigNumberish = 0) {
 		if (BigNumber.from(amountPerSec).eq(0)) {
@@ -28,9 +28,9 @@ export default class DripsReceiverConfig {
 			);
 		}
 
-		this.start = start;
-		this.duration = duration;
-		this.amountPerSec = amountPerSec;
+		this.start = BigNumber.from(start);
+		this.duration = BigNumber.from(duration);
+		this.amountPerSec = BigNumber.from(amountPerSec);
 		this.asUint256 = DripsReceiverConfig.toUint256(this);
 	}
 
