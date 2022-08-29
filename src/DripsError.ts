@@ -3,10 +3,7 @@
 export enum DripsErrorCode {
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
-	INVALID_OPERATION = 'INVALID_OPERATION',
-	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
-	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
-	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER'
+	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK'
 }
 
 export class DripsError {
@@ -22,16 +19,10 @@ export class DripsError {
 }
 
 export class DripsErrors {
-	static invalidOperation = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.INVALID_OPERATION, `${message}`, context);
 	static invalidArgument = (message: string, context?: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_ARGUMENT, `${message}`, context);
 	static invalidAddress = (message: string, context?: string) =>
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, `${message}`, context);
 	static unsupportedNetwork = (message: string, context?: unknown) =>
 		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, `${message}`, context);
-	static invalidDripsReceiver = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER, `${message}`, context);
-	static invalidSplitsReceiver = (message: string, context?: unknown) =>
-		new DripsError(DripsErrorCode.INVALID_SPLITS_RECEIVER, `${message}`, context);
 }

@@ -248,7 +248,7 @@ describe('AddressAppClient', () => {
 		});
 	});
 
-	describe('getUserIdForAddress()', () => {
+	describe('getUserIdByAddress()', () => {
 		it('should validate user address', async () => {
 			// Arrange.
 			const userAddress = Wallet.createRandom().address;
@@ -257,7 +257,7 @@ describe('AddressAppClient', () => {
 			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
 
 			// Act.
-			await testAddressAppClient.getUserIdForAddress(userAddress);
+			await testAddressAppClient.getUserIdByAddress(userAddress);
 
 			// Assert.
 			assert(validateInvalidAddressStub.calledOnceWithExactly(userAddress));
@@ -269,7 +269,7 @@ describe('AddressAppClient', () => {
 			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
 
 			// Act.
-			await testAddressAppClient.getUserIdForAddress(userAddress);
+			await testAddressAppClient.getUserIdByAddress(userAddress);
 
 			// Assert.
 			assert(
@@ -439,6 +439,17 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('setSplits()', () => {
+		it('clear splits when new receivers is an empty list', async () => {
+			// Act.
+			await testAddressAppClient.setSplits([]);
+
+			// Assert.
+			assert(
+				addressAppContractStub.setSplits.calledOnceWithExactly([]),
+				`Expected setSplits() method to be called with different arguments`
+			);
+		});
+
 		it('should validate splits receivers', async () => {
 			// Arrange.
 			const receivers: SplitsReceiverStruct[] = [
@@ -538,6 +549,23 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('setDrips()', () => {
+		it('clear drips when new receivers is an empty list', async () => {
+			// Arrange.
+			const erc20Address = Wallet.createRandom().address;
+			const currentReceivers: DripsReceiverStruct[] = [
+				{ userId: 3, config: new DripsReceiverConfig(3, 3, 3).asUint256 }
+			];
+
+			// Act.
+			await testAddressAppClient.setDrips(erc20Address, currentReceivers, [], 1);
+
+			// Assert.
+			assert(
+				addressAppContractStub.setDrips.calledOnceWithExactly(erc20Address, currentReceivers, 1, []),
+				`Expected setDrips() method to be called with different arguments`
+			);
+		});
+
 		it('should validate ERC20 address', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
@@ -553,7 +581,7 @@ describe('AddressAppClient', () => {
 			const validateInvalidDripsReceiverStub = sinon.stub(common.validators, 'validateDripsReceivers');
 
 			// Act.
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
+			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
 
 			// Assert.
 			assert(validateInvalidDripsReceiverStub.calledOnceWithExactly(receivers));
@@ -574,7 +602,7 @@ describe('AddressAppClient', () => {
 			const validateInvalidDripsReceiverStub = sinon.stub(common.validators, 'validateDripsReceivers');
 
 			// Act.
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
+			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
 
 			// Assert.
 			assert(validateInvalidDripsReceiverStub.calledOnceWithExactly(receivers));
@@ -593,7 +621,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
+			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
 
 			// Assert.
 			assert(
@@ -623,7 +651,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, 1, receivers);
+			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
 
 			// Assert.
 			assert(
@@ -643,31 +671,13 @@ describe('AddressAppClient', () => {
 		it('should set default values when required parameters are falsy', async () => {
 			// Arrange.
 			const erc20Address = Wallet.createRandom().address;
-			const receivers: DripsReceiverStruct[] = [
-				{ userId: 1, config: new DripsReceiverConfig(2, 2, 2).asUint256 },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 },
-				{ userId: 2, config: new DripsReceiverConfig(1, 1, 1).asUint256 }
-			];
 
 			// Act.
-			await testAddressAppClient.setDrips(
-				erc20Address,
-				undefined as unknown as DripsReceiverStruct[],
-				undefined as unknown as number,
-				receivers
-			);
+			await testAddressAppClient.setDrips(erc20Address, [], [], undefined as unknown as number);
 
 			// Assert.
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
-					erc20Address,
-					[],
-					0,
-					sinon
-						.match((r: DripsReceiverStruct[]) => r[0].userId === 1)
-						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2))
-						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2))
-				),
+				addressAppContractStub.setDrips.calledOnceWithExactly(erc20Address, [], 0, []),
 				`Expected setDrips() method to be called with different arguments`
 			);
 		});
@@ -681,12 +691,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(
-				erc20Address,
-				undefined as unknown as DripsReceiverStruct[],
-				undefined as unknown as number,
-				receivers
-			);
+			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
 
 			// Assert.
 			assert(
@@ -709,12 +714,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(
-				erc20Address,
-				undefined as unknown as DripsReceiverStruct[],
-				undefined as unknown as number,
-				receivers
-			);
+			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
 
 			// Assert.
 			assert(
@@ -741,12 +741,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(
-				erc20Address,
-				undefined as unknown as DripsReceiverStruct[],
-				undefined as unknown as number,
-				receivers
-			);
+			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
 
 			// Assert.
 			assert(
@@ -754,9 +749,7 @@ describe('AddressAppClient', () => {
 					erc20Address,
 					[],
 					0,
-					sinon
-						.match((r: DripsReceiverStruct[]) => r.length === 4)
-						.and(sinon.match((r: DripsReceiverStruct[]) => r[0].userId))
+					sinon.match((r: DripsReceiverStruct[]) => r.length === 4)
 				),
 				`Expected setDrips() method to be called with different arguments`
 			);
@@ -771,12 +764,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(
-				erc20Address,
-				undefined as unknown as DripsReceiverStruct[],
-				undefined as unknown as number,
-				receivers
-			);
+			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
 
 			// Assert.
 			assert(
@@ -799,12 +787,7 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act.
-			await testAddressAppClient.setDrips(
-				erc20Address,
-				undefined as unknown as DripsReceiverStruct[],
-				undefined as unknown as number,
-				receivers
-			);
+			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
 
 			// Assert.
 			assert(

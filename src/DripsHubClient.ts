@@ -9,16 +9,16 @@ import { validators, supportedChainIds, chainIdToNetworkPropertiesMap } from './
 import { DripsErrors } from './DripsError';
 
 /**
- * A readonly client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} smart contract.
+ * A lower-level client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} smart contract.
  */
 export default class DripsHubClient {
 	#dripsHubContract!: DripsHubContract;
 
 	#network!: Network;
 	/**
-	 * The network the client is connected to.
+	 * Returns the network the `DripsHubClient` is connected to.
 	 *
-	 * The network _is_ the `provider`'s network.
+	 * The `network` is the `provider`'s network.
 	 */
 	public get network() {
 		return this.#network;
@@ -26,8 +26,7 @@ export default class DripsHubClient {
 
 	#provider!: Provider;
 	/**
-	 * The client's provider.
-	 *
+	 * Returns the `DripsHubClient`'s `provider`.
 	 */
 	public get provider() {
 		return this.#provider;
@@ -35,7 +34,7 @@ export default class DripsHubClient {
 
 	#networkProperties!: NetworkProperties;
 	/**
-	 * Network metadata (network name, contract addresses, etc.).
+	 * Returns metadata (name, contract addresses, etc.) for the `network` the `DripsHubClient` is connected to.
 	 */
 	public get networkProperties() {
 		return this.#networkProperties;
@@ -44,17 +43,13 @@ export default class DripsHubClient {
 	private constructor() {}
 
 	/**
-	 * Creates a new `DripsHubClient` instance.
+	 * Creates a new immutable `DripsHubClient` instance.
 	 * @param  {JsonRpcProvider} provider The provider.
 	 *
 	 * The provider can connect to the following supported networks:
-	 * - 'mainnet': chain ID 1
-	 * - 'rinkeby': chain ID 4
 	 * - 'goerli': chain ID 5
-	 * - 'matic': chain ID 137
-	 * - 'mumbai': chain ID 80001
 	 * @returns A Promise which resolves to the new `DripsHubClient` instance.
-	 * @throws {@link DripsErrors.invalidArgument} if the `provider` has a "falsy" value, or the provider is connected to an unsupported chain.
+	 * @throws {@link DripsErrors.invalidArgument} if the `provider` is missing or is connected to an unsupported chain.
 	 */
 	public static async create(provider: Provider): Promise<DripsHubClient> {
 		if (!provider) {

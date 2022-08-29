@@ -73,7 +73,7 @@ describe('common', () => {
 		});
 
 		describe('validateSplitsReceiver()', () => {
-			it('should throw invalidSplitsReceiver error when any receiver user ID is missing', async () => {
+			it('should throw invalidArgument error when any receiver user ID is missing', async () => {
 				// Arrange.
 				let threw = false;
 				const receivers: SplitsReceiverStruct[] = [{ userId: undefined as unknown as number, weight: 2 }];
@@ -83,7 +83,7 @@ describe('common', () => {
 					validators.validateSplitsReceivers(receivers);
 				} catch (error) {
 					// Assert.
-					assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
@@ -91,7 +91,7 @@ describe('common', () => {
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
-			it('should throw invalidSplitsReceiver error when any receiver weight is missing', async () => {
+			it('should throw invalidArgument error when any receiver weight is missing', async () => {
 				// Arrange.
 				let threw = false;
 				const receivers: SplitsReceiverStruct[] = [
@@ -106,7 +106,7 @@ describe('common', () => {
 					validators.validateSplitsReceivers(receivers);
 				} catch (error) {
 					// Assert.
-					assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
@@ -137,7 +137,7 @@ describe('common', () => {
 				assert.isTrue(threw, "Expected to throw but it didn't");
 			});
 
-			it('should throw invalidDripsReceiver error when any receiver user ID is missing', async () => {
+			it('should throw invalidArgument error when any receiver user ID is missing', async () => {
 				// Arrange.
 				let threw = false;
 				const receivers: DripsReceiverStruct[] = [
@@ -149,7 +149,7 @@ describe('common', () => {
 					validators.validateDripsReceivers(receivers);
 				} catch (error) {
 					// Assert.
-					assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 

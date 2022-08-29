@@ -32,34 +32,38 @@ const validateAddress = (address: string) => {
 };
 
 const validateDripsReceivers = (receivers: DripsReceiverStruct[]) => {
-	if (receivers?.length > MAX_DRIPS_RECEIVERS) {
+	if (receivers.length > MAX_DRIPS_RECEIVERS) {
 		throw DripsErrors.invalidArgument(
 			`Invalid drip receivers: drip receivers must be less than ${MAX_DRIPS_RECEIVERS}`,
 			'common.validateDripsReceivers()'
 		);
 	}
 
-	receivers?.forEach((receiver) => {
-		if (!receiver.userId || !DripsReceiverConfig.fromUint256(receiver.config)) {
-			throw DripsErrors.invalidDripsReceiver(
-				`Drips receiver '${JSON.stringify(
-					receiver
-				)}' is not valid. A receiver must have a user ID and at least a config with an amountPerSec > 0.`,
-				'common.validateDripsReceivers()'
-			);
-		}
-	});
+	if (receivers.length) {
+		receivers.forEach((receiver) => {
+			if (!receiver.userId || !DripsReceiverConfig.fromUint256(receiver.config)) {
+				throw DripsErrors.invalidArgument(
+					`Drips receiver '${JSON.stringify(
+						receiver
+					)}' is not valid. A receiver must have a user ID and at least a config with an amountPerSec > 0.`,
+					'common.validateDripsReceivers()'
+				);
+			}
+		});
+	}
 };
 
 const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
-	receivers?.forEach((receiver) => {
-		if (!receiver.userId || !receiver.weight) {
-			throw DripsErrors.invalidSplitsReceiver(
-				`Splits receiver '${JSON.stringify(receiver)}' is not valid. A receiver must have a user ID and a weight > 0`,
-				'common.validateSplitsReceivers()'
-			);
-		}
-	});
+	if (receivers.length) {
+		receivers.forEach((receiver) => {
+			if (!receiver.userId || !receiver.weight) {
+				throw DripsErrors.invalidArgument(
+					`Splits receiver '${JSON.stringify(receiver)}' is not valid. A receiver must have a user ID and a weight > 0`,
+					'common.validateSplitsReceivers()'
+				);
+			}
+		});
+	}
 };
 
 export const validators = {

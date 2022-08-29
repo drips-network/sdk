@@ -1,5 +1,5 @@
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { chainIdToNetworkPropertiesMap, validators } from './common';
 import { DripsErrors } from './DripsError';
 import type { DripsEntry, NetworkProperties, SplitEntry } from './types';
@@ -49,7 +49,8 @@ const getAssetIdFromAddress = (erc20TokenAddress: string): string => {
  * @param  {string} assetId The asset ID to use.
  * @returns The ERC20 token address.
  */
-const getTokenAddressFromAssetId = (assetId: string): string => BigNumber.from(assetId).toHexString();
+const getTokenAddressFromAssetId = (assetId: string): string =>
+	ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
 
 /**
  * Extracts the `userId` and the `assetId` from the specified user asset configuration ID.

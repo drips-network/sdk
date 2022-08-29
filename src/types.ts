@@ -3,9 +3,10 @@ import type DripsReceiverConfig from './DripsReceiverConfig';
 
 export type DripsEntry = { readonly id: string; readonly receiverUserId: string; readonly config: BigNumberish };
 
-export type UserAssetConfig = {
+export type DripsConfiguration = {
 	readonly id: string;
 	readonly assetId: string;
+	readonly tokenAddress: string;
 	readonly balance: BigNumberish;
 	readonly sender: { id: string };
 	readonly amountCollected: string;

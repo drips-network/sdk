@@ -22,16 +22,6 @@ describe('DripsErrors', () => {
 		});
 	});
 
-	describe('invalidOperation()', () => {
-		it('should return expected error details', () => {
-			// Act.
-			const { code } = DripsErrors.invalidOperation('');
-
-			// Assert.
-			assert.equal(code, DripsErrorCode.INVALID_OPERATION);
-		});
-	});
-
 	describe('invalidArgument()', () => {
 		it('should return expected error details', () => {
 			// Act.

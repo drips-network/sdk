@@ -1,15 +1,16 @@
+import { validators } from './common';
 import { DripsErrors } from './DripsError';
 import * as gql from './gql';
-import type { SplitEntry, UserAssetConfig } from './types';
+import type { SplitEntry, DripsConfiguration } from './types';
 import utils from './utils';
 
 /**
- * A client for interacting with the Drips Subgraph.
+ * A client for querying the Drips Subgraph.
  */
 export default class DripsSubgraphClient {
 	#apiUrl!: string;
 	/**
-	 * The Subgraph URL.
+	 * Returns the `DripsSubgraphClient`'s API URL.
 	 */
 	public get apiUrl() {
 		return this.#apiUrl;
@@ -18,16 +19,16 @@ export default class DripsSubgraphClient {
 	private constructor() {}
 
 	/**
-	 * Creates a new `DripsSubgraphClient` instance.
+	 * Creates a new immutable `DripsSubgraphClient` instance.
 	 *
 	 * @param  {string} apiUrl The Subgraph API URL.
-	 * @throws {@link DripsErrors.invalidArgument} if the Subgraph API URL has a "falsy" value, or the provider is connected to an unsupported chain.
+	 * @throws {@link DripsErrors.invalidArgument} if the `apiUrl` is missing.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
 	public static create(apiUrl: string): DripsSubgraphClient {
 		if (!apiUrl) {
 			throw DripsErrors.invalidArgument(
-				'Cannot create instance: the API URL is missing.',
+				'Cannot create instance: the API URL was missing but is required.',
 				'DripsSubgraphClient.create()'
 			);
 		}
@@ -39,34 +40,42 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all asset configurations for the specified user.
+	 * Returns all drips configurations for the specified user.
 	 * @param  {string} userId The user ID.
-	 * @returns A Promise which resolves to the user's asset configurations.
+	 * @returns A Promise which resolves to the user's drips configurations.
 	 */
-	public async getAllUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
+	public async getAllDripsConfigurations(userId: string): Promise<DripsConfiguration[]> {
 		type APIResponse = {
 			user: {
-				assetConfigs: UserAssetConfig[];
+				assetConfigs: DripsConfiguration[];
 			};
 		};
 
 		const response = await this.query<APIResponse>(gql.getAllUserAssetConfigs, { userId });
 
-		const user = response.data?.user;
+		const assetConfigs = response?.data?.user?.assetConfigs?.map((config) => ({
+			...config,
+			tokenAddress: utils.getTokenAddressFromAssetId(config.assetId)
+		}));
 
-		return user?.assetConfigs || [];
+		return assetConfigs || [];
 	}
 
 	/**
-	 * Returns the user's drips configuration for the specified asset.
+	 * Returns the user's drips configuration for the specified token.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} assetId The asset ID.
-	 * @returns A Promise which resolves to the user asset configuration.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @returns A Promise which resolves to the user's drips configuration.
+	 * @throws {@link DripsErrors.invalidAddress} if the `erc20TokenAddress` address is not valid.
 	 */
-	public async getUserAssetConfig(userId: string, assetId: string): Promise<UserAssetConfig> {
+	public async getDripsConfiguration(userId: string, erc20TokenAddress: string): Promise<DripsConfiguration> {
+		validators.validateAddress(erc20TokenAddress);
+
 		type APIResponse = {
-			userAssetConfig: UserAssetConfig;
+			userAssetConfig: DripsConfiguration;
 		};
+
+		const assetId = utils.getAssetIdFromAddress(erc20TokenAddress);
 
 		const response = await this.query<APIResponse>(gql.getUserAssetConfigById, {
 			configId: utils.constructUserAssetConfigId(userId, assetId)
@@ -76,11 +85,11 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all split entries for the specified user.
+	 * Returns the user's splits configuration.
 	 * @param  {string} userId The user ID.
-	 * @returns A Promise which resolves to the user's split entries.
+	 * @returns A Promise which resolves to the user's splits configuration.
 	 */
-	public async getSplitEntries(userId: string): Promise<SplitEntry[]> {
+	public async getSplitsConfiguration(userId: string): Promise<SplitEntry[]> {
 		type APIResponse = {
 			user: {
 				splitsEntries: SplitEntry[];
@@ -89,9 +98,9 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<APIResponse>(gql.getSplitEntries, { userId });
 
-		const user = response.data?.user;
+		const splitsEntries = response?.data?.user?.splitsEntries;
 
-		return user?.splitsEntries || [];
+		return splitsEntries || [];
 	}
 
 	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {

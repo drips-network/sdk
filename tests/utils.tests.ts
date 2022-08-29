@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import sinon from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import { chainIdToNetworkPropertiesMap } from '../src/common';
@@ -154,7 +154,7 @@ describe('utils', () => {
 			const token = utils.getTokenAddressFromAssetId(assetId);
 
 			// Assert.
-			assert.equal(token, BigNumber.from(assetId).toHexString());
+			assert.equal(token, ethers.utils.getAddress(BigNumber.from(assetId).toHexString()));
 		});
 	});
 
