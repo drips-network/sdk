@@ -4,16 +4,16 @@ import { DripsErrors } from './DripsError';
 
 export default class DripsReceiverConfig {
 	/** The UNIX timestamp when dripping should start. If set to zero, the smart contract will use the timestamp when drips are configured. */
-	public readonly start: BigNumberish;
+	public start: BigNumberish;
 
 	/** The duration (in seconds) of dripping. If set to zero, the smart contract will drip until the balance runs out. */
-	public readonly duration: BigNumberish;
+	public duration: BigNumberish;
 
 	/** The drips configuration encoded as a `uint256`. */
-	public readonly asUint256: BigNumberish;
+	public asUint256: BigNumberish;
 
 	/** The amount per second being dripped. Must never be zero. */
-	public readonly amountPerSec: BigNumberish;
+	public amountPerSec: BigNumberish;
 
 	/** Creates a new `DripsReceiverConfig` instance.
 	 * @param  {BigNumberish} amountPerSec The amount per second being dripped. Must never be zero.
