@@ -169,7 +169,7 @@ export default class DripsSubgraphClient {
 			// Return config as an object instead of as a BigNumberish.
 
 			// Create a new config from the uint256 value returned from the subgraph.
-			const configToReturn = DripsReceiverConfig.fromUint256(BigNumber.from(drip.config));
+			const configToReturn = DripsReceiverConfig.fromUint256(drip.config);
 
 			// Get the *new* config as uint256.
 			const configToReturnAsNum = BigNumber.from(configToReturn.asUint256);
