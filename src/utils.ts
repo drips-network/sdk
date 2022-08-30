@@ -4,7 +4,7 @@ import { BigNumber, ethers } from 'ethers';
 import { chainIdToNetworkPropertiesMap, validators } from './common';
 import { DripsErrors } from './DripsError';
 import DripsReceiverConfig from './DripsReceiverConfig';
-import type { Drip, NetworkProperties, Split } from './types';
+import type { DripsConfiguration, DripsReceiver, NetworkProperties, Split, UserAssetConfig } from './types';
 
 // TODO: Public util.
 /**
@@ -12,8 +12,8 @@ import type { Drip, NetworkProperties, Split } from './types';
  * @param  {Drip[]} dripsEntries The drip entries.
  * @returns The mapped drip receiver structs.
  */
-const mapDripEntriesToStructs = (dripsEntries: Drip[]): DripsReceiverStruct[] => {
-	const structs: DripsReceiverStruct[] = dripsEntries?.map((d) => ({
+const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
+	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
 		config: new DripsReceiverConfig(d.config.amountPerSec, d.config.duration, d.config.start).asUint256,
 		userId: d.receiverUserId
 	}));
@@ -22,12 +22,53 @@ const mapDripEntriesToStructs = (dripsEntries: Drip[]): DripsReceiverStruct[] =>
 };
 
 /**
+ * Returns the The ERC20 token address for the specified asset ID.
+ * @param  {string} assetId The asset ID to use.
+ * @returns The ERC20 token address.
+ */
+const getTokenAddressFromAssetId = (assetId: BigNumberish): string =>
+	ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
+
+const mapUserAssetConfigToDto = (userAssetConfig: UserAssetConfig): DripsConfiguration => {
+	const dripsReceivers = userAssetConfig.dripsEntries?.map((drip) => {
+		// Return config as an object instead of as a BigNumberish.
+
+		// Create a new config from the uint256 value returned from the subgraph.
+		const configToReturn = DripsReceiverConfig.fromUint256(drip.config);
+
+		// Make sure the received and the new config are the same.
+		if (!configToReturn.asUint256.eq(drip.config)) {
+			throw new Error('Cannot map results from subgraph query: configs do not match.');
+		}
+
+		return {
+			receiverUserId: drip.receiverUserId,
+			config: {
+				start: configToReturn.start,
+				duration: configToReturn.duration,
+				asUint256: configToReturn.asUint256,
+				amountPerSec: configToReturn.amountPerSec
+			}
+		};
+	});
+
+	return {
+		...userAssetConfig,
+		tokenAddress: getTokenAddressFromAssetId(userAssetConfig.assetId),
+		dripsReceivers
+	};
+};
+
+const mapUserAssetConfigToDtos = (userAssetConfigs: UserAssetConfig[]): DripsConfiguration[] =>
+	userAssetConfigs.map((config) => mapUserAssetConfigToDto(config));
+
+/**
  * Maps from `Split` to `SplitReceiverStruct`.
  * @param  {Drip[]} splitEntries The split entries.
  * @returns The mapped split receiver structs.
  */
-const mapSplitEntriesToStructs = (splitEntries: Split[]): SplitsReceiverStruct[] => {
-	const structs: SplitsReceiverStruct[] = splitEntries?.map((s) => ({
+const mapSplitsDtosToStructs = (splits: Split[]): SplitsReceiverStruct[] => {
+	const structs: SplitsReceiverStruct[] = splits?.map((s) => ({
 		userId: s.receiverUserId,
 		weight: s.weight
 	}));
@@ -46,14 +87,6 @@ const getAssetIdFromAddress = (erc20TokenAddress: string): string => {
 
 	return BigNumber.from(erc20TokenAddress).toString();
 };
-
-/**
- * Returns the The ERC20 token address for the specified asset ID.
- * @param  {string} assetId The asset ID to use.
- * @returns The ERC20 token address.
- */
-const getTokenAddressFromAssetId = (assetId: BigNumberish): string =>
-	ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
 
 /**
  * Extracts the `userId` and the `assetId` from the specified user asset configuration ID.
@@ -112,10 +145,14 @@ const getNetworkProperties = (networkName: string): NetworkProperties | undefine
 };
 
 const utils = {
+	mappers: {
+		mapSplitsDtosToStructs,
+		mapUserAssetConfigToDto,
+		mapUserAssetConfigToDtos,
+		mapDripsReceiverDtosToStructs
+	},
 	getNetworkProperties,
 	getAssetIdFromAddress,
-	mapDripEntriesToStructs,
-	mapSplitEntriesToStructs,
 	destructUserAssetConfigId,
 	constructUserAssetConfigId,
 	getTokenAddressFromAssetId

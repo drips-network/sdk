@@ -46,7 +46,7 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getAllDripsConfigurations()', () => {
-		it('should return empty array when user does not exist', async () => {
+		it('should return null when user does not exist', async () => {
 			// Arrange
 			const userId = '12342';
 
@@ -58,7 +58,7 @@ describe('DripsSubgraphClient', () => {
 			const configs = await testSubgraphClient.getAllDripsConfigurations(userId);
 
 			// Assert
-			assert.isEmpty(configs);
+			assert.isNull(configs);
 		});
 
 		it('should return the expected drips configurations', async () => {
@@ -92,10 +92,9 @@ describe('DripsSubgraphClient', () => {
 			const configs = await testSubgraphClient.getAllDripsConfigurations(userId);
 
 			// Assert
-			assert.isTrue(configs.length === 1);
-			assert.isTrue(BigNumber.from(configs[0].id).eq(assetConfigs[0].id));
+			assert.equal(configs!.length, 1);
 			assert.isTrue(
-				BigNumber.from(configs[0].tokenAddress).eq(utils.getTokenAddressFromAssetId(assetConfigs[0].assetId))
+				BigNumber.from(configs![0].tokenAddress).eq(utils.getTokenAddressFromAssetId(assetConfigs[0].assetId))
 			);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getAllUserAssetConfigs, { userId }),
@@ -132,7 +131,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const config = await testSubgraphClient.getDripsConfiguration(userId, tokenAddress);
+			const config = await testSubgraphClient.getDripsConfiguration(userId, assetId);
 
 			// Assert
 			assert.isTrue(BigNumber.from(config!.id).eq(userAssetConfig.id));

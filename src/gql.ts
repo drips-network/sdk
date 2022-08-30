@@ -3,17 +3,13 @@ query getAllUserAssetConfigs($userId: ID!) {
   user(id: $userId) {
     assetConfigs {
       id
+			assetId
+			balance
+			amountCollected
       dripsEntries {
-        id
-        receiverUserId
         config
-        sender {
-          id
-        }
+        receiverUserId
       }
-      assetId
-      balance
-      amountCollected
       lastUpdatedBlockTimestamp
     }
   }
@@ -35,17 +31,13 @@ export const getUserAssetConfigById = `#graphql
 query getUserAssetConfigById($configId: ID!) {
 	userAssetConfig(id: $configId) {
 		id
-		dripsEntries {
-			id
-			receiverUserId
-			config
-			sender {
-				id
-			}
-		}
 		assetId
 		balance
 		amountCollected
+		dripsEntries {
+			config
+			receiverUserId
+		}
 		lastUpdatedBlockTimestamp
 	}
 }

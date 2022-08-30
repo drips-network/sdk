@@ -4,7 +4,7 @@ import sinon from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import { chainIdToNetworkPropertiesMap } from '../src/common';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-import type { Drip, Split } from '../src/types';
+import type { DripsReceiver, Split } from '../src/types';
 import utils from '../src/utils';
 import * as common from '../src/common';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
@@ -14,17 +14,16 @@ describe('utils', () => {
 		sinon.restore();
 	});
 
-	describe('mapDripEntriesToStructs()', () => {
+	describe('mapDripsReceiverDtosToStructs()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const Drip: Drip = {
-				id: '1',
+			const Drip: DripsReceiver = {
 				config: new DripsReceiverConfig(1, 1, 1),
 				receiverUserId: '2'
 			};
 
 			// Act
-			const dripStructs: DripsReceiverStruct[] = utils.mapDripEntriesToStructs([Drip]);
+			const dripStructs: DripsReceiverStruct[] = utils.mappers.mapDripsReceiverDtosToStructs([Drip]);
 
 			// Assert
 			assert.equal(dripStructs.length, 1);
@@ -46,7 +45,7 @@ describe('utils', () => {
 		});
 	});
 
-	describe('mapSplitEntriesToStructs()', () => {
+	describe('mapSplitsDtosToStructs()', () => {
 		it('should return the expected result', () => {
 			// Arrange
 			const splitsEntry: Split = {
@@ -55,7 +54,7 @@ describe('utils', () => {
 			};
 
 			// Act
-			const dripStructs: SplitsReceiverStruct[] = utils.mapSplitEntriesToStructs([splitsEntry]);
+			const dripStructs: SplitsReceiverStruct[] = utils.mappers.mapSplitsDtosToStructs([splitsEntry]);
 
 			// Assert
 			assert.equal(dripStructs.length, 1);
