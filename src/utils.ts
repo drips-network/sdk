@@ -37,17 +37,17 @@ const mapUserAssetConfigToDto = (userAssetConfig: UserAssetConfig): DripsConfigu
 		const configToReturn = DripsReceiverConfig.fromUint256(drip.config);
 
 		// Make sure the received and the new config are the same.
-		if (!configToReturn.asUint256.eq(drip.config)) {
+		if (!BigNumber.from(configToReturn.asUint256).eq(drip.config)) {
 			throw new Error('Cannot map results from subgraph query: configs do not match.');
 		}
 
 		return {
 			receiverUserId: drip.receiverUserId,
 			config: {
-				start: configToReturn.start,
-				duration: configToReturn.duration,
-				asUint256: configToReturn.asUint256,
-				amountPerSec: configToReturn.amountPerSec
+				start: configToReturn.start.toString(),
+				duration: configToReturn.duration.toString(),
+				asUint256: configToReturn.asUint256.toString(),
+				amountPerSec: configToReturn.amountPerSec.toString()
 			}
 		};
 	});
