@@ -182,10 +182,10 @@ export default class DripsSubgraphClient {
 			return {
 				...drip,
 				config: {
-					start: configToReturn.start.toString(),
-					duration: configToReturn.duration.toString(),
-					asUint256: configToReturn.asUint256.toString(),
-					amountPerSec: configToReturn.amountPerSec.toString()
+					start: configToReturn.start,
+					duration: configToReturn.duration,
+					asUint256: configToReturn.asUint256,
+					amountPerSec: configToReturn.amountPerSec
 				}
 			};
 		});
