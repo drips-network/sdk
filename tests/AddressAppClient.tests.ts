@@ -1,11 +1,11 @@
 import type { StubbedInstance } from 'ts-sinon';
-import sinon, { stubConstructor, stubObject, stubInterface } from 'ts-sinon';
+import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import { BigNumber, constants, Contract, Wallet } from 'ethers';
-import type { AddressApp as AddressAppContract } from '../contracts';
-import { AddressApp__factory } from '../contracts';
+import { BigNumber, constants, Wallet } from 'ethers';
+import type { AddressApp as AddressAppContract, IERC20 } from '../contracts';
+import { IERC20__factory, AddressApp__factory } from '../contracts';
 import { DripsErrorCode, DripsErrors } from '../src/DripsError';
 import AddressAppClient from '../src/AddressAppClient';
 import * as common from '../src/common';
@@ -166,10 +166,10 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 
-			const erc20ContractStub = stubConstructor(Contract, erc20Address, common.erc20Abi, testAddressAppClient.signer);
+			const erc20ContractStub = stubInterface<IERC20>();
 
 			sinon
-				.stub(common, 'createErc20Contract')
+				.stub(IERC20__factory, 'connect')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
@@ -209,10 +209,10 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 
-			const erc20ContractStub = stubConstructor(Contract, erc20Address, common.erc20Abi, testAddressAppClient.signer);
+			const erc20ContractStub = stubInterface<IERC20>();
 
 			sinon
-				.stub(common, 'createErc20Contract')
+				.stub(IERC20__factory, 'connect')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 

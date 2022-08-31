@@ -6,9 +6,9 @@ import type { BigNumberish, ContractTransaction } from 'ethers';
 import { BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import type { AddressApp as AddressAppContract } from '../contracts';
-import { AddressApp__factory } from '../contracts';
+import { IERC20__factory, AddressApp__factory } from '../contracts';
 import type { NetworkProperties } from './types';
-import { validators, supportedChainIds, createErc20Contract, chainIdToNetworkPropertiesMap } from './common';
+import { validators, supportedChainIds, chainIdToNetworkPropertiesMap } from './common';
 import { DripsErrors } from './DripsError';
 import DripsHubClient from './DripsHubClient';
 
@@ -128,7 +128,7 @@ export default class AddressAppClient {
 	public approve(erc20TokenAddress: string): Promise<ContractTransaction> {
 		validators.validateAddress(erc20TokenAddress);
 
-		const signerAsErc20Contract = createErc20Contract(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
 
 		return signerAsErc20Contract.approve(this.#networkProperties.CONTRACT_ADDRESS_APP, constants.MaxUint256);
 	}
@@ -142,7 +142,7 @@ export default class AddressAppClient {
 	public async getAllowance(erc20TokenAddress: string): Promise<BigNumber> {
 		validators.validateAddress(erc20TokenAddress);
 
-		const signerAsErc20Contract = createErc20Contract(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
 		const signerAddress = await this.#signer.getAddress();
 
 		return signerAsErc20Contract.allowance(signerAddress, this.#networkProperties.CONTRACT_ADDRESS_APP);

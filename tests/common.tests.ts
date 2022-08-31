@@ -1,12 +1,9 @@
-import type { JsonRpcSigner } from '@ethersproject/providers';
 import { assert } from 'chai';
 import type { BigNumberish } from 'ethers';
-import { Wallet } from 'ethers';
-import { stubInterface } from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/AddressApp';
 import { DripsErrorCode } from '../src/DripsError';
 import DripsReceiverConfig from '../src/DripsReceiverConfig';
-import { validators, supportedChainIds, createErc20Contract } from '../src/common';
+import { validators, supportedChainIds } from '../src/common';
 
 describe('common', () => {
 	describe('NetworkProperties', () => {
@@ -18,18 +15,6 @@ describe('common', () => {
 			assert.includeMembers(supportedChainIds as number[], chainIds);
 			assert.equal([...new Set(supportedChainIds)].length, [...new Set(chainIds)].length);
 		});
-	});
-
-	describe('createErc20Contract()', () => {
-		// Arrange
-		const erc20Address = Wallet.createRandom().address;
-		const signerStub = stubInterface<JsonRpcSigner>();
-
-		// Act
-		const result = createErc20Contract(erc20Address, signerStub);
-
-		// Assert
-		assert.equal(result.address, erc20Address);
 	});
 
 	describe('validators', () => {
