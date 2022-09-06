@@ -18,6 +18,7 @@
 		"sourceMap": true,
 		"strictPropertyInitialization": true,
 		"strictNullChecks": true,
+		"stripInternal": true,
 		"typeRoots": ["node_modules/@types"]
 	},
 	"include": ["src/**/*", "contracts/**/*"]

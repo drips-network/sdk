@@ -1,6 +1,6 @@
 {
-	"name": "drips-sdk",
-	"version": "0.1.1",
+	"name": "radicle-drips",
+	"version": "0.2",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"exports": {
@@ -17,9 +17,9 @@
 	"scripts": {
 		"lint": "eslint . --ext .ts",
 		"lint-and-fix": "eslint . --ext .ts --fix",
-		"build": "npm run build:contracts && npm run build:lib && npx typedoc src/index.ts",
+		"build": "npm run build:contracts && npm run build:lib && npx typedoc --excludeInternal src/index.ts",
 		"build:lib": "tsup --dts-resolve",
-		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/abis/**.json",
+		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/abi/**.json",
 		"build:lib-fast": "tsup",
 		"dev": "nodemon --watch src -e ts,json --exec 'npm run build:lib-fast'",
 		"prepare": "npm run build",

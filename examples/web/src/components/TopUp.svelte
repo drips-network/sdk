@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressAppClient, DripsReceiverConfig, DripsSubgraphClient, utils } from 'drips-sdk';
+	import { AddressApp, AddressAppClient, DripsReceiverConfig, DripsSubgraphClient, utils } from 'drips-sdk';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
@@ -32,25 +32,14 @@
 		try {
 			const assetId = utils.getAssetIdFromAddress(topUpToken);
 
-			const userAssetConfigId = `${userId}-${assetId}`;
+			const configToUpdate = await dripsSubgraphClient.getDripsConfiguration(userId, assetId);
 
-			const userAssetConfig = await dripsSubgraphClient.getUserAssetConfigById(userAssetConfigId);
+			let currentReceivers: AddressApp.DripsReceiverStruct[] =
+				utils.mappers.mapDripsReceiverDtosToStructs(configToUpdate?.dripsReceivers) || [];
 
-			if (!userAssetConfig) {
-				throw new Error(
-					'User asset configuration for the specifed ERC20 Token not found: Make sure you have approved first.'
-				);
-			}
+			currentReceivers = currentReceivers.map((r) => ({ userId: r.userId, config: r.config.toString() }));
 
-			tx = await addressAppClient.setDrips(
-				topUpToken,
-				utils.mapDripEntriesToStructs(userAssetConfig.dripsEntries),
-				topUpAmount,
-				userAssetConfig.dripsEntries.map((r) => ({
-					config: DripsReceiverConfig.fromUint256(r.config),
-					userId: r.receiverUserId
-				}))
-			);
+			tx = await addressAppClient.setDrips(topUpToken, currentReceivers, currentReceivers, topUpAmount);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
@@ -64,12 +53,24 @@
 
 		started = false;
 	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		tx = null;
+		userId = null;
+		started = false;
+		txReceipt = null;
+		topUpToken = null;
+		topUpAmount = null;
+		errorMessage = null;
+	};
 </script>
 
 <div class="container">
 	<section>
 		<header>
-			<h2>TopUp User Asset Configuration</h2>
+			<h2>TopUp Drips Configuration</h2>
 		</header>
 
 		<p>Make sure the ERC20 Token is approved first, or else the transaction will fail.</p>

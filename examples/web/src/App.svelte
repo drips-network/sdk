@@ -6,13 +6,15 @@
 	import SplitEntries from './components/SplitEntries.svelte';
 	import TokenApproval from './components/TokenApproval.svelte';
 	import TopUp from './components/TopUp.svelte';
-	import UpdateUserAssetConfig from './components/UpdateUserAssetConfig.svelte';
-	import UpdateSplits from './components/UpdateSplits.svelte';
-	import UserAssetConfigs from './components/UserAssetConfigs.svelte';
+	import SetDripsConfig from './components/SetDripsConfig.svelte';
+	import SetSplits from './components/SetSplits.svelte';
+	import DripsConfigs from './components/DripsConfigs.svelte';
 	import UserId from './components/UserId.svelte';
 	import Give from './components/Give.svelte';
 	import Collect from './components/Collect.svelte';
 	import Squeeze from './components/Squeeze.svelte';
+	import { Tabs, TabList, TabPanel, Tab } from './components/tabs/tabs.js';
+	import Utils from './components/Utils.svelte';
 
 	let errorMessage: string;
 	let refresh: () => Promise<void>;
@@ -61,31 +63,35 @@
 		</div>
 	{/if}
 
-	<UserId {addressAppClient} />
+	<div>
+		<Tabs>
+			<TabList>
+				<Tab>Drips & Splits</Tab>
+				<Tab>Send & Receive</Tab>
+				<Tab>Other</Tab>
+			</TabList>
 
-	<TokenApproval {addressAppClient} />
+			<TabPanel>
+				<DripsConfigs {addressAppClient} {dripsSubgraphClient} />
+				<SetDripsConfig {addressAppClient} {dripsSubgraphClient} on:userAssetConfigUpdated={refresh} />
+				<SplitEntries {addressAppClient} {dripsSubgraphClient} />
+				<SetSplits {addressAppClient} on:userAssetConfigUpdated={refresh} />
+				<TopUp {addressAppClient} {dripsSubgraphClient} on:topUpDone={refresh} />
+			</TabPanel>
 
-	<TopUp
-		{addressAppClient}
-		{dripsSubgraphClient}
-		on:topUpDone={() => {
-			setTimeout(() => refresh(), 5000);
-		}}
-	/>
+			<TabPanel>
+				<Give {addressAppClient} />
+				<Collect {addressAppClient} {dripsSubgraphClient} />
+				<Squeeze {addressAppClient} {dripsSubgraphClient} />
+			</TabPanel>
 
-	<UserAssetConfigs {addressAppClient} {dripsSubgraphClient} bind:getUserAssetConfigs={refresh} />
-
-	<UpdateUserAssetConfig {addressAppClient} {dripsSubgraphClient} on:userAssetConfigUpdated={refresh} />
-
-	<SplitEntries {addressAppClient} {dripsSubgraphClient} bind:getSplitEntries={refresh} />
-
-	<UpdateSplits {addressAppClient} on:userAssetConfigUpdated={refresh} />
-
-	<Give {addressAppClient} />
-
-	<Collect {addressAppClient} {dripsSubgraphClient} />
-
-	<Squeeze {addressAppClient} {dripsSubgraphClient} />
+			<TabPanel>
+				<UserId {addressAppClient} />
+				<TokenApproval {addressAppClient} />
+				<Utils {addressAppClient} />
+			</TabPanel>
+		</Tabs>
+	</div>
 
 	<Footer />
 </main>

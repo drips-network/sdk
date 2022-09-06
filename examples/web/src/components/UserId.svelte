@@ -3,25 +3,32 @@
 
 	export let addressAppClient: AddressAppClient;
 
-	let errorMessage: string;
-
 	$: isConnected = Boolean(addressAppClient);
 
 	let userId: string;
 	let userAddress: string;
+	let errorMessage: string;
 
 	const getUserIdForAddress = async (userAddress: string) => {
 		try {
 			userId = null;
 			errorMessage = null;
 
-			userId = await addressAppClient.getUserIdForAddress(userAddress);
+			userId = await addressAppClient.getUserIdByAddress(userAddress);
 		} catch (error) {
 			userId = null;
 			errorMessage = error.message;
 
 			console.log(error);
 		}
+	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		userId = null;
+		userAddress = null;
+		errorMessage = null;
 	};
 </script>
 

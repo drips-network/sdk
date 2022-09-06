@@ -18,12 +18,19 @@
 
 			const userId = await addressAppClient.getUserId();
 
-			splitEntries = await dripsSubgraphClient.getSplitEntries(userId);
+			splitEntries = await dripsSubgraphClient.getSplitsConfiguration(userId);
 		} catch (error) {
 			errorMessage = error.message;
 
 			console.log(error);
 		}
+	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		errorMessage = null;
+		splitEntries = null;
 	};
 </script>
 
@@ -39,7 +46,11 @@
 				</div>
 			{:else if isConnected}
 				<div class="json">
-					<JSONTree value={splitEntries} defaultExpandedLevel={2} />
+					{#if splitEntries?.length}
+						<JSONTree value={splitEntries} defaultExpandedLevel={1} />
+					{:else}
+						<p>No Entries Found</p>
+					{/if}
 				</div>
 			{:else}
 				<p>[Not Connected]</p>

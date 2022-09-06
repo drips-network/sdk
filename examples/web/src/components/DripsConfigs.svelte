@@ -1,0 +1,69 @@
+<script lang="ts">
+	import type { AddressAppClient, DripsSubgraphClient, DripsConfiguration } from 'drips-sdk';
+	import JSONTree from 'svelte-json-tree';
+
+	export let addressAppClient: AddressAppClient;
+	export let dripsSubgraphClient: DripsSubgraphClient;
+
+	let errorMessage: string;
+	let dripsConfigs: DripsConfiguration[];
+
+	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: if (isConnected) getAllDripsConfigurations();
+
+	export const getAllDripsConfigurations = async () => {
+		try {
+			errorMessage = null;
+			dripsConfigs = null;
+
+			const userId = await addressAppClient.getUserId();
+
+			dripsConfigs = await dripsSubgraphClient.getAllDripsConfigurations(userId);
+		} catch (error) {
+			errorMessage = error.message;
+
+			console.log(error);
+		}
+	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		errorMessage = null;
+		dripsConfigs = null;
+	};
+</script>
+
+<div class="container">
+	<section>
+		<header>
+			<h2>Drips Configurations</h2>
+		</header>
+		<div>
+			{#if errorMessage}
+				<div class="terminal-alert terminal-alert-error">
+					<p>{errorMessage}</p>
+				</div>
+			{:else if isConnected}
+				<div class="json">
+					{#if dripsConfigs?.length}
+						<JSONTree value={dripsConfigs} defaultExpandedLevel={1} />
+					{:else}
+						<p>No Entries Found</p>
+					{/if}
+				</div>
+			{:else}
+				<p>[Not Connected]</p>
+			{/if}
+		</div>
+	</section>
+	<hr />
+</div>
+
+<style>
+	.json {
+		--json-tree-font-size: 1em;
+		--json-tree-li-indentation: 2em;
+		--json-tree-font-family: font-family: var(--font-stack);
+	}
+</style>

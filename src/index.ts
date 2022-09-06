@@ -1,13 +1,22 @@
-export * from './common';
-export * from './types';
-export * as gql from './gql';
-export { default as utils } from './utils';
-export { default as DripsHubClient } from './DripsHubClient';
-export { default as AddressAppClient } from './AddressAppClient';
-export { default as DripsSubgraphClient } from './DripsSubgraphClient';
-export { default as DripsReceiverConfig } from './DripsReceiverConfig';
-export { DripsError, DripsErrors, DripsErrorCode } from './DripsError';
-
-// TODO: Contract typings. we can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079)
+// Contracts
+// TODO: Contract typings. We can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079).
 export * as AddressApp from '../contracts/AddressApp';
-export * as DripsHubLogic from '../contracts/DripsHub';
+export * as DripsHub from '../contracts/DripsHub';
+
+// AddressApp
+export { default as AddressAppClient } from './AddressApp/AddressAppClient';
+export * from './AddressApp/types';
+
+// Common
+export { DripsErrorCode, DripsError } from './common/DripsError';
+
+// DripsHub
+export { default as DripsHubClient } from './DripsHub/DripsHubClient';
+export * from './DripsHub/types';
+
+// Drips Subgraph
+export * from './DripsSubgraph/types';
+export { default as DripsSubgraphClient } from './DripsSubgraph/DripsSubgraphClient';
+
+// Utils
+export { default as Utils } from './utils';

@@ -40,6 +40,18 @@
 
 		started = false;
 	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		tx = null;
+		amount = null;
+		started = false;
+		txReceipt = null;
+		errorMessage = null;
+		receiverAddress = null;
+		erc20TokenAddress = null;
+	};
 </script>
 
 <div class="container">

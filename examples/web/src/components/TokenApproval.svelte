@@ -1,37 +1,29 @@
 <script lang="ts">
 	import type { AddressAppClient } from 'drips-sdk';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
-	import { createEventDispatcher } from 'svelte';
 
 	export let addressAppClient: AddressAppClient;
 
-	const dispatch = createEventDispatcher();
+	$: isConnected = Boolean(addressAppClient);
 
 	let started = false;
-	let approvedToken: string;
 	let tokenToApprove: string;
 	let tx: ContractTransaction;
 	let txReceipt: ContractReceipt;
 	let approvalErrorMessage: string;
 
-	$: isConnected = Boolean(addressAppClient);
-
-	const approveToken = async (token: string) => {
+	const approve = async (tokenAddress: string) => {
 		tx = null;
 		started = true;
 		txReceipt = null;
 		approvalErrorMessage = null;
 
 		try {
-			tx = await addressAppClient.approve(token);
+			tx = await addressAppClient.approve(tokenAddress);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
-
-			dispatch('tokenApproved', {
-				approvedToken: token
-			});
 		} catch (error) {
 			approvalErrorMessage = error.message;
 
@@ -45,18 +37,31 @@
 	let tokenToGetAllowance: string;
 	let allowanceErrorMessage: string;
 
-	const getAllowance = async (token: string) => {
+	const getAllowance = async (tokenAddress: string) => {
 		try {
 			allowance = null;
 			allowanceErrorMessage = null;
 
-			allowance = await addressAppClient.getAllowance(token);
+			allowance = await addressAppClient.getAllowance(tokenAddress);
 		} catch (error) {
 			allowance = null;
 			allowanceErrorMessage = error.message;
 
 			console.log(error);
 		}
+	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		tx = null;
+		allowance = null;
+		started = false;
+		txReceipt = null;
+		tokenToApprove = null;
+		tokenToGetAllowance = null;
+		approvalErrorMessage = null;
+		allowanceErrorMessage = null;
 	};
 </script>
 
@@ -78,11 +83,8 @@
 					/>
 				</div>
 				<div class="form-group">
-					<button
-						class="btn btn-default"
-						disabled={!isConnected}
-						type="button"
-						on:click={() => approveToken(tokenToApprove)}>Approve</button
+					<button class="btn btn-default" disabled={!isConnected} type="button" on:click={() => approve(tokenToApprove)}
+						>Approve</button
 					>
 				</div>
 				<div>
@@ -92,7 +94,7 @@
 						</div>
 					{:else if txReceipt}
 						<div class="terminal-alert terminal-alert-primary">
-							<p>Token {approvedToken} approved ✅</p>
+							<p>Token {tokenToApprove} approved ✅</p>
 						</div>
 					{:else if tx}
 						<div class="terminal-alert">
@@ -111,6 +113,7 @@
 		<form class="allowance">
 			<fieldset>
 				<legend>Allowance</legend>
+
 				<div class="form-group">
 					<input
 						type="text"
@@ -118,6 +121,7 @@
 						bind:value={tokenToGetAllowance}
 					/>
 				</div>
+
 				<div class="form-group">
 					<button
 						class="btn btn-default"
@@ -126,6 +130,7 @@
 						on:click={() => getAllowance(tokenToGetAllowance)}>Get Allowance</button
 					>
 				</div>
+
 				{#if allowanceErrorMessage}
 					<div class="terminal-alert terminal-alert-error">
 						<p>{allowanceErrorMessage}</p>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressAppClient, DripsError, DripsErrorCode, DripsSubgraphClient } from 'drips-sdk';
+	import { AddressAppClient, DripsError, DripsErrorCode, DripsSubgraphClient, utils } from 'drips-sdk';
 	// TODO: https://github.com/WalletConnect/walletconnect-monorepo/issues/341
 	import WalletConnectProvider from '@walletconnect/web3-provider/dist/umd/index.min';
 	import Web3Modal from 'web3modal';
@@ -9,7 +9,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Change this to connect to a different provider.
-	const subgraphUrl = 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli';
+	const { SUBGRAPH_URL } = utils.getNetworkProperties('goerli');
 
 	const web3Modal = new Web3Modal({
 		cacheProvider: true,
@@ -37,7 +37,7 @@
 			const provider = new providers.Web3Provider(walletProvider);
 
 			addressAppClient = await AddressAppClient.create(provider);
-			dripsSubgraphClient = DripsSubgraphClient.create(subgraphUrl);
+			dripsSubgraphClient = DripsSubgraphClient.create(SUBGRAPH_URL);
 
 			console.log('AddressAppClient created:');
 			console.log(addressAppClient);
@@ -84,7 +84,7 @@
 <div class="container">
 	<div class="terminal-nav">
 		<header class="terminal-logo">
-			<div class="logo terminal-prompt">Drips v0.2 JavaScript SDK</div>
+			<div class="logo terminal-prompt">DripsJS v0.2 Examples</div>
 		</header>
 
 		<nav class="terminal-menu">

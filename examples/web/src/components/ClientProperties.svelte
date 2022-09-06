@@ -14,6 +14,13 @@
 		userId = await addressAppClient.getUserId();
 		signerAddress = await addressAppClient.signer.getAddress();
 	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		userId = null;
+		signerAddress = null;
+	};
 </script>
 
 <div class="container">
@@ -59,6 +66,11 @@
 				<tr>
 					<th>AddressApp Contract</th>
 					<td>{addressAppClient?.networkProperties?.CONTRACT_ADDRESS_APP || '[Not Connected]'}</td>
+					<td>{isConnected ? 'AddressAppClient' : '[Not Connected]'}</td>
+				</tr>
+				<tr>
+					<th>AddressAppLogic Contract</th>
+					<td>{addressAppClient?.networkProperties?.CONTRACT_ADDRESS_APP_LOGIC || '[Not Connected]'}</td>
 					<td>{isConnected ? 'AddressAppClient' : '[Not Connected]'}</td>
 				</tr>
 				<tr>

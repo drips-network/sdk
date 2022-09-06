@@ -49,7 +49,7 @@
 			const userId = await addressAppClient.getUserId();
 
 			const splitEntries = await dripsSubgraphClient.getSplitEntries(userId);
-			const currentReceivers: AddressApp.SplitsReceiverStruct[] = utils.mapSplitEntriesToStructs(splitEntries);
+			const currentReceivers: AddressApp.SplitsReceiverStruct[] = utils.mapSplitsDtosToStructs(splitEntries);
 
 			collectTx = await addressAppClient.collectAll(erc20TokenAddress, currentReceivers);
 			console.log(collectTx);
@@ -107,7 +107,7 @@
 			const userId = await addressAppClient.getUserId();
 
 			const splitEntries = await dripsSubgraphClient.getSplitEntries(userId);
-			const currentReceivers: AddressApp.SplitsReceiverStruct[] = utils.mapSplitEntriesToStructs(splitEntries);
+			const currentReceivers: AddressApp.SplitsReceiverStruct[] = utils.mapSplitsDtosToStructs(splitEntries);
 
 			collectForAddressTx = await addressAppClient.collectAllForAddress(
 				userAddress,
@@ -127,6 +127,22 @@
 		}
 
 		collectForAddressStarted = false;
+	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		collectTx = null;
+		userAddress = null;
+		collectStarted = false;
+		collectTxReceipt = null;
+		collectErrorMessage = null;
+		collectForAddressTx = null;
+		collectErc20TokenAddress = null;
+		collectForAddressStarted = false;
+		collectForAddressTxReceipt = null;
+		collectForAddressErrorMessage = null;
+		collectForAddressErc20TokenAddress = null;
 	};
 </script>
 

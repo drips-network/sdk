@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AddressAppClient, DripsHubLogic, DripsSubgraphClient } from 'drips-sdk';
-	import type { BytesLike } from 'ethers';
+	import type { BigNumber, BytesLike } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
 	export let addressAppClient: AddressAppClient;
@@ -8,13 +8,14 @@
 
 	const dispatch = createEventDispatcher();
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
-	$: if (isConnected) getUserId();
-
 	let userId: string;
 	let senderId: string;
 	let errorMessage: string;
 	let erc20TokenAddress: string;
+	let squeezableDrips: { amt: BigNumber; nextSqueezed: number };
+
+	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: if (isConnected) getUserId();
 
 	const getUserId = async () => {
 		userId = await addressAppClient.getUserId();
@@ -26,14 +27,31 @@
 		try {
 			const dripsHubClient = addressAppClient.dripsHub;
 
-			const historyHash: BytesLike = '';
+			// TODO: Implement this.
+			const { historyHash: BytesLike } = await dripsSubgraphClient.getDripsHistoryBySender(senderId);
 			const dripsHistory: DripsHubLogic.DripsHistoryStruct[] = [];
 
-			await dripsHubClient.getSqueezableDrips(userId, erc20TokenAddress, senderId, historyHash, dripsHistory);
+			squeezableDrips = await dripsHubClient.getSqueezableDrips(
+				userId,
+				erc20TokenAddress,
+				senderId,
+				historyHash,
+				dripsHistory
+			);
 		} catch (error) {
 			errorMessage = error.message;
 			console.log(error);
 		}
+	};
+
+	$: if (!isConnected) reset();
+
+	const reset = () => {
+		userId = null;
+		senderId = null;
+		errorMessage = null;
+		squeezableDrips = null;
+		erc20TokenAddress = null;
 	};
 </script>
 
@@ -66,6 +84,10 @@
 					{#if errorMessage}
 						<div class="terminal-alert terminal-alert-error">
 							{errorMessage}
+						</div>
+					{:else if squeezableDrips}
+						<div class="terminal-alert terminal-alert-primary">
+							<p>Token {squeezableDrips} approved ✅</p>
 						</div>
 					{/if}
 				</div>
