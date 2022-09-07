@@ -63,7 +63,7 @@ export default class DripsHubClient {
 		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId];
 		if (!chainDripsMetadata?.CONTRACT_DRIPS_HUB) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'DripsHubClient': the provider is connected an unsupported network (name: '${
+				`Could not create a new 'DripsHubClient': the provider is connected to an unsupported network (name: '${
 					network?.name
 				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
 				network?.chainId

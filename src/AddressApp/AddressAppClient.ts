@@ -107,7 +107,7 @@ export default class AddressAppClient {
 		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId];
 		if (!chainDripsMetadata?.CONTRACT_ADDRESS_APP) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'AddressAppClient': the provider is connected an unsupported network (name: '${
+				`Could not create a new 'AddressAppClient': the provider is connected to an unsupported network (name: '${
 					network?.name
 				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
 				network?.chainId
