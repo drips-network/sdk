@@ -54,7 +54,7 @@ export default class DripsHubClient {
 	public static async create(provider: Provider): Promise<DripsHubClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
-				"Could not create a new DripsHubClient: the 'provider' is missing.",
+				"Could not create a new 'DripsHubClient': the 'provider' is missing.",
 				nameOf({ provider })
 			);
 		}
@@ -63,9 +63,9 @@ export default class DripsHubClient {
 		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId];
 		if (!chainDripsMetadata?.CONTRACT_DRIPS_HUB) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new AAddressAppClient: the 'provider' is connected to an unsupported chain with ID: ${
-					network?.chainId
-				}). Supported chain IDs are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
+				`Could not create a new 'DripsHubClient': the provider is connected an unsupported network (name: '${
+					network?.name
+				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
 				network?.chainId
 			);
 		}
