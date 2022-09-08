@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import type { BigNumber } from 'ethers';
 import { ethers } from 'ethers';
 import sinon from 'ts-sinon';
 import * as internals from '../src/common/internals';
@@ -64,7 +63,7 @@ describe('Utils', () => {
 	});
 
 	describe('DripsReceiverConfiguration', () => {
-		describe('toUint256()', () => {
+		describe('toUint256String()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
 				const config: DripsReceiverConfig = { start: 1, duration: 1, amountPerSec: 1 };
@@ -72,7 +71,7 @@ describe('Utils', () => {
 				const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfigObj');
 
 				// Act
-				Utils.DripsReceiverConfiguration.toUint256(config);
+				Utils.DripsReceiverConfiguration.toUint256String(config);
 
 				// Assert
 				assert(
@@ -86,17 +85,14 @@ describe('Utils', () => {
 				const expectedConfig = '0x010000000200000003';
 
 				// Act
-				const config: BigNumber = Utils.DripsReceiverConfiguration.toUint256({
+				const config: string = Utils.DripsReceiverConfiguration.toUint256String({
 					start: 2,
 					duration: 3,
 					amountPerSec: 1
 				});
 
 				// Assert
-				assert(
-					config.eq(expectedConfig),
-					`Expected config to be equal to '${expectedConfig}' but was '${config.toHexString()}'`
-				);
+				assert.equal(config, internals.toBN(expectedConfig).toString());
 			});
 		});
 

@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 
-import type { BigNumberish, BigNumber } from 'ethers';
+import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import type { ChainDripsMetadata, SupportedChain } from './AddressApp/types';
 import {
@@ -44,11 +44,11 @@ namespace Utils {
 		/**
 		 * Converts a drips receiver configuration to a `uint256`.
 		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration.
-		 * @returns A `uint256` representing the drips receiver configuration.
+		 * @returns The drips receiver configuration as a `uint256` string.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.dripsReceiverError} if the `dripsReceiverConfig` is not valid.
 		 */
-		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): BigNumber => {
+		export const toUint256String = (dripsReceiverConfig: DripsReceiverConfig): string => {
 			validateDripsReceiverConfigObj(dripsReceiverConfig);
 
 			const { start, duration, amountPerSec } = dripsReceiverConfig;
@@ -60,7 +60,7 @@ namespace Utils {
 			config = config.shl(32);
 			config = config.or(duration);
 
-			return config;
+			return config.toString();
 		};
 
 		/**
@@ -116,7 +116,7 @@ export default Utils;
 //  */
 // export const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
 // 	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
-// 		config: Utils.DripsReceiverConfiguration.toUint256({
+// 		config: Utils.DripsReceiverConfiguration.toUint256String({
 // 			amountPerSec: d.config.amountPerSec,
 // 			duration: d.config.duration,
 // 			start: d.config.start
@@ -134,7 +134,7 @@ export default Utils;
 //  */
 // export const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
 // 	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
-// 		config: Utils.DripsReceiverConfiguration.toUint256({
+// 		config: Utils.DripsReceiverConfiguration.toUint256String({
 // 			amountPerSec: d.config.amountPerSec,
 // 			duration: d.config.duration,
 // 			start: d.config.start

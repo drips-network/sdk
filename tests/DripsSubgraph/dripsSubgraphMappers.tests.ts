@@ -40,7 +40,7 @@
 // 				amountPerSec: 1
 // 			};
 
-// 			const dripsReceiverConfigAsUint256 = Utils.DripsReceiverConfiguration.toUint256(dripsReceiverConfig);
+// 			const dripsReceiverConfigAsUint256 = Utils.DripsReceiverConfiguration.toUint256String(dripsReceiverConfig);
 
 // 			const userAssetConfig: ApiUserAssetConfig = {
 // 				id: '1',

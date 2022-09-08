@@ -592,12 +592,24 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3, duration: 3, start: 3 }) }
+				{
+					userId: 3,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+				}
 			];
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 1, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2, duration: 2, start: 2 }) }
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 2, start: 2 })
+				}
 			];
 
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
@@ -613,12 +625,24 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3, duration: 3, start: 3 }) }
+				{
+					userId: 3,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+				}
 			];
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 1, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2, duration: 2, start: 2 }) }
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 2, start: 2 })
+				}
 			];
 
 			const validateDripsReceiversStub = sinon.stub(addressAppValidators, 'validateDripsReceivers');
@@ -678,7 +702,10 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3, duration: 3, start: 3 }) }
+				{
+					userId: 3,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+				}
 			];
 
 			// Act
@@ -695,12 +722,24 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
-				{ userId: 3, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3, duration: 3, start: 3 }) }
+				{
+					userId: 3,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+				}
 			];
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 1, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2, duration: 2, start: 2 }) }
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 2, start: 2 })
+				}
 			];
 
 			// Act
@@ -739,8 +778,14 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 200 }) }
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+				}
 			];
 
 			// Act
@@ -762,8 +807,14 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 200 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) }
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				}
 			];
 
 			// Act
@@ -785,12 +836,30 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 2 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2, duration: 1, start: 1 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2, duration: 1, start: 2 }) },
-				{ userId: 2, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2, duration: 1, start: 2 }) }
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 2 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 1, start: 1 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 1, start: 2 })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 1, start: 2 })
+				}
 			];
 
 			// Act
@@ -814,9 +883,12 @@ describe('AddressAppClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 100, duration: 1, start: 1 })
 				},
-				{ userId: 1, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 200 }) }
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+				}
 			];
 
 			// Act
@@ -838,10 +910,13 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
-				{ userId: 1, config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 200 }) },
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+				},
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 100, duration: 1, start: 1 })
 				}
 			];
 

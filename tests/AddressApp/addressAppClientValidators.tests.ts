@@ -35,7 +35,7 @@ describe('addressAppClientValidators', () => {
 			let threw = false;
 			const receivers: DripsReceiverStruct[] = Array(101).fill({
 				userId: undefined as unknown as number,
-				config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1, duration: 1, start: 1 })
+				config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
 			});
 
 			try {
