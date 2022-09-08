@@ -22,7 +22,7 @@ export const toBN = (value: BigNumberish) => ethers.BigNumber.from(value);
 /** @internal */
 export const validateAddress = (address: string) => {
 	if (!ethers.utils.isAddress(address)) {
-		throw DripsErrors.addressError(`Address validation failed: '${address}' is not valid.`, address);
+		throw DripsErrors.addressError(`Address validation failed: address '${address}' is not valid.`, address);
 	}
 };
 
