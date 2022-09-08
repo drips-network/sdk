@@ -4,7 +4,7 @@ import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
 import { constants } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressAppContract';
 import Utils from '../utils';
 import type { ChainDripsMetadata, SupportedChain } from './types';
 import { validateAddress, nameOf, toBN } from '../common/internals';

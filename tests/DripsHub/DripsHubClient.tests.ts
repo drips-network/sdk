@@ -8,7 +8,7 @@
 // import type { DripsHub as DripsHubContract } from '../contracts';
 // import { DripsHub__factory } from '../contracts';
 // import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-// import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHub';
+// import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubContract';
 // import * as common from '../src/common';
 
 // describe('DripsHubClient', () => {

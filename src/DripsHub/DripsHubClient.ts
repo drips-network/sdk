@@ -5,7 +5,7 @@ import type { ChainDripsMetadata, SupportedChain } from 'src/AddressApp/types';
 import { validateDripsReceivers, validateSplitsReceivers } from '../AddressApp/addressAppValidators';
 import { nameOf, validateAddress } from '../common/internals';
 import Utils from '../utils';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHubContract';
 import type { DripsHubContract } from '../../contracts';
 import { DripsHubContract__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';

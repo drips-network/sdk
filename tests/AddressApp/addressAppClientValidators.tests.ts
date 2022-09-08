@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import type { BigNumberish } from 'ethers';
 import sinon from 'ts-sinon';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/AddressApp';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/AddressAppContract';
 import * as addressAppValidators from '../../src/AddressApp/addressAppValidators';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import Utils from '../../src/utils';

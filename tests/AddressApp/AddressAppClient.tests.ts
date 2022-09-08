@@ -7,7 +7,7 @@ import type { BigNumberish } from 'ethers';
 import { constants, Wallet } from 'ethers';
 import type { AddressAppContract, IERC20Contract } from '../../contracts';
 import { IERC20Contract__factory, AddressAppContract__factory } from '../../contracts';
-import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressApp';
+import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressAppContract';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import AddressAppClient from '../../src/AddressApp/AddressAppClient';
 import Utils from '../../src/utils';
