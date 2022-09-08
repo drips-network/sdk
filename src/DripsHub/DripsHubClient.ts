@@ -5,9 +5,9 @@ import type { ChainDripsMetadata, SupportedChain } from 'src/AddressApp/types';
 import { validateDripsReceivers, validateSplitsReceivers } from '../AddressApp/addressAppValidators';
 import { nameOf, validateAddress } from '../common/internals';
 import Utils from '../utils';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHubContract';
-import type { DripsHubContract } from '../../contracts';
-import { DripsHubContract__factory } from '../../contracts';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
+import type { DripsHub } from '../../contracts';
+import { DripsHub__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 import type { DripsState } from './types';
 
@@ -15,7 +15,7 @@ import type { DripsState } from './types';
  * A lower-level client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} smart contract.
  */
 export default class DripsHubClient {
-	#dripsHubContract!: DripsHubContract;
+	#dripsHubContract!: DripsHub;
 
 	#network!: Network;
 	/**
@@ -75,7 +75,7 @@ export default class DripsHubClient {
 		dripsHub.#network = network;
 		dripsHub.#provider = provider;
 		dripsHub.#chainDripsMetadata = chainDripsMetadata;
-		dripsHub.#dripsHubContract = DripsHubContract__factory.connect(chainDripsMetadata.CONTRACT_DRIPS_HUB, provider);
+		dripsHub.#dripsHubContract = DripsHub__factory.connect(chainDripsMetadata.CONTRACT_DRIPS_HUB, provider);
 
 		return dripsHub;
 	}

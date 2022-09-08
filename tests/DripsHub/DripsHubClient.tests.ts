@@ -5,10 +5,10 @@
 // import { assert } from 'chai';
 // import { Wallet } from 'ethers';
 // import DripsHubClient from '../src/DripsHubClient';
-// import type { DripsHub as DripsHubContract } from '../contracts';
+// import type { DripsHub as DripsHub } from '../contracts';
 // import { DripsHub__factory } from '../contracts';
 // import { DripsErrorCode, DripsErrors } from '../src/DripsError';
-// import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHubContract';
+// import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../contracts/DripsHub';
 // import * as common from '../src/common';
 
 // describe('DripsHubClient', () => {
@@ -16,7 +16,7 @@
 
 // 	let networkStub: StubbedInstance<Network>;
 // 	let providerStub: StubbedInstance<JsonRpcProvider>;
-// 	let dripsHubContractStub: StubbedInstance<DripsHubContract>;
+// 	let dripsHubContractStub: StubbedInstance<DripsHub>;
 
 // 	let testDripsHubClient: DripsHubClient;
 
@@ -28,7 +28,7 @@
 
 // 		providerStub.getNetwork.resolves(networkStub);
 
-// 		dripsHubContractStub = stubInterface<DripsHubContract>();
+// 		dripsHubContractStub = stubInterface<DripsHub>();
 
 // 		sinon
 // 			.stub(DripsHub__factory, 'connect')

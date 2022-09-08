@@ -4,13 +4,13 @@ import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
 import { constants } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressAppContract';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
 import Utils from '../utils';
 import type { ChainDripsMetadata, SupportedChain } from './types';
 import { validateAddress, nameOf, toBN } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
-import type { AddressAppContract } from '../../contracts';
-import { IERC20Contract__factory, AddressAppContract__factory } from '../../contracts';
+import type { AddressApp as AddresAppContract } from '../../contracts';
+import { IERC20__factory, AddressApp__factory } from '../../contracts';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import { validateDripsReceivers, validateSplitsReceivers } from './addressAppValidators';
 
@@ -19,7 +19,7 @@ import { validateDripsReceivers, validateSplitsReceivers } from './addressAppVal
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressApp.sol AddressApp} smart contract.
  */
 export default class AddressAppClient {
-	#addressAppContract!: AddressAppContract;
+	#addressAppContract!: AddresAppContract;
 
 	#signer!: JsonRpcSigner;
 	/**
@@ -122,10 +122,7 @@ export default class AddressAppClient {
 		addressApp.#chainDripsMetadata = chainDripsMetadata;
 		addressApp.#signerAddress = await signer.getAddress();
 		addressApp.#dripsHub = await DripsHubClient.create(provider);
-		addressApp.#addressAppContract = AddressAppContract__factory.connect(
-			chainDripsMetadata.CONTRACT_ADDRESS_APP,
-			signer
-		);
+		addressApp.#addressAppContract = AddressApp__factory.connect(chainDripsMetadata.CONTRACT_ADDRESS_APP, signer);
 
 		return addressApp;
 	}
@@ -139,7 +136,7 @@ export default class AddressAppClient {
 	public async getAllowance(erc20TokenAddress: string): Promise<BigNumber> {
 		validateAddress(erc20TokenAddress);
 
-		const signerAsErc20Contract = IERC20Contract__factory.connect(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
 
 		return signerAsErc20Contract.allowance(this.#signerAddress, this.#chainDripsMetadata.CONTRACT_ADDRESS_APP);
 	}
@@ -153,7 +150,7 @@ export default class AddressAppClient {
 	public approve(erc20TokenAddress: string): Promise<ContractTransaction> {
 		validateAddress(erc20TokenAddress);
 
-		const signerAsErc20Contract = IERC20Contract__factory.connect(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
 
 		return signerAsErc20Contract.approve(this.#chainDripsMetadata.CONTRACT_ADDRESS_APP, constants.MaxUint256);
 	}

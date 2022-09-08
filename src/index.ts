@@ -1,7 +1,7 @@
 // Contracts
 // TODO: Contract typings. We can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079).
-export * as DripsHubContract from '../contracts/DripsHubContract';
-export * as AddressAppContract from '../contracts/AddressAppContract';
+export * as DripsHub from '../contracts/DripsHub';
+export * as AddressApp from '../contracts/AddressApp';
 
 // AddressApp
 export { default as AddressAppClient } from './AddressApp/AddressAppClient';

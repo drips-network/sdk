@@ -1,4 +1,4 @@
-import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressAppContract';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
 import { isNullOrUndefined, nameOf, toBN, validateDripsReceiverConfigBN } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import Utils from '../utils';
