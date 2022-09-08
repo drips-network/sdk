@@ -5,12 +5,14 @@ export enum DripsErrorCode {
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	MISSING_ARGUMENT = 'MISSING_ARGUMENT',
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
+	SUBGRAPH_QUERY_FAILED = 'SUBGRAPH_QUERY_FAILED',
 	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
 	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER'
 }
 
 export class DripsError extends Error {
 	public readonly context?: unknown;
+
 	public readonly code: DripsErrorCode;
 
 	constructor(code: DripsErrorCode, message: string, context?: unknown) {
@@ -26,18 +28,22 @@ export class DripsErrors {
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, message, {
 			invalidAddress: address
 		});
+
 	static argumentMissingError = (message: string, argName: string) =>
 		new DripsError(DripsErrorCode.MISSING_ARGUMENT, message, {
 			missingArgumentName: argName
 		});
+
 	static unsupportedNetworkError = (message: string, chainId: number) =>
 		new DripsError(DripsErrorCode.UNSUPPORTED_NETWORK, message, {
 			unsupportedChainId: chainId
 		});
+
 	static argumentError = (message: string, argName: string, argValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_ARGUMENT, message, {
 			invalidArgument: { name: argName, value: argValue }
 		});
+
 	static splitsReceiverError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_SPLITS_RECEIVER, message, {
 			invalidProperty: {
@@ -45,6 +51,7 @@ export class DripsErrors {
 				value: invalidPropertyValue
 			}
 		});
+
 	static dripsReceiverError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER, message, {
 			invalidProperty: {
@@ -52,4 +59,6 @@ export class DripsErrors {
 				value: invalidPropertyValue
 			}
 		});
+
+	static subgraphQueryError = (message: string) => new DripsError(DripsErrorCode.SUBGRAPH_QUERY_FAILED, message);
 }

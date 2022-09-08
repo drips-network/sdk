@@ -2,8 +2,8 @@ import { assert } from 'chai';
 import type { BigNumber } from 'ethers';
 import { ethers } from 'ethers';
 import sinon from 'ts-sinon';
-import type { DripsReceiverConfig } from '../src/AddressApp/types';
 import * as internals from '../src/common/internals';
+import type { DripsReceiverConfig } from '../src/common/types';
 import Utils from '../src/utils';
 
 describe('Utils', () => {
@@ -18,7 +18,7 @@ describe('Utils', () => {
 				const assetId = '1033236945445138540915192691692934361059155904726';
 
 				// Act
-				const token = Utils.Assets.getAddressFromAssetId(assetId);
+				const token = Utils.Asset.getAddressFromId(assetId);
 
 				// Assert
 				assert.equal(token, ethers.utils.getAddress(internals.toBN(assetId).toHexString()));
@@ -32,7 +32,7 @@ describe('Utils', () => {
 				const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 				// Act
-				Utils.Assets.getAssetIdFromAddress(erc20Address);
+				Utils.Asset.getIdFromAddress(erc20Address);
 
 				// Assert
 				assert(
@@ -46,7 +46,7 @@ describe('Utils', () => {
 				const erc20Address = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
 				// Act
-				const assetId = Utils.Assets.getAssetIdFromAddress(erc20Address);
+				const assetId = Utils.Asset.getIdFromAddress(erc20Address);
 
 				// Assert
 				assert.equal(assetId, internals.toBN(erc20Address).toString());

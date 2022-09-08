@@ -6,7 +6,7 @@ import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
 import { constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
 import Utils from '../utils';
-import type { ChainDripsMetadata } from './types';
+import type { ChainDripsMetadata, SupportedChain } from './types';
 import { validateAddress, nameOf, toBN } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import type { AddressApp as AddressAppContract } from '../../contracts';
@@ -104,7 +104,7 @@ export default class AddressAppClient {
 		validateAddress(signerAddress);
 
 		const network = await provider.getNetwork();
-		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId];
+		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId as SupportedChain];
 		if (!chainDripsMetadata?.CONTRACT_ADDRESS_APP) {
 			throw DripsErrors.unsupportedNetworkError(
 				`Could not create a new 'AddressAppClient': the provider is connected to an unsupported network (name: '${

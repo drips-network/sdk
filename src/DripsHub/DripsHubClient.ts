@@ -1,7 +1,7 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumber, BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import type { ChainDripsMetadata } from 'src/AddressApp/types';
+import type { ChainDripsMetadata, SupportedChain } from 'src/AddressApp/types';
 import { validateDripsReceivers, validateSplitsReceivers } from '../AddressApp/addressAppValidators';
 import { nameOf, validateAddress } from '../common/internals';
 import Utils from '../utils';
@@ -60,7 +60,7 @@ export default class DripsHubClient {
 		}
 
 		const network = await provider.getNetwork();
-		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId];
+		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId as SupportedChain];
 		if (!chainDripsMetadata?.CONTRACT_DRIPS_HUB) {
 			throw DripsErrors.unsupportedNetworkError(
 				`Could not create a new 'DripsHubClient': the provider is connected to an unsupported network (name: '${

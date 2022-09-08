@@ -1,29 +1,14 @@
-import type { BigNumberish } from 'ethers';
+import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
-import type { Split, DripsConfiguration } from './types';
-import dripsSubgraphMappers from './dripsSubgraphMappers';
-
-type UserAssetConfig = {
-	id: string;
-	assetId: string;
-	balance: BigNumberish;
-	amountCollected: BigNumberish;
-	dripsEntries: {
-		config: BigNumberish;
-		receiverUserId: string;
-	}[];
-	lastUpdatedBlockTimestamp: string;
-};
+import type { SplitEntry, UserAssetConfig } from './types';
 
 /**
  * A client for querying the Drips Subgraph.
  */
 export default class DripsSubgraphClient {
 	#apiUrl!: string;
-	/**
-	 * Returns the `DripsSubgraphClient`'s API URL.
-	 */
+	/** Returns the `DripsSubgraphClient`'s API URL. */
 	public get apiUrl() {
 		return this.#apiUrl;
 	}
@@ -39,49 +24,27 @@ export default class DripsSubgraphClient {
 	 */
 	public static create(apiUrl: string): DripsSubgraphClient {
 		if (!apiUrl) {
-			throw DripsErrors.argumentError(
+			throw DripsErrors.argumentMissingError(
 				'Cannot create instance: the API URL was missing but is required.',
-				'apiUrl',
-				'DripsSubgraphClient.create()'
+				nameOf({ apiUrl })
 			);
 		}
 
 		const subgraphClient = new DripsSubgraphClient();
+
 		subgraphClient.#apiUrl = apiUrl;
 
 		return subgraphClient;
 	}
 
 	/**
-	 * Returns all drips configurations for the specified user.
-	 * @param  {string} userId The user ID.
-	 * @returns A Promise which resolves to the user's drips configurations.
-	 */
-	public async getAllDripsConfigurations(userId: string): Promise<DripsConfiguration[] | null> {
-		type ApiResponse = {
-			user: {
-				assetConfigs: UserAssetConfig[];
-			};
-		};
-
-		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigs, { userId });
-
-		const assetConfigs = response?.data?.user?.assetConfigs;
-
-		if (assetConfigs) {
-			return dripsSubgraphMappers.mapUserAssetConfigToDtos(assetConfigs);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the user's drips configuration for the specified asset ID.
+	 * Returns the user's drips configuration for the specified asset.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} assetId The asset ID.
 	 * @returns A Promise which resolves to the user's drips configuration.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsConfiguration(userId: string, assetId: string): Promise<DripsConfiguration | null> {
+	public async getUserAssetConfig(userId: string, assetId: string): Promise<UserAssetConfig> {
 		type ApiResponse = {
 			userAssetConfig: UserAssetConfig;
 		};
@@ -92,22 +55,39 @@ export default class DripsSubgraphClient {
 
 		const userAssetConfig = response?.data?.userAssetConfig;
 
-		if (userAssetConfig) {
-			return dripsSubgraphMappers.mapUserAssetConfigToDto(userAssetConfig);
-		}
+		return userAssetConfig;
+	}
 
-		return null;
+	/**
+	 * Returns all drips configurations for the specified user.
+	 * @param  {string} userId The user ID.
+	 * @returns A Promise which resolves to the user's drips configurations.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getAllUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
+		type ApiResponse = {
+			user: {
+				assetConfigs: UserAssetConfig[];
+			};
+		};
+
+		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigs, { userId });
+
+		const assetConfigs = response?.data?.user?.assetConfigs;
+
+		return assetConfigs;
 	}
 
 	/**
 	 * Returns the user's splits configuration.
 	 * @param  {string} userId The user ID.
 	 * @returns A Promise which resolves to the user's splits configuration.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfiguration(userId: string): Promise<Split[]> {
+	public async getSplitsConfiguration(userId: string): Promise<SplitEntry[]> {
 		type ApiResponse = {
 			user: {
-				splitsEntries: Split[];
+				splitsEntries: SplitEntry[];
 			};
 		};
 
@@ -115,9 +95,10 @@ export default class DripsSubgraphClient {
 
 		const splitsEntries = response?.data?.user?.splitsEntries;
 
-		return splitsEntries || [];
+		return splitsEntries;
 	}
 
+	/** @internal */
 	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
@@ -131,6 +112,6 @@ export default class DripsSubgraphClient {
 			return (await resp.json()) as { data: T };
 		}
 
-		throw new Error(`Subgraph query failed: ${resp.statusText}`);
+		throw DripsErrors.subgraphQueryError(`Subgraph query failed: ${resp.statusText}`);
 	}
 }

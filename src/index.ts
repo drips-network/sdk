@@ -9,6 +9,7 @@ export * from './AddressApp/types';
 
 // Common
 export { DripsErrorCode, DripsError } from './common/DripsError';
+export * from './common/types';
 
 // DripsHub
 export { default as DripsHubClient } from './DripsHub/DripsHubClient';

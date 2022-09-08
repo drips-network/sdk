@@ -1,6 +1,5 @@
 import { assert } from 'chai';
 import type { BigNumberish } from 'ethers';
-import { BigNumber } from 'ethers';
 import sinon from 'ts-sinon';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/AddressApp';
 import * as addressAppValidators from '../../src/AddressApp/addressAppValidators';
@@ -21,7 +20,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateDripsReceivers(undefined as unknown as DripsReceiverStruct[]);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -42,7 +41,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateDripsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
@@ -65,7 +64,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateDripsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -88,7 +87,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateDripsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -128,7 +127,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateSplitsReceivers(undefined as unknown as SplitsReceiverStruct[]);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -149,7 +148,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateSplitsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
@@ -172,7 +171,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateSplitsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
 				threw = true;
@@ -195,7 +194,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateSplitsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
 				threw = true;
@@ -218,7 +217,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateSplitsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
 				threw = true;
@@ -241,7 +240,7 @@ describe('addressAppClientValidators', () => {
 			try {
 				// Act
 				addressAppValidators.validateSplitsReceivers(receivers);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
 				threw = true;

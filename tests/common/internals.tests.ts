@@ -2,9 +2,9 @@ import { assert } from 'chai';
 import type { BigNumberish } from 'ethers';
 import { Wallet } from 'ethers';
 import sinon from 'ts-sinon';
-import type { DripsReceiverConfig } from '../../src/AddressApp/types';
 import * as internals from '../../src/common/internals';
 import { DripsErrorCode } from '../../src/common/DripsError';
+import type { DripsReceiverConfig } from '../../src/common/types';
 
 describe('internals', () => {
 	afterEach(() => {
@@ -92,7 +92,7 @@ describe('internals', () => {
 			try {
 				// Act
 				internals.validateAddress(null as unknown as string);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
 				threw = true;
@@ -110,7 +110,7 @@ describe('internals', () => {
 			try {
 				// Act
 				internals.validateAddress(undefined as unknown as string);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
 				threw = true;
@@ -129,7 +129,7 @@ describe('internals', () => {
 			try {
 				// Act
 				internals.validateAddress(address);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
 				threw = true;
@@ -148,7 +148,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigBN(undefined as unknown as BigNumberish);
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
 			}
@@ -164,7 +164,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigBN(0);
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
 			}
@@ -180,7 +180,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigBN(-1);
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
 			}
@@ -198,7 +198,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigObj(undefined as unknown as DripsReceiverConfig);
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
 			}
@@ -214,7 +214,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigObj({ start: -1, duration: 1, amountPerSec: 1 });
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
 			}
@@ -230,7 +230,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigObj({ start: 1, duration: -1, amountPerSec: 1 });
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
 			}
@@ -246,7 +246,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigObj({ start: 1, duration: 1, amountPerSec: 0 });
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
 			}
@@ -262,7 +262,7 @@ describe('internals', () => {
 			// Act
 			try {
 				internals.validateDripsReceiverConfigObj({ start: 1, duration: 1, amountPerSec: -1 });
-			} catch (error) {
+			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
 			}

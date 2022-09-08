@@ -2,31 +2,32 @@
 
 import type { BigNumberish, BigNumber } from 'ethers';
 import { ethers } from 'ethers';
-import type { ChainDripsMetadata, SupportedChain, DripsReceiverConfig } from './AddressApp/types';
+import type { ChainDripsMetadata, SupportedChain } from './AddressApp/types';
 import {
 	toBN,
 	validateAddress,
 	validateDripsReceiverConfigBN,
 	validateDripsReceiverConfigObj
 } from './common/internals';
+import type { DripsReceiverConfig } from './common/types';
 
 namespace Utils {
-	export namespace Assets {
+	export namespace Asset {
 		/**
-		 * Returns the ERC20 token address for the specified asset ID.
+		 * Returns the ERC20 token address for the specified asset.
 		 * @param  {string} assetId The asset ID.
 		 * @returns The ERC20 token address.
 		 */
-		export const getAddressFromAssetId = (assetId: BigNumberish): string =>
+		export const getAddressFromId = (assetId: BigNumberish): string =>
 			ethers.utils.getAddress(toBN(assetId).toHexString());
 
 		/**
-		 * Returns the asset ID for the specified ERC20 token address.
+		 * Returns the asset ID for the specified ERC20 token.
 		 * @param  {string} erc20TokenAddress The ERC20 token address.
 		 * @returns The asset ID.
 		 * @throws {@link DripsErrors.addressError} if the `erc20TokenAddress` address is not valid.
 		 */
-		export const getAssetIdFromAddress = (erc20TokenAddress: string): string => {
+		export const getIdFromAddress = (erc20TokenAddress: string): string => {
 			validateAddress(erc20TokenAddress);
 
 			return toBN(erc20TokenAddress).toString();
@@ -107,3 +108,105 @@ namespace Utils {
 }
 
 export default Utils;
+
+// /**
+//  * Maps from `Drip` to `DripsReceiverStruct`.
+//  * @param  {Drip[]} dripsReceivers The drip entries.
+//  * @returns The mapped drip receiver structs.
+//  */
+// export const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
+// 	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
+// 		config: Utils.DripsReceiverConfiguration.toUint256({
+// 			amountPerSec: d.config.amountPerSec,
+// 			duration: d.config.duration,
+// 			start: d.config.start
+// 		}),
+// 		userId: d.receiverUserId
+// 	}));
+
+// 	return structs;
+// };
+
+// /**
+//  * Maps from `Drip` to `DripsReceiverStruct`.
+//  * @param  {Drip[]} dripsReceivers The drip entries.
+//  * @returns The mapped drip receiver structs.
+//  */
+// export const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
+// 	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
+// 		config: Utils.DripsReceiverConfiguration.toUint256({
+// 			amountPerSec: d.config.amountPerSec,
+// 			duration: d.config.duration,
+// 			start: d.config.start
+// 		}),
+// 		userId: d.receiverUserId
+// 	}));
+
+// 	return structs;
+// };
+
+// /**
+//  * Maps from `Split` to `SplitReceiverStruct`.
+//  * @param  {Drip[]} splitEntries The split entries.
+//  * @returns The mapped split receiver structs.
+//  */
+//  export const mapSplitsDtosToStructs = (splits: SplitEntry[]): SplitsReceiverStruct[] => {
+// 	const structs: SplitsReceiverStruct[] = splits?.map((s) => ({
+// 		userId: s.receiverUserId,
+// 		weight: s.weight
+// 	}));
+
+// 	return structs;
+// };
+
+// export type DripsReceiver = {
+// 	readonly receiverUserId: string;
+// 	readonly config: DripsReceiverConfig;
+// };
+
+// export type DripsConfiguration = {
+// 	readonly id: string;
+// 	readonly assetId: string;
+// 	readonly tokenAddress: string;
+// 	readonly balance: BigNumberish;
+// 	readonly amountCollected: BigNumberish;
+// 	readonly dripsReceivers: DripsReceiver[];
+// 	readonly lastUpdatedBlockTimestamp: BigNumberish;
+// };
+
+// /** @internal */
+// export const toDto = (userAssetConfig: UserAssetConfig): DripsConfiguration => {
+// 	if (!userAssetConfig) {
+// 		throw DripsErrors.argumentMissingError(
+// 			`Could not map user asset configurations to DTO: '${nameOf({ userAssetConfig })}' is missing.`,
+// 			nameOf({ userAssetConfig })
+// 		);
+// 	}
+
+// 	const dripsReceivers = userAssetConfig.dripsEntries?.map((dripEntry) => {
+// 		const config = Utils.DripsReceiverConfiguration.fromUint256(dripEntry.config);
+
+// 		return {
+// 			receiverUserId: dripEntry.receiverUserId,
+// 			config
+// 		};
+// 	});
+
+// 	return {
+// 		...userAssetConfig,
+// 		tokenAddress: Utils.Asset.getAddressFromId(userAssetConfig.assetId),
+// 		dripsReceivers
+// 	};
+// };
+
+// /** @internal */
+// export const toDtos = (userAssetConfigs: UserAssetConfig[]): DripsConfiguration[] => {
+// 	if (!userAssetConfigs) {
+// 		throw DripsErrors.argumentMissingError(
+// 			`Could not map user asset configurations to DTO: '${nameOf({ userAssetConfigs })}' is missing.`,
+// 			nameOf({ userAssetConfigs })
+// 		);
+// 	}
+
+// 	return userAssetConfigs.map((config) => toDto(config));
+// };

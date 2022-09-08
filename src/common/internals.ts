@@ -2,8 +2,8 @@
 
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
-import type { DripsReceiverConfig } from 'src/AddressApp/types';
 import { DripsErrors } from './DripsError';
+import type { DripsReceiverConfig } from './types';
 
 /**
  * internals.ts contains shared functions that are *not* meant to be publicly exposed.

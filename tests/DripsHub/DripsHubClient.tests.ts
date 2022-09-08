@@ -50,7 +50,7 @@
 // 			try {
 // 				// Act
 // 				await DripsHubClient.create(undefined as unknown as JsonRpcProvider);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Assert
 // 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 // 				threw = true;
@@ -68,7 +68,7 @@
 // 			try {
 // 				// Act
 // 				await DripsHubClient.create(providerStub);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Assert
 // 				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
 // 				threw = true;
@@ -99,7 +99,7 @@
 // 			// Act
 // 			try {
 // 				await testDripsHubClient.getCollectableAll(1, erc20Address, []);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Just for the test to continue.
 // 			}
 
@@ -134,7 +134,7 @@
 // 			// Act
 // 			try {
 // 				await testDripsHubClient.getSplittable(1, erc20Address);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Just for the test to continue.
 // 			}
 
@@ -168,7 +168,7 @@
 // 			// Act
 // 			try {
 // 				await testDripsHubClient.getCollectable(1, erc20Address);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Just for the test to continue.
 // 			}
 
@@ -202,7 +202,7 @@
 // 			// Act
 // 			try {
 // 				await testDripsHubClient.getDripsState(1, erc20Address);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Just for the test to continue.
 // 			}
 
@@ -236,7 +236,7 @@
 // 			// Act
 // 			try {
 // 				await testDripsHubClient.getBalanceAt(1, erc20Address, [], 1);
-// 			} catch (error) {
+// 			} catch (error: any) {
 // 				// Just for the test to continue.
 // 			}
 

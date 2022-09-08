@@ -5,7 +5,10 @@ describe('DripsErrors', () => {
 	it('should have unique error codes', () => {
 		// Arrange
 		const methods = Object.keys(DripsErrors);
-		const getErrorCode = (methodName: string): DripsErrorCode => DripsErrors[methodName]().code;
+		const getErrorCode = (methodName: string): DripsErrorCode => {
+			const method = DripsErrors[methodName as keyof typeof DripsErrors] as any;
+			return method().code;
+		};
 		const uniqueCodes = [...new Set(Object.keys(DripsErrors).map((error) => getErrorCode(error)))];
 
 		// Assert
@@ -119,6 +122,21 @@ describe('DripsErrors', () => {
 			assert.equal(code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 			assert.equal((context as any).invalidProperty.name, expectedInvalidPropertyName);
 			assert.equal((context as any).invalidProperty.value, expectedInvalidPropertyValue);
+		});
+	});
+
+	describe('subgraphQueryError()', () => {
+		it('should return expected error details', () => {
+			// Act
+			const expectedMessage = 'Error';
+
+			// Act
+			const { code, message, context } = DripsErrors.subgraphQueryError(expectedMessage);
+
+			// Assert
+			assert.isUndefined(context);
+			assert.equal(message, expectedMessage);
+			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
 		});
 	});
 });

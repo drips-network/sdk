@@ -14,6 +14,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import * as addressAppValidators from '../../src/AddressApp/addressAppValidators';
+import type { SupportedChain } from '../../src/AddressApp/types';
 
 describe('AddressAppClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -66,7 +67,7 @@ describe('AddressAppClient', () => {
 			try {
 				// Act
 				await AddressAppClient.create(undefined as unknown as JsonRpcProvider);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -84,7 +85,7 @@ describe('AddressAppClient', () => {
 			try {
 				// Act
 				await AddressAppClient.create(providerStub);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
@@ -116,7 +117,7 @@ describe('AddressAppClient', () => {
 			try {
 				// Act
 				await AddressAppClient.create(providerStub);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
 				threw = true;
@@ -136,7 +137,7 @@ describe('AddressAppClient', () => {
 			);
 			assert.equal(
 				testAddressAppClient.chainDripsMetadata,
-				Utils.Network.chainDripsMetadata[(await providerStub.getNetwork()).chainId]
+				Utils.Network.chainDripsMetadata[(await providerStub.getNetwork()).chainId as SupportedChain]
 			);
 			assert.equal(testAddressAppClient.dripsHub, dripsHubClientStub);
 			assert.equal(testAddressAppClient.signerAddress, signerAddress);
@@ -345,7 +346,7 @@ describe('AddressAppClient', () => {
 			const erc20Address = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 			const validateSplitsReceiversStub = sinon.stub(addressAppValidators, 'validateSplitsReceivers');
-			const receivers = [];
+			const receivers: SplitsReceiverStruct[] = [];
 
 			// Act
 			await testAddressAppClient.collectAll(erc20Address, receivers);
@@ -382,7 +383,7 @@ describe('AddressAppClient', () => {
 			const erc20Address = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 			const validateSplitsReceiversStub = sinon.stub(addressAppValidators, 'validateSplitsReceivers');
-			const receivers = [];
+			const receivers: SplitsReceiverStruct[] = [];
 
 			// Act
 			await testAddressAppClient.collectAllForAddress(userAddress, erc20Address, []);
@@ -420,7 +421,7 @@ describe('AddressAppClient', () => {
 			try {
 				// Act
 				await testAddressAppClient.give(undefined as unknown as BigNumberish, erc20Address, 1);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -467,7 +468,7 @@ describe('AddressAppClient', () => {
 			// Act
 			try {
 				await testAddressAppClient.setSplits(undefined as unknown as SplitsReceiverStruct[]);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -641,7 +642,7 @@ describe('AddressAppClient', () => {
 					[],
 					0
 				);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -663,7 +664,7 @@ describe('AddressAppClient', () => {
 					undefined as unknown as DripsReceiverStruct[],
 					0
 				);
-			} catch (error) {
+			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
