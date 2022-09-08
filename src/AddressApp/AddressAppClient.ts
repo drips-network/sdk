@@ -9,8 +9,8 @@ import Utils from '../utils';
 import type { ChainDripsMetadata, SupportedChain } from './types';
 import { validateAddress, nameOf, toBN } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
-import type { AddressApp as AddressAppContract } from '../../contracts';
-import { IERC20__factory, AddressApp__factory } from '../../contracts';
+import type { AddressAppContract } from '../../contracts';
+import { IERC20Contract__factory, AddressAppContract__factory } from '../../contracts';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import { validateDripsReceivers, validateSplitsReceivers } from './addressAppValidators';
 
@@ -122,7 +122,10 @@ export default class AddressAppClient {
 		addressApp.#chainDripsMetadata = chainDripsMetadata;
 		addressApp.#signerAddress = await signer.getAddress();
 		addressApp.#dripsHub = await DripsHubClient.create(provider);
-		addressApp.#addressAppContract = AddressApp__factory.connect(chainDripsMetadata.CONTRACT_ADDRESS_APP, signer);
+		addressApp.#addressAppContract = AddressAppContract__factory.connect(
+			chainDripsMetadata.CONTRACT_ADDRESS_APP,
+			signer
+		);
 
 		return addressApp;
 	}
@@ -136,7 +139,7 @@ export default class AddressAppClient {
 	public async getAllowance(erc20TokenAddress: string): Promise<BigNumber> {
 		validateAddress(erc20TokenAddress);
 
-		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20Contract__factory.connect(erc20TokenAddress, this.#signer);
 
 		return signerAsErc20Contract.allowance(this.#signerAddress, this.#chainDripsMetadata.CONTRACT_ADDRESS_APP);
 	}
@@ -150,7 +153,7 @@ export default class AddressAppClient {
 	public approve(erc20TokenAddress: string): Promise<ContractTransaction> {
 		validateAddress(erc20TokenAddress);
 
-		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20Contract__factory.connect(erc20TokenAddress, this.#signer);
 
 		return signerAsErc20Contract.approve(this.#chainDripsMetadata.CONTRACT_ADDRESS_APP, constants.MaxUint256);
 	}

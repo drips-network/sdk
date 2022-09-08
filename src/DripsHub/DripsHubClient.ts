@@ -6,8 +6,8 @@ import { validateDripsReceivers, validateSplitsReceivers } from '../AddressApp/a
 import { nameOf, validateAddress } from '../common/internals';
 import Utils from '../utils';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
-import type { DripsHub as DripsHubContract } from '../../contracts';
-import { DripsHub__factory } from '../../contracts';
+import type { DripsHubContract } from '../../contracts';
+import { DripsHubContract__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 import type { DripsState } from './types';
 
@@ -75,7 +75,7 @@ export default class DripsHubClient {
 		dripsHub.#network = network;
 		dripsHub.#provider = provider;
 		dripsHub.#chainDripsMetadata = chainDripsMetadata;
-		dripsHub.#dripsHubContract = DripsHub__factory.connect(chainDripsMetadata.CONTRACT_DRIPS_HUB, provider);
+		dripsHub.#dripsHubContract = DripsHubContract__factory.connect(chainDripsMetadata.CONTRACT_DRIPS_HUB, provider);
 
 		return dripsHub;
 	}

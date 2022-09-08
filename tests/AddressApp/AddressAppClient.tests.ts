@@ -5,8 +5,8 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import type { BigNumberish } from 'ethers';
 import { constants, Wallet } from 'ethers';
-import type { AddressApp as AddressAppContract, IERC20 } from '../../contracts';
-import { IERC20__factory, AddressApp__factory } from '../../contracts';
+import type { AddressAppContract, IERC20Contract } from '../../contracts';
+import { IERC20Contract__factory, AddressAppContract__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressApp';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import AddressAppClient from '../../src/AddressApp/AddressAppClient';
@@ -44,7 +44,7 @@ describe('AddressAppClient', () => {
 		addressAppContractStub = stubInterface<AddressAppContract>();
 
 		sinon
-			.stub(AddressApp__factory, 'connect')
+			.stub(AddressAppContract__factory, 'connect')
 			.withArgs(Utils.Network.chainDripsMetadata[TEST_CHAIN_ID].CONTRACT_ADDRESS_APP, signerStub)
 			.returns(addressAppContractStub);
 
@@ -150,10 +150,10 @@ describe('AddressAppClient', () => {
 			const erc20Address = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
-			const erc20ContractStub = stubInterface<IERC20>();
+			const erc20ContractStub = stubInterface<IERC20Contract>();
 
 			sinon
-				.stub(IERC20__factory, 'connect')
+				.stub(IERC20Contract__factory, 'connect')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
@@ -168,10 +168,10 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 
-			const erc20ContractStub = stubInterface<IERC20>();
+			const erc20ContractStub = stubInterface<IERC20Contract>();
 
 			sinon
-				.stub(IERC20__factory, 'connect')
+				.stub(IERC20Contract__factory, 'connect')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
@@ -195,10 +195,10 @@ describe('AddressAppClient', () => {
 			const erc20Address = 'invalid address';
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
-			const erc20ContractStub = stubInterface<IERC20>();
+			const erc20ContractStub = stubInterface<IERC20Contract>();
 
 			sinon
-				.stub(IERC20__factory, 'connect')
+				.stub(IERC20Contract__factory, 'connect')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
@@ -213,10 +213,10 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
 
-			const erc20ContractStub = stubInterface<IERC20>();
+			const erc20ContractStub = stubInterface<IERC20Contract>();
 
 			sinon
-				.stub(IERC20__factory, 'connect')
+				.stub(IERC20Contract__factory, 'connect')
 				.withArgs(erc20Address, testAddressAppClient.signer)
 				.returns(erc20ContractStub);
 
