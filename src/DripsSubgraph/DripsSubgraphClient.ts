@@ -49,7 +49,7 @@ export default class DripsSubgraphClient {
 			userAssetConfig: UserAssetConfig;
 		};
 
-		const response = await this.query<ApiResponse>(gql.getUserAssetConfigById, {
+		const response = await this.query<ApiResponse>(gql.getUserAssetConfig, {
 			configId: `${userId}-${assetId}`
 		});
 
@@ -73,9 +73,13 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigs, { userId });
 
-		const assetConfigs = response?.data?.user?.assetConfigs;
+		const user = response?.data?.user;
 
-		return assetConfigs;
+		if (!user) {
+			throw DripsErrors.subgraphQueryError(`User with ID: '${userId}' does not exist.`);
+		}
+
+		return user.assetConfigs || [];
 	}
 
 	/**
@@ -84,7 +88,7 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfiguration(userId: string): Promise<SplitEntry[]> {
+	public async getSplitEntries(userId: string): Promise<SplitEntry[]> {
 		type ApiResponse = {
 			user: {
 				splitsEntries: SplitEntry[];
@@ -93,9 +97,13 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<ApiResponse>(gql.getSplitEntries, { userId });
 
-		const splitsEntries = response?.data?.user?.splitsEntries;
+		const user = response?.data?.user;
 
-		return splitsEntries || [];
+		if (!user) {
+			throw DripsErrors.subgraphQueryError(`User with ID: '${userId}' does not exist.`);
+		}
+
+		return user.splitsEntries || [];
 	}
 
 	/** @internal */

@@ -27,8 +27,8 @@ query getSplitEntries($userId: ID!) {
 }
 `;
 
-export const getUserAssetConfigById = `#graphql
-query getUserAssetConfigById($configId: ID!) {
+export const getUserAssetConfig = `#graphql
+query getUserAssetConfig($configId: ID!) {
 	userAssetConfig(id: $configId) {
 		id
 		assetId

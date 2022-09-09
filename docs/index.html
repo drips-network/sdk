@@ -1,0 +1,48 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>radicle-drips</title><meta name="description" content="Documentation for radicle-drips"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">radicle-drips</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>radicle-drips </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#drips-js-sdk" id="drips-js-sdk" style="color: inherit; text-decoration: none;">
+  <h1>Drips JS SDK</h1>
+</a>
+<p>A Javascript SDK for 💦 <a href="https://drips.network/">drips.network</a>. </p>
+<p>Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and splitting funding streams among multiple recipients. With Drips there are no 💸 commissions, predatory 👔 middle-men, or 🏦 banks involved. </p>
+<p>Drips is a part of the <a href="https://radicle.xyz/">Radicle</a> ecosystem of projects. See the <a href="https://docs.drips.network/">Drips docs</a> for more details about the Drips protocol and how to use it.</p>
+
+<a href="#how-to-use-this-sdk" id="how-to-use-this-sdk" style="color: inherit; text-decoration: none;">
+  <h3>How To Use This SDK</h3>
+</a>
+<p>The Drips SDK is intended to be used by developers primarily as a Javascript package installed into their projects. We plan to add the project to npm soon, but for now, users can include it into their project&#39;s package.json as a dependency by using this command:</p>
+<p><code>npm i https://github.com/radicle-dev/drips-js-sdk#v0.1.1</code></p>
+
+<a href="#api-documentation-in-typedoc" id="api-documentation-in-typedoc" style="color: inherit; text-decoration: none;">
+  <h3>API Documentation in TypeDoc</h3>
+</a>
+<p>The SDK contains API/type-level documentation, generated using TypeDoc.</p>
+<p>To browse it, clone this project to your local machine, and open docs/index.html in your local web browser.</p>
+
+<a href="#getting-started-with-examples" id="getting-started-with-examples" style="color: inherit; text-decoration: none;">
+  <h3>Getting Started With Examples</h3>
+</a>
+<p>The <code>examples/web</code> directory contains example code that illustrates how Drips can be incorporated into a web project. To get started exploring the Drips SDK through these examples, we recommend first cloning repository to your local machine:</p>
+<p><code>git clone https://github.com/radicle-dev/drips-js-sdk.git</code></p>
+<p>Now change directory to the directory for the web example:</p>
+<p><code>cd examples/web</code></p>
+<p>Next, you&#39;ll need to install the javascript dependencies for the example project using npm (you&#39;ll need to make sure npm installed on your machine before completing this step):</p>
+<p><code>npm i</code></p>
+<p>Once the dependencies have been installed, you can start Svelte. Svelte is a lightweight local web server:</p>
+<p><code>npm run dev</code></p>
+<p>You should now have a web server running the web-based Drips SDK example locally. Open your web browser and go to <a href="http://localhost:8080/index.html">http://localhost:8080/index.html</a>. You should see a simple UI that will let you explore the majority of the Drips SDK functionality. A few notes:</p>
+<ol>
+<li><p>Take a look at the code in examples/web/src/App.svelte to see how this example web app is utilizing DripsClient, and play around with the code in App.svelte and the other *.svelte fiiles in src/components.</p>
+</li>
+<li><p>By default, the example is set to work with the Drips contracts on the Rinkeby test network. If you want to use a different network for testing, you&#39;ll need to change the <code>networkToUse</code> variable in App.svelte.</p>
+</li>
+<li><p>You will need to click on the <code>Connect</code> button in the UI to connect your MetaMask or WalletConnect wallet before the other functionality will be enabled.</p>
+</li>
+</ol>
+<p>Enjoy!</p>
+
+<a href="#related-resources" id="related-resources" style="color: inherit; text-decoration: none;">
+  <h3>Related Resources</h3>
+</a>
+<p>The <a href="https://docs.drips.network/docs/for-developers/technical-overview">Technical Overview</a> page from the Drips documentation gives a concise high-level overview of how Drips works, as well as providing links to all of the project&#39;s repositories. </p>
+<p>The [Smart Contract and Subgraph Details][<a href="https://docs.drips.network/docs/for-developers/smart-contract-and-subgraph-details%5D">https://docs.drips.network/docs/for-developers/smart-contract-and-subgraph-details]</a> page from the Drips docuemntation provides an aggregated list of details for all of the project&#39;s smart contracts and subgraphs for all networks where Drips has been deployed.</p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/AddressApp.html">Address<wbr/>App</a></li><li class=" tsd-kind-namespace"><a href="modules/DripsHub.html">Drips<wbr/>Hub</a></li><li class=" tsd-kind-namespace"><a href="modules/Utils.html">Utils</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-enum"><a href="enums/DripsErrorCode.html" class="tsd-kind-icon">Drips<wbr/>Error<wbr/>Code</a></li><li class="tsd-kind-class"><a href="classes/AddressAppClient.html" class="tsd-kind-icon">Address<wbr/>App<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/DripsError.html" class="tsd-kind-icon">Drips<wbr/>Error</a></li><li class="tsd-kind-class"><a href="classes/DripsHubClient.html" class="tsd-kind-icon">Drips<wbr/>Hub<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/DripsSubgraphClient.html" class="tsd-kind-icon">Drips<wbr/>Subgraph<wbr/>Client</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ChainDripsMetadata" class="tsd-kind-icon">Chain<wbr/>Drips<wbr/>Metadata</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsReceiverConfig" class="tsd-kind-icon">Drips<wbr/>Receiver<wbr/>Config</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsState" class="tsd-kind-icon">Drips<wbr/>State</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SplitEntry" class="tsd-kind-icon">Split<wbr/>Entry</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SupportedChain" class="tsd-kind-icon">Supported<wbr/>Chain</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UserAssetConfig" class="tsd-kind-icon">User<wbr/>Asset<wbr/>Config</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

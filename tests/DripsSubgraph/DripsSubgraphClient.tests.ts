@@ -42,7 +42,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getDripsConfiguration()', () => {
+	describe('getUserAssetConfig()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
@@ -65,7 +65,7 @@ describe('DripsSubgraphClient', () => {
 
 			const queryStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserAssetConfigById, { configId: `${expectedConfig.id}` })
+				.withArgs(gql.getUserAssetConfig, { configId: `${expectedConfig.id}` })
 				.resolves({
 					data: {
 						userAssetConfig: expectedConfig
@@ -78,13 +78,13 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(actualConfig, expectedConfig);
 			assert(
-				queryStub.calledOnceWithExactly(gql.getUserAssetConfigById, sinon.match({ configId })),
+				queryStub.calledOnceWithExactly(gql.getUserAssetConfig, sinon.match({ configId })),
 				'Expected method to be called with different arguments'
 			);
 		});
 	});
 
-	describe('getAllDripsConfigurations()', () => {
+	describe('getAllUserAssetConfigs()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
@@ -128,9 +128,52 @@ describe('DripsSubgraphClient', () => {
 				'Expected method to be called with different arguments'
 			);
 		});
+
+		it('should return an empty array if configs do not exist', async () => {
+			// Arrange
+			const userId = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getAllUserAssetConfigs, { userId })
+				.resolves({
+					data: {
+						user: {}
+					}
+				});
+
+			// Act
+			const actualConfigs = await testSubgraphClient.getAllUserAssetConfigs(userId);
+
+			// Assert
+			assert.equal(actualConfigs.length, 0);
+		});
+
+		it('should throw subgraphQueryError when user does not exist', async () => {
+			// Arrange
+			const userId = '1';
+
+			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getAllUserAssetConfigs, { userId }).resolves({
+				data: {}
+			});
+
+			let threw = false;
+
+			// Act
+			try {
+				await testSubgraphClient.getAllUserAssetConfigs(userId);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
 	});
 
-	describe('getSplitsConfiguration()', () => {
+	describe('getSplitEntries()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
@@ -152,7 +195,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const splits = await testSubgraphClient.getSplitsConfiguration(userId);
+			const splits = await testSubgraphClient.getSplitEntries(userId);
 
 			// Assert
 			assert.equal(splits, splitsEntries);
@@ -175,7 +218,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const splits = await testSubgraphClient.getSplitsConfiguration(userId);
+			const splits = await testSubgraphClient.getSplitEntries(userId);
 
 			// Assert
 			assert.isEmpty(splits);
@@ -183,6 +226,29 @@ describe('DripsSubgraphClient', () => {
 				clientStub.calledOnceWithExactly(gql.getSplitEntries, { userId }),
 				'Expected method to be called with different arguments'
 			);
+		});
+
+		it('should throw subgraphQueryError when user does not exist', async () => {
+			// Arrange
+			const userId = '1';
+
+			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getAllUserAssetConfigs, { userId }).resolves({
+				data: {}
+			});
+
+			let threw = false;
+
+			// Act
+			try {
+				await testSubgraphClient.getSplitEntries(userId);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 	});
 
