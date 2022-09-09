@@ -38,10 +38,15 @@
 		const userId = await addressAppClient.getUserId();
 		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
-		return userAssetConfig.dripsEntries.map((d) => ({
-			config: d.config,
-			userId: d.receiverUserId
-		}));
+		return (
+			userAssetConfig?.dripsEntries.map((d) => ({
+				config: d.config,
+				userId: d.receiverUserId
+			})) ||
+			// If the configuration is new (or the configuration does not exist), the query will return undefined, and we should pass an empty array.
+			// Take a look at the setDrips() method.
+			[]
+		);
 	};
 
 	const setDrips = async () => {

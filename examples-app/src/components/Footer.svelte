@@ -6,7 +6,10 @@
 		CSS:
 		<a href="https://terminalcss.xyz/" target="_blank">Terminal CSS</a>
 	</p>
-	<p class="copywrite">Developed by the <a href="https://radicle.network/" target="_blank">Radicle</a> Drips Team 🖤</p>
+	<p class="copywrite">
+		Developed by the <a href="https://radicle.network/" target="_blank">Radicle</a>
+		<a href="https://discord.com/channels/841318878125490186/930862758017245215" target="_blank">Drips</a> Team 🖤
+	</p>
 </footer>
 
 <style>

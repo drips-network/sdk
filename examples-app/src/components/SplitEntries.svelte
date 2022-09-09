@@ -9,16 +9,16 @@
 	let splitEntries: SplitEntry[];
 
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
-	$: if (isConnected) getSplitEntries();
+	$: if (isConnected) getSplitsConfig();
 
-	export const getSplitEntries = async () => {
+	export const getSplitsConfig = async () => {
 		try {
 			errorMessage = null;
 			splitEntries = null;
 
 			const userId = await addressAppClient.getUserId();
 
-			splitEntries = await dripsSubgraphClient.getSplitsConfiguration(userId);
+			splitEntries = await dripsSubgraphClient.getUserAssetConfig(userId);
 		} catch (error: any) {
 			errorMessage = error.message;
 

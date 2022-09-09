@@ -26,7 +26,7 @@
 			<h2>Properties</h2>
 		</header>
 
-		<table>
+		<table class="table">
 			<thead>
 				<tr>
 					<th>Property</th>
@@ -79,3 +79,15 @@
 	</section>
 	<hr />
 </div>
+
+<style>
+	.table {
+		max-width: var(--page-width);
+	}
+
+	.table td {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+</style>

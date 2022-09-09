@@ -48,13 +48,12 @@
 		try {
 			const userId = await addressAppClient.getUserId();
 
-			const splitsConfig = await dripsSubgraphClient.getSplitsConfiguration(userId);
+			const splitsConfig = await dripsSubgraphClient.getSplitsConfig(userId);
 
-			const currentReceivers: AddressApp.SplitsReceiverStruct[] =
-				splitsConfig?.map((s) => ({
-					weight: s.weight,
-					userId: s.receiverUserId
-				})) || []; // TODO: Remove the or.;
+			const currentReceivers: AddressApp.SplitsReceiverStruct[] = splitsConfig.map((s) => ({
+				weight: s.weight,
+				userId: s.receiverUserId
+			}));
 
 			collectTx = await addressAppClient.collectAll(erc20TokenAddress, currentReceivers);
 			console.log(collectTx);
@@ -111,13 +110,12 @@
 		try {
 			const userId = await addressAppClient.getUserIdByAddress(userAddress);
 
-			const splitsConfig = await dripsSubgraphClient.getSplitsConfiguration(userId);
+			const splitsConfig = await dripsSubgraphClient.getSplitsConfig(userId);
 
-			const currentReceivers: AddressApp.SplitsReceiverStruct[] =
-				splitsConfig?.map((s) => ({
-					weight: s.weight,
-					userId: s.receiverUserId
-				})) || []; // TODO: Remove the or.
+			const currentReceivers: AddressApp.SplitsReceiverStruct[] = splitsConfig.map((s) => ({
+				weight: s.weight,
+				userId: s.receiverUserId
+			}));
 
 			collectForAddressTx = await addressAppClient.collectAllForAddress(
 				userAddress,

@@ -91,6 +91,11 @@
 			<ul>
 				<li>
 					<a href="https://v2.docs.drips.network/docs/whats-a-drip.html" target="_blank" class="menu-item"
+						><span>What's this app?</span></a
+					>
+				</li>
+				<li>
+					<a href="https://v2.docs.drips.network/docs/whats-a-drip.html" target="_blank" class="menu-item"
 						><span>Docs</span></a
 					>
 				</li>

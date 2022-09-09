@@ -1,5 +1,6 @@
 .terminal-alert {
-	max-width: 800px;
+	max-width: var(--page-width);
+	word-wrap: break-word;
 }
 
 .btn:disabled {
