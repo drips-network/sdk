@@ -161,6 +161,29 @@ describe('DripsSubgraphClient', () => {
 				'Expected method to be called with different arguments'
 			);
 		});
+
+		it('should return an empty array when splits does not exist', async () => {
+			// Arrange
+			const userId = '1';
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSplitEntries, { userId })
+				.resolves({
+					data: {
+						user: {}
+					}
+				});
+
+			// Act
+			const splits = await testSubgraphClient.getSplitsConfiguration(userId);
+
+			// Assert
+			assert.isEmpty(splits);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getSplitEntries, { userId }),
+				'Expected method to be called with different arguments'
+			);
+		});
 	});
 
 	describe('query()', async () => {

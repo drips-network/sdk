@@ -163,8 +163,8 @@ describe('addressAppClientValidators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123,
-					weight: undefined as unknown as BigNumberish
+					weight: 123,
+					userId: undefined as unknown as string
 				}
 			];
 

@@ -1,5 +1,3 @@
-/* eslint-disable max-classes-per-file */
-
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import type { ChainDripsMetadata, SupportedChain } from './AddressApp/types';

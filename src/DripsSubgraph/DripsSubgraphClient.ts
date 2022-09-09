@@ -95,7 +95,7 @@ export default class DripsSubgraphClient {
 
 		const splitsEntries = response?.data?.user?.splitsEntries;
 
-		return splitsEntries;
+		return splitsEntries || [];
 	}
 
 	/** @internal */
