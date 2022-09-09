@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressApp, AddressAppClient } from 'drips-sdk';
+	import type { AddressApp, AddressAppClient } from 'radicle-drips';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressAppClient: AddressAppClient;
@@ -37,10 +37,10 @@
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
-		} catch (error) {
+		} catch (error: any) {
 			errorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 
 		started = false;
@@ -91,7 +91,7 @@
 				{:else if txReceipt}
 					<div class="terminal-alert terminal-alert-primary">
 						<p>Updated ✅</p>
-						<p>Wait for a few seconds to disconnect and connect again to see the updated splits.</p>
+						<p>Wait for a few seconds and refresh to see the updated configuration.</p>
 					</div>
 				{:else if tx}
 					<div class="terminal-alert terminal-alert-primary">

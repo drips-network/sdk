@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressAppClient, DripsError, DripsErrorCode, DripsSubgraphClient, utils } from 'drips-sdk';
+	import { AddressAppClient, DripsError, DripsErrorCode, DripsSubgraphClient, Utils } from 'radicle-drips';
 	// TODO: https://github.com/WalletConnect/walletconnect-monorepo/issues/341
 	import WalletConnectProvider from '@walletconnect/web3-provider/dist/umd/index.min';
 	import Web3Modal from 'web3modal';
@@ -7,9 +7,6 @@
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
-
-	// Change this to connect to a different provider.
-	const { SUBGRAPH_URL } = utils.getNetworkProperties('goerli');
 
 	const web3Modal = new Web3Modal({
 		cacheProvider: true,
@@ -29,39 +26,42 @@
 
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
 
+	const createAddressAppClient = async () => {
+		const walletProvider = await web3Modal.connect();
+		const provider = new providers.Web3Provider(walletProvider, 'any');
+
+		// https://docs.ethers.io/v5/concepts/best-practices/#best-practices--network-changes
+		provider.on('network', (newNetwork, oldNetwork) => {
+			if (oldNetwork) {
+				window.location.reload();
+			}
+		});
+
+		addressAppClient = await AddressAppClient.create(provider);
+	};
+
+	const createDripsSubgraphClient = () => {
+		const { SUBGRAPH_URL } = Utils.Network.chainDripsMetadata[5]; // The key is the chain ID. In the example here, we connect to the 'goerli' network.
+
+		dripsSubgraphClient = DripsSubgraphClient.create(SUBGRAPH_URL);
+	};
+
 	const connect = async () => {
 		try {
-			resetLocalState();
-
-			const walletProvider = await web3Modal.connect();
-			const provider = new providers.Web3Provider(walletProvider);
-
-			addressAppClient = await AddressAppClient.create(provider);
-			dripsSubgraphClient = DripsSubgraphClient.create(SUBGRAPH_URL);
-
-			console.log('AddressAppClient created:');
-			console.log(addressAppClient);
-			console.log('DripsSubgraphClient created:');
-			console.log(dripsSubgraphClient);
+			await createAddressAppClient();
+			createDripsSubgraphClient();
 
 			dispatch('connected', {
 				addressAppClient,
 				dripsSubgraphClient
 			});
-		} catch (error) {
-			// Example for handling a specific DripsError.
-			let errorMessage: string;
+		} catch (error: any) {
+			console.error(error);
 
-			if (error?.code === DripsErrorCode.INVALID_ARGUMENT) {
-				errorMessage = `${error.code} : ${error.message}`;
-			} else {
-				errorMessage = error.message;
-			}
-
-			console.log(error);
+			resetLocalState();
 
 			dispatch('connectionFailed', {
-				errorMessage
+				errorMessage: error.message
 			});
 		}
 	};
@@ -84,7 +84,7 @@
 <div class="container">
 	<div class="terminal-nav">
 		<header class="terminal-logo">
-			<div class="logo terminal-prompt">DripsJS v0.2 Examples</div>
+			<div class="logo terminal-prompt">DripsJS SDK v2</div>
 		</header>
 
 		<nav class="terminal-menu">

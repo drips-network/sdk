@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressApp, AddressAppClient, DripsReceiverConfig, DripsSubgraphClient, utils } from 'drips-sdk';
+	import { AddressApp, AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressAppClient: AddressAppClient;
@@ -32,6 +32,18 @@
 
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
 
+	const getCurrentReceivers = async () => {
+		const assetId = Utils.Asset.getIdFromAddress(erc20TokenAddress);
+
+		const userId = await addressAppClient.getUserId();
+		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
+
+		return userAssetConfig.dripsEntries.map((d) => ({
+			config: d.config,
+			userId: d.receiverUserId
+		}));
+	};
+
 	const setDrips = async () => {
 		tx = null;
 		started = true;
@@ -39,41 +51,23 @@
 		errorMessage = null;
 
 		try {
-			// Setting a drips configurationrequires the following information:
-			// 1. Token address
-			// 2. Current Eeceivers
-			// 3. Balance Delta
-			// 4. New Receivers
+			const balanceDelta = 0; // Configure the user asset config without updating the balance.
 
-			// 1. Getting the asset ID
-			const assetId = utils.getAssetIdFromAddress(erc20TokenAddress);
+			const currentReceivers = await getCurrentReceivers();
 
-			// 2. Getting the Current Receivers
-			const userId = await addressAppClient.getUserId();
-			const configToUpdate = await dripsSubgraphClient.getDripsConfiguration(userId, assetId);
-			let currentReceivers: AddressApp.DripsReceiverStruct[] =
-				utils.mappers.mapDripsReceiverDtosToStructs(configToUpdate?.dripsReceivers) || [];
-
-			currentReceivers = currentReceivers.map((r) => ({ userId: r.userId, config: r.config.toString() }));
-
-			// 3. Getting the Balance Delta
-			// The setDrips() method allows configuring drips receivers and updating the balance in one go.
-			// For simplicity, in this example, we'll configure the drips receivers without updating the balance.
-			// See "TopUp Drips Configuration", which uses the same method for modifying the balance.
-			const balanceDelta = 0;
-
-			// 4. Getting the New Receivers
 			const newReceivers: AddressApp.DripsReceiverStruct[] = await Promise.all(
 				dripsInputs
 					// Ignore inputs without values.
 					.filter((d) => d.config.amountPerSec && d.userAddress.length)
+					// Map from form inputs to DTOs.
 					.map(async (d) => {
 						const userId = await addressAppClient.getUserIdByAddress(d.userAddress);
 
-						// Watch out for 'null' `duration` and `start` values.
-						// Passing 'undefined' is OK and will set the parameters to the default values.
-						// 'null' will result in an Error.
-						const config = new DripsReceiverConfig(d.config.amountPerSec, d.config.duration, d.config.start).asUint256;
+						const config = Utils.DripsReceiverConfiguration.toUint256String({
+							start: d.config.start,
+							duration: d.config.duration,
+							amountPerSec: d.config.amountPerSec
+						});
 
 						return {
 							userId,
@@ -87,10 +81,9 @@
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
-		} catch (error) {
+		} catch (error: any) {
 			errorMessage = error.message;
-
-			console.log(error);
+			console.error(error);
 		}
 
 		started = false;
@@ -110,12 +103,12 @@
 <div class="container">
 	<section>
 		<header>
-			<h2>Set Drips Configuration</h2>
+			<h2>Set User Asset Config</h2>
 		</header>
 
 		<form>
 			<fieldset>
-				<legend>Drips Configuration</legend>
+				<legend>User Asset Config</legend>
 
 				<label for="assetId">Token:</label>
 				<div class="form-group">
@@ -155,7 +148,7 @@
 					{:else if txReceipt}
 						<div class="terminal-alert terminal-alert-primary">
 							<p>Updated ✅</p>
-							<p>Wait for a few seconds to disconnect and connect again to see the updated drips.</p>
+							<p>Wait for a few seconds and refresh to see the updated configuration.</p>
 						</div>
 					{:else if tx}
 						<div class="terminal-alert terminal-alert-primary">

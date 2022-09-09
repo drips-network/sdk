@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsSubgraphClient, SplitEntry } from 'drips-sdk';
+	import type { AddressAppClient, DripsSubgraphClient, SplitEntry } from 'radicle-drips';
 	import JSONTree from 'svelte-json-tree';
 
 	export let addressAppClient: AddressAppClient;
@@ -19,10 +19,10 @@
 			const userId = await addressAppClient.getUserId();
 
 			splitEntries = await dripsSubgraphClient.getSplitsConfiguration(userId);
-		} catch (error) {
+		} catch (error: any) {
 			errorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 	};
 

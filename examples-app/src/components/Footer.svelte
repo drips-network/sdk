@@ -1,12 +1,12 @@
 <footer>
 	<p>
-		Code is for demonstation purposes only - <strong>not for production</strong>.
+		The code is for demonstration purposes only - <strong>not for production</strong>.
 	</p>
 	<p>
 		CSS:
 		<a href="https://terminalcss.xyz/" target="_blank">Terminal CSS</a>
 	</p>
-	<div class="copywrite"><a href="https://radicle.xyz/" target="_blank">Radicle 🌱</a></div>
+	<p class="copywrite">Developed by the <a href="https://radicle.network/" target="_blank">Radicle</a> Drips Team 🖤</p>
 </footer>
 
 <style>

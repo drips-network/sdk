@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressApp, AddressAppClient, DripsSubgraphClient, utils } from 'drips-sdk';
+	import type { AddressApp, AddressAppClient, DripsSubgraphClient } from 'radicle-drips';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
@@ -11,7 +11,7 @@
 	let collectStarted = false;
 	let collectErrorMessage: string;
 	let collectTx: ContractTransaction;
-	let collectErc20TokenAddress: string;
+	let collectTokenAddressInput: string;
 	let collectTxReceipt: ContractReceipt;
 
 	$: isConnected = Boolean(addressAppClient);
@@ -30,10 +30,10 @@
 			console.log(collectTxReceipt);
 
 			dispatch('collected');
-		} catch (error) {
+		} catch (error: any) {
 			collectErrorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 
 		collectStarted = false;
@@ -48,8 +48,13 @@
 		try {
 			const userId = await addressAppClient.getUserId();
 
-			const splitEntries = await dripsSubgraphClient.getSplitEntries(userId);
-			const currentReceivers: AddressApp.SplitsReceiverStruct[] = utils.mapSplitsDtosToStructs(splitEntries);
+			const splitsConfig = await dripsSubgraphClient.getSplitsConfiguration(userId);
+
+			const currentReceivers: AddressApp.SplitsReceiverStruct[] =
+				splitsConfig?.map((s) => ({
+					weight: s.weight,
+					userId: s.receiverUserId
+				})) || []; // TODO: Remove the or.;
 
 			collectTx = await addressAppClient.collectAll(erc20TokenAddress, currentReceivers);
 			console.log(collectTx);
@@ -58,20 +63,20 @@
 			console.log(collectTxReceipt);
 
 			dispatch('collected');
-		} catch (error) {
+		} catch (error: any) {
 			collectErrorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 
 		collectStarted = false;
 	};
 
-	let userAddress: string;
 	let collectForAddressStarted = false;
 	let collectForAddressErrorMessage: string;
 	let collectForAddressTx: ContractTransaction;
-	let collectForAddressErc20TokenAddress: string;
+	let collectForAddressUserAddressInput: string;
+	let collectForAddressTokenAddressInput: string;
 	let collectForAddressTxReceipt: ContractReceipt;
 
 	const collectForAddress = async (userAddress: string, erc20TokenAddress: string) => {
@@ -88,10 +93,10 @@
 			console.log(collectForAddressTxReceipt);
 
 			dispatch('collected');
-		} catch (error) {
+		} catch (error: any) {
 			collectForAddressErrorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 
 		collectForAddressStarted = false;
@@ -104,10 +109,15 @@
 		collectForAddressErrorMessage = null;
 
 		try {
-			const userId = await addressAppClient.getUserId();
+			const userId = await addressAppClient.getUserIdByAddress(userAddress);
 
-			const splitEntries = await dripsSubgraphClient.getSplitEntries(userId);
-			const currentReceivers: AddressApp.SplitsReceiverStruct[] = utils.mapSplitsDtosToStructs(splitEntries);
+			const splitsConfig = await dripsSubgraphClient.getSplitsConfiguration(userId);
+
+			const currentReceivers: AddressApp.SplitsReceiverStruct[] =
+				splitsConfig?.map((s) => ({
+					weight: s.weight,
+					userId: s.receiverUserId
+				})) || []; // TODO: Remove the or.
 
 			collectForAddressTx = await addressAppClient.collectAllForAddress(
 				userAddress,
@@ -120,10 +130,10 @@
 			console.log(collectForAddressTxReceipt);
 
 			dispatch('collected');
-		} catch (error) {
+		} catch (error: any) {
 			collectForAddressErrorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 
 		collectForAddressStarted = false;
@@ -133,16 +143,16 @@
 
 	const reset = () => {
 		collectTx = null;
-		userAddress = null;
 		collectStarted = false;
 		collectTxReceipt = null;
 		collectErrorMessage = null;
 		collectForAddressTx = null;
-		collectErc20TokenAddress = null;
+		collectTokenAddressInput = null;
 		collectForAddressStarted = false;
 		collectForAddressTxReceipt = null;
 		collectForAddressErrorMessage = null;
-		collectForAddressErc20TokenAddress = null;
+		collectForAddressUserAddressInput = null;
+		collectForAddressTokenAddressInput = null;
 	};
 </script>
 
@@ -162,7 +172,7 @@
 						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
 						type="text"
 						name="token"
-						bind:value={collectErc20TokenAddress}
+						bind:value={collectTokenAddressInput}
 					/>
 				</div>
 				<div class="form-group">
@@ -170,13 +180,13 @@
 						class="btn btn-default"
 						disabled={!isConnected}
 						type="button"
-						on:click={() => collect(collectErc20TokenAddress)}>Collect</button
+						on:click={() => collect(collectTokenAddressInput)}>Collect</button
 					>
 					<button
 						class="btn btn-default"
 						disabled={!isConnected}
 						type="button"
-						on:click={() => collectAll(collectErc20TokenAddress)}>Collect All</button
+						on:click={() => collectAll(collectTokenAddressInput)}>Collect All</button
 					>
 				</div>
 				<div>
@@ -211,7 +221,7 @@
 						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
 						type="text"
 						name="token"
-						bind:value={collectForAddressErc20TokenAddress}
+						bind:value={collectForAddressTokenAddressInput}
 					/>
 				</div>
 				<div class="form-group">
@@ -220,7 +230,7 @@
 						type="text"
 						name="address"
 						placeholder="User Address (e.g. 0x945AFA63507e56748368D3F31ccC35043efDbd4b)"
-						bind:value={userAddress}
+						bind:value={collectForAddressUserAddressInput}
 					/>
 				</div>
 				<div class="form-group">
@@ -228,13 +238,15 @@
 						class="btn btn-default"
 						disabled={!isConnected}
 						type="button"
-						on:click={() => collectForAddress(userAddress, collectForAddressErc20TokenAddress)}>Collect</button
+						on:click={() => collectForAddress(collectForAddressTokenAddressInput, collectForAddressUserAddressInput)}
+						>Collect</button
 					>
 					<button
 						class="btn btn-default"
 						disabled={!isConnected}
 						type="button"
-						on:click={() => collectAllForAddress(collectErc20TokenAddress, userAddress)}>Collect All</button
+						on:click={() => collectAllForAddress(collectForAddressTokenAddressInput, collectForAddressUserAddressInput)}
+						>Collect All</button
 					>
 				</div>
 				{#if collectForAddressErrorMessage}

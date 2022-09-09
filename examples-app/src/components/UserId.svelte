@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressAppClient } from 'drips-sdk';
+	import type { AddressAppClient } from 'radicle-drips';
 
 	export let addressAppClient: AddressAppClient;
 
@@ -15,11 +15,11 @@
 			errorMessage = null;
 
 			userId = await addressAppClient.getUserIdByAddress(userAddress);
-		} catch (error) {
+		} catch (error: any) {
 			userId = null;
 			errorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 	};
 

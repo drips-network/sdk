@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressAppClient } from 'drips-sdk';
+	import type { AddressAppClient } from 'radicle-drips';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressAppClient: AddressAppClient;
@@ -24,10 +24,10 @@
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
-		} catch (error) {
+		} catch (error: any) {
 			approvalErrorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 
 		started = false;
@@ -43,11 +43,11 @@
 			allowanceErrorMessage = null;
 
 			allowance = await addressAppClient.getAllowance(tokenAddress);
-		} catch (error) {
+		} catch (error: any) {
 			allowance = null;
 			allowanceErrorMessage = error.message;
 
-			console.log(error);
+			console.error(error);
 		}
 	};
 

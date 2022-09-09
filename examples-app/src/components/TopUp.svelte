@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressApp, AddressAppClient, DripsReceiverConfig, DripsSubgraphClient, utils } from 'drips-sdk';
+	import { AddressApp, AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
@@ -30,14 +30,14 @@
 		errorMessage = null;
 
 		try {
-			const assetId = utils.getAssetIdFromAddress(topUpToken);
+			const assetId = Utils.Asset.getIdFromAddress(topUpToken);
 
-			const configToUpdate = await dripsSubgraphClient.getDripsConfiguration(userId, assetId);
+			const configToUpdate = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
-			let currentReceivers: AddressApp.DripsReceiverStruct[] =
-				utils.mappers.mapDripsReceiverDtosToStructs(configToUpdate?.dripsReceivers) || [];
-
-			currentReceivers = currentReceivers.map((r) => ({ userId: r.userId, config: r.config.toString() }));
+			const currentReceivers = configToUpdate.dripsEntries.map((r) => ({
+				config: r.config,
+				userId: r.receiverUserId
+			}));
 
 			tx = await addressAppClient.setDrips(topUpToken, currentReceivers, currentReceivers, topUpAmount);
 			console.log(tx);
@@ -46,9 +46,9 @@
 			console.log(txReceipt);
 
 			dispatch('topUpDone');
-		} catch (error) {
+		} catch (error: any) {
 			errorMessage = error.message;
-			console.log(error);
+			console.error(error);
 		}
 
 		started = false;

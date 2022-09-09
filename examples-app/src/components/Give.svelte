@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressAppClient } from 'drips-sdk';
+	import type { AddressAppClient } from 'radicle-drips';
 	import type { BigNumberish, ContractReceipt, ContractTransaction } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
@@ -24,7 +24,7 @@
 		errorMessage = null;
 
 		try {
-			const receiverId = await addressAppClient.getUserIdForAddress(receiverAddress);
+			const receiverId = await addressAppClient.getUserIdByAddress(receiverAddress);
 
 			tx = await addressAppClient.give(receiverId, erc20TokenAddress, amount);
 			console.log(tx);
@@ -33,9 +33,9 @@
 			console.log(txReceipt);
 
 			dispatch('giveCompleted');
-		} catch (error) {
+		} catch (error: any) {
 			errorMessage = error.message;
-			console.log(error);
+			console.error(error);
 		}
 
 		started = false;

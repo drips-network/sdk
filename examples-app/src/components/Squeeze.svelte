@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsHubLogic, DripsSubgraphClient } from 'drips-sdk';
+	import type { AddressAppClient, DripsHubLogic, DripsSubgraphClient } from 'radicle-drips';
 	import type { BigNumber, BytesLike } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
@@ -38,9 +38,9 @@
 				historyHash,
 				dripsHistory
 			);
-		} catch (error) {
+		} catch (error: any) {
 			errorMessage = error.message;
-			console.log(error);
+			console.error(error);
 		}
 	};
 
