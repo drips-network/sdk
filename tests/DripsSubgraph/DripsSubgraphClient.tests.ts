@@ -173,7 +173,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getSplitEntries()', () => {
+	describe('getSplitsConfig()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
@@ -185,7 +185,7 @@ describe('DripsSubgraphClient', () => {
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitEntries, { userId })
+				.withArgs(gql.getSplitsConfig, { userId })
 				.resolves({
 					data: {
 						user: {
@@ -195,12 +195,12 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const splits = await testSubgraphClient.getSplitEntries(userId);
+			const splits = await testSubgraphClient.getSplitsConfig(userId);
 
 			// Assert
 			assert.equal(splits, splitsEntries);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitEntries, { userId }),
+				clientStub.calledOnceWithExactly(gql.getSplitsConfig, { userId }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -210,7 +210,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitEntries, { userId })
+				.withArgs(gql.getSplitsConfig, { userId })
 				.resolves({
 					data: {
 						user: {}
@@ -218,12 +218,12 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const splits = await testSubgraphClient.getSplitEntries(userId);
+			const splits = await testSubgraphClient.getSplitsConfig(userId);
 
 			// Assert
 			assert.isEmpty(splits);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitEntries, { userId }),
+				clientStub.calledOnceWithExactly(gql.getSplitsConfig, { userId }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -240,7 +240,7 @@ describe('DripsSubgraphClient', () => {
 
 			// Act
 			try {
-				await testSubgraphClient.getSplitEntries(userId);
+				await testSubgraphClient.getSplitsConfig(userId);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
@@ -276,7 +276,7 @@ describe('DripsSubgraphClient', () => {
 					amtPerSec: string;
 					receiver: string;
 				}[]
-			>(gql.getSplitEntries, {});
+			>(gql.getSplitsConfig, {});
 
 			// Assert
 			assert.equal(response.data, apiResponse);
@@ -292,7 +292,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.query(gql.getSplitEntries, {});
+				await testSubgraphClient.query(gql.getSplitsConfig, {});
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);

@@ -88,14 +88,14 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitEntries(userId: string): Promise<SplitEntry[]> {
+	public async getSplitsConfig(userId: string): Promise<SplitEntry[]> {
 		type ApiResponse = {
 			user: {
 				splitsEntries: SplitEntry[];
 			};
 		};
 
-		const response = await this.query<ApiResponse>(gql.getSplitEntries, { userId });
+		const response = await this.query<ApiResponse>(gql.getSplitsConfig, { userId });
 
 		const user = response?.data?.user;
 
