@@ -53,9 +53,7 @@ export default class DripsSubgraphClient {
 			configId: `${userId}-${assetId}`
 		});
 
-		const userAssetConfig = response?.data?.userAssetConfig;
-
-		return userAssetConfig;
+		return response?.data?.userAssetConfig;
 	}
 
 	/**
@@ -73,13 +71,7 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigs, { userId });
 
-		const user = response?.data?.user;
-
-		if (!user) {
-			throw DripsErrors.subgraphQueryError(`User with ID: '${userId}' does not exist.`);
-		}
-
-		return user.assetConfigs || [];
+		return response?.data?.user?.assetConfigs || [];
 	}
 
 	/**
@@ -97,13 +89,7 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<ApiResponse>(gql.getSplitsConfig, { userId });
 
-		const user = response?.data?.user;
-
-		if (!user) {
-			throw DripsErrors.subgraphQueryError(`User with ID: '${userId}' does not exist.`);
-		}
-
-		return user.splitsEntries || [];
+		return response?.data?.user?.splitsEntries || [];
 	}
 
 	/** @internal */

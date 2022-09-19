@@ -148,29 +148,6 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(actualConfigs.length, 0);
 		});
-
-		it('should throw subgraphQueryError when user does not exist', async () => {
-			// Arrange
-			const userId = '1';
-
-			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getAllUserAssetConfigs, { userId }).resolves({
-				data: {}
-			});
-
-			let threw = false;
-
-			// Act
-			try {
-				await testSubgraphClient.getAllUserAssetConfigs(userId);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
 	});
 
 	describe('getSplitsConfig()', () => {
@@ -226,29 +203,6 @@ describe('DripsSubgraphClient', () => {
 				clientStub.calledOnceWithExactly(gql.getSplitsConfig, { userId }),
 				'Expected method to be called with different arguments'
 			);
-		});
-
-		it('should throw subgraphQueryError when user does not exist', async () => {
-			// Arrange
-			const userId = '1';
-
-			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getAllUserAssetConfigs, { userId }).resolves({
-				data: {}
-			});
-
-			let threw = false;
-
-			// Act
-			try {
-				await testSubgraphClient.getSplitsConfig(userId);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 	});
 
