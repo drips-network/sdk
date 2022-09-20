@@ -1,30 +1,16 @@
-<script>
-	export let message = 'Hi';
-</script>
-
 <div class="terminal-card">
 	<header>What's this App?</header>
 	<div>
-		<p>This app demonstrates the Drips JS SDK v2 functionalities.</p>
-
-		<p>It is a quick way to explore the API and quickly show you how to contructs the calls.</p>
-
-		<p>For you to quickly start hacking Drips!</p>
-
-		<p>What this app is <strong>not</strong></p>
-
-		<div>
-			<ul>
-				<li>
-					Make sure to style list items to:
-					<ul>
-						<li><p>asdfasdf</p></li>
-						<li><p>asdfasdf</p></li>
-						<li><p>asdfasdf</p></li>
-						<li><p>asdfasdf</p></li>
-					</ul>
-				</li>
-			</ul>
-		</div>
+		<p>❌ This is <strong>not</strong> a production-ready application (and will not be).</p>
+		<p>❌ This is <strong>not</strong> a production-ready application (and will not be).</p>
+		<p>❌ It <strong>cannot</strong> be used in any real-life financial context.</p>
+		<p>
+			❌ The code is <strong>not</strong> designed to demonstrate software engineering best practices in building Svelte
+			apps. 🤠
+		</p>
+		<p>
+			✅ The code <strong>is</strong> designed to provide examples of how you can start building on Drips with the Drips
+			JS SDK v2.0! 🤓
+		</p>
 	</div>
 </div>

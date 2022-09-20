@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressApp, AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
+	import { AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 

@@ -18,7 +18,7 @@
 
 			const userId = await addressAppClient.getUserId();
 
-			splitEntries = await dripsSubgraphClient.getUserAssetConfig(userId);
+			splitEntries = await dripsSubgraphClient.getSplitsConfig(userId);
 		} catch (error: any) {
 			errorMessage = error.message;
 

@@ -1,12 +1,24 @@
 <script lang="ts">
 	import { AddressAppClient, DripsError, DripsErrorCode, DripsSubgraphClient, Utils } from 'radicle-drips';
-	// TODO: https://github.com/WalletConnect/walletconnect-monorepo/issues/341
 	import WalletConnectProvider from '@walletconnect/web3-provider/dist/umd/index.min';
 	import Web3Modal from 'web3modal';
 	import { providers } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
+	import { writable } from 'svelte/store';
+	import Modal, { bind } from 'svelte-simple-modal';
+	import Disclaimer from './Disclaimer.svelte';
 
+	const modal = writable(null);
 	const dispatch = createEventDispatcher();
+
+	const showModal = () => modal.set(bind(Disclaimer, {}));
+
+	const toggleTheme = () => {
+		light = !light;
+
+		const element = document.body;
+		element.classList.toggle('dark-mode');
+	};
 
 	const web3Modal = new Web3Modal({
 		cacheProvider: true,
@@ -79,20 +91,27 @@
 		addressAppClient = null;
 		dripsSubgraphClient = null;
 	};
+
+	let light = true;
 </script>
 
 <div class="container">
 	<div class="terminal-nav">
 		<header class="terminal-logo">
-			<div class="logo terminal-prompt">DripsJS SDK v2</div>
+			<div class="logo terminal-prompt">DripsJS SDK v2.0</div>
 		</header>
 
 		<nav class="terminal-menu">
 			<ul>
 				<li>
-					<a href="https://v2.docs.drips.network/docs/whats-a-drip.html" target="_blank" class="menu-item"
-						><span>What's this app?</span></a
+					<Modal
+						show={$modal}
+						closeButton={false}
+						styleWindow={{ backgroundColor: 'pink', boxShadow: '0 2px 5px 0 rgba(0, 0, 0, 0)' }}
+						styleContent={{ backgroundColor: 'var(--background-color)', color: 'var(--font-color)', padding: 0 }}
 					>
+						<button class="btn-disclaimer" on:click={showModal}>Disclaimer</button>
+					</Modal>
 				</li>
 				<li>
 					<a href="https://v2.docs.drips.network/docs/whats-a-drip.html" target="_blank" class="menu-item"
@@ -102,6 +121,15 @@
 				<li>
 					<a href="https://github.com/radicle-dev/drips-js-sdk" target="_blank" class="menu-item"><span>GitHub</span></a
 					>
+				</li>
+				<li>
+					<button class="btn-disclaimer" on:click={toggleTheme}>
+						{#if light}
+							<span style="height: 16px; width: 16px" class="material-icons">wb_sunny </span>
+						{:else}
+							<span style="height: 16px; width: 16px" class="material-icons">dark_mode</span>
+						{/if}
+					</button>
 				</li>
 				<li>
 					{#if !isConnected}
@@ -130,5 +158,15 @@
 		background-position: 0 -0.5em;
 		border-color: #caccd1;
 		border-color: rgba(27, 31, 36, 0.15);
+	}
+
+	.btn-disclaimer {
+		background-color: var(--background-color);
+		text-decoration: none;
+		display: block;
+		width: 100%;
+		border: none;
+		color: var(--secondary-color);
+		cursor: pointer;
 	}
 </style>
