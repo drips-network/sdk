@@ -1,11 +1,8 @@
 <script lang="ts">
 	import type { AddressAppClient } from 'radicle-drips';
 	import type { BigNumberish, ContractReceipt, ContractTransaction } from 'ethers';
-	import { createEventDispatcher } from 'svelte';
 
 	export let addressAppClient: AddressAppClient;
-
-	const dispatch = createEventDispatcher();
 
 	let amount: string;
 	let started = false;
@@ -31,8 +28,6 @@
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
-
-			dispatch('giveCompleted');
 		} catch (error: any) {
 			errorMessage = error.message;
 			console.error(error);

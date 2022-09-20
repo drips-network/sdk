@@ -53,9 +53,7 @@
 	};
 
 	const createDripsSubgraphClient = () => {
-		const { SUBGRAPH_URL } = Utils.Network.chainDripsMetadata[5]; // The key is the chain ID. In the example here, we connect to the 'goerli' network.
-
-		dripsSubgraphClient = DripsSubgraphClient.create(SUBGRAPH_URL);
+		dripsSubgraphClient = DripsSubgraphClient.create(5); // Goerli.
 	};
 
 	const connect = async () => {

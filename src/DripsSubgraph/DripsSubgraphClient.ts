@@ -20,7 +20,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Creates a new immutable `DripsSubgraphClient` instance.
 	 *
-	 * @param  {string} apiUrl The Subgraph API URL.
+	 * @param  {string} chainId The chain ID.
 	 * @throws {@link DripsErrors.argumentError} if the `chainId` is missing.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
