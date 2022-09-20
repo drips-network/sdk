@@ -1,6 +1,6 @@
 {
 	"name": "radicle-drips",
-	"version": "0.2",
+	"version": "v2",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"exports": {

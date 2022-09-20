@@ -2,7 +2,6 @@ import { assert } from 'chai';
 import { Wallet } from 'ethers';
 import * as sinon from 'sinon';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { SupportedChain } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import * as gql from '../../src/DripsSubgraph/gql';
 import type { UserAssetConfig, SplitEntry } from '../../src/DripsSubgraph/types';
@@ -27,7 +26,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				DripsSubgraphClient.create(undefined as unknown as SupportedChain);
+				DripsSubgraphClient.create(undefined as unknown as number);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -48,7 +47,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				DripsSubgraphClient.create(7 as SupportedChain);
+				DripsSubgraphClient.create(7 as number);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);

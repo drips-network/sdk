@@ -5,7 +5,7 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
 import { constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressApp';
-import type { ChainDripsMetadata, SupportedChain } from 'src/common/types';
+import type { ChainDripsMetadata } from 'src/common/types';
 import Utils from '../utils';
 import { validateAddress, nameOf, toBN } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -104,8 +104,7 @@ export default class AddressAppClient {
 		validateAddress(signerAddress);
 
 		const network = await provider.getNetwork();
-		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network?.chainId as SupportedChain];
-		if (!chainDripsMetadata?.CONTRACT_ADDRESS_APP) {
+		if (!Utils.Network.isSupportedChain(network?.chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
 				`Could not create a new 'AddressAppClient': the provider is connected to an unsupported network (name: '${
 					network?.name
@@ -113,6 +112,7 @@ export default class AddressAppClient {
 				network?.chainId
 			);
 		}
+		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network.chainId];
 
 		const addressApp = new AddressAppClient();
 

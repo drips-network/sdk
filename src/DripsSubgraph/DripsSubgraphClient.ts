@@ -1,4 +1,3 @@
-import type { SupportedChain } from 'src/common/types';
 import Utils from '../utils';
 import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -25,7 +24,7 @@ export default class DripsSubgraphClient {
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
-	public static create(chainId: SupportedChain): DripsSubgraphClient {
+	public static create(chainId: number): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
 				"Could not create a new 'DripsSubgraphClient' instance: the chain ID is missing.",
@@ -33,9 +32,7 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		const apiUrl = Utils.Network.chainDripsMetadata[chainId]?.SUBGRAPH_URL;
-
-		if (!apiUrl) {
+		if (!Utils.Network.isSupportedChain(chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
 				`Could not create a new 'DripsSubgraphClient' instance: chain ID '${chainId}' is not supported.`,
 				chainId
@@ -44,7 +41,7 @@ export default class DripsSubgraphClient {
 
 		const subgraphClient = new DripsSubgraphClient();
 
-		subgraphClient.#apiUrl = apiUrl;
+		subgraphClient.#apiUrl = Utils.Network.chainDripsMetadata[chainId].SUBGRAPH_URL;
 
 		return subgraphClient;
 	}

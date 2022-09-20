@@ -6,7 +6,7 @@ import {
 	validateDripsReceiverConfigBN,
 	validateDripsReceiverConfigObj
 } from './common/internals';
-import type { ChainDripsMetadata, DripsReceiverConfig, SupportedChain } from './common/types';
+import type { ChainDripsMetadata, DripsReceiverConfig } from './common/types';
 
 namespace Utils {
 	export namespace Asset {
@@ -85,7 +85,7 @@ namespace Utils {
 	}
 
 	export namespace Network {
-		export const chainDripsMetadata: Record<SupportedChain, ChainDripsMetadata> = {
+		export const chainDripsMetadata: Record<number, ChainDripsMetadata> = {
 			5: {
 				NAME: 'goerli',
 				CYCLE_SECS: '604800', // 1 week.
@@ -101,6 +101,14 @@ namespace Utils {
 		export const SUPPORTED_CHAINS: readonly number[] = Object.freeze(
 			Object.keys(chainDripsMetadata).map((chainId) => parseInt(chainId, 10))
 		);
+
+		export const isSupportedChain = (chainId: number) => {
+			if (!SUPPORTED_CHAINS.includes(chainId)) {
+				return false;
+			}
+
+			return true;
+		};
 	}
 }
 
