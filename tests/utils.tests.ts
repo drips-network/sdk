@@ -149,7 +149,7 @@ describe('Utils', () => {
 	});
 
 	describe('Network', () => {
-		describe('chainMetadata', () => {
+		describe('chainDripsMetadata', () => {
 			it('should export only unique and supported chain IDs', () => {
 				// Arrange
 				const chainIds = [5];
@@ -157,6 +157,28 @@ describe('Utils', () => {
 				// Assert
 				assert.includeMembers(Utils.Network.SUPPORTED_CHAINS as number[], chainIds);
 				assert.equal([...new Set(Utils.Network.SUPPORTED_CHAINS)].length, [...new Set(chainIds)].length);
+			});
+		});
+
+		describe('isSupportedChain', () => {
+			it('should return true is chain ID is supported', () => {
+				// Arrange
+
+				// Act
+				const isSupported = Utils.Network.isSupportedChain(5);
+
+				// Assert
+				assert.isTrue(isSupported);
+			});
+
+			it('should return false is chain ID is not supported', () => {
+				// Arrange
+
+				// Act
+				const isSupported = Utils.Network.isSupportedChain(7);
+
+				// Assert
+				assert.isFalse(isSupported);
 			});
 		});
 	});
