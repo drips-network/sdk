@@ -1,13 +1,12 @@
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
-import type { ChainDripsMetadata, SupportedChain } from './AddressApp/types';
 import {
 	toBN,
 	validateAddress,
 	validateDripsReceiverConfigBN,
 	validateDripsReceiverConfigObj
 } from './common/internals';
-import type { DripsReceiverConfig } from './common/types';
+import type { ChainDripsMetadata, DripsReceiverConfig, SupportedChain } from './common/types';
 
 namespace Utils {
 	export namespace Asset {

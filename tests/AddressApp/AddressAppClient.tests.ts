@@ -14,7 +14,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import * as addressAppValidators from '../../src/AddressApp/addressAppValidators';
-import type { SupportedChain } from '../../src/AddressApp/types';
+import type { SupportedChain } from '../../src/common/types';
 
 describe('AddressAppClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.

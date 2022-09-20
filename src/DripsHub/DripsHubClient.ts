@@ -1,7 +1,7 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumber, BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import type { ChainDripsMetadata, SupportedChain } from 'src/AddressApp/types';
+import type { ChainDripsMetadata, SupportedChain } from 'src/common/types';
 import { validateDripsReceivers, validateSplitsReceivers } from '../AddressApp/addressAppValidators';
 import { nameOf, validateAddress } from '../common/internals';
 import Utils from '../utils';

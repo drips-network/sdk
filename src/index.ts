@@ -5,7 +5,6 @@ export * as AddressApp from '../contracts/AddressApp';
 
 // AddressApp
 export { default as AddressAppClient } from './AddressApp/AddressAppClient';
-export * from './AddressApp/types';
 
 // Common
 export { DripsErrorCode, DripsError } from './common/DripsError';

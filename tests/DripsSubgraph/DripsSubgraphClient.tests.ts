@@ -2,17 +2,19 @@ import { assert } from 'chai';
 import { Wallet } from 'ethers';
 import * as sinon from 'sinon';
 import { DripsErrorCode } from '../../src/common/DripsError';
+import type { SupportedChain } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import * as gql from '../../src/DripsSubgraph/gql';
 import type { UserAssetConfig, SplitEntry } from '../../src/DripsSubgraph/types';
+import Utils from '../../src/utils';
 
 describe('DripsSubgraphClient', () => {
-	const API_URL = 'https://api.graphql';
+	const CHAIN_ID = 5;
 	let testSubgraphClient: DripsSubgraphClient;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(() => {
-		testSubgraphClient = DripsSubgraphClient.create(API_URL);
+		testSubgraphClient = DripsSubgraphClient.create(CHAIN_ID);
 	});
 
 	afterEach(() => {
@@ -20,12 +22,12 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should throw argumentMissingError error when API URL is missing', async () => {
+		it('should throw argumentMissingError error when chain ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				DripsSubgraphClient.create(undefined as unknown as string);
+				DripsSubgraphClient.create(undefined as unknown as SupportedChain);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -38,7 +40,28 @@ describe('DripsSubgraphClient', () => {
 
 		it('should create a fully initialized client instance', () => {
 			// Assert
-			assert.equal(testSubgraphClient.apiUrl, API_URL);
+			assert.equal(testSubgraphClient.apiUrl, Utils.Network.chainDripsMetadata[CHAIN_ID].SUBGRAPH_URL);
+		});
+
+		it('should throw unsupportedNetworkError error when chain is not supported', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				DripsSubgraphClient.create(7 as SupportedChain);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should create a fully initialized client instance', () => {
+			// Assert
+			assert.equal(testSubgraphClient.apiUrl, Utils.Network.chainDripsMetadata[CHAIN_ID].SUBGRAPH_URL);
 		});
 	});
 
