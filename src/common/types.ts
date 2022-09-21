@@ -5,7 +5,7 @@ export type DripsReceiverConfig = {
 	readonly start: BigNumberish;
 	/** The duration (in seconds) of dripping. Must be greater than or equal to `0`. If set to `0`, the smart contract will drip until the balance runs out. */
 	readonly duration: BigNumberish;
-	/** The amount per second being dripped. Must be greater than `0`. */
+	/** The amount per second being dripped (in the smallest unit, e.g. Wei). Must be greater than `0` and be multiplied by `10 ^ 18` (Utils.Constants.AMT_PER_SEC_MULTIPLIER). */
 	readonly amountPerSec: BigNumberish;
 };
 

@@ -35,6 +35,7 @@ namespace Utils {
 		export const MAX_DRIPS_RECEIVERS = 100;
 		export const MAX_SPLITS_RECEIVERS = 200;
 		export const TOTAL_SPLITS_WEIGHT = 1_000_000;
+		export const AMT_PER_SEC_MULTIPLIER = toBN(10).pow(18);
 	}
 
 	export namespace DripsReceiverConfiguration {

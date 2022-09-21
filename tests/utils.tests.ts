@@ -59,6 +59,7 @@ describe('Utils', () => {
 			assert.equal(Utils.Constants.MAX_DRIPS_RECEIVERS, 100);
 			assert.equal(Utils.Constants.MAX_SPLITS_RECEIVERS, 200);
 			assert.equal(Utils.Constants.TOTAL_SPLITS_WEIGHT, 1_000_000);
+			assert(Utils.Constants.AMT_PER_SEC_MULTIPLIER.eq(internals.toBN(10).pow(18)));
 		});
 	});
 

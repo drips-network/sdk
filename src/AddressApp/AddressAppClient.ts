@@ -255,7 +255,7 @@ export default class AddressAppClient {
 	 * The receiver can collect them immediately.
 	 * @param  {BigNumberish} receiverId The receiver user ID.
 	 * @param  {string} erc20TokenAddress The ERC20 token address.
-	 * @param  {BigNumberish} amount The amount to give.
+	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei).
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {DripsErrors.argumentMissingError} if the `receiverId` is missing.
 	 * @throws {DripsErrors.addressError} if the `erc20TokenAddress` is not valid.
