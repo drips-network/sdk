@@ -320,17 +320,11 @@ export default class AddressAppClient {
 		validateDripsReceivers(newReceivers);
 		validateDripsReceivers(currentReceivers);
 
-		const formattedNewReceivers = this.#formatDripsReceivers(newReceivers);
-		const formattedCurrentReceivers = this.#formatDripsReceivers(currentReceivers);
-
-		console.log('current ', formattedCurrentReceivers);
-		console.log('new ', formattedNewReceivers);
-
 		return this.#addressAppContract.setDrips(
 			erc20TokenAddress,
-			formattedCurrentReceivers,
+			this.#formatDripsReceivers(currentReceivers),
 			balanceDelta,
-			formattedNewReceivers
+			this.#formatDripsReceivers(newReceivers)
 		);
 	}
 
