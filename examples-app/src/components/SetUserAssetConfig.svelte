@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { AddressApp, AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
-	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
+	import { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressAppClient: AddressAppClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
@@ -9,17 +9,17 @@
 		{
 			userAddress: '',
 			config: {
-				start: undefined as BigNumber,
-				duration: undefined as BigNumber,
-				amountPerSec: undefined as BigNumber
+				start: undefined as string,
+				duration: undefined as string,
+				amountPerSec: undefined as string
 			}
 		},
 		{
 			userAddress: '',
 			config: {
-				start: undefined as BigNumber,
-				duration: undefined as BigNumber,
-				amountPerSec: undefined as BigNumber
+				start: undefined as string,
+				duration: undefined as string,
+				amountPerSec: undefined as string
 			}
 		}
 	];
@@ -33,9 +33,8 @@
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
 
 	const getCurrentReceivers = async () => {
-		const assetId = Utils.Asset.getIdFromAddress(erc20TokenAddress);
-
 		const userId = await addressAppClient.getUserId();
+		const assetId = Utils.Asset.getIdFromAddress(erc20TokenAddress);
 		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
 		return (
@@ -44,7 +43,7 @@
 				userId: d.receiverUserId
 			})) ||
 			// If the configuration is new (or the configuration does not exist), the query will return undefined, and we should pass an empty array.
-			// Take a look at the setDrips() method.
+			// Take a look at the `AddressApp.setDrips` method.
 			[]
 		);
 	};
@@ -69,9 +68,9 @@
 						const userId = await addressAppClient.getUserIdByAddress(d.userAddress);
 
 						const config = Utils.DripsReceiverConfiguration.toUint256String({
-							start: d.config.start,
-							duration: d.config.duration,
-							amountPerSec: d.config.amountPerSec
+							start: d.config.start || 0,
+							duration: d.config.duration || 0,
+							amountPerSec: BigNumber.from(d.config.amountPerSec).mul(Utils.Constants.AMT_PER_SEC_MULTIPLIER)
 						});
 
 						return {
@@ -81,7 +80,17 @@
 					})
 			);
 
-			tx = await addressAppClient.setDrips(erc20TokenAddress, currentReceivers, newReceivers, balanceDelta);
+			tx = await addressAppClient.setDrips(
+				erc20TokenAddress,
+				[
+					{
+						config: '0x0de0b6b3a76400000000000100000001',
+						userId: '0x20a9273a452268e5a034951ae5381a45e14ac2a3'
+					}
+				],
+				newReceivers,
+				balanceDelta
+			);
 			console.log(tx);
 
 			txReceipt = await tx.wait();

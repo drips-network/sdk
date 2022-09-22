@@ -5,27 +5,25 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import type { BigNumberish } from 'ethers';
 import { constants, Wallet } from 'ethers';
-import type { AddressApp, IERC20 } from '../../contracts';
-import { IERC20__factory, AddressApp__factory } from '../../contracts';
-import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressApp';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import AddressAppClient from '../../src/AddressApp/AddressAppClient';
+import type { AddressDriver, IERC20 } from '../../contracts';
+import { IERC20__factory, AddressDriver__factory } from '../../contracts';
+import type { SplitsReceiverStruct, DripsReceiverStruct, DripsHistoryStruct } from '../../contracts/AddressDriver';
+import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
-import * as addressAppValidators from '../../src/AddressApp/addressAppValidators';
+import * as addressDriverValidators from '../../src/AddressDriver/addressDriverValidators';
 
-describe('AddressAppClient', () => {
+describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
 
 	let signerAddress: string;
-	let dripsHubClientStub: DripsHubClient;
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: StubbedInstance<JsonRpcProvider>;
-	let addressAppContractStub: StubbedInstance<AddressApp>;
+	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 
-	let testAddressAppClient: AddressAppClient;
+	let testAddressDriverClient: AddressDriverClient;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
@@ -40,18 +38,14 @@ describe('AddressAppClient', () => {
 		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
 
-		addressAppContractStub = stubInterface<AddressApp>();
+		addressDriverContractStub = stubInterface<AddressDriver>();
 
 		sinon
-			.stub(AddressApp__factory, 'connect')
-			.withArgs(Utils.Network.chainDripsMetadata[TEST_CHAIN_ID].CONTRACT_ADDRESS_APP, signerStub)
-			.returns(addressAppContractStub);
+			.stub(AddressDriver__factory, 'connect')
+			.withArgs(Utils.Network.chainDripsMetadata[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerStub)
+			.returns(addressDriverContractStub);
 
-		dripsHubClientStub = {} as DripsHubClient;
-
-		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
-
-		testAddressAppClient = await AddressAppClient.create(providerStub);
+		testAddressDriverClient = await AddressDriverClient.create(providerStub);
 	});
 
 	afterEach(() => {
@@ -65,7 +59,7 @@ describe('AddressAppClient', () => {
 
 			try {
 				// Act
-				await AddressAppClient.create(undefined as unknown as JsonRpcProvider);
+				await AddressDriverClient.create(undefined as unknown as JsonRpcProvider);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -83,7 +77,7 @@ describe('AddressAppClient', () => {
 
 			try {
 				// Act
-				await AddressAppClient.create(providerStub);
+				await AddressDriverClient.create(providerStub);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -99,7 +93,7 @@ describe('AddressAppClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			AddressAppClient.create(providerStub);
+			AddressDriverClient.create(providerStub);
 
 			// Assert
 			assert(
@@ -115,7 +109,7 @@ describe('AddressAppClient', () => {
 
 			try {
 				// Act
-				await AddressAppClient.create(providerStub);
+				await AddressDriverClient.create(providerStub);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
@@ -128,18 +122,17 @@ describe('AddressAppClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(testAddressAppClient.signerAddress, await signerStub.getAddress());
-			assert.equal(testAddressAppClient.network.chainId, networkStub.chainId);
+			assert.equal(testAddressDriverClient.signerAddress, await signerStub.getAddress());
+			assert.equal(testAddressDriverClient.network.chainId, networkStub.chainId);
 			assert.equal(
-				await testAddressAppClient.provider.getSigner().getAddress(),
+				await testAddressDriverClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
 			);
 			assert.equal(
-				testAddressAppClient.chainDripsMetadata,
+				testAddressDriverClient.chainDripsMetadata,
 				Utils.Network.chainDripsMetadata[(await providerStub.getNetwork()).chainId]
 			);
-			assert.equal(testAddressAppClient.dripsHub, dripsHubClientStub);
-			assert.equal(testAddressAppClient.signerAddress, signerAddress);
+			assert.equal(testAddressDriverClient.signerAddress, signerAddress);
 		});
 	});
 
@@ -153,11 +146,11 @@ describe('AddressAppClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(erc20Address, testAddressAppClient.signer)
+				.withArgs(erc20Address, testAddressDriverClient.signer)
 				.returns(erc20ContractStub);
 
 			// Act
-			await testAddressAppClient.getAllowance(erc20Address);
+			await testAddressDriverClient.getAllowance(erc20Address);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
@@ -171,17 +164,17 @@ describe('AddressAppClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(erc20Address, testAddressAppClient.signer)
+				.withArgs(erc20Address, testAddressDriverClient.signer)
 				.returns(erc20ContractStub);
 
 			// Act
-			await testAddressAppClient.getAllowance(erc20Address);
+			await testAddressDriverClient.getAllowance(erc20Address);
 
 			// Assert
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					testAddressAppClient.signerAddress,
-					testAddressAppClient.chainDripsMetadata.CONTRACT_ADDRESS_APP
+					testAddressDriverClient.signerAddress,
+					testAddressDriverClient.chainDripsMetadata.CONTRACT_ADDRESS_DRIVER
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -198,11 +191,11 @@ describe('AddressAppClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(erc20Address, testAddressAppClient.signer)
+				.withArgs(erc20Address, testAddressDriverClient.signer)
 				.returns(erc20ContractStub);
 
 			// Act
-			await testAddressAppClient.approve(erc20Address);
+			await testAddressDriverClient.approve(erc20Address);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
@@ -216,16 +209,16 @@ describe('AddressAppClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(erc20Address, testAddressAppClient.signer)
+				.withArgs(erc20Address, testAddressDriverClient.signer)
 				.returns(erc20ContractStub);
 
 			// Act
-			await testAddressAppClient.approve(erc20Address);
+			await testAddressDriverClient.approve(erc20Address);
 
 			// Assert
 			assert(
 				erc20ContractStub.approve.calledOnceWithExactly(
-					testAddressAppClient.chainDripsMetadata.CONTRACT_ADDRESS_APP,
+					testAddressDriverClient.chainDripsMetadata.CONTRACT_ADDRESS_DRIVER,
 					constants.MaxUint256
 				),
 				'Expected method to be called with different arguments'
@@ -234,16 +227,18 @@ describe('AddressAppClient', () => {
 	});
 
 	describe('getUserId()', () => {
-		it('should call the calcUserId() method of the AddressApp contract', async () => {
+		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
-			addressAppContractStub.calcUserId.withArgs(testAddressAppClient.signerAddress).resolves(internals.toBN(111));
+			addressDriverContractStub.calcUserId
+				.withArgs(testAddressDriverClient.signerAddress)
+				.resolves(internals.toBN(111));
 
 			// Act
-			await testAddressAppClient.getUserId();
+			await testAddressDriverClient.getUserId();
 
 			// Assert
 			assert(
-				addressAppContractStub.calcUserId.calledOnceWithExactly(testAddressAppClient.signerAddress),
+				addressDriverContractStub.calcUserId.calledOnceWithExactly(testAddressDriverClient.signerAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -254,158 +249,63 @@ describe('AddressAppClient', () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
-			addressAppContractStub.calcUserId.resolves(internals.toBN(1));
+			addressDriverContractStub.calcUserId.resolves(internals.toBN(1));
 
 			// Act
-			await testAddressAppClient.getUserIdByAddress(userAddress);
+			await testAddressDriverClient.getUserIdByAddress(userAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(userAddress));
 		});
 
-		it('should call the calcUserId() method of the AddressApp contract', async () => {
+		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
-			addressAppContractStub.calcUserId.withArgs(userAddress).resolves(internals.toBN(111));
+			addressDriverContractStub.calcUserId.withArgs(userAddress).resolves(internals.toBN(111));
 
 			// Act
-			await testAddressAppClient.getUserIdByAddress(userAddress);
+			await testAddressDriverClient.getUserIdByAddress(userAddress);
 
 			// Assert
 			assert(
-				addressAppContractStub.calcUserId.calledOnceWithExactly(userAddress),
+				addressDriverContractStub.calcUserId.calledOnceWithExactly(userAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
 	});
 
 	describe('collect()', () => {
-		it('should validate the ERC20 address', async () => {
+		it('should validate the ERC20 and transferTo addresses', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testAddressAppClient.collect(erc20Address);
-
-			// Assert
-			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
-		});
-
-		it('should call the collect() method of the AddressApp contract', async () => {
-			// Arrange
-			const erc20Address = Wallet.createRandom().address;
-
-			// Act
-			await testAddressAppClient.collect(erc20Address);
+			await testAddressDriverClient.collect(erc20Address, transferToAddress);
 
 			// Assert
 			assert(
-				addressAppContractStub.collect.calledOnceWithExactly(testAddressAppClient.signerAddress, erc20Address),
+				validateAddressStub.calledWithExactly(erc20Address),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				validateAddressStub.calledWithExactly(transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
-	});
 
-	describe('collectForAddress()', () => {
-		it('should validate the ERC20 address and the user address', async () => {
+		it('should call the collect() method of the AddressDriver contract', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
-			const userAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const transferToAddress = Wallet.createRandom().address;
 
 			// Act
-			await testAddressAppClient.collectForAddress(userAddress, erc20Address);
-
-			// Assert
-			assert(validateAddressStub.calledTwice);
-			assert(validateAddressStub.calledWithExactly(userAddress));
-			assert(validateAddressStub.calledWithExactly(erc20Address));
-		});
-
-		it('should call the collect() method of the AddressApp contract', async () => {
-			// Arrange
-			const userAddress = Wallet.createRandom().address;
-			const erc20Address = Wallet.createRandom().address;
-
-			// Act
-			await testAddressAppClient.collectForAddress(userAddress, erc20Address);
+			await testAddressDriverClient.collect(erc20Address, transferToAddress);
 
 			// Assert
 			assert(
-				addressAppContractStub.collect.calledOnceWithExactly(userAddress, erc20Address),
-				'Expected method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('collectAll()', () => {
-		it('should validate the ERC20 address and the splits receivers', async () => {
-			// Arrange
-			const erc20Address = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
-			const validateSplitsReceiversStub = sinon.stub(addressAppValidators, 'validateSplitsReceivers');
-			const receivers: SplitsReceiverStruct[] = [];
-
-			// Act
-			await testAddressAppClient.collectAll(erc20Address, receivers);
-
-			// Assert
-			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
-			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
-		});
-
-		it('should call the collectAll() method of the AddressApp contract', async () => {
-			// Arrange
-			const erc20Address = Wallet.createRandom().address;
-			const currentReceivers = [{ userId: 1, weight: 3 }];
-
-			// Act
-			await testAddressAppClient.collectAll(erc20Address, currentReceivers);
-
-			// Assert
-			assert(
-				addressAppContractStub.collectAll.calledOnceWithExactly(
-					testAddressAppClient.signerAddress,
-					erc20Address,
-					currentReceivers
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('collectAllForAddress()', () => {
-		it('should validate the ERC20 address, the user address and the splits receivers', async () => {
-			// Arrange
-			const userAddress = Wallet.createRandom().address;
-			const erc20Address = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
-			const validateSplitsReceiversStub = sinon.stub(addressAppValidators, 'validateSplitsReceivers');
-			const receivers: SplitsReceiverStruct[] = [];
-
-			// Act
-			await testAddressAppClient.collectAllForAddress(userAddress, erc20Address, []);
-
-			// Assert
-			assert(validateAddressStub.calledTwice);
-			assert(validateAddressStub.calledWithExactly(userAddress));
-			assert(validateAddressStub.calledWithExactly(erc20Address));
-			assert(validateSplitsReceiversStub.calledWithExactly(receivers));
-		});
-
-		it('should call the collectAll() method of the AddressApp contract', async () => {
-			// Arrange
-			const userAddress = Wallet.createRandom().address;
-			const erc20Address = Wallet.createRandom().address;
-			const currentReceivers = [{ userId: 1, weight: 3 }];
-
-			// Act
-			await testAddressAppClient.collectAllForAddress(userAddress, erc20Address, currentReceivers);
-
-			// Assert
-			assert(
-				addressAppContractStub.collectAll.calledOnceWithExactly(userAddress, erc20Address, currentReceivers),
+				addressDriverContractStub.collect.calledOnceWithExactly(erc20Address, transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -419,7 +319,7 @@ describe('AddressAppClient', () => {
 
 			try {
 				// Act
-				await testAddressAppClient.give(undefined as unknown as BigNumberish, erc20Address, 1);
+				await testAddressDriverClient.give(undefined as unknown as BigNumberish, erc20Address, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -436,24 +336,24 @@ describe('AddressAppClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testAddressAppClient.give(1, erc20Address, 1);
+			await testAddressDriverClient.give(1, erc20Address, 1);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
 		});
 
-		it('should call the give() method of the AddressApp contract', async () => {
+		it('should call the give() method of the AddressDriver contract', async () => {
 			// Arrange
 			const amount = 100;
 			const receiverId = 1;
 			const erc20Address = Wallet.createRandom().address;
 
 			// Act
-			await testAddressAppClient.give(receiverId, erc20Address, amount);
+			await testAddressDriverClient.give(receiverId, erc20Address, amount);
 
 			// Assert
 			assert(
-				addressAppContractStub.give.calledOnceWithExactly(receiverId, erc20Address, amount),
+				addressDriverContractStub.give.calledOnceWithExactly(receiverId, erc20Address, amount),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -466,7 +366,7 @@ describe('AddressAppClient', () => {
 
 			// Act
 			try {
-				await testAddressAppClient.setSplits(undefined as unknown as SplitsReceiverStruct[]);
+				await testAddressDriverClient.setSplits(undefined as unknown as SplitsReceiverStruct[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -479,11 +379,11 @@ describe('AddressAppClient', () => {
 
 		it('clears splits when new receivers is an empty list', async () => {
 			// Act
-			await testAddressAppClient.setSplits([]);
+			await testAddressDriverClient.setSplits([]);
 
 			// Assert
 			assert(
-				addressAppContractStub.setSplits.calledOnceWithExactly([]),
+				addressDriverContractStub.setSplits.calledOnceWithExactly([]),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -495,16 +395,16 @@ describe('AddressAppClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const validateSplitsReceiversStub = sinon.stub(addressAppValidators, 'validateSplitsReceivers');
+			const validateSplitsReceiversStub = sinon.stub(addressDriverValidators, 'validateSplitsReceivers');
 
 			// Act
-			await testAddressAppClient.setSplits(receivers);
+			await testAddressDriverClient.setSplits(receivers);
 
 			// Assert
 			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
 		});
 
-		it('should call the setSplits() method of the AddressApp contract', async () => {
+		it('should call the setSplits() method of the AddressDriver contract', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 2, weight: 100 },
@@ -513,11 +413,11 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setSplits(receivers);
+			await testAddressDriverClient.setSplits(receivers);
 
 			// Assert
 			assert(
-				addressAppContractStub.setSplits.calledOnceWithExactly(
+				addressDriverContractStub.setSplits.calledOnceWithExactly(
 					sinon
 						.match((r: SplitsReceiverStruct[]) => r.length === 2)
 						.and(sinon.match((r: SplitsReceiverStruct[]) => r[0].userId === 1))
@@ -535,11 +435,11 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setSplits(receivers);
+			await testAddressDriverClient.setSplits(receivers);
 
 			// Assert
 			assert(
-				addressAppContractStub.setSplits.calledOnceWithExactly(
+				addressDriverContractStub.setSplits.calledOnceWithExactly(
 					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId)
 				),
 				'Expected method to be called with different arguments'
@@ -554,11 +454,11 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setSplits(receivers);
+			await testAddressDriverClient.setSplits(receivers);
 
 			// Assert
 			assert(
-				addressAppContractStub.setSplits.calledOnceWithExactly(
+				addressDriverContractStub.setSplits.calledOnceWithExactly(
 					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId)
 				),
 				'Expected method to be called with different arguments'
@@ -574,11 +474,11 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setSplits(receivers);
+			await testAddressDriverClient.setSplits(receivers);
 
 			// Assert
 			assert(
-				addressAppContractStub.setSplits.calledOnceWithExactly(
+				addressDriverContractStub.setSplits.calledOnceWithExactly(
 					sinon.match((r: DripsReceiverStruct[]) => r.length === 2)
 				),
 				'Expected method to be called with different arguments'
@@ -590,6 +490,7 @@ describe('AddressAppClient', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
@@ -614,7 +515,7 @@ describe('AddressAppClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
+			await testAddressDriverClient.setDrips(erc20Address, currentReceivers, receivers, transferToAddress, 1);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(erc20Address));
@@ -623,6 +524,8 @@ describe('AddressAppClient', () => {
 		it('should validate the drips receivers', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
+
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
@@ -644,10 +547,10 @@ describe('AddressAppClient', () => {
 				}
 			];
 
-			const validateDripsReceiversStub = sinon.stub(addressAppValidators, 'validateDripsReceivers');
+			const validateDripsReceiversStub = sinon.stub(addressDriverValidators, 'validateDripsReceivers');
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
+			await testAddressDriverClient.setDrips(erc20Address, currentReceivers, receivers, transferToAddress, 1);
 
 			// Assert
 			assert(
@@ -666,10 +569,11 @@ describe('AddressAppClient', () => {
 
 			// Act
 			try {
-				await testAddressAppClient.setDrips(
+				await testAddressDriverClient.setDrips(
 					Wallet.createRandom().address,
 					undefined as unknown as DripsReceiverStruct[],
 					[],
+					Wallet.createRandom().address,
 					0
 				);
 			} catch (error: any) {
@@ -688,10 +592,11 @@ describe('AddressAppClient', () => {
 
 			// Act
 			try {
-				await testAddressAppClient.setDrips(
+				await testAddressDriverClient.setDrips(
 					Wallet.createRandom().address,
 					[],
 					undefined as unknown as DripsReceiverStruct[],
+					Wallet.createRandom().address,
 					0
 				);
 			} catch (error: any) {
@@ -707,6 +612,7 @@ describe('AddressAppClient', () => {
 		it('should clear drips when new receivers is an empty list', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
@@ -715,18 +621,25 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, [], 1);
+			await testAddressDriverClient.setDrips(erc20Address, currentReceivers, [], transferToAddress, 1);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(erc20Address, currentReceivers, 1, []),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
+					erc20Address,
+					currentReceivers,
+					1,
+					[],
+					transferToAddress
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should call the setDrips() method of the AddressApp contract', async () => {
+		it('should call the setDrips() method of the AddressDriver contract', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
@@ -749,18 +662,19 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
+			await testAddressDriverClient.setDrips(erc20Address, currentReceivers, receivers, transferToAddress, 1);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					erc20Address,
 					currentReceivers,
 					1,
 					sinon
 						.match((r: DripsReceiverStruct[]) => r[0].userId === 1)
 						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2))
-						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2))
+						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2)),
+					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -769,13 +683,14 @@ describe('AddressAppClient', () => {
 		it('should set default values when required parameters are falsy', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, [], [], undefined as unknown as number);
+			await testAddressDriverClient.setDrips(erc20Address, [], [], transferToAddress, undefined as unknown as number);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(erc20Address, [], 0, []),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(erc20Address, [], 0, [], transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -783,6 +698,7 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1=userID2 but config1<config2', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
@@ -795,15 +711,22 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
+			await testAddressDriverClient.setDrips(
+				erc20Address,
+				[],
+				receivers,
+				transferToAddress,
+				undefined as unknown as number
+			);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					erc20Address,
 					[],
 					0,
-					sinon.match((r: DripsReceiverStruct[]) => r[0].config < r[1].config)
+					sinon.match((r: DripsReceiverStruct[]) => r[0].config < r[1].config),
+					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -812,6 +735,7 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1=userID2 but config1>config2', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
@@ -824,15 +748,22 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
+			await testAddressDriverClient.setDrips(
+				erc20Address,
+				[],
+				receivers,
+				transferToAddress,
+				undefined as unknown as number
+			);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					erc20Address,
 					[],
 					0,
-					sinon.match((r: DripsReceiverStruct[]) => r[0].config < r[1].config)
+					sinon.match((r: DripsReceiverStruct[]) => r[0].config < r[1].config),
+					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -841,6 +772,7 @@ describe('AddressAppClient', () => {
 		it('should remove duplicates', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
@@ -869,15 +801,22 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
+			await testAddressDriverClient.setDrips(
+				erc20Address,
+				[],
+				receivers,
+				transferToAddress,
+				undefined as unknown as number
+			);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					erc20Address,
 					[],
 					0,
-					sinon.match((r: DripsReceiverStruct[]) => r.length === 4)
+					sinon.match((r: DripsReceiverStruct[]) => r.length === 4),
+					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -886,6 +825,7 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 100,
@@ -898,15 +838,22 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
+			await testAddressDriverClient.setDrips(
+				erc20Address,
+				[],
+				receivers,
+				transferToAddress,
+				undefined as unknown as number
+			);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					erc20Address,
 					[],
 					0,
-					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId)
+					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId),
+					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -915,6 +862,7 @@ describe('AddressAppClient', () => {
 		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange
 			const erc20Address = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
@@ -927,18 +875,147 @@ describe('AddressAppClient', () => {
 			];
 
 			// Act
-			await testAddressAppClient.setDrips(erc20Address, [], receivers, undefined as unknown as number);
+			await testAddressDriverClient.setDrips(
+				erc20Address,
+				[],
+				receivers,
+				transferToAddress,
+				undefined as unknown as number
+			);
 
 			// Assert
 			assert(
-				addressAppContractStub.setDrips.calledOnceWithExactly(
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					erc20Address,
 					[],
 					0,
-					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId)
+					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId),
+					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
 		});
+	});
+
+	describe('squeezeDrips', () => {
+		it('should validate the ERC20 token address', async () => {
+			// Arrange
+			const erc20Address = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			// Act
+			await testAddressDriverClient.squeezeDrips(erc20Address, 1, 'historyHash', []);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(erc20Address),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentMissingError when senderId is null', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDrips(
+					Wallet.createRandom().address,
+					null as unknown as BigNumberish,
+					'historyHash',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when senderId is undefined', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDrips(
+					Wallet.createRandom().address,
+					undefined as unknown as BigNumberish,
+					'historyHash',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when historyHash is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDrips(
+					Wallet.createRandom().address,
+					1,
+					undefined as unknown as string,
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when dripsHistory is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDrips(
+					Wallet.createRandom().address,
+					1,
+					'historyHash',
+					undefined as unknown as DripsHistoryStruct[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	it('should call the squeezeDrips() method of the AddressDriver contract', async () => {
+		// Arrange
+		const senderId = 1;
+		const historyHash = 'historyHash';
+		const erc20Address = Wallet.createRandom().address;
+		const dripsHistory: DripsHistoryStruct[] = [];
+
+		// Act
+		await testAddressDriverClient.squeezeDrips(erc20Address, senderId, historyHash, dripsHistory);
+
+		// Assert
+		assert(
+			addressDriverContractStub.squeezeDrips.calledOnceWithExactly(erc20Address, senderId, historyHash, dripsHistory),
+			'Expected method to be called with different arguments'
+		);
 	});
 });

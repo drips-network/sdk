@@ -2,7 +2,6 @@
 	<header>What's this App?</header>
 	<div>
 		<p>❌ This is <strong>not</strong> a production-ready application (and will not be).</p>
-		<p>❌ This is <strong>not</strong> a production-ready application (and will not be).</p>
 		<p>❌ It <strong>cannot</strong> be used in any real-life financial context.</p>
 		<p>
 			❌ The code is <strong>not</strong> designed to demonstrate software engineering best practices in building Svelte

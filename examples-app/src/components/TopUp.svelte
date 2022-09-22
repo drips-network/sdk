@@ -1,27 +1,18 @@
 <script lang="ts">
 	import { AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
-	import type { ContractReceipt, ContractTransaction } from 'ethers';
-	import { createEventDispatcher } from 'svelte';
+	import { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressAppClient: AddressAppClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
-	const dispatch = createEventDispatcher();
-
 	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
-	$: if (isConnected) getUserId();
 
-	let userId: string;
 	let started = false;
 	let topUpToken: string;
 	let topUpAmount: string;
 	let errorMessage: string;
 	let tx: ContractTransaction;
 	let txReceipt: ContractReceipt;
-
-	const getUserId = async () => {
-		userId = await addressAppClient.getUserId();
-	};
 
 	const topUp = async (token: string) => {
 		tx = null;
@@ -30,22 +21,23 @@
 		errorMessage = null;
 
 		try {
+			const userId = await addressAppClient.getUserId();
 			const assetId = Utils.Asset.getIdFromAddress(topUpToken);
-
 			const configToUpdate = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
-			const currentReceivers = configToUpdate.dripsEntries.map((r) => ({
-				config: r.config,
-				userId: r.receiverUserId
-			}));
+			const currentReceivers =
+				configToUpdate?.dripsEntries.map((r) => ({
+					config: r.config,
+					userId: r.receiverUserId
+				})) || [];
 
-			tx = await addressAppClient.setDrips(topUpToken, currentReceivers, currentReceivers, topUpAmount);
+			const balanceDelta = BigNumber.from(topUpAmount);
+
+			tx = await addressAppClient.setDrips(topUpToken, currentReceivers, currentReceivers, balanceDelta);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
 			console.log(txReceipt);
-
-			dispatch('topUpDone');
 		} catch (error: any) {
 			errorMessage = error.message;
 			console.error(error);
@@ -58,7 +50,6 @@
 
 	const reset = () => {
 		tx = null;
-		userId = null;
 		started = false;
 		txReceipt = null;
 		topUpToken = null;

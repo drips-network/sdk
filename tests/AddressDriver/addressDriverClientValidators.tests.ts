@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import type { BigNumberish } from 'ethers';
 import sinon from 'ts-sinon';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/AddressApp';
-import * as addressAppValidators from '../../src/AddressApp/addressAppValidators';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/AddressDriver';
+import * as addressDriverValidators from '../../src/AddressDriver/addressDriverValidators';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import Utils from '../../src/utils';
 import * as internals from '../../src/common/internals';
@@ -19,7 +19,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateDripsReceivers(undefined as unknown as DripsReceiverStruct[]);
+				addressDriverValidators.validateDripsReceivers(undefined as unknown as DripsReceiverStruct[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -40,7 +40,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateDripsReceivers(receivers);
+				addressDriverValidators.validateDripsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -63,7 +63,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateDripsReceivers(receivers);
+				addressDriverValidators.validateDripsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -86,7 +86,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateDripsReceivers(receivers);
+				addressDriverValidators.validateDripsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -109,7 +109,7 @@ describe('addressAppClientValidators', () => {
 			const validateDripsReceiverConfigBNStub = sinon.stub(internals, 'validateDripsReceiverConfigBN');
 
 			// Act
-			addressAppValidators.validateDripsReceivers(receivers);
+			addressDriverValidators.validateDripsReceivers(receivers);
 
 			// Assert
 			assert(
@@ -126,7 +126,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateSplitsReceivers(undefined as unknown as SplitsReceiverStruct[]);
+				addressDriverValidators.validateSplitsReceivers(undefined as unknown as SplitsReceiverStruct[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -147,7 +147,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateSplitsReceivers(receivers);
+				addressDriverValidators.validateSplitsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -170,7 +170,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateSplitsReceivers(receivers);
+				addressDriverValidators.validateSplitsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
@@ -193,7 +193,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateSplitsReceivers(receivers);
+				addressDriverValidators.validateSplitsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
@@ -216,7 +216,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateSplitsReceivers(receivers);
+				addressDriverValidators.validateSplitsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
@@ -239,7 +239,7 @@ describe('addressAppClientValidators', () => {
 
 			try {
 				// Act
-				addressAppValidators.validateSplitsReceivers(receivers);
+				addressDriverValidators.validateSplitsReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);

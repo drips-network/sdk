@@ -90,10 +90,10 @@ namespace Utils {
 			5: {
 				NAME: 'goerli',
 				CYCLE_SECS: '604800', // 1 week.
-				CONTRACT_DRIPS_HUB: '0x8dA62FE714e5Cd7681ef25A845B7C5C0b9add089',
-				CONTRACT_ADDRESS_APP: '0xaB09588616214604eBeaE1488eab8533c956b7da',
-				CONTRACT_DRIPS_HUB_LOGIC: '0x6B94233AEdf8Ad4f505088Da81EAc225B691e99C',
-				CONTRACT_ADDRESS_APP_LOGIC: '0x10fCa1A8f390b611f8437d43A52691566ffC8246',
+				CONTRACT_DRIPS_HUB: '0x31b3905F6774D7Aa4E95a49784C53dD67ACC02cd',
+				CONTRACT_ADDRESS_DRIVER: '0x0749Ed6EB9De41F7bF77426d3128580E449744e1',
+				CONTRACT_DRIPS_HUB_LOGIC: '0x68CFD1803E7dDDb7432348644E9441b8105172D2',
+				CONTRACT_ADDRESS_DRIVER_LOGIC: '0x9176b535C947bB9fDa7b003F8061B665fE8baCa5',
 				// TODO: Update Subgraph URL after hosted service is gone.
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
 			}
@@ -104,11 +104,11 @@ namespace Utils {
 		);
 
 		export const isSupportedChain = (chainId: number) => {
-			if (!SUPPORTED_CHAINS.includes(chainId)) {
-				return false;
+			if (SUPPORTED_CHAINS.includes(chainId)) {
+				return true;
 			}
 
-			return true;
+			return false;
 		};
 	}
 }

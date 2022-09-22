@@ -163,7 +163,7 @@
 						</div>
 					{:else if getTokenAddressResult}
 						<div class="terminal-alert terminal-alert-primary">
-							<p>{getTokenAddressResult}}</p>
+							<p>{getTokenAddressResult}</p>
 						</div>
 					{/if}
 				</div>
