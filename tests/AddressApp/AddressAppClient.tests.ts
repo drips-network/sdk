@@ -650,7 +650,14 @@ describe('AddressAppClient', () => {
 			await testAddressAppClient.setDrips(erc20Address, currentReceivers, receivers, 1);
 
 			// Assert
-			assert(validateDripsReceiversStub.calledOnceWithExactly(receivers));
+			assert(
+				validateDripsReceiversStub.calledWithExactly(receivers),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				validateDripsReceiversStub.calledWithExactly(currentReceivers),
+				'Expected method to be called with different arguments'
+			);
 		});
 
 		it('should throw argumentMissingError when current drips receivers are missing', async () => {

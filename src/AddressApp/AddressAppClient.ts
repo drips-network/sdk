@@ -287,11 +287,7 @@ export default class AddressAppClient {
 	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
 		validateSplitsReceivers(receivers);
 
-		if (!receivers.length) {
-			return this.#clearSplits();
-		}
-
-		return this.#updateSplits(receivers);
+		return this.#addressAppContract.setSplits(this.#formatSplitReceivers(receivers));
 	}
 
 	/**
@@ -320,42 +316,24 @@ export default class AddressAppClient {
 		newReceivers: DripsReceiverStruct[],
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
-		if (!newReceivers) {
-			throw DripsErrors.argumentMissingError('Drips (new) receivers are missing.', nameOf({ newReceivers }));
-		}
-		if (!currentReceivers) {
-			throw DripsErrors.argumentMissingError('Drips (current) receivers are missing.', nameOf({ currentReceivers }));
-		}
-
 		validateAddress(erc20TokenAddress);
 		validateDripsReceivers(newReceivers);
+		validateDripsReceivers(currentReceivers);
 
-		if (!newReceivers.length) {
-			return this.#clearDrips(erc20TokenAddress, currentReceivers, balanceDelta);
-		}
-
-		return this.#updateDrips(erc20TokenAddress, currentReceivers, balanceDelta, newReceivers);
+		return this.#addressAppContract.setDrips(
+			erc20TokenAddress,
+			this.#formatDripsReceivers(currentReceivers),
+			balanceDelta,
+			this.#formatDripsReceivers(newReceivers)
+		);
 	}
 
 	// #region Private Methods
 
-	#clearDrips(
-		erc20TokenAddress: string,
-		currentReceivers: DripsReceiverStruct[],
-		balanceDelta: BigNumberish
-	): Promise<ContractTransaction> {
-		return this.#addressAppContract.setDrips(erc20TokenAddress, currentReceivers, balanceDelta, []);
-	}
-
-	#updateDrips(
-		erc20TokenAddress: string,
-		currentReceivers: DripsReceiverStruct[],
-		balanceDelta: BigNumberish,
-		newReceivers: DripsReceiverStruct[]
-	): Promise<ContractTransaction> {
+	#formatDripsReceivers(receivers: DripsReceiverStruct[]) {
 		// Drips receivers must be sorted by user ID and config, deduplicated, and without amount per second <= 0.
 
-		const uniqueReceivers = newReceivers.reduce((unique: DripsReceiverStruct[], o) => {
+		const uniqueReceivers = receivers.reduce((unique: DripsReceiverStruct[], o) => {
 			if (!unique.some((obj: DripsReceiverStruct) => obj.userId === o.userId && toBN(obj.config).eq(toBN(o.config)))) {
 				unique.push(o);
 			}
@@ -376,15 +354,10 @@ export default class AddressAppClient {
 					? -1
 					: 0
 			);
-
-		return this.#addressAppContract.setDrips(erc20TokenAddress, currentReceivers, balanceDelta, sortedReceivers);
+		return sortedReceivers;
 	}
 
-	#clearSplits(): Promise<ContractTransaction> {
-		return this.#addressAppContract.setSplits([]);
-	}
-
-	#updateSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
+	#formatSplitReceivers(receivers: SplitsReceiverStruct[]): SplitsReceiverStruct[] {
 		// Splits receivers must be sorted by user ID, deduplicated, and without weights <= 0.
 
 		const uniqueReceivers = receivers.reduce((unique: SplitsReceiverStruct[], o) => {
@@ -399,7 +372,7 @@ export default class AddressAppClient {
 			toBN(a.userId).gt(toBN(b.userId)) ? 1 : toBN(a.userId).lt(toBN(b.userId)) ? -1 : 0
 		);
 
-		return this.#addressAppContract.setSplits(sortedReceivers);
+		return sortedReceivers;
 	}
 
 	// #endregion
