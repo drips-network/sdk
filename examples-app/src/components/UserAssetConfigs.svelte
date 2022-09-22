@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsSubgraphClient, UserAssetConfig } from 'radicle-drips';
+	import type { AddressDriverClient, DripsSubgraphClient, UserAssetConfig } from 'radicle-drips';
 	import JSONTree from 'svelte-json-tree';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	let errorMessage: string;
 	let userAssetConfigs: UserAssetConfig[];
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getAllDripsConfigurations();
 
 	export const getAllDripsConfigurations = async () => {
@@ -16,7 +16,7 @@
 			errorMessage = null;
 			userAssetConfigs = null;
 
-			const userId = await addressAppClient.getUserId();
+			const userId = await addressDriverClient.getUserId();
 
 			userAssetConfigs = await dripsSubgraphClient.getAllUserAssetConfigs(userId);
 		} catch (error: any) {

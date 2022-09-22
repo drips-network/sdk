@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { AddressApp, AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
+	import { AddressApp, AddressDriverClient, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	const dripsInputs = [
@@ -30,10 +30,10 @@
 	let erc20TokenAddress: string;
 	let txReceipt: ContractReceipt;
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 
 	const getCurrentReceivers = async () => {
-		const userId = await addressAppClient.getUserId();
+		const userId = await addressDriverClient.getUserId();
 		const assetId = Utils.Asset.getIdFromAddress(erc20TokenAddress);
 		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
@@ -65,7 +65,7 @@
 					.filter((d) => d.config.amountPerSec && d.userAddress.length)
 					// Map from form inputs to DTOs.
 					.map(async (d) => {
-						const userId = await addressAppClient.getUserIdByAddress(d.userAddress);
+						const userId = await addressDriverClient.getUserIdByAddress(d.userAddress);
 
 						const config = Utils.DripsReceiverConfiguration.toUint256String({
 							start: d.config.start || 0,
@@ -80,7 +80,7 @@
 					})
 			);
 
-			tx = await addressAppClient.setDrips(
+			tx = await addressDriverClient.setDrips(
 				erc20TokenAddress,
 				[
 					{

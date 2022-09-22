@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsSubgraphClient } from 'radicle-drips';
+	import type { AddressDriverClient, DripsSubgraphClient } from 'radicle-drips';
 	import ClientProperties from './components/ClientProperties.svelte';
 	import Footer from './components/Footer.svelte';
 	import Header from './components/Header.svelte';
@@ -18,7 +18,7 @@
 
 	let errorMessage: string;
 	let refresh: () => Promise<void>;
-	let addressAppClient: AddressAppClient;
+	let addressDriverClient: AddressDriverClient;
 	let dripsSubgraphClient: DripsSubgraphClient;
 
 	console.log(
@@ -27,23 +27,23 @@
 	console.log('Hey there! Welcome to the DripsJS SDK v2.0 examples app!');
 
 	const handleConnected = (event: {
-		detail: { addressAppClient: AddressAppClient; dripsSubgraphClient: DripsSubgraphClient };
+		detail: { addressDriverClient: AddressDriverClient; dripsSubgraphClient: DripsSubgraphClient };
 	}) => {
 		errorMessage = null;
-		addressAppClient = event.detail.addressAppClient;
+		addressDriverClient = event.detail.addressDriverClient;
 		dripsSubgraphClient = event.detail.dripsSubgraphClient;
 	};
 
 	const handleDisconnected = (event: {
-		detail: { addressAppClient: AddressAppClient; dripsSubgraphClient: DripsSubgraphClient };
+		detail: { addressDriverClient: AddressDriverClient; dripsSubgraphClient: DripsSubgraphClient };
 	}) => {
 		errorMessage = null;
-		addressAppClient = null;
+		addressDriverClient = null;
 		dripsSubgraphClient = null;
 	};
 
 	const handleConnectionFailed = (event: { detail: { errorMessage: string } }) => {
-		addressAppClient = null;
+		addressDriverClient = null;
 		dripsSubgraphClient = null;
 		errorMessage = event.detail.errorMessage;
 	};
@@ -56,7 +56,7 @@
 		on:connectionFailed={handleConnectionFailed}
 	/>
 
-	<ClientProperties {addressAppClient} {dripsSubgraphClient} />
+	<ClientProperties {addressDriverClient} {dripsSubgraphClient} />
 
 	{#if errorMessage}
 		<div class="container">
@@ -73,23 +73,23 @@
 			</TabList>
 
 			<TabPanel>
-				<UserAssetConfigs {addressAppClient} {dripsSubgraphClient} />
-				<SetUserAssetConfig {addressAppClient} {dripsSubgraphClient} on:userAssetConfigUpdated={refresh} />
-				<SplitEntries {addressAppClient} {dripsSubgraphClient} />
-				<SetSplits {addressAppClient} on:userAssetConfigUpdated={refresh} />
-				<TopUp {addressAppClient} {dripsSubgraphClient} on:topUpDone={refresh} />
+				<UserAssetConfigs {addressDriverClient} {dripsSubgraphClient} />
+				<SetUserAssetConfig {addressDriverClient} {dripsSubgraphClient} on:userAssetConfigUpdated={refresh} />
+				<SplitEntries {addressDriverClient} {dripsSubgraphClient} />
+				<SetSplits {addressDriverClient} on:userAssetConfigUpdated={refresh} />
+				<TopUp {addressDriverClient} {dripsSubgraphClient} on:topUpDone={refresh} />
 			</TabPanel>
 
 			<TabPanel>
-				<Give {addressAppClient} />
-				<Collect {addressAppClient} {dripsSubgraphClient} />
-				<Squeeze {addressAppClient} {dripsSubgraphClient} />
+				<Give {addressDriverClient} />
+				<Collect {addressDriverClient} {dripsSubgraphClient} />
+				<Squeeze {addressDriverClient} {dripsSubgraphClient} />
 			</TabPanel>
 
 			<TabPanel>
-				<Utils {addressAppClient} />
-				<UserId {addressAppClient} />
-				<TokenApproval {addressAppClient} />
+				<Utils {addressDriverClient} />
+				<UserId {addressDriverClient} />
+				<TokenApproval {addressDriverClient} />
 			</TabPanel>
 		</Tabs>
 	</div>

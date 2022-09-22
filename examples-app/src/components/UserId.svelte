@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { AddressAppClient } from 'radicle-drips';
+	import type { AddressDriverClient } from 'radicle-drips';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 
-	$: isConnected = Boolean(addressAppClient);
+	$: isConnected = Boolean(addressDriverClient);
 
 	let userId: string;
 	let userAddress: string;
@@ -14,7 +14,7 @@
 			userId = null;
 			errorMessage = null;
 
-			userId = await addressAppClient.getUserIdByAddress(userAddress);
+			userId = await addressDriverClient.getUserIdByAddress(userAddress);
 		} catch (error: any) {
 			userId = null;
 			errorMessage = error.message;

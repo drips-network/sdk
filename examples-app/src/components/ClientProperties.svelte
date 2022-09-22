@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsSubgraphClient } from 'radicle-drips';
+	import type { AddressDriverClient, DripsSubgraphClient } from 'radicle-drips';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getClientsDetails();
 
 	let userId: string;
 
 	const getClientsDetails = async () => {
-		userId = await addressAppClient.getUserId();
+		userId = await addressDriverClient.getUserId();
 	};
 
 	$: if (!isConnected) reset();
@@ -36,15 +36,15 @@
 			<tbody>
 				<tr>
 					<th>Network</th>
-					<td>{addressAppClient?.network?.name || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.network?.name || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>Chain ID</th>
-					<td>{addressAppClient?.network?.chainId || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.network?.chainId || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>Signer Address</th>
-					<td>{addressAppClient?.signerAddress || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.signerAddress || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>User ID</th>
@@ -52,19 +52,19 @@
 				</tr>
 				<tr>
 					<th>DripbHub Contract</th>
-					<td>{addressAppClient?.chainDripsMetadata?.CONTRACT_DRIPS_HUB || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_DRIPS_HUB || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>AddressApp Contract</th>
-					<td>{addressAppClient?.chainDripsMetadata?.CONTRACT_ADDRESS_APP || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_ADDRESS_DRIVER || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>AddressAppLogic Contract</th>
-					<td>{addressAppClient?.chainDripsMetadata?.CONTRACT_ADDRESS_APP_LOGIC || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_ADDRESS_DRIVER_LOGIC || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>DripbHubLogic Contract</th>
-					<td>{addressAppClient?.chainDripsMetadata?.CONTRACT_DRIPS_HUB_LOGIC || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_DRIPS_HUB_LOGIC || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>Subgraph URL</th>

@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsSubgraphClient, SplitEntry } from 'radicle-drips';
+	import type { AddressDriverClient, DripsSubgraphClient, SplitEntry } from 'radicle-drips';
 	import JSONTree from 'svelte-json-tree';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	let errorMessage: string;
 	let splitEntries: SplitEntry[];
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getSplitsConfig();
 
 	export const getSplitsConfig = async () => {
@@ -16,7 +16,7 @@
 			errorMessage = null;
 			splitEntries = null;
 
-			const userId = await addressAppClient.getUserId();
+			const userId = await addressDriverClient.getUserId();
 
 			splitEntries = await dripsSubgraphClient.getSplitsConfig(userId);
 		} catch (error: any) {

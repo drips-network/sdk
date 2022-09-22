@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { AddressAppClient, DripsSubgraphClient, Utils } from 'radicle-drips';
+	import { AddressDriverClient, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 
 	let started = false;
 	let topUpToken: string;
@@ -21,7 +21,7 @@
 		errorMessage = null;
 
 		try {
-			const userId = await addressAppClient.getUserId();
+			const userId = await addressDriverClient.getUserId();
 			const assetId = Utils.Asset.getIdFromAddress(topUpToken);
 			const configToUpdate = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
@@ -33,7 +33,7 @@
 
 			const balanceDelta = BigNumber.from(topUpAmount);
 
-			tx = await addressAppClient.setDrips(topUpToken, currentReceivers, currentReceivers, balanceDelta);
+			tx = await addressDriverClient.setDrips(topUpToken, currentReceivers, currentReceivers, balanceDelta);
 			console.log(tx);
 
 			txReceipt = await tx.wait();

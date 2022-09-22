@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { AddressAppClient } from 'radicle-drips';
+	import type { AddressDriverClient } from 'radicle-drips';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 
-	$: isConnected = Boolean(addressAppClient);
+	$: isConnected = Boolean(addressDriverClient);
 
 	let started = false;
 	let tokenToApprove: string;
@@ -19,7 +19,7 @@
 		approvalErrorMessage = null;
 
 		try {
-			tx = await addressAppClient.approve(tokenAddress);
+			tx = await addressDriverClient.approve(tokenAddress);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
@@ -42,7 +42,7 @@
 			allowance = null;
 			allowanceErrorMessage = null;
 
-			allowance = await addressAppClient.getAllowance(tokenAddress);
+			allowance = await addressDriverClient.getAllowance(tokenAddress);
 		} catch (error: any) {
 			allowance = null;
 			allowanceErrorMessage = error.message;

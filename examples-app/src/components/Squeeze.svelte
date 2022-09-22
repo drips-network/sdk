@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { AddressAppClient, DripsHubLogic, DripsSubgraphClient } from 'radicle-drips';
+	import type { AddressDriverClient, DripsHubLogic, DripsSubgraphClient } from 'radicle-drips';
 	import type { BigNumber, BytesLike } from 'ethers';
 	import { createEventDispatcher } from 'svelte';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	const dispatch = createEventDispatcher();
@@ -14,18 +14,18 @@
 	let erc20TokenAddress: string;
 	let squeezableDrips: { amt: BigNumber; nextSqueezed: number };
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getUserId();
 
 	const getUserId = async () => {
-		userId = await addressAppClient.getUserId();
+		userId = await addressDriverClient.getUserId();
 	};
 
 	const getSqueezableDrips = async (userId: string, senderId: string) => {
 		errorMessage = null;
 
 		try {
-			const dripsHubClient = addressAppClient.dripsHub;
+			const dripsHubClient = addressDriverClient.dripsHub;
 
 			// TODO: Implement this.
 			const { historyHash: BytesLike } = await dripsSubgraphClient.getDripsHistoryBySender(senderId);

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { AddressApp, AddressAppClient } from 'radicle-drips';
+	import type { AddressApp, AddressDriverClient } from 'radicle-drips';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 
 	const splitsInputs = [
 		{ address: '', weight: undefined as BigNumber },
@@ -14,7 +14,7 @@
 	let tx: ContractTransaction;
 	let txReceipt: ContractReceipt;
 
-	$: isConnected = Boolean(addressAppClient);
+	$: isConnected = Boolean(addressDriverClient);
 
 	const setSplits = async () => {
 		tx = null;
@@ -27,12 +27,12 @@
 				splitsInputs
 					.filter((s) => s.address && s.weight)
 					.map(async (s) => ({
-						userId: await addressAppClient.getUserIdByAddress(s.address),
+						userId: await addressDriverClient.getUserIdByAddress(s.address),
 						weight: s.weight
 					}))
 			);
 
-			tx = await addressAppClient.setSplits(splits);
+			tx = await addressDriverClient.setSplits(splits);
 			console.log(tx);
 
 			txReceipt = await tx.wait();

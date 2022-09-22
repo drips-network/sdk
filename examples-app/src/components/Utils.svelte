@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { AddressAppClient, DripsReceiverConfig, Utils } from 'radicle-drips';
+	import { AddressDriverClient, DripsReceiverConfig, Utils } from 'radicle-drips';
 	import { BigNumber, BigNumberish } from 'ethers';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 
-	$: isConnected = Boolean(addressAppClient);
+	$: isConnected = Boolean(addressDriverClient);
 
 	let debugConfigInput: BigNumberish;
 	let debugConfigErrorMessage: string;

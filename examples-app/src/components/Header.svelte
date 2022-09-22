@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressAppClient, DripsError, DripsErrorCode, DripsSubgraphClient, Utils } from 'radicle-drips';
+	import { AddressDriverClient, DripsError, DripsErrorCode, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import WalletConnectProvider from '@walletconnect/web3-provider/dist/umd/index.min';
 	import Web3Modal from 'web3modal';
 	import { providers } from 'ethers';
@@ -33,10 +33,10 @@
 		theme: 'dark'
 	});
 
-	let addressAppClient: AddressAppClient;
+	let addressDriverClient: AddressDriverClient;
 	let dripsSubgraphClient: DripsSubgraphClient;
 
-	$: isConnected = Boolean(addressAppClient) && Boolean(dripsSubgraphClient);
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 
 	const createAddressAppClient = async () => {
 		const walletProvider = await web3Modal.connect();
@@ -49,7 +49,7 @@
 			}
 		});
 
-		addressAppClient = await AddressAppClient.create(provider);
+		addressDriverClient = await AddressDriverClient.create(provider);
 	};
 
 	const createDripsSubgraphClient = () => {
@@ -62,7 +62,7 @@
 			createDripsSubgraphClient();
 
 			dispatch('connected', {
-				addressAppClient,
+				addressDriverClient,
 				dripsSubgraphClient
 			});
 		} catch (error: any) {
@@ -86,7 +86,7 @@
 	};
 
 	const resetLocalState = () => {
-		addressAppClient = null;
+		addressDriverClient = null;
 		dripsSubgraphClient = null;
 	};
 

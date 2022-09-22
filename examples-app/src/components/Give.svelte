@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { AddressAppClient } from 'radicle-drips';
+	import type { AddressDriverClient } from 'radicle-drips';
 	import type { BigNumberish, ContractReceipt, ContractTransaction } from 'ethers';
 
-	export let addressAppClient: AddressAppClient;
+	export let addressDriverClient: AddressDriverClient;
 
 	let amount: string;
 	let started = false;
@@ -12,7 +12,7 @@
 	let erc20TokenAddress: string;
 	let txReceipt: ContractReceipt;
 
-	$: isConnected = Boolean(addressAppClient);
+	$: isConnected = Boolean(addressDriverClient);
 
 	const give = async (receiverAddress: string, erc20TokenAddress: string, amount: BigNumberish) => {
 		tx = null;
@@ -21,9 +21,9 @@
 		errorMessage = null;
 
 		try {
-			const receiverId = await addressAppClient.getUserIdByAddress(receiverAddress);
+			const receiverId = await addressDriverClient.getUserIdByAddress(receiverAddress);
 
-			tx = await addressAppClient.give(receiverId, erc20TokenAddress, amount);
+			tx = await addressDriverClient.give(receiverId, erc20TokenAddress, amount);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
