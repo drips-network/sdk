@@ -271,7 +271,7 @@ describe('DripsSubgraphClient', () => {
 				await testSubgraphClient.query(gql.getSplitsConfig, {});
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
+				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_ERROR);
 				threw = true;
 			}
 

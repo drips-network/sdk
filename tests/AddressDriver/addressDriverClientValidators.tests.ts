@@ -106,14 +106,16 @@ describe('addressAppClientValidators', () => {
 				}
 			];
 
-			const validateDripsReceiverConfigBNStub = sinon.stub(internals, 'validateDripsReceiverConfigBN');
+			const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfigObj');
 
 			// Act
 			addressDriverValidators.validateDripsReceivers(receivers);
 
 			// Assert
 			assert(
-				validateDripsReceiverConfigBNStub.calledWithExactly(receivers[0].config),
+				validateDripsReceiverConfigObjStub.calledWithExactly(
+					Utils.DripsReceiverConfiguration.fromUint256(receivers[0].config)
+				),
 				'Expected method to be called with different arguments'
 			);
 		});

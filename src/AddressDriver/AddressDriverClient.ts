@@ -14,7 +14,7 @@ import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import { validateDripsReceivers, validateSplitsReceivers } from './addressDriverValidators';
 
 /**
- * A client for managing drips for a user identified by an Ethereum address.
+ * A client for managing drips and splits for a user identified by an Ethereum address.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} smart contract.
  */
 export default class AddressDriverClient {
@@ -63,7 +63,7 @@ export default class AddressDriverClient {
 
 	private constructor() {}
 
-	// TODO: Update supported chains id docs.
+	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `AddressDriverClient` instance.
 	 * @param  {JsonRpcProvider} provider The `provider` must have a `signer` associated with it.

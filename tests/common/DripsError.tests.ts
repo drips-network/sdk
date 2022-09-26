@@ -136,7 +136,7 @@ describe('DripsErrors', () => {
 			// Assert
 			assert.isUndefined(context);
 			assert.equal(message, expectedMessage);
-			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_FAILED);
+			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_ERROR);
 		});
 	});
 });

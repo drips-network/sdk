@@ -7,7 +7,6 @@ import type { DripsReceiverConfig } from './types';
 
 /**
  * internals.ts contains shared functions that are *not* meant to be publicly exposed.
- * They could, however, be consumed by other _public_ methods (e.g., in utils.ts).
  */
 
 /** @internal */

@@ -5,14 +5,13 @@ export enum DripsErrorCode {
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	MISSING_ARGUMENT = 'MISSING_ARGUMENT',
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
-	SUBGRAPH_QUERY_FAILED = 'SUBGRAPH_QUERY_FAILED',
+	SUBGRAPH_QUERY_ERROR = 'SUBGRAPH_QUERY_ERROR',
 	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
 	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER'
 }
 
 export class DripsError extends Error {
 	public readonly context?: unknown;
-
 	public readonly code: DripsErrorCode;
 
 	constructor(code: DripsErrorCode, message: string, context?: unknown) {
@@ -60,5 +59,5 @@ export class DripsErrors {
 			}
 		});
 
-	static subgraphQueryError = (message: string) => new DripsError(DripsErrorCode.SUBGRAPH_QUERY_FAILED, message);
+	static subgraphQueryError = (message: string) => new DripsError(DripsErrorCode.SUBGRAPH_QUERY_ERROR, message);
 }

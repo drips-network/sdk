@@ -1,5 +1,5 @@
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import { isNullOrUndefined, nameOf, toBN, validateDripsReceiverConfigBN } from '../common/internals';
+import { isNullOrUndefined, nameOf, toBN, validateDripsReceiverConfigObj } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import Utils from '../utils';
 
@@ -39,7 +39,7 @@ export const validateDripsReceivers = (receivers: DripsReceiverStruct[]) => {
 				);
 			}
 
-			validateDripsReceiverConfigBN(config);
+			validateDripsReceiverConfigObj(Utils.DripsReceiverConfiguration.fromUint256(config));
 		});
 	}
 };

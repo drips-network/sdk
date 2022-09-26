@@ -1,53 +1,67 @@
-# Drips JS SDK
-A Javascript SDK for 💦 [drips.network](https://drips.network/). 
+# Drips JavaScript SDK
 
-Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and splitting funding streams among multiple recipients. With Drips there are no 💸 commissions, predatory 👔 middle-men, or 🏦 banks involved. 
+The JavaScript SDK for 💦 [drips.network](https://drips.network/).
 
-Drips is a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [Drips docs](https://docs.drips.network/) for more details about the Drips protocol and how to use it.
+Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and splitting funding streams among multiple recipients. With Drips, no 💸 commissions, predatory 👔 middle-men, or 🏦 banks are involved.
 
-### How To Use This SDK
+Drips is a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [docs](https://v2.docs.drips.network/docs/whats-a-drip.html) for more details about the Drips protocol and and its use.
 
-The Drips SDK is intended to be used by developers primarily as a Javascript package installed into their projects. We plan to add the project to npm soon, but for now, users can include it into their project's package.json as a dependency by using this command:
+## Installing
 
-`npm i https://github.com/radicle-dev/drips-js-sdk#v0.1.1`
+We plan to add the project to npm soon, but you can now include it into your project's `package.json` as a dependency by using this command:
 
-### API Documentation in TypeDoc
+```bash
+npm install https://github.com/radicle-dev/drips-js-sdk#v2
+```
 
-The SDK contains API/type-level documentation, generated using TypeDoc.
+## Documentation
 
-To browse it, clone this project to your local machine, and open docs/index.html in your local web browser.
+The SDK contains documentation generated using [TypeDoc](https://typedoc.org/).
 
-### Getting Started With Examples
+To browse it locally, clone the project, install the project's dependencies, and open `docs/index.html` in your web browser.
 
-The `examples/web` directory contains example code that illustrates how Drips can be incorporated into a web project. To get started exploring the Drips SDK through these examples, we recommend first cloning repository to your local machine:
+Alternatively, visit the hosted version [here](https://melodious-bombolone-ca37e0.netlify.app/).
 
-`git clone https://github.com/radicle-dev/drips-js-sdk.git`
+## Getting Started With Examples
+
+The `examples-app` directory contains example code that illustrates how Drips can be incorporated into a web project. To get started exploring the Drips SDK through these examples, we recommend first cloning repository to your local machine:
+
+```bash
+git clone -b v2 https://github.com/radicle-dev/drips-js-sdk.git
+```
 
 Now change directory to the directory for the web example:
 
-`cd examples/web`
+```bash
+cd examples-app
+```
 
-Next, you'll need to install the javascript dependencies for the example project using npm (you'll need to make sure npm installed on your machine before completing this step):
+Next, install the project dependencies for the example app using npm:
 
-`npm i`
+```bash
+npm install
+```
 
-Once the dependencies have been installed, you can start Svelte. Svelte is a lightweight local web server:
+Finally, to start the web-based Drips SDK example locally run:
 
-`npm run dev`
+```bash
+npm run dev
+```
 
-You should now have a web server running the web-based Drips SDK example locally. Open your web browser and go to [http://localhost:8080/index.html](http://localhost:8080/index.html). You should see a simple UI that will let you explore the majority of the Drips SDK functionality. A few notes:
+Open your web browser and go to [localhost](http://localhost:8080). You should see a simple UI that will let you explore most of the Drips SDK functionality.
 
-1. Take a look at the code in examples/web/src/App.svelte to see how this example web app is utilizing DripsClient, and play around with the code in App.svelte and the other *.svelte fiiles in src/components.
+A few notes:
 
-2. By default, the example is set to work with the Drips contracts on the Rinkeby test network. If you want to use a different network for testing, you'll need to change the `networkToUse` variable in App.svelte.
+1. Take a look at the code in `examples-app/src/Header.svelte` to see how this example web app is utilizing the `AddressDriverClient` and the `DripsSubgraphClient`, and play around with the code in all \*.svelte files in src/components.
 
-3. You will need to click on the `Connect` button in the UI to connect your MetaMask or WalletConnect wallet before the other functionality will be enabled.
+2. You will need to click on the `Connect` button in the UI to connect your MetaMask or WalletConnect wallet before the other functionality will be enabled.
+
+3. There is a hosted version of the examples-app [here](https://lovely-froyo-8d2419.netlify.app/).
 
 Enjoy!
 
-### Related Resources
+## Related Resources
 
-The [Technical Overview](https://docs.drips.network/docs/for-developers/technical-overview) page from the Drips documentation gives a concise high-level overview of how Drips works, as well as providing links to all of the project's repositories. 
+The [Technical Overview](https://v2.docs.drips.network/docs/for-developers/technical-overview) page from the Drips documentation gives a concise high-level overview of how Drips works, as well as provides links to all of the project's repositories.
 
-The [Smart Contract and Subgraph Details][https://docs.drips.network/docs/for-developers/smart-contract-and-subgraph-details] page from the Drips docuemntation provides an aggregated list of details for all of the project's smart contracts and subgraphs for all networks where Drips has been deployed.
-
+The [Smart Contract and Subgraph Details](https://v2.docs.drips.network/docs/for-developers/smart-contract-and-subgraph-details) page from the Drips documentation provides an aggregated list of details for all of the project's smart contracts and subgraphs for all networks where Drips has been deployed.

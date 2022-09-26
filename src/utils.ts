@@ -40,7 +40,7 @@ namespace Utils {
 
 	export namespace DripsReceiverConfiguration {
 		/**
-		 * Converts a drips receiver configuration to a `uint256`.
+		 * Converts a drips receiver configuration to a `uint256` string.
 		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration.
 		 * @returns The drips receiver configuration as a `uint256` string.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
@@ -66,7 +66,7 @@ namespace Utils {
 		 * @param  {BigNumberish} dripsReceiverConfig The drips receiver configuration as`uint256`.
 		 * @returns The drips receiver configuration.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is less than or equal to `0`.
+		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
 		 */
 		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
 			validateDripsReceiverConfigBN(dripsReceiverConfig);
@@ -94,7 +94,7 @@ namespace Utils {
 				CONTRACT_ADDRESS_DRIVER: '0x0749Ed6EB9De41F7bF77426d3128580E449744e1',
 				CONTRACT_DRIPS_HUB_LOGIC: '0x68CFD1803E7dDDb7432348644E9441b8105172D2',
 				CONTRACT_ADDRESS_DRIVER_LOGIC: '0x9176b535C947bB9fDa7b003F8061B665fE8baCa5',
-				// TODO: Update Subgraph URL after hosted service is gone.
+				// TODO: Update the Subgraph URL after hosted service is shut down.
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
 			}
 		};
@@ -114,105 +114,3 @@ namespace Utils {
 }
 
 export default Utils;
-
-// /**
-//  * Maps from `Drip` to `DripsReceiverStruct`.
-//  * @param  {Drip[]} dripsReceivers The drip entries.
-//  * @returns The mapped drip receiver structs.
-//  */
-// export const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
-// 	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
-// 		config: Utils.DripsReceiverConfiguration.toUint256String({
-// 			amountPerSec: d.config.amountPerSec,
-// 			duration: d.config.duration,
-// 			start: d.config.start
-// 		}),
-// 		userId: d.receiverUserId
-// 	}));
-
-// 	return structs;
-// };
-
-// /**
-//  * Maps from `Drip` to `DripsReceiverStruct`.
-//  * @param  {Drip[]} dripsReceivers The drip entries.
-//  * @returns The mapped drip receiver structs.
-//  */
-// export const mapDripsReceiverDtosToStructs = (dripsReceivers: DripsReceiver[]): DripsReceiverStruct[] => {
-// 	const structs: DripsReceiverStruct[] = dripsReceivers?.map((d) => ({
-// 		config: Utils.DripsReceiverConfiguration.toUint256String({
-// 			amountPerSec: d.config.amountPerSec,
-// 			duration: d.config.duration,
-// 			start: d.config.start
-// 		}),
-// 		userId: d.receiverUserId
-// 	}));
-
-// 	return structs;
-// };
-
-// /**
-//  * Maps from `Split` to `SplitReceiverStruct`.
-//  * @param  {Drip[]} splitEntries The split entries.
-//  * @returns The mapped split receiver structs.
-//  */
-//  export const mapSplitsDtosToStructs = (splits: SplitEntry[]): SplitsReceiverStruct[] => {
-// 	const structs: SplitsReceiverStruct[] = splits?.map((s) => ({
-// 		userId: s.receiverUserId,
-// 		weight: s.weight
-// 	}));
-
-// 	return structs;
-// };
-
-// export type DripsReceiver = {
-// 	readonly receiverUserId: string;
-// 	readonly config: DripsReceiverConfig;
-// };
-
-// export type DripsConfiguration = {
-// 	readonly id: string;
-// 	readonly assetId: string;
-// 	readonly tokenAddress: string;
-// 	readonly balance: BigNumberish;
-// 	readonly amountCollected: BigNumberish;
-// 	readonly dripsReceivers: DripsReceiver[];
-// 	readonly lastUpdatedBlockTimestamp: BigNumberish;
-// };
-
-// /** @internal */
-// export const toDto = (userAssetConfig: UserAssetConfig): DripsConfiguration => {
-// 	if (!userAssetConfig) {
-// 		throw DripsErrors.argumentMissingError(
-// 			`Could not map user asset configurations to DTO: '${nameOf({ userAssetConfig })}' is missing.`,
-// 			nameOf({ userAssetConfig })
-// 		);
-// 	}
-
-// 	const dripsReceivers = userAssetConfig.dripsEntries?.map((dripEntry) => {
-// 		const config = Utils.DripsReceiverConfiguration.fromUint256(dripEntry.config);
-
-// 		return {
-// 			receiverUserId: dripEntry.receiverUserId,
-// 			config
-// 		};
-// 	});
-
-// 	return {
-// 		...userAssetConfig,
-// 		tokenAddress: Utils.Asset.getAddressFromId(userAssetConfig.assetId),
-// 		dripsReceivers
-// 	};
-// };
-
-// /** @internal */
-// export const toDtos = (userAssetConfigs: UserAssetConfig[]): DripsConfiguration[] => {
-// 	if (!userAssetConfigs) {
-// 		throw DripsErrors.argumentMissingError(
-// 			`Could not map user asset configurations to DTO: '${nameOf({ userAssetConfigs })}' is missing.`,
-// 			nameOf({ userAssetConfigs })
-// 		);
-// 	}
-
-// 	return userAssetConfigs.map((config) => toDto(config));
-// };
