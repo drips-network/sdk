@@ -56,7 +56,7 @@ A few notes:
 
 2. You will need to click on the `Connect` button in the UI to connect your MetaMask or WalletConnect wallet before the other functionality will be enabled.
 
-3. There is a hosted version of the examples-app [here](https://lovely-froyo-8d2419.netlify.app/).
+3. There is a hosted version of the `examples-app` [here](https://lovely-froyo-8d2419.netlify.app/).
 
 Enjoy!
 
