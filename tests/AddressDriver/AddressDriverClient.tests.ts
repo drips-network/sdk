@@ -13,6 +13,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import * as addressDriverValidators from '../../src/AddressDriver/addressDriverValidators';
+import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -21,6 +22,7 @@ describe('AddressDriverClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: StubbedInstance<JsonRpcProvider>;
+	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 
 	let testAddressDriverClient: AddressDriverClient;
@@ -44,6 +46,10 @@ describe('AddressDriverClient', () => {
 			.stub(AddressDriver__factory, 'connect')
 			.withArgs(Utils.Network.chainDripsMetadata[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerStub)
 			.returns(addressDriverContractStub);
+
+		dripsHubClientStub = stubInterface<DripsHubClient>();
+
+		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
 
 		testAddressDriverClient = await AddressDriverClient.create(providerStub);
 	});
@@ -122,6 +128,7 @@ describe('AddressDriverClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
+			assert.equal(testAddressDriverClient.dripsHub, dripsHubClientStub);
 			assert.equal(testAddressDriverClient.signerAddress, await signerStub.getAddress());
 			assert.equal(testAddressDriverClient.network.chainId, networkStub.chainId);
 			assert.equal(
@@ -133,6 +140,18 @@ describe('AddressDriverClient', () => {
 				Utils.Network.chainDripsMetadata[(await providerStub.getNetwork()).chainId]
 			);
 			assert.equal(testAddressDriverClient.signerAddress, signerAddress);
+		});
+	});
+
+	describe('getCycleInfo()', () => {
+		it('should return the expected result', async () => {
+			// Arrange
+
+			// Act
+			await testAddressDriverClient.getCycleInfo();
+
+			// Assert
+			assert.isTrue(dripsHubClientStub.getCycleInfo.calledOnce);
 		});
 	});
 

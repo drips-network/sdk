@@ -6,6 +6,7 @@ import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
 import { constants } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { ChainDripsMetadata } from 'src/common/types';
+import DripsHubClient from '../DripsHub/DripsHubClient';
 import Utils from '../utils';
 import { validateAddress, nameOf, toBN, isNullOrUndefined } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -37,6 +38,12 @@ export default class AddressDriverClient {
 	/** Returns the `AddressDriverClient`'s `signer` address. */
 	public get signerAddress(): string {
 		return this.#signerAddress;
+	}
+
+	#dripsHub!: DripsHubClient;
+	/** Returns a {@link DripsHubClient} connected to the same provider as the `AddressDriverClient.` */
+	public get dripsHub(): DripsHubClient {
+		return this.#dripsHub;
 	}
 
 	#network!: Network;
@@ -114,12 +121,22 @@ export default class AddressDriverClient {
 		addressDriverClient.#provider = provider;
 		addressDriverClient.#chainDripsMetadata = chainDripsMetadata;
 		addressDriverClient.#signerAddress = await signer.getAddress();
+		addressDriverClient.#dripsHub = await DripsHubClient.create(provider);
 		addressDriverClient.#addressDriverContract = AddressDriver__factory.connect(
 			chainDripsMetadata.CONTRACT_ADDRESS_DRIVER,
 			signer
 		);
 
 		return addressDriverClient;
+	}
+
+	public async getCycleInfo(): Promise<{
+		cycleDurationSecs: bigint;
+		currentCycleSecs: bigint;
+		currentCycleStartDate: Date;
+		nextCycleStartDate: Date;
+	}> {
+		return this.#dripsHub.getCycleInfo();
 	}
 
 	/**
