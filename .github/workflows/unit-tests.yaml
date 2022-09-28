@@ -1,20 +1,16 @@
-on:
-  pull_request:
-  push:
+name: Run unit tests
+
+on: [push, pull_request]
 
 jobs:
-  build-test:
-    name: Build & Test
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3 # checkout the repo
-      - run: npm ci # install packages
-      - run: npm test # run tests (configured to use mocha-json reporter)
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
-        with:
-          name: Unit Tests # Name of the check run which will be created
-          path: reports/unit-tests-*.xml # Path to test results
-          reporter: mocha-json # Format of test results
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run test
