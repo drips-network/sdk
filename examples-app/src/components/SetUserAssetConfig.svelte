@@ -80,15 +80,13 @@
 					})
 			);
 
+			const tranferTo = addressDriverClient.signerAddress;
+
 			tx = await addressDriverClient.setDrips(
 				erc20TokenAddress,
-				[
-					{
-						config: '0x0de0b6b3a76400000000000100000001',
-						userId: '0x20a9273a452268e5a034951ae5381a45e14ac2a3'
-					}
-				],
+				currentReceivers,
 				newReceivers,
+				tranferTo,
 				balanceDelta
 			);
 			console.log(tx);

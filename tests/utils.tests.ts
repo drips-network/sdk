@@ -20,7 +20,6 @@ describe('Utils', () => {
 				const token = Utils.Asset.getAddressFromId(assetId);
 
 				// Assert
-				assert.isTrue(false);
 				assert.equal(token, ethers.utils.getAddress(internals.toBN(assetId).toHexString()));
 			});
 		});
