@@ -1096,9 +1096,9 @@ describe('AddressDriverClient', () => {
 							history[0].receivers.length === 0 &&
 							history[1].dripsHash === '4h' &&
 							history[1].receivers.length === 0 &&
-							history[2].dripsHash === '0x00' &&
+							history[2].dripsHash[0] === 0 &&
 							history[2].receivers.length > 0 &&
-							history[3].dripsHash === '0x00' &&
+							history[3].dripsHash[0] === 0 &&
 							history[3].receivers.length > 0
 					)
 				),
