@@ -7,7 +7,7 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import Utils from '../../src/utils';
 import * as internals from '../../src/common/internals';
 
-describe('addressAppClientValidators', () => {
+describe('addressDriverClientValidators', () => {
 	afterEach(() => {
 		sinon.restore();
 	});

@@ -5,7 +5,9 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
 import { constants } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { ChainDripsMetadata } from 'src/common/types';
+import type { ChainDripsMetadata, CycleInfo } from 'src/common/types';
+import type { DripsSetEvent } from 'src/DripsSubgraph/types';
+import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import Utils from '../utils';
 import { validateAddress, nameOf, toBN, isNullOrUndefined } from '../common/internals';
@@ -44,6 +46,12 @@ export default class AddressDriverClient {
 	/** Returns a {@link DripsHubClient} connected to the same provider as the `AddressDriverClient.` */
 	public get dripsHub(): DripsHubClient {
 		return this.#dripsHub;
+	}
+
+	#subgraph!: DripsSubgraphClient;
+	/** Returns a {@link DripsSubgraphClient} connected to the same network as the `AddressDriverClient.` */
+	public get subgraph(): DripsSubgraphClient {
+		return this.#subgraph;
 	}
 
 	#network!: Network;
@@ -122,6 +130,7 @@ export default class AddressDriverClient {
 		addressDriverClient.#chainDripsMetadata = chainDripsMetadata;
 		addressDriverClient.#signerAddress = await signer.getAddress();
 		addressDriverClient.#dripsHub = await DripsHubClient.create(provider);
+		addressDriverClient.#subgraph = DripsSubgraphClient.create(network.chainId);
 		addressDriverClient.#addressDriverContract = AddressDriver__factory.connect(
 			chainDripsMetadata.CONTRACT_ADDRESS_DRIVER,
 			signer
@@ -130,12 +139,7 @@ export default class AddressDriverClient {
 		return addressDriverClient;
 	}
 
-	public async getCycleInfo(): Promise<{
-		cycleDurationSecs: bigint;
-		currentCycleSecs: bigint;
-		currentCycleStartDate: Date;
-		nextCycleStartDate: Date;
-	}> {
+	public async getCycleInfo(): Promise<CycleInfo> {
 		return this.#dripsHub.getCycleInfo();
 	}
 
@@ -295,26 +299,11 @@ export default class AddressDriverClient {
 	 * It doesn't receive drips from the previous, finished cycles.
 	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
-	 * @param  {string} historyHash The sender's history hash which was valid right before
-	 * they set up the sequence of configurations described by `dripsHistory`.
-	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
-	 * It can start at an arbitrary past configuration, but must describe all the configurations
-	 * which have been used since then including the current one, in the chronological order.
-	 * **Only drips described by** `dripsHistory` **will be squeezed**.
-	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
-	 * The next call to `squeezeDrips` will be able to squeeze only funds which
-	 * have been dripped after the last timestamp squeezed in this call.
-	 * This may cause some funds to be unreceivable until the current cycle ends.
 	 * @returns A Promise which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `erc20TokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `senderId`, or the `historyHash`, or the `dripsHistory` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `senderId` is missing.
 	 */
-	public squeezeDrips(
-		erc20TokenAddress: string,
-		senderId: BigNumberish,
-		historyHash: string,
-		dripsHistory: DripsHistoryStruct[]
-	): Promise<ContractTransaction> {
+	public async squeezeDrips(erc20TokenAddress: string, senderId: BigNumberish): Promise<ContractTransaction> {
 		validateAddress(erc20TokenAddress);
 
 		if (isNullOrUndefined(senderId)) {
@@ -323,18 +312,75 @@ export default class AddressDriverClient {
 				nameOf({ senderId })
 			);
 		}
-		if (!historyHash) {
-			throw DripsErrors.argumentMissingError(
-				`Could not squeeze drips: '${nameOf({ historyHash })}' is missing.`,
-				nameOf({ historyHash })
-			);
+
+		// Get all `DripsSet` events (drips configurations) for the sender.
+		const dripsSetEvents = (await this.#subgraph.getDripsSetEvents(senderId.toString()))
+			// Sort by `blockTimestamp` DESC - the first ones will be the most recent ones.
+			?.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+
+		const dripsToSqueeze: DripsSetEvent[] = [];
+		const { currentCycleStartDate } = await this.getCycleInfo();
+		const userId = await this.getUserId(); // Squeeze funds for the "connected user".
+
+		// Iterate over all events.
+		if (dripsSetEvents?.length) {
+			for (let i = 0; i < dripsSetEvents.length; i++) {
+				const dripsConfiguration = dripsSetEvents[i];
+
+				// Keep the drips configurations of the current cycle.
+				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp));
+				if (eventTimestamp >= currentCycleStartDate) {
+					dripsToSqueeze.push(dripsConfiguration);
+				}
+				// Get the first event before the current cycle.
+				else {
+					dripsToSqueeze.push(dripsConfiguration);
+					break;
+				}
+			}
 		}
-		if (!dripsHistory) {
-			throw DripsErrors.argumentMissingError(
-				`Could not squeeze drips: '${nameOf({ historyHash })}' is missing.`,
-				nameOf({ historyHash })
-			);
-		}
+
+		// The last (oldest) event provides the hash prior to the DripsHistory (or 0, if there was only one event).
+		const historyHash = dripsToSqueeze?.length > 1 ? dripsToSqueeze[dripsToSqueeze.length - 1].dripsHistoryHash : '0';
+
+		// Transform the events into `DripsHistory` objects.
+		const dripsHistory: DripsHistoryStruct[] = dripsToSqueeze
+			?.map((dripsSetEvent) => {
+				// By default a configuration should not be squeezed.
+				let shouldSqueeze = false;
+
+				// Check the configurations for the specified asset that have receivers, the others should not be squeezed.
+				if (
+					dripsSetEvent.assetId === Utils.Asset.getIdFromAddress(erc20TokenAddress) &&
+					dripsSetEvent.dripsReceiverSeenEvents?.length
+				) {
+					// Iterate over all event's `DripsReceiverSeen` events (receivers).
+					for (let i = 0; i < dripsSetEvent.dripsReceiverSeenEvents.length; i++) {
+						const receiver = dripsSetEvent.dripsReceiverSeenEvents[i];
+
+						// Mark as squeezable only the events that drip to the "connected user".
+						if (receiver.receiverUserId === userId) {
+							shouldSqueeze = true;
+							break; // Break, because drips receivers are unique.
+						}
+					}
+				}
+
+				const historyItem: DripsHistoryStruct = {
+					dripsHash: shouldSqueeze ? '0' : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
+					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
+						? dripsSetEvent.dripsReceiverSeenEvents.map((r) => ({
+								userId: r.receiverUserId,
+								config: r.config
+						  }))
+						: [],
+					updateTime: dripsSetEvent.blockTimestamp,
+					maxEnd: dripsSetEvent.maxEnd
+				};
+
+				return historyItem;
+			})
+			.reverse();
 
 		return this.#addressDriverContract.squeezeDrips(erc20TokenAddress, senderId, historyHash, dripsHistory);
 	}

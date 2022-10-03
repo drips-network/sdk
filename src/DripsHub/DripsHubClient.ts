@@ -1,6 +1,6 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
-import type { ChainDripsMetadata } from 'src/common/types';
+import type { ChainDripsMetadata, CycleInfo } from 'src/common/types';
 import { nameOf, toBN } from '../common/internals';
 import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
@@ -76,12 +76,7 @@ export default class DripsHubClient {
 		return dripsHub;
 	}
 
-	public async getCycleInfo(): Promise<{
-		cycleDurationSecs: bigint;
-		currentCycleSecs: bigint;
-		currentCycleStartDate: Date;
-		nextCycleStartDate: Date;
-	}> {
+	public async getCycleInfo(): Promise<CycleInfo> {
 		const cycleDurationSecs = toBN(await this.#dripsHubContract.cycleSecs()).toBigInt();
 
 		const currentCycleSecs = BigInt(Math.floor(this.#getUnixTime(new Date()))) % cycleDurationSecs;

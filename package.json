@@ -59,5 +59,8 @@
 	},
 	"peerDependencies": {
 		"ethers": "^5.6.2"
+	},
+	"dependencies": {
+		"moq.ts": "^9.0.2"
 	}
 }

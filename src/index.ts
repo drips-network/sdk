@@ -1,8 +1,8 @@
 // Contracts
 // TODO: Contract typings. We can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079).
-export * as AddressApp from '../contracts/AddressDriver';
+export * as AddressDriver from '../contracts/AddressDriver';
 
-// AddressApp
+// AddressDriver
 export { default as AddressDriverClient } from './AddressDriver/AddressDriverClient';
 
 // Common

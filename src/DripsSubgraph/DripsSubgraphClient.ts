@@ -2,7 +2,7 @@ import Utils from '../utils';
 import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
-import type { SplitEntry, UserAssetConfig } from './types';
+import type { DripsSetEvent, SplitEntry, UserAssetConfig } from './types';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -99,6 +99,22 @@ export default class DripsSubgraphClient {
 		const response = await this.query<ApiResponse>(gql.getSplitsConfig, { userId });
 
 		return response?.data?.user?.splitsEntries || [];
+	}
+
+	/**
+	 * Returns the user's `DripsSetEvent`s.
+	 * @param  {string} userId The user ID.
+	 * @returns A Promise which resolves to the user's `DripsSetEvent`s.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getDripsSetEvents(userId: string): Promise<DripsSetEvent[]> {
+		type ApiResponse = {
+			dripsSetEvents: DripsSetEvent[];
+		};
+
+		const response = await this.query<ApiResponse>(gql.getDripsSetEvents, { userId });
+
+		return response?.data?.dripsSetEvents || [];
 	}
 
 	/** @internal */

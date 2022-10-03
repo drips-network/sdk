@@ -1,5 +1,5 @@
 import type { Network } from '@ethersproject/networks';
-import type { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
@@ -19,7 +19,7 @@ describe('DripsHubClient', () => {
 	let testDripsHubClient: DripsHubClient;
 
 	beforeEach(async () => {
-		providerStub = stubInterface<JsonRpcProvider>();
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 

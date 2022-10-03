@@ -6,6 +6,8 @@ import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import * as gql from '../../src/DripsSubgraph/gql';
 import type { UserAssetConfig, SplitEntry } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
+import type { DripsSetEventObject } from '../../contracts/DripsHub';
+import { toBN } from '../../src/common/internals';
 
 describe('DripsSubgraphClient', () => {
 	const CHAIN_ID = 5;
@@ -78,7 +80,7 @@ describe('DripsSubgraphClient', () => {
 				amountCollected: 4,
 				dripsEntries: [
 					{
-						receiverUserId: '5',
+						userId: '5',
 						config: '0x010000000200000003'
 					}
 				],
@@ -121,7 +123,7 @@ describe('DripsSubgraphClient', () => {
 					amountCollected: 4,
 					dripsEntries: [
 						{
-							receiverUserId: '5',
+							userId: '5',
 							config: '0x010000000200000003'
 						}
 					],
@@ -179,7 +181,7 @@ describe('DripsSubgraphClient', () => {
 			const splitsEntries: SplitEntry[] = [
 				{
 					weight: '2',
-					receiverUserId: '3'
+					userId: '3'
 				}
 			];
 			const clientStub = sinon
@@ -223,6 +225,57 @@ describe('DripsSubgraphClient', () => {
 			assert.isEmpty(splits);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getSplitsConfig, { userId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getDripsSetEvents()', () => {
+		it('should return the expected result', async () => {
+			// Arrange
+			const userId = '1';
+			const dripsSetEvents: DripsSetEventObject[] = [
+				{
+					userId: toBN(1)
+				} as DripsSetEventObject
+			];
+			const clientStub = sinon.stub(testSubgraphClient, 'query').withArgs(gql.getDripsSetEvents, { userId }).resolves({
+				data: {
+					dripsSetEvents
+				}
+			});
+
+			// Act
+			const result = await testSubgraphClient.getDripsSetEvents(userId);
+
+			// Assert
+			assert.equal(result.length, 1);
+			assert.equal(result[0].userId, dripsSetEvents[0].userId.toString());
+			assert(
+				clientStub.calledOnceWithExactly(gql.getDripsSetEvents, { userId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should return an empty array when DripsSetEvent entries does not exist', async () => {
+			// Arrange
+			const userId = '1';
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getDripsSetEvents, { userId })
+				.resolves({
+					data: {
+						dripsSetEvents: []
+					}
+				});
+
+			// Act
+			const dripsSetEvents = await testSubgraphClient.getDripsSetEvents(userId);
+
+			// Assert
+			assert.isEmpty(dripsSetEvents);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getDripsSetEvents, { userId }),
 				'Expected method to be called with different arguments'
 			);
 		});

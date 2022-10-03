@@ -42,3 +42,18 @@ query getUserAssetConfig($configId: ID!) {
 	}
 }
 `;
+
+export const getDripsSetEvents = `#graphql
+query getDripsSetEvents($userId: BigInt!, ) {
+  dripsSetEvents(where: {userId: $userId}) {
+    userId
+    assetId
+    dripsHistoryHash
+    dripsReceiverSeenEvents {
+      receiverUserId
+    }
+    blockTimestamp
+		maxEnd
+  }
+}
+`;

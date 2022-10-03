@@ -18,3 +18,10 @@ export type ChainDripsMetadata = {
 	readonly CONTRACT_DRIPS_HUB_LOGIC: string;
 	readonly CONTRACT_ADDRESS_DRIVER_LOGIC: string;
 };
+
+export type CycleInfo = {
+	cycleDurationSecs: bigint;
+	currentCycleSecs: bigint;
+	currentCycleStartDate: Date;
+	nextCycleStartDate: Date;
+};
