@@ -4,7 +4,7 @@ import { assert } from 'chai';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import type { BigNumberish } from 'ethers';
-import { constants, Wallet } from 'ethers';
+import { ethers, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct, DripsHistoryStruct } from '../../contracts/AddressDriver';
@@ -1096,9 +1096,9 @@ describe('AddressDriverClient', () => {
 							history[0].receivers.length === 0 &&
 							history[1].dripsHash === '4h' &&
 							history[1].receivers.length === 0 &&
-							history[2].dripsHash[0] === 0 &&
+							history[2].dripsHash === ethers.constants.HashZero &&
 							history[2].receivers.length > 0 &&
-							history[3].dripsHash[0] === 0 &&
+							history[3].dripsHash === ethers.constants.HashZero &&
 							history[3].receivers.length > 0
 					)
 				),

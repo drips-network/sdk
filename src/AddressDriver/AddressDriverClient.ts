@@ -3,7 +3,7 @@
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
-import { constants } from 'ethers';
+import { ethers, constants } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { ChainDripsMetadata, CycleInfo } from 'src/common/types';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
@@ -341,7 +341,10 @@ export default class AddressDriverClient {
 		}
 
 		// The last (oldest) event provides the hash prior to the DripsHistory (or 0, if there was only one event).
-		const historyHash = dripsToSqueeze?.length > 1 ? dripsToSqueeze[dripsToSqueeze.length - 1].dripsHistoryHash : [0];
+		const historyHash =
+			dripsToSqueeze?.length > 1
+				? dripsToSqueeze[dripsToSqueeze.length - 1].dripsHistoryHash
+				: ethers.constants.HashZero;
 
 		// Transform the events into `DripsHistory` objects.
 		const dripsHistory: DripsHistoryStruct[] = dripsToSqueeze
@@ -367,7 +370,7 @@ export default class AddressDriverClient {
 				}
 
 				const historyItem: DripsHistoryStruct = {
-					dripsHash: shouldSqueeze ? [0] : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
+					dripsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
 					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
 						? dripsSetEvent.dripsReceiverSeenEvents.map((r) => ({
 								userId: r.receiverUserId,
