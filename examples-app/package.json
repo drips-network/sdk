@@ -29,6 +29,7 @@
 		"ethers": "^5.6.9",
 		"i": "^0.3.7",
 		"npm": "^8.19.1",
+		"radicle-drips": "github:radicle-dev/drips-js-sdk#squeeze-drips",
 		"sirv-cli": "^2.0.0",
 		"svelte-json-tree": "^1.0.0",
 		"svelte-simple-modal": "^1.4.1",
