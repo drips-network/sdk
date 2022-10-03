@@ -1,56 +1,47 @@
 <script lang="ts">
-	import type { AddressDriverClient, DripsHubLogic, DripsSubgraphClient } from 'radicle-drips';
-	import type { BigNumber, BytesLike } from 'ethers';
-	import { createEventDispatcher } from 'svelte';
+	import type { ContractReceipt, ContractTransaction } from 'ethers';
+	import type { AddressDriverClient, DripsSubgraphClient } from 'radicle-drips';
 
 	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
-	const dispatch = createEventDispatcher();
+	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 
-	let userId: string;
+	let started = false;
 	let senderId: string;
 	let errorMessage: string;
+	let tx: ContractTransaction;
 	let erc20TokenAddress: string;
-	let squeezableDrips: { amt: BigNumber; nextSqueezed: number };
+	let txReceipt: ContractReceipt;
 
-	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
-	$: if (isConnected) getUserId();
-
-	const getUserId = async () => {
-		userId = await addressDriverClient.getUserId();
-	};
-
-	const getSqueezableDrips = async (userId: string, senderId: string) => {
+	const squeezeDrips = async (token: string, sender: string) => {
+		tx = null;
+		started = true;
+		txReceipt = null;
 		errorMessage = null;
 
 		try {
-			const dripsHubClient = addressDriverClient.dripsHub;
+			tx = await addressDriverClient.squeezeDrips(token, sender);
+			console.log(tx);
 
-			// TODO: Implement this.
-			const { historyHash: BytesLike } = await dripsSubgraphClient.getDripsHistoryBySender(senderId);
-			const dripsHistory: DripsHubLogic.DripsHistoryStruct[] = [];
-
-			squeezableDrips = await dripsHubClient.getSqueezableDrips(
-				userId,
-				erc20TokenAddress,
-				senderId,
-				historyHash,
-				dripsHistory
-			);
+			txReceipt = await tx.wait();
+			console.log(txReceipt);
 		} catch (error: any) {
 			errorMessage = error.message;
 			console.error(error);
 		}
+
+		started = false;
 	};
 
 	$: if (!isConnected) reset();
 
 	const reset = () => {
-		userId = null;
+		tx = null;
 		senderId = null;
+		started = false;
+		txReceipt = null;
 		errorMessage = null;
-		squeezableDrips = null;
 		erc20TokenAddress = null;
 	};
 </script>
@@ -65,32 +56,49 @@
 			<fieldset>
 				<legend>Get Squeezable Drips</legend>
 				<div class="form-group">
-					<label for="userId">User ID:</label>
-					<input name="userId" type="text" bind:value={userId} />
+					<label for="token">ERC20 Token:</label>
+					<input
+						name="token"
+						type="text"
+						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
+						bind:value={erc20TokenAddress}
+					/>
 				</div>
 				<div class="form-group">
 					<label for="senderId">Sender ID:</label>
-					<input name="senderId" type="text" bind:value={senderId} />
+					<input
+						name="senderId"
+						type="text"
+						placeholder="User Address (e.g. 0x945AFA63507e56748368D3F31ccC35043efDbd4b)"
+						bind:value={senderId}
+					/>
 				</div>
 				<div class="form-group">
 					<button
 						disabled={!isConnected}
 						class="btn btn-default"
 						type="button"
-						on:click={() => getSqueezableDrips(userId, senderId)}>TopUp</button
+						on:click={() => squeezeDrips(erc20TokenAddress, senderId)}>TopUp</button
 					>
 				</div>
-				<div>
-					{#if errorMessage}
-						<div class="terminal-alert terminal-alert-error">
-							{errorMessage}
-						</div>
-					{:else if squeezableDrips}
-						<div class="terminal-alert terminal-alert-primary">
-							<p>Token {squeezableDrips} approved ✅</p>
-						</div>
-					{/if}
-				</div>
+
+				{#if errorMessage}
+					<div class="terminal-alert terminal-alert-error">
+						<p>{errorMessage}</p>
+					</div>
+				{:else if txReceipt}
+					<div class="terminal-alert terminal-alert-primary">
+						<p>Squeezed ✅</p>
+					</div>
+				{:else if tx}
+					<div class="terminal-alert terminal-alert-primary">
+						<p>Awaiting confirmations... ⏳</p>
+					</div>
+				{:else if started}
+					<div class="terminal-alert terminal-alert-primary">
+						<p>Confirm the transaction 👉</p>
+					</div>
+				{/if}
 			</fieldset>
 		</form>
 	</section>

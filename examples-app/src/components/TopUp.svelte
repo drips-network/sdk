@@ -28,7 +28,7 @@
 			const currentReceivers =
 				configToUpdate?.dripsEntries.map((r) => ({
 					config: r.config,
-					userId: r.receiverUserId
+					userId: r.userId
 				})) || [];
 
 			const balanceDelta = BigNumber.from(topUpAmount);

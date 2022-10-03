@@ -341,7 +341,8 @@ export default class AddressDriverClient {
 		}
 
 		// The last (oldest) event provides the hash prior to the DripsHistory (or 0, if there was only one event).
-		const historyHash = dripsToSqueeze?.length > 1 ? dripsToSqueeze[dripsToSqueeze.length - 1].dripsHistoryHash : '0';
+		const historyHash =
+			dripsToSqueeze?.length > 1 ? dripsToSqueeze[dripsToSqueeze.length - 1].dripsHistoryHash : toBN(0).toHexString();
 
 		// Transform the events into `DripsHistory` objects.
 		const dripsHistory: DripsHistoryStruct[] = dripsToSqueeze
@@ -367,7 +368,7 @@ export default class AddressDriverClient {
 				}
 
 				const historyItem: DripsHistoryStruct = {
-					dripsHash: shouldSqueeze ? '0' : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
+					dripsHash: shouldSqueeze ? toBN(0).toHexString() : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
 					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
 						? dripsSetEvent.dripsReceiverSeenEvents.map((r) => ({
 								userId: r.receiverUserId,

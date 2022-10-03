@@ -40,7 +40,7 @@
 		return (
 			userAssetConfig?.dripsEntries.map((d) => ({
 				config: d.config,
-				userId: d.receiverUserId
+				userId: d.userId
 			})) ||
 			// If the configuration is new (or the configuration does not exist), the query will return undefined, and we should pass an empty array.
 			// Take a look at the `AddressApp.setDrips` method.
