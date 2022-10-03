@@ -2,7 +2,7 @@
 
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
+import type { BigNumberish, ContractTransaction, BigNumber, BytesLike } from 'ethers';
 import { ethers, constants } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { ChainDripsMetadata, CycleInfo } from 'src/common/types';
@@ -295,7 +295,57 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Receives drips from the currently running cycle from a single sender.
+	 * Receives drips from the currently running cycle from a single sender based on the specified history.
+	 * It doesn't receive drips from the previous, finished cycles.
+	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
+	 * @param  {BigNumberish} historyHash The `sender`'s history hash which was valid right before they set up the sequence of configurations described by `dripsHistory`.
+	 * @param  {BigNumberish} dripsHistory The sequence of the sender's drips configurations.
+	 * It can start at an arbitrary past configuration, but must describe all the configurations
+	 * which have been used since then including the current one, in the chronological order.
+	 * Only drips described by `dripsHistory` will be squeezed.
+	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
+	 * The next call to `squeezeDrips` will be able to squeeze only funds which
+	 * have been dripped after the last timestamp squeezed in this call.
+	 * This may cause some funds to be unreceivable until the current cycle ends.
+	 * @returns A Promise which resolves to the contract transaction.
+	 * @throws {@link DripsErrors.addressError} if the `erc20TokenAddress` address is not valid.
+	 * @throws {@link DripsErrors.argumentMissingError} if `senderId`, `historyHash`, or `dripsHistory` is missing.
+	 */
+	public async squeezeDripsFromHistory(
+		erc20TokenAddress: string,
+		senderId: BigNumberish,
+		historyHash: BytesLike,
+		dripsHistory: DripsHistoryStruct[]
+	): Promise<ContractTransaction> {
+		validateAddress(erc20TokenAddress);
+
+		if (isNullOrUndefined(senderId)) {
+			throw DripsErrors.argumentMissingError(
+				`Could not squeeze drips: '${nameOf({ senderId })}' is missing.`,
+				nameOf({ senderId })
+			);
+		}
+
+		if (!historyHash) {
+			throw DripsErrors.argumentMissingError(
+				`Could not squeeze drips: '${nameOf({ historyHash })}' is missing.`,
+				nameOf({ historyHash })
+			);
+		}
+
+		if (!dripsHistory) {
+			throw DripsErrors.argumentMissingError(
+				`Could not squeeze drips: '${nameOf({ dripsHistory })}' is missing.`,
+				nameOf({ dripsHistory })
+			);
+		}
+
+		return this.#addressDriverContract.squeezeDrips(erc20TokenAddress, senderId, historyHash, dripsHistory);
+	}
+
+	/**
+	 * Receives all drips from the currently running cycle from a single sender.
 	 * It doesn't receive drips from the previous, finished cycles.
 	 * @param  {string} erc20TokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.

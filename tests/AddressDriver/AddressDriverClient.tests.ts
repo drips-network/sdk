@@ -1106,4 +1106,126 @@ describe('AddressDriverClient', () => {
 			);
 		});
 	});
+
+	describe('squeezeDripsFromHistory', () => {
+		it('should validate the ERC20 token address', async () => {
+			// Arrange
+			const erc20Address = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			// Act
+			await testAddressDriverClient.squeezeDripsFromHistory(erc20Address, 1, 'historyHash', []);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(erc20Address),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentMissingError when senderId is null', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					null as unknown as BigNumberish,
+					'historyHash',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when senderId is undefined', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					undefined as unknown as BigNumberish,
+					'historyHash',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when historyHash is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					1,
+					undefined as unknown as string,
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when dripsHistory is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					1,
+					'historyHash',
+					undefined as unknown as DripsHistoryStruct[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should call the squeezeDripsFromHistory() method of the AddressDriver contract', async () => {
+			// Arrange
+			const senderId = 1;
+			const historyHash = 'historyHash';
+			const dripsHistory: DripsHistoryStruct[] = [];
+			const erc20Address = '0x24412a9358A0bfE83c07B415BC2EC2C608364D92';
+
+			// Act
+			await testAddressDriverClient.squeezeDripsFromHistory(erc20Address, senderId, historyHash, dripsHistory);
+
+			// Assert
+			assert(
+				addressDriverContractStub.squeezeDrips.calledOnceWithExactly(erc20Address, senderId, historyHash, dripsHistory),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
 });
