@@ -146,18 +146,6 @@ describe('AddressDriverClient', () => {
 		});
 	});
 
-	describe('getCycleInfo()', () => {
-		it('should return the expected result', async () => {
-			// Arrange
-
-			// Act
-			await testAddressDriverClient.getCycleInfo();
-
-			// Assert
-			assert.isTrue(dripsHubClientStub.getCycleInfo.calledOnce);
-		});
-	});
-
 	describe('getAllowance()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
@@ -925,9 +913,9 @@ describe('AddressDriverClient', () => {
 			const erc20Address = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
-			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEvents').resolves([]);
+			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
 
-			sinon.stub(AddressDriverClient.prototype, 'getCycleInfo').resolves({
+			sinon.stub(Utils.Cycle, 'getInfo').returns({
 				currentCycleStartDate: new Date(new Date().setDate(new Date().getDate() + 7))
 			} as CycleInfo);
 
@@ -1071,9 +1059,9 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEvents').resolves(dripsSetEvents);
+			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves(dripsSetEvents);
 
-			dripsHubClientStub.getCycleInfo.resolves({
+			sinon.stub(Utils.Cycle, 'getInfo').returns({
 				currentCycleStartDate: new Date(new Date().setDate(new Date().getDate() - 5))
 			} as CycleInfo);
 

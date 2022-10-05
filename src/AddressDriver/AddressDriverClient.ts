@@ -5,7 +5,7 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber, BytesLike } from 'ethers';
 import { ethers, constants } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { ChainDripsMetadata, CycleInfo } from 'src/common/types';
+import type { ChainDripsMetadata } from 'src/common/types';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import DripsHubClient from '../DripsHub/DripsHubClient';
@@ -137,10 +137,6 @@ export default class AddressDriverClient {
 		);
 
 		return addressDriverClient;
-	}
-
-	public async getCycleInfo(): Promise<CycleInfo> {
-		return this.#dripsHub.getCycleInfo();
 	}
 
 	/**
@@ -364,12 +360,12 @@ export default class AddressDriverClient {
 		}
 
 		// Get all `DripsSet` events (drips configurations) for the sender.
-		const dripsSetEvents = (await this.#subgraph.getDripsSetEvents(senderId.toString()))
+		const dripsSetEvents = (await this.#subgraph.getDripsSetEventsByUserId(senderId.toString()))
 			// Sort by `blockTimestamp` DESC - the first ones will be the most recent ones.
 			?.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 
 		const dripsToSqueeze: DripsSetEvent[] = [];
-		const { currentCycleStartDate } = await this.getCycleInfo();
+		const { currentCycleStartDate } = Utils.Cycle.getInfo(this.network.chainId);
 		const userId = await this.getUserId(); // Squeeze funds for the "connected user".
 
 		// Iterate over all events.

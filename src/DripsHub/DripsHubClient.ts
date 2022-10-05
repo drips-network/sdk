@@ -1,17 +1,17 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
-import type { ChainDripsMetadata, CycleInfo } from 'src/common/types';
-import { nameOf, toBN } from '../common/internals';
+import type { ChainDripsMetadata } from 'src/common/types';
+import { nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsHub } from '../../contracts';
-import { DripsHub__factory } from '../../contracts';
+// import type { DripsHub } from '../../contracts';
+// import { DripsHub__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 
 /**
  * A lower-level client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} smart contract.
  */
 export default class DripsHubClient {
-	#dripsHubContract!: DripsHub;
+	// #dripsHubContract!: DripsHub;
 
 	#network!: Network;
 	/**
@@ -71,29 +71,8 @@ export default class DripsHubClient {
 		dripsHub.#network = network;
 		dripsHub.#provider = provider;
 		dripsHub.#chainDripsMetadata = chainDripsMetadata;
-		dripsHub.#dripsHubContract = DripsHub__factory.connect(chainDripsMetadata.CONTRACT_DRIPS_HUB, provider);
+		// dripsHub.#dripsHubContract = DripsHub__factory.connect(chainDripsMetadata.CONTRACT_DRIPS_HUB, provider);
 
 		return dripsHub;
-	}
-
-	public async getCycleInfo(): Promise<CycleInfo> {
-		const cycleDurationSecs = toBN(await this.#dripsHubContract.cycleSecs()).toBigInt();
-
-		const currentCycleSecs = BigInt(Math.floor(this.#getUnixTime(new Date()))) % cycleDurationSecs;
-
-		const currentCycleStartDate = new Date(new Date().getTime() - Number(currentCycleSecs) * 1000);
-
-		const nextCycleStartDate = new Date(currentCycleStartDate.getTime() + Number(cycleDurationSecs * BigInt(1000)));
-
-		return {
-			cycleDurationSecs,
-			currentCycleSecs,
-			currentCycleStartDate,
-			nextCycleStartDate
-		};
-	}
-
-	#getUnixTime(date: Date): number {
-		return date.getTime() / 1000;
 	}
 }

@@ -29,3 +29,7 @@ export type DripsSetEvent = {
 	}[];
 	readonly blockTimestamp: BigNumberish;
 };
+
+export type DripsReceiverSeenEvent = {
+	readonly senderUserId: string;
+};

@@ -1,14 +1,69 @@
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
+import { DripsErrors } from './common/DripsError';
 import {
 	toBN,
 	validateAddress,
 	validateDripsReceiverConfigBN,
 	validateDripsReceiverConfigObj
 } from './common/internals';
-import type { ChainDripsMetadata, DripsReceiverConfig } from './common/types';
+import type { ChainDripsMetadata, CycleInfo, DripsReceiverConfig } from './common/types';
 
 namespace Utils {
+	export namespace Network {
+		export const chainDripsMetadata: Record<number, ChainDripsMetadata> = {
+			5: {
+				NAME: 'goerli',
+				CYCLE_SECS: '604800', // 1 week.
+				CONTRACT_DRIPS_HUB: '0x31b3905F6774D7Aa4E95a49784C53dD67ACC02cd',
+				CONTRACT_ADDRESS_DRIVER: '0x0749Ed6EB9De41F7bF77426d3128580E449744e1',
+				CONTRACT_DRIPS_HUB_LOGIC: '0x68CFD1803E7dDDb7432348644E9441b8105172D2',
+				CONTRACT_ADDRESS_DRIVER_LOGIC: '0x9176b535C947bB9fDa7b003F8061B665fE8baCa5',
+				// TODO: Update the Subgraph URL after hosted service is shut down.
+				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+			}
+		};
+
+		export const SUPPORTED_CHAINS: readonly number[] = Object.freeze(
+			Object.keys(chainDripsMetadata).map((chainId) => parseInt(chainId, 10))
+		);
+
+		export const isSupportedChain = (chainId: number) => {
+			if (SUPPORTED_CHAINS.includes(chainId)) {
+				return true;
+			}
+
+			return false;
+		};
+	}
+	export namespace Cycle {
+		const getUnixTime = (date: Date): number => date.getTime() / 1000;
+
+		export const getInfo = (chainId: number): CycleInfo => {
+			if (!Network.isSupportedChain(chainId)) {
+				throw DripsErrors.unsupportedNetworkError(
+					`Could not get cycle info: chain ID '${chainId}' is not supported. Supported chains are: ${Network.SUPPORTED_CHAINS.toString()}.`,
+					chainId
+				);
+			}
+
+			const cycleDurationSecs = toBN(Network.chainDripsMetadata[chainId].CYCLE_SECS).toBigInt();
+
+			const currentCycleSecs = BigInt(Math.floor(getUnixTime(new Date()))) % cycleDurationSecs;
+
+			const currentCycleStartDate = new Date(new Date().getTime() - Number(currentCycleSecs) * 1000);
+
+			const nextCycleStartDate = new Date(currentCycleStartDate.getTime() + Number(cycleDurationSecs * BigInt(1000)));
+
+			return {
+				cycleDurationSecs,
+				currentCycleSecs,
+				currentCycleStartDate,
+				nextCycleStartDate
+			};
+		};
+	}
+
 	export namespace Asset {
 		/**
 		 * Returns the ERC20 token address for the specified asset.
@@ -82,33 +137,6 @@ namespace Utils {
 				duration,
 				start
 			};
-		};
-	}
-
-	export namespace Network {
-		export const chainDripsMetadata: Record<number, ChainDripsMetadata> = {
-			5: {
-				NAME: 'goerli',
-				CYCLE_SECS: '604800', // 1 week.
-				CONTRACT_DRIPS_HUB: '0x31b3905F6774D7Aa4E95a49784C53dD67ACC02cd',
-				CONTRACT_ADDRESS_DRIVER: '0x0749Ed6EB9De41F7bF77426d3128580E449744e1',
-				CONTRACT_DRIPS_HUB_LOGIC: '0x68CFD1803E7dDDb7432348644E9441b8105172D2',
-				CONTRACT_ADDRESS_DRIVER_LOGIC: '0x9176b535C947bB9fDa7b003F8061B665fE8baCa5',
-				// TODO: Update the Subgraph URL after hosted service is shut down.
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
-			}
-		};
-
-		export const SUPPORTED_CHAINS: readonly number[] = Object.freeze(
-			Object.keys(chainDripsMetadata).map((chainId) => parseInt(chainId, 10))
-		);
-
-		export const isSupportedChain = (chainId: number) => {
-			if (SUPPORTED_CHAINS.includes(chainId)) {
-				return true;
-			}
-
-			return false;
 		};
 	}
 }

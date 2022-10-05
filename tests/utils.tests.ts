@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import { ethers } from 'ethers';
 import sinon from 'ts-sinon';
+import { DripsErrorCode } from '../src/common/DripsError';
 import * as internals from '../src/common/internals';
 import type { DripsReceiverConfig } from '../src/common/types';
 import Utils from '../src/utils';
@@ -8,6 +9,45 @@ import Utils from '../src/utils';
 describe('Utils', () => {
 	afterEach(() => {
 		sinon.restore();
+	});
+
+	describe('Cycle', () => {
+		describe('getInfo()', () => {
+			it('should throw unsupportedNetworkError when the provided chain ID is not supported', async () => {
+				// Arrange
+				let threw = false;
+
+				// Act
+				try {
+					await Utils.Cycle.getInfo(100);
+				} catch (error: any) {
+					// Assert
+					assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
+					threw = true;
+				}
+
+				// Assert
+				assert.isTrue(threw, 'Expected type of exception was not thrown');
+			});
+
+			it('should return the expected result', async () => {
+				// Arrange
+				const now = new Date(0).getTime() / 1000 + 2 * 604800 + 86400;
+				const clock = sinon.useFakeTimers(now * 1000);
+				// assertions
+
+				// Act
+				const result = await Utils.Cycle.getInfo(5);
+
+				// Assert
+				assert.equal(result.cycleDurationSecs, 604800n);
+				assert.equal(result.currentCycleSecs, 86400n);
+				assert.equal(result.currentCycleStartDate.toISOString(), '1970-01-15T00:00:00.000Z');
+				assert.equal(result.nextCycleStartDate.toISOString(), '1970-01-22T00:00:00.000Z');
+
+				clock.restore();
+			});
+		});
 	});
 
 	describe('Assets', () => {

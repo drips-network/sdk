@@ -85,26 +85,4 @@ describe('DripsHubClient', () => {
 			);
 		});
 	});
-
-	describe('getCycleInfo()', () => {
-		it('should return the expected result', async () => {
-			// Arrange
-			dripsHubContractStub.cycleSecs.resolves(604800);
-
-			const now = new Date(0).getTime() / 1000 + 2 * 604800 + 86400;
-			const clock = sinon.useFakeTimers(now * 1000);
-			// assertions
-
-			// Act
-			const result = await testDripsHubClient.getCycleInfo();
-
-			// Assert
-			assert.equal(result.cycleDurationSecs, 604800n);
-			assert.equal(result.currentCycleSecs, 86400n);
-			assert.equal(result.currentCycleStartDate.toISOString(), '1970-01-15T00:00:00.000Z');
-			assert.equal(result.nextCycleStartDate.toISOString(), '1970-01-22T00:00:00.000Z');
-
-			clock.restore();
-		});
-	});
 });

@@ -1,5 +1,5 @@
-export const getAllUserAssetConfigs = `#graphql
-query getAllUserAssetConfigs($userId: ID!) {
+export const getAllUserAssetConfigsByUserId = `#graphql
+query getAllUserAssetConfigsByUserId($userId: ID!) {
   user(id: $userId) {
     assetConfigs {
       id
@@ -16,8 +16,8 @@ query getAllUserAssetConfigs($userId: ID!) {
 }
 `;
 
-export const getSplitsConfig = `#graphql
-query getSplitsConfig($userId: ID!) {
+export const getSplitsConfigByUserId = `#graphql
+query getSplitsConfigByUserId($userId: ID!) {
   user(id: $userId) {
 		splitsEntries {
 			receiverUserId
@@ -27,8 +27,8 @@ query getSplitsConfig($userId: ID!) {
 }
 `;
 
-export const getUserAssetConfig = `#graphql
-query getUserAssetConfig($configId: ID!) {
+export const getUserAssetConfigById = `#graphql
+query getUserAssetConfigById($configId: ID!) {
 	userAssetConfig(id: $configId) {
 		id
 		assetId
@@ -43,8 +43,8 @@ query getUserAssetConfig($configId: ID!) {
 }
 `;
 
-export const getDripsSetEvents = `#graphql
-query getDripsSetEvents($userId: BigInt!, ) {
+export const getDripsSetEventsByUserId = `#graphql
+query getDripsSetEventsByUserId($userId: BigInt!) {
   dripsSetEvents(where: {userId: $userId}) {
     userId
     assetId
@@ -54,6 +54,15 @@ query getDripsSetEvents($userId: BigInt!, ) {
     }
     blockTimestamp
 		maxEnd
+  }
+}
+`;
+
+export const getDripsReceiverSeenEventsByReceiverId = `#graphql
+query getDripsReceiverSeenEventsByReceiverId($receiverId: BigInt!) {
+  dripsReceiverSeenEvents(where: {receiverUserId: $receiverId}) {
+    senderUserId
+		dripsSetEvent
   }
 }
 `;

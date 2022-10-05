@@ -1,13 +1,20 @@
+/* eslint-disable no-await-in-loop */
 import Utils from '../utils';
-import { nameOf } from '../common/internals';
+import { nameOf, toBN } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
-import type { DripsSetEvent, SplitEntry, UserAssetConfig } from './types';
+import type { DripsReceiverSeenEvent, DripsSetEvent, SplitEntry, UserAssetConfig } from './types';
 
 /**
  * A client for querying the Drips Subgraph.
  */
 export default class DripsSubgraphClient {
+	#chainId!: number;
+	/** Returns the chain ID the `DripsSubgraphClient` is connected to. */
+	public get chainId() {
+		return this.#chainId;
+	}
+
 	#apiUrl!: string;
 	/** Returns the `DripsSubgraphClient`'s API URL. */
 	public get apiUrl() {
@@ -41,7 +48,8 @@ export default class DripsSubgraphClient {
 
 		const subgraphClient = new DripsSubgraphClient();
 
-		subgraphClient.#apiUrl = Utils.Network.chainDripsMetadata[chainId].SUBGRAPH_URL;
+		subgraphClient.#chainId = chainId;
+		subgraphClient.#apiUrl = Utils.Network.chainDripsMetadata[subgraphClient.#chainId].SUBGRAPH_URL;
 
 		return subgraphClient;
 	}
@@ -53,12 +61,12 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's drips configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserAssetConfig(userId: string, assetId: string): Promise<UserAssetConfig> {
+	public async getUserAssetConfigById(userId: string, assetId: string): Promise<UserAssetConfig> {
 		type ApiResponse = {
 			userAssetConfig: UserAssetConfig;
 		};
 
-		const response = await this.query<ApiResponse>(gql.getUserAssetConfig, {
+		const response = await this.query<ApiResponse>(gql.getUserAssetConfigById, {
 			configId: `${userId}-${assetId}`
 		});
 
@@ -71,14 +79,14 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's drips configurations.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getAllUserAssetConfigs(userId: string): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
 		type ApiResponse = {
 			user: {
 				assetConfigs: UserAssetConfig[];
 			};
 		};
 
-		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigs, { userId });
+		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigsByUserId, { userId });
 
 		return response?.data?.user?.assetConfigs || [];
 	}
@@ -89,14 +97,14 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfig(userId: string): Promise<SplitEntry[]> {
+	public async getSplitsConfigByUserId(userId: string): Promise<SplitEntry[]> {
 		type ApiResponse = {
 			user: {
 				splitsEntries: SplitEntry[];
 			};
 		};
 
-		const response = await this.query<ApiResponse>(gql.getSplitsConfig, { userId });
+		const response = await this.query<ApiResponse>(gql.getSplitsConfigByUserId, { userId });
 
 		return response?.data?.user?.splitsEntries || [];
 	}
@@ -107,14 +115,100 @@ export default class DripsSubgraphClient {
 	 * @returns A Promise which resolves to the user's `DripsSetEvent`s.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsSetEvents(userId: string): Promise<DripsSetEvent[]> {
+	public async getDripsSetEventsByUserId(userId: string): Promise<DripsSetEvent[]> {
 		type ApiResponse = {
 			dripsSetEvents: DripsSetEvent[];
 		};
 
-		const response = await this.query<ApiResponse>(gql.getDripsSetEvents, { userId });
+		const response = await this.query<ApiResponse>(gql.getDripsSetEventsByUserId, { userId });
 
 		return response?.data?.dripsSetEvents || [];
+	}
+
+	/**
+	 * Returns the senders for which drips can be squeezed for a specified receiver.
+	 * @param  {string} receiverId The receiver's user ID.
+	 * @returns A Promise which resolves to a map with keys being the sender IDs and values the asset IDs.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
+		type ApiResponse = {
+			dripsReceiverSeenEvents: DripsReceiverSeenEvent[];
+		};
+
+		// Get all `DripsReceiverSeen` events for the specified receiver.
+		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverId });
+		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
+
+		if (!dripsReceiverSeenEvents?.length) {
+			return {};
+		}
+
+		const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
+		const squeezableSenders: Record<string, string[]> = {}; // key: senderId, value: [assetId, assetId]
+		const processedSenders: Record<string, boolean> = {};
+
+		// Iterate over all `DripsReceiverSeen` events.
+		for (let i = 0; i < dripsReceiverSeenEvents.length; i++) {
+			const dripsReceiverSeenEvent = dripsReceiverSeenEvents[i];
+
+			const { senderUserId } = dripsReceiverSeenEvent;
+
+			if (!processedSenders[senderUserId]) {
+				// Mark the sender as processed in order not to process the same sender ID multiple times.
+				processedSenders[senderUserId] = true;
+
+				// For each event's sender, get all user asset configurations.
+				const senderAssetConfigs = await this.getAllUserAssetConfigsByUserId(senderUserId);
+
+				// Iterate over all sender configurations.
+				for (let j = 0; j < senderAssetConfigs.length; j++) {
+					const senderAssetConfig = senderAssetConfigs[j];
+
+					// Iterate over all configuration drip entries.
+					for (let k = 0; k < senderAssetConfig.dripsEntries.length; k++) {
+						const dripEntry = senderAssetConfig.dripsEntries[k];
+
+						// Get the rate of dripping from the config.
+						const { amountPerSec } = Utils.DripsReceiverConfiguration.fromUint256(
+							senderAssetConfig.dripsEntries[0]?.config
+						);
+
+						// Keep only the configurations that drip to the `receiverId`.
+						if (dripEntry.userId === receiverId && amountPerSec > 0 && senderAssetConfig.balance > 0) {
+							const configUpdateTimestamp = new Date(toBN(senderAssetConfig.lastUpdatedBlockTimestamp).toNumber());
+
+							// If the configuration was updated before the start of the current timestamp.
+							if (configUpdateTimestamp < currentCycleStartDate) {
+								// Calculate the seconds that elapsed from the time the configuration was updated until the start of the current cycle.
+								const elapsedSecsUntilCurrentCycleStart = Math.floor(
+									(currentCycleStartDate.getTime() - configUpdateTimestamp.getTime()) / 1000
+								);
+
+								const drippedAmount = toBN(amountPerSec).mul(elapsedSecsUntilCurrentCycleStart);
+
+								// If the balance is greater than the dripped amount, the receiver will have drips to squeeze in the current cycle.
+								if (senderAssetConfig.balance > drippedAmount) {
+									if (!squeezableSenders[senderUserId]) {
+										squeezableSenders[senderUserId] = [];
+									}
+									squeezableSenders[senderUserId].push(senderAssetConfig.assetId);
+								}
+							}
+							// If the configuration was updated after the start of the current timestamp the receiver will have drips to squeeze in the current cycle.
+							else {
+								if (!squeezableSenders[senderUserId]) {
+									squeezableSenders[senderUserId] = [];
+								}
+								squeezableSenders[senderUserId].push(senderAssetConfig.assetId);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return squeezableSenders;
 	}
 
 	/** @internal */

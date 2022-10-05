@@ -56,7 +56,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 
 	const { start, duration, amountPerSec } = dripsReceiverConfig;
 
-	if (toBN(start).lt(0)) {
+	if (isNullOrUndefined(start) || toBN(start).lt(0)) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: '${nameOf({ start })}' must be greater than or equal to 0`,
 			nameOf({ start }),
@@ -64,7 +64,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 		);
 	}
 
-	if (toBN(duration).lt(0)) {
+	if (isNullOrUndefined(duration) || toBN(duration).lt(0)) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: '${nameOf({ duration })}' must be greater than or equal to 0`,
 			nameOf({ duration }),
@@ -72,7 +72,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 		);
 	}
 
-	if (toBN(amountPerSec).lte(0)) {
+	if (isNullOrUndefined(amountPerSec) || toBN(amountPerSec).lte(0)) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: '${nameOf({ amountPerSec })}' must be greater than 0.`,
 			nameOf({ amountPerSec }),
