@@ -9,12 +9,12 @@
 	let errorMessage: string;
 	let tx: ContractTransaction;
 	let receiverAddress: string;
-	let erc20TokenAddress: string;
+	let tokenAddress: string;
 	let txReceipt: ContractReceipt;
 
 	$: isConnected = Boolean(addressDriverClient);
 
-	const give = async (receiverAddress: string, erc20TokenAddress: string, amount: BigNumberish) => {
+	const give = async (receiverAddress: string, tokenAddress: string, amount: BigNumberish) => {
 		tx = null;
 		started = true;
 		txReceipt = null;
@@ -23,7 +23,7 @@
 		try {
 			const receiverId = await addressDriverClient.getUserIdByAddress(receiverAddress);
 
-			tx = await addressDriverClient.give(receiverId, erc20TokenAddress, amount);
+			tx = await addressDriverClient.give(receiverId, tokenAddress, amount);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
@@ -45,7 +45,7 @@
 		txReceipt = null;
 		errorMessage = null;
 		receiverAddress = null;
-		erc20TokenAddress = null;
+		tokenAddress = null;
 	};
 </script>
 
@@ -73,7 +73,7 @@
 						name="token"
 						type="text"
 						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
-						bind:value={erc20TokenAddress}
+						bind:value={tokenAddress}
 					/>
 				</div>
 				<div class="form-group">
@@ -85,7 +85,7 @@
 						disabled={!isConnected}
 						class="btn btn-default"
 						type="button"
-						on:click={() => give(receiverAddress, erc20TokenAddress, amount)}>Give</button
+						on:click={() => give(receiverAddress, tokenAddress, amount)}>Give</button
 					>
 				</div>
 				<div>

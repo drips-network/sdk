@@ -11,7 +11,7 @@
 	let senderId: string;
 	let errorMessage: string;
 	let tx: ContractTransaction;
-	let erc20TokenAddress: string;
+	let tokenAddress: string;
 	let txReceipt: ContractReceipt;
 
 	const squeezeDrips = async (token: string, sender: string) => {
@@ -42,7 +42,7 @@
 		started = false;
 		txReceipt = null;
 		errorMessage = null;
-		erc20TokenAddress = null;
+		tokenAddress = null;
 	};
 </script>
 
@@ -61,7 +61,7 @@
 						name="token"
 						type="text"
 						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
-						bind:value={erc20TokenAddress}
+						bind:value={tokenAddress}
 					/>
 				</div>
 				<div class="form-group">
@@ -78,7 +78,7 @@
 						disabled={!isConnected}
 						class="btn btn-default"
 						type="button"
-						on:click={() => squeezeDrips(erc20TokenAddress, senderId)}>TopUp</button
+						on:click={() => squeezeDrips(tokenAddress, senderId)}>TopUp</button
 					>
 				</div>
 

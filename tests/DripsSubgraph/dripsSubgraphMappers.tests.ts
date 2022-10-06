@@ -56,9 +56,9 @@
 // 				lastUpdatedBlockTimestamp: 1
 // 			};
 
-// 			const erc20TokenAddress = Wallet.createRandom().address;
+// 			const tokenAddress = Wallet.createRandom().address;
 
-// 			sinon.stub(Utils.Asset, 'getAddressFromId').returns(erc20TokenAddress);
+// 			sinon.stub(Utils.Asset, 'getAddressFromId').returns(tokenAddress);
 // 			sinon.stub(Utils.DripsReceiverConfiguration, 'fromUint256').returns(dripsReceiverConfig);
 
 // 			// Act
@@ -66,7 +66,7 @@
 
 // 			// Assert
 // 			assert.equal(dto.id, userAssetConfig.id);
-// 			assert.equal(dto.tokenAddress, erc20TokenAddress);
+// 			assert.equal(dto.tokenAddress, tokenAddress);
 // 			assert.equal(dto.assetId, userAssetConfig.assetId);
 // 			assert.equal(dto.balance, userAssetConfig.balance);
 // 			assert.equal(dto.amountCollected, userAssetConfig.amountCollected);

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressApp, AddressDriverClient, DripsSubgraphClient, Utils } from 'radicle-drips';
+	import { AddressDriver, AddressDriverClient, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressDriverClient: AddressDriverClient;
@@ -27,14 +27,14 @@
 	let started = false;
 	let errorMessage: string;
 	let tx: ContractTransaction;
-	let erc20TokenAddress: string;
+	let tokenAddress: string;
 	let txReceipt: ContractReceipt;
 
 	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 
 	const getCurrentReceivers = async () => {
 		const userId = await addressDriverClient.getUserId();
-		const assetId = Utils.Asset.getIdFromAddress(erc20TokenAddress);
+		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
 		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
 
 		return (
@@ -43,7 +43,7 @@
 				userId: d.userId
 			})) ||
 			// If the configuration is new (or the configuration does not exist), the query will return undefined, and we should pass an empty array.
-			// Take a look at the `AddressApp.setDrips` method.
+			// Take a look at the `AddressDriver.setDrips` method.
 			[]
 		);
 	};
@@ -59,7 +59,7 @@
 
 			const currentReceivers = await getCurrentReceivers();
 
-			const newReceivers: AddressApp.DripsReceiverStruct[] = await Promise.all(
+			const newReceivers: AddressDriver.DripsReceiverStruct[] = await Promise.all(
 				dripsInputs
 					// Ignore inputs without values.
 					.filter((d) => d.config.amountPerSec && d.userAddress.length)
@@ -82,13 +82,7 @@
 
 			const tranferTo = addressDriverClient.signerAddress;
 
-			tx = await addressDriverClient.setDrips(
-				erc20TokenAddress,
-				currentReceivers,
-				newReceivers,
-				tranferTo,
-				balanceDelta
-			);
+			tx = await addressDriverClient.setDrips(tokenAddress, currentReceivers, newReceivers, tranferTo, balanceDelta);
 			console.log(tx);
 
 			txReceipt = await tx.wait();
@@ -108,7 +102,7 @@
 		started = false;
 		txReceipt = null;
 		errorMessage = null;
-		erc20TokenAddress = null;
+		tokenAddress = null;
 	};
 </script>
 
@@ -128,7 +122,7 @@
 						type="text"
 						name="assetId"
 						placeholder="ERC20 Token Address (e.g. 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984)"
-						bind:value={erc20TokenAddress}
+						bind:value={tokenAddress}
 					/>
 				</div>
 
