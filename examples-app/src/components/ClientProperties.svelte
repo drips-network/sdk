@@ -52,19 +52,19 @@
 				</tr>
 				<tr>
 					<th>DripbHub Contract</th>
-					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_DRIPS_HUB || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.dripsMetadata?.CONTRACT_DRIPS_HUB || '[Not Connected]'}</td>
 				</tr>
 				<tr>
-					<th>AddressApp Contract</th>
-					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_ADDRESS_DRIVER || '[Not Connected]'}</td>
+					<th>AddressDriver Contract</th>
+					<td>{addressDriverClient?.dripsMetadata?.CONTRACT_ADDRESS_DRIVER || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>AddressAppLogic Contract</th>
-					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_ADDRESS_DRIVER_LOGIC || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.dripsMetadata?.CONTRACT_ADDRESS_DRIVER_LOGIC || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>DripbHubLogic Contract</th>
-					<td>{addressDriverClient?.chainDripsMetadata?.CONTRACT_DRIPS_HUB_LOGIC || '[Not Connected]'}</td>
+					<td>{addressDriverClient?.dripsMetadata?.CONTRACT_DRIPS_HUB_LOGIC || '[Not Connected]'}</td>
 				</tr>
 				<tr>
 					<th>Subgraph URL</th>

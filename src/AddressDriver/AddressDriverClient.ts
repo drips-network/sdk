@@ -5,16 +5,22 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, BigNumber, BytesLike } from 'ethers';
 import { ethers, constants } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { ChainDripsMetadata } from 'src/common/types';
+import type { DripsMetadata } from 'src/common/types';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import Utils from '../utils';
-import { validateAddress, nameOf, toBN, isNullOrUndefined } from '../common/internals';
+import {
+	validateAddress,
+	nameOf,
+	toBN,
+	isNullOrUndefined,
+	validateDripsReceivers,
+	validateSplitsReceivers
+} from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import type { AddressDriver as AddressDriverContract } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import { validateDripsReceivers, validateSplitsReceivers } from './addressDriverValidators';
 
 /**
  * A client for managing drips and splits for a user identified by an Ethereum address.
@@ -70,10 +76,10 @@ export default class AddressDriverClient {
 		return this.#provider;
 	}
 
-	#chainDripsMetadata!: ChainDripsMetadata;
-	/** Returns the `AddressDriverClient`'s `network` {@link ChainDripsMetadata}. */
-	public get chainDripsMetadata() {
-		return this.#chainDripsMetadata;
+	#dripsMetadata!: DripsMetadata;
+	/** Returns the `AddressDriverClient`'s `network` {@link DripsMetadata}. */
+	public get dripsMetadata() {
+		return this.#dripsMetadata;
 	}
 
 	private constructor() {}
@@ -86,11 +92,11 @@ export default class AddressDriverClient {
 	 *
 	 * The `provider` can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
-	 * @returns A Promise which resolves to the new `AddressDriverClient` instance.
+	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {DripsErrors.argumentError} if the `provider`'s singer is missing.
 	 * @throws {DripsErrors.addressError} if the `provider`'s signer address is not valid.
-	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported chain.
+	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
 	public static async create(provider: JsonRpcProvider): Promise<AddressDriverClient> {
 		if (!provider) {
@@ -120,19 +126,19 @@ export default class AddressDriverClient {
 				network?.chainId
 			);
 		}
-		const chainDripsMetadata = Utils.Network.chainDripsMetadata[network.chainId];
+		const dripsMetadata = Utils.Network.dripsMetadata[network.chainId];
 
 		const addressDriverClient = new AddressDriverClient();
 
 		addressDriverClient.#signer = signer;
 		addressDriverClient.#network = network;
 		addressDriverClient.#provider = provider;
-		addressDriverClient.#chainDripsMetadata = chainDripsMetadata;
+		addressDriverClient.#dripsMetadata = dripsMetadata;
 		addressDriverClient.#signerAddress = await signer.getAddress();
 		addressDriverClient.#dripsHub = await DripsHubClient.create(provider);
 		addressDriverClient.#subgraph = DripsSubgraphClient.create(network.chainId);
 		addressDriverClient.#addressDriverContract = AddressDriver__factory.connect(
-			chainDripsMetadata.CONTRACT_ADDRESS_DRIVER,
+			dripsMetadata.CONTRACT_ADDRESS_DRIVER,
 			signer
 		);
 
@@ -140,38 +146,38 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Returns the remaining number of tokens the `AddressApp` smart contract is allowed to spend on behalf of the `AddressDriverClient`'s `signer` for the specified ERC20 token.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
-	 * @returns A Promise which resolves to the remaining number of tokens.
-	 * @throws {DripsErrors.addressError} if the `erc20TokenAddress` is not valid.
+	 * Returns the remaining number of tokens the `AddressDriver` smart contract is allowed to spend on behalf of the `AddressDriverClient`'s `signer` for the given ERC20 token.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @returns A `Promise` which resolves to the remaining number of tokens.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
-	public async getAllowance(erc20TokenAddress: string): Promise<BigNumber> {
-		validateAddress(erc20TokenAddress);
+	public async getAllowance(tokenAddress: string): Promise<BigNumber> {
+		validateAddress(tokenAddress);
 
-		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
-		return signerAsErc20Contract.allowance(this.#signerAddress, this.#chainDripsMetadata.CONTRACT_ADDRESS_DRIVER);
+		return signerAsErc20Contract.allowance(this.#signerAddress, this.#dripsMetadata.CONTRACT_ADDRESS_DRIVER);
 	}
 
 	/**
-	 * Sets the maximum allowance value for the `AddressApp` smart contract over the `AddressDriverClient`'s `signer` tokens for the specified ERC20 token.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
-	 * @returns A Promise which resolves to the contract transaction.
-	 * @throws {DripsErrors.addressError} if the `erc20TokenAddress` is not valid.
+	 * Sets the maximum allowance value for the `AddressDriver` smart contract over the `AddressDriverClient`'s `signer` tokens for the given ERC20 token.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
-	public approve(erc20TokenAddress: string): Promise<ContractTransaction> {
-		validateAddress(erc20TokenAddress);
+	public approve(tokenAddress: string): Promise<ContractTransaction> {
+		validateAddress(tokenAddress);
 
-		const signerAsErc20Contract = IERC20__factory.connect(erc20TokenAddress, this.#signer);
+		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
-		return signerAsErc20Contract.approve(this.#chainDripsMetadata.CONTRACT_ADDRESS_DRIVER, constants.MaxUint256);
+		return signerAsErc20Contract.approve(this.#dripsMetadata.CONTRACT_ADDRESS_DRIVER, constants.MaxUint256);
 	}
 
 	/**
 	 * Returns the `AddressDriverClient`'s `signer` user ID.
 	 *
 	 * This is the user ID to which the `AddressDriverClient` is linked and manages drips.
-	 * @returns A Promise which resolves to the user ID.
+	 * @returns A `Promise` which resolves to the user ID.
 	 */
 	public async getUserId(): Promise<string> {
 		const userId = await this.#addressDriverContract.calcUserId(this.#signerAddress);
@@ -180,9 +186,9 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Returns the user ID for a specified address.
+	 * Returns the user ID for a given address.
 	 * @param  {string} userAddress The user address.
-	 * @returns A Promise which resolves to the user ID.
+	 * @returns A `Promise` which resolves to the user ID.
 	 * @throws {DripsErrors.addressError} if the `userAddress` address is not valid.
 	 */
 	public async getUserIdByAddress(userAddress: string): Promise<string> {
@@ -195,29 +201,29 @@ export default class AddressDriverClient {
 
 	/**
 	 * Collects the received and already split funds for the `AddressDriverClient`'s `signer` and transfers them from the smart contract to an address.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {string} transferToAddress The address to send collected funds to.
-	 * @returns A Promise which resolves to the contract transaction.
-	 * @throws {DripsErrors.addressError} if the `erc20TokenAddress` or the `transferToAddress` are not valid.
+	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` are not valid.
 	 */
-	public async collect(erc20TokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
-		validateAddress(erc20TokenAddress);
+	public async collect(tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
+		validateAddress(tokenAddress);
 		validateAddress(transferToAddress);
 
-		return this.#addressDriverContract.collect(erc20TokenAddress, transferToAddress);
+		return this.#addressDriverContract.collect(tokenAddress, transferToAddress);
 	}
 
 	/**
 	 * Gives funds from the `AddressDriverClient`'s `signer` to the receiver.
 	 * The receiver can collect them immediately.
 	 * @param  {BigNumberish} receiverId The receiver user ID.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei).
-	 * @returns A Promise which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {DripsErrors.argumentMissingError} if the `receiverId` is missing.
-	 * @throws {DripsErrors.addressError} if the `erc20TokenAddress` is not valid.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
-	public give(receiverId: BigNumberish, erc20TokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public give(receiverId: BigNumberish, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
 		if (isNullOrUndefined(receiverId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not give: '${nameOf({ receiverId })}' is missing.`,
@@ -225,9 +231,9 @@ export default class AddressDriverClient {
 			);
 		}
 
-		validateAddress(erc20TokenAddress);
+		validateAddress(tokenAddress);
 
-		return this.#addressDriverContract.give(receiverId, erc20TokenAddress, amount);
+		return this.#addressDriverContract.give(receiverId, tokenAddress, amount);
 	}
 
 	/**
@@ -236,7 +242,7 @@ export default class AddressDriverClient {
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 *
 	 * Pass an empty array if you want to clear all receivers from this configuration.
-	 * @returns A Promise which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {DripsErrors.argumentMissingError} if `receivers` are missing.
 	 * @throws {DripsErrors.argumentError} if `receivers`' count exceeds the max allowed drips receivers.
 	 * @throws {DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
@@ -248,8 +254,8 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Sets the `AddressDriverClient`'s `signer` drips configuration for the specified token.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * Sets the `AddressDriverClient`'s `signer` drips configuration for the given token.
+	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The `signer`'s drips receivers that were set in the last drips configuration update.
 	 *
 	 * Pass an empty array if this is the first update.
@@ -264,25 +270,39 @@ export default class AddressDriverClient {
 	 *
 	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.
 	 *
-	 * @returns A Promise which resolves to the contract transaction.
-	 * @throws {DripsErrors.argumentMissingError} if `currentReceivers` or `newReceivers` are missing.
-	 * @throws {DripsErrors.addressError} if the `erc20TokenAddress` or the `transferToAddress` are not valid.
+	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` are not valid.
 	 * @throws {DripsErrors.argumentError} if `currentReceivers`' or `newReceivers`' count exceeds the max allowed drips receivers.
 	 * @throws {DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` are not valid.
 	 */
 	public setDrips(
-		erc20TokenAddress: string,
+		tokenAddress: string,
 		currentReceivers: DripsReceiverStruct[],
 		newReceivers: DripsReceiverStruct[],
 		transferToAddress: string,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
-		validateAddress(erc20TokenAddress);
-		validateDripsReceivers(newReceivers);
-		validateDripsReceivers(currentReceivers);
+		validateAddress(tokenAddress);
+		validateDripsReceivers(
+			newReceivers.map((r) => ({ userId: r.userId, config: Utils.DripsReceiverConfiguration.fromUint256(r.config) }))
+		);
+		validateDripsReceivers(
+			currentReceivers.map((r) => ({
+				userId: r.userId,
+				config: Utils.DripsReceiverConfiguration.fromUint256(r.config)
+			}))
+		);
+
+		if (isNullOrUndefined(transferToAddress)) {
+			throw DripsErrors.argumentMissingError(
+				`Could not set drips: '${nameOf({ transferToAddress })}' is missing.`,
+				nameOf({ transferToAddress })
+			);
+		}
 
 		return this.#addressDriverContract.setDrips(
-			erc20TokenAddress,
+			tokenAddress,
 			this.#formatDripsReceivers(currentReceivers),
 			balanceDelta,
 			this.#formatDripsReceivers(newReceivers),
@@ -291,9 +311,9 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Receives drips from the currently running cycle from a single sender based on the specified history.
+	 * Receives drips from the currently running cycle from a single sender based on the given history.
 	 * It doesn't receive drips from the previous, finished cycles.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BigNumberish} historyHash The `sender`'s history hash which was valid right before they set up the sequence of configurations described by `dripsHistory`.
 	 * @param  {BigNumberish} dripsHistory The sequence of the sender's drips configurations.
@@ -304,17 +324,17 @@ export default class AddressDriverClient {
 	 * The next call to `squeezeDrips` will be able to squeeze only funds which
 	 * have been dripped after the last timestamp squeezed in this call.
 	 * This may cause some funds to be unreceivable until the current cycle ends.
-	 * @returns A Promise which resolves to the contract transaction.
-	 * @throws {@link DripsErrors.addressError} if the `erc20TokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if `senderId`, `historyHash`, or `dripsHistory` is missing.
+	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
+	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
 	public async squeezeDripsFromHistory(
-		erc20TokenAddress: string,
+		tokenAddress: string,
 		senderId: BigNumberish,
 		historyHash: BytesLike,
 		dripsHistory: DripsHistoryStruct[]
 	): Promise<ContractTransaction> {
-		validateAddress(erc20TokenAddress);
+		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(senderId)) {
 			throw DripsErrors.argumentMissingError(
@@ -337,20 +357,20 @@ export default class AddressDriverClient {
 			);
 		}
 
-		return this.#addressDriverContract.squeezeDrips(erc20TokenAddress, senderId, historyHash, dripsHistory);
+		return this.#addressDriverContract.squeezeDrips(tokenAddress, senderId, historyHash, dripsHistory);
 	}
 
 	/**
 	 * Receives all drips from the currently running cycle from a single sender.
 	 * It doesn't receive drips from the previous, finished cycles.
-	 * @param  {string} erc20TokenAddress The ERC20 token address.
+	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
-	 * @returns A Promise which resolves to the contract transaction.
-	 * @throws {@link DripsErrors.addressError} if the `erc20TokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `senderId` is missing.
+	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
+	 * @throws {DripsErrors.argumentMissingError} if the `senderId` is missing.
 	 */
-	public async squeezeDrips(erc20TokenAddress: string, senderId: BigNumberish): Promise<ContractTransaction> {
-		validateAddress(erc20TokenAddress);
+	public async squeezeDrips(tokenAddress: string, senderId: BigNumberish): Promise<ContractTransaction> {
+		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(senderId)) {
 			throw DripsErrors.argumentMissingError(
@@ -398,9 +418,9 @@ export default class AddressDriverClient {
 				// By default a configuration should not be squeezed.
 				let shouldSqueeze = false;
 
-				// Check the configurations for the specified asset that have receivers, the others should not be squeezed.
+				// Check the configurations for the given asset that have receivers, the others should not be squeezed.
 				if (
-					dripsSetEvent.assetId === Utils.Asset.getIdFromAddress(erc20TokenAddress) &&
+					dripsSetEvent.assetId === Utils.Asset.getIdFromAddress(tokenAddress) &&
 					dripsSetEvent.dripsReceiverSeenEvents?.length
 				) {
 					// Iterate over all event's `DripsReceiverSeen` events (receivers).
@@ -431,7 +451,7 @@ export default class AddressDriverClient {
 			})
 			.reverse();
 
-		return this.#addressDriverContract.squeezeDrips(erc20TokenAddress, senderId, historyHash, dripsHistory);
+		return this.#addressDriverContract.squeezeDrips(tokenAddress, senderId, historyHash, dripsHistory);
 	}
 
 	// #region Private Methods
