@@ -258,17 +258,15 @@ export default class AddressDriverClient {
 	 * @param  {DripsReceiverStruct[]} currentReceivers The `signer`'s drips receivers that were set in the last drips configuration update.
 	 *
 	 * Pass an empty array if this is the first update.
-	 * @param  {BigNumberish} balanceDelta The `signer`'s drips balance change to be applied:
-	 * - Positive to add funds to the drips balance.
-	 * - Negative to remove funds from the drips balance.
-	 * - `0` to leave drips balance as is (default value).
 	 * @param  {DripsReceiverStruct[]} newReceivers The `signer`'s new drips receivers.
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 *
 	 * Pass an empty array if you want to clear all receivers from this configuration.
-	 *
 	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.
-	 *
+	 * @param  {BigNumberish} balanceDelta The `signer`'s drips balance change to be applied:
+	 * - Positive to add funds to the drips balance.
+	 * - Negative to remove funds from the drips balance.
+	 * - `0` to leave drips balance as is (default value).
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` are not valid.

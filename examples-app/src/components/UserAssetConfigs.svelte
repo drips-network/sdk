@@ -18,7 +18,7 @@
 
 			const userId = await addressDriverClient.getUserId();
 
-			userAssetConfigs = await dripsSubgraphClient.getAllUserAssetConfigs(userId);
+			userAssetConfigs = await dripsSubgraphClient.getAllUserAssetConfigsByUserId(userId);
 		} catch (error: any) {
 			errorMessage = error.message;
 

@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
 	import type { AddressDriverClient, DripsSubgraphClient } from 'radicle-drips';
 
@@ -103,4 +103,4 @@
 		</form>
 	</section>
 	<hr />
-</div>
+</div> -->

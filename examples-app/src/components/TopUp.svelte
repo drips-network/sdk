@@ -23,7 +23,7 @@
 		try {
 			const userId = await addressDriverClient.getUserId();
 			const assetId = Utils.Asset.getIdFromAddress(topUpToken);
-			const configToUpdate = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
+			const configToUpdate = await dripsSubgraphClient.getUserAssetConfigById(userId, assetId);
 
 			const currentReceivers =
 				configToUpdate?.dripsEntries.map((r) => ({
@@ -31,9 +31,11 @@
 					userId: r.userId
 				})) || [];
 
+			const transferTo = addressDriverClient.signerAddress;
+
 			const balanceDelta = BigNumber.from(topUpAmount);
 
-			tx = await addressDriverClient.setDrips(topUpToken, currentReceivers, currentReceivers, balanceDelta);
+			tx = await addressDriverClient.setDrips(topUpToken, currentReceivers, currentReceivers, transferTo, balanceDelta);
 			console.log(tx);
 
 			txReceipt = await tx.wait();

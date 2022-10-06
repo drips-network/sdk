@@ -35,7 +35,7 @@
 	const getCurrentReceivers = async () => {
 		const userId = await addressDriverClient.getUserId();
 		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
-		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfig(userId, assetId);
+		const userAssetConfig = await dripsSubgraphClient.getUserAssetConfigById(userId, assetId);
 
 		return (
 			userAssetConfig?.dripsEntries.map((d) => ({
