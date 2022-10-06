@@ -17,14 +17,14 @@
 
 	$: isConnected = Boolean(addressDriverClient);
 
-	const collect = async (tokenAddress: string, transferToAddress: string) => {
+	const collect = async (erc20TokenAddress: string, transferToAddress: string) => {
 		collectTx = null;
 		collectStarted = false;
 		collectTxReceipt = null;
 		collectErrorMessage = null;
 
 		try {
-			collectTx = await addressDriverClient.collect(tokenAddress, transferToAddress);
+			collectTx = await addressDriverClient.collect(erc20TokenAddress, transferToAddress);
 			console.log(collectTx);
 
 			collectTxReceipt = await collectTx.wait();

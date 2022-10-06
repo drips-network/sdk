@@ -27,7 +27,7 @@ export default class DripsSubgraphClient {
 	 * Creates a new immutable `DripsSubgraphClient` instance.
 	 *
 	 * @param  {string} chainId The chain ID.
-	 * @throws {DripsErrors.argumentError} if the `chainId` is missing.
+	 * @throws {@link DripsErrors.argumentError} if the `chainId` is missing.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
@@ -49,16 +49,16 @@ export default class DripsSubgraphClient {
 		const subgraphClient = new DripsSubgraphClient();
 
 		subgraphClient.#chainId = chainId;
-		subgraphClient.#apiUrl = Utils.Network.dripsMetadata[subgraphClient.#chainId].SUBGRAPH_URL;
+		subgraphClient.#apiUrl = Utils.Network.chainDripsMetadata[subgraphClient.#chainId].SUBGRAPH_URL;
 
 		return subgraphClient;
 	}
 
 	/**
-	 * Returns the user's drips configuration for the given asset.
+	 * Returns the user's drips configuration for the specified asset.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} assetId The asset ID.
-	 * @returns A `Promise` which resolves to the user's drips configuration.
+	 * @returns A Promise which resolves to the user's drips configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getUserAssetConfigById(userId: string, assetId: string): Promise<UserAssetConfig> {
@@ -74,9 +74,9 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all drips configurations for the given user.
+	 * Returns all drips configurations for the specified user.
 	 * @param  {string} userId The user ID.
-	 * @returns A `Promise` which resolves to the user's drips configurations.
+	 * @returns A Promise which resolves to the user's drips configurations.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
@@ -94,7 +94,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the user's splits configuration.
 	 * @param  {string} userId The user ID.
-	 * @returns A `Promise` which resolves to the user's splits configuration.
+	 * @returns A Promise which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getSplitsConfigByUserId(userId: string): Promise<SplitEntry[]> {
@@ -112,7 +112,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the user's `DripsSetEvent`s.
 	 * @param  {string} userId The user ID.
-	 * @returns A `Promise` which resolves to the user's `DripsSetEvent`s.
+	 * @returns A Promise which resolves to the user's `DripsSetEvent`s.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getDripsSetEventsByUserId(userId: string): Promise<DripsSetEvent[]> {
@@ -126,9 +126,9 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the senders for which drips can be squeezed for a given receiver.
+	 * Returns the senders for which drips can be squeezed for a specified receiver.
 	 * @param  {string} receiverId The receiver's user ID.
-	 * @returns A `Promise` which resolves to a map with keys being the sender IDs and values the asset IDs.
+	 * @returns A Promise which resolves to a map with keys being the sender IDs and values the asset IDs.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
@@ -136,7 +136,7 @@ export default class DripsSubgraphClient {
 			dripsReceiverSeenEvents: DripsReceiverSeenEvent[];
 		};
 
-		// Get all `DripsReceiverSeen` events for the given receiver.
+		// Get all `DripsReceiverSeen` events for the specified receiver.
 		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverId });
 		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
 

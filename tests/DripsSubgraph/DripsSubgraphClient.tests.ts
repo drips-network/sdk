@@ -41,7 +41,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should create a fully initialized client instance', () => {
 			// Assert
-			assert.equal(testSubgraphClient.apiUrl, Utils.Network.dripsMetadata[TEST_CHAIN_ID].SUBGRAPH_URL);
+			assert.equal(testSubgraphClient.apiUrl, Utils.Network.chainDripsMetadata[TEST_CHAIN_ID].SUBGRAPH_URL);
 		});
 
 		it('should throw unsupportedNetworkError error when chain is not supported', async () => {
@@ -63,7 +63,7 @@ describe('DripsSubgraphClient', () => {
 		it('should create a fully initialized client instance', () => {
 			// Assert
 			assert.equal(testSubgraphClient.chainId, TEST_CHAIN_ID);
-			assert.equal(testSubgraphClient.apiUrl, Utils.Network.dripsMetadata[TEST_CHAIN_ID].SUBGRAPH_URL);
+			assert.equal(testSubgraphClient.apiUrl, Utils.Network.chainDripsMetadata[TEST_CHAIN_ID].SUBGRAPH_URL);
 		});
 	});
 

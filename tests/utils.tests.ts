@@ -67,29 +67,39 @@ describe('Utils', () => {
 		describe('getAssetIdFromAddress()', () => {
 			it('should validate ERC20 address', () => {
 				// Arrange
-				const tokenAddress = '-1';
+				const erc20Address = '-1';
 				const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 				// Act
-				Utils.Asset.getIdFromAddress(tokenAddress);
+				Utils.Asset.getIdFromAddress(erc20Address);
 
 				// Assert
 				assert(
-					validateAddressStub.calledOnceWithExactly(tokenAddress),
+					validateAddressStub.calledOnceWithExactly(erc20Address),
 					'Expected method to be called with different arguments'
 				);
 			});
 
 			it('should return the expected result', () => {
 				// Arrange
-				const tokenAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
+				const erc20Address = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
 				// Act
-				const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
+				const assetId = Utils.Asset.getIdFromAddress(erc20Address);
 
 				// Assert
-				assert.equal(assetId, internals.toBN(tokenAddress).toString());
+				assert.equal(assetId, internals.toBN(erc20Address).toString());
 			});
+		});
+	});
+
+	describe('Constants', () => {
+		it('should return the expected constants', () => {
+			// Assert
+			assert.equal(Utils.Constants.MAX_DRIPS_RECEIVERS, 100);
+			assert.equal(Utils.Constants.MAX_SPLITS_RECEIVERS, 200);
+			assert.equal(Utils.Constants.TOTAL_SPLITS_WEIGHT, 1_000_000);
+			assert(Utils.Constants.AMT_PER_SEC_MULTIPLIER.eq(internals.toBN(10).pow(18)));
 		});
 	});
 
@@ -180,7 +190,7 @@ describe('Utils', () => {
 	});
 
 	describe('Network', () => {
-		describe('dripsMetadata', () => {
+		describe('chainDripsMetadata', () => {
 			it('should export only unique and supported chain IDs', () => {
 				// Arrange
 				const chainIds = [5];

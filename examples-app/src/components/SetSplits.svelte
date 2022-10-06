@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AddressDriver, AddressDriverClient } from 'radicle-drips';
+	import type { AddressApp, AddressDriverClient } from 'radicle-drips';
 	import type { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressDriverClient: AddressDriverClient;
@@ -23,7 +23,7 @@
 		errorMessage = null;
 
 		try {
-			const splits: AddressDriver.SplitsReceiverStruct[] = await Promise.all(
+			const splits: AddressApp.SplitsReceiverStruct[] = await Promise.all(
 				splitsInputs
 					.filter((s) => s.address && s.weight)
 					.map(async (s) => ({

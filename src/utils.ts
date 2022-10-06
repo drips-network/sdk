@@ -7,11 +7,11 @@ import {
 	validateDripsReceiverConfigBN,
 	validateDripsReceiverConfigObj
 } from './common/internals';
-import type { DripsMetadata, CycleInfo, DripsReceiverConfig } from './common/types';
+import type { ChainDripsMetadata, CycleInfo, DripsReceiverConfig } from './common/types';
 
 namespace Utils {
 	export namespace Network {
-		export const dripsMetadata: Record<number, DripsMetadata> = {
+		export const chainDripsMetadata: Record<number, ChainDripsMetadata> = {
 			5: {
 				NAME: 'goerli',
 				CYCLE_SECS: '604800', // 1 week.
@@ -25,7 +25,7 @@ namespace Utils {
 		};
 
 		export const SUPPORTED_CHAINS: readonly number[] = Object.freeze(
-			Object.keys(dripsMetadata).map((chainId) => parseInt(chainId, 10))
+			Object.keys(chainDripsMetadata).map((chainId) => parseInt(chainId, 10))
 		);
 
 		export const isSupportedChain = (chainId: number) => {
@@ -47,7 +47,7 @@ namespace Utils {
 				);
 			}
 
-			const cycleDurationSecs = toBN(Network.dripsMetadata[chainId].CYCLE_SECS).toBigInt();
+			const cycleDurationSecs = toBN(Network.chainDripsMetadata[chainId].CYCLE_SECS).toBigInt();
 
 			const currentCycleSecs = BigInt(Math.floor(getUnixTime(new Date()))) % cycleDurationSecs;
 
@@ -66,7 +66,7 @@ namespace Utils {
 
 	export namespace Asset {
 		/**
-		 * Returns the ERC20 token address for the given asset.
+		 * Returns the ERC20 token address for the specified asset.
 		 * @param  {string} assetId The asset ID.
 		 * @returns The ERC20 token address.
 		 */
@@ -74,16 +74,23 @@ namespace Utils {
 			ethers.utils.getAddress(toBN(assetId).toHexString());
 
 		/**
-		 * Returns the asset ID for the given ERC20 token.
-		 * @param  {string} tokenAddress The ERC20 token address.
+		 * Returns the asset ID for the specified ERC20 token.
+		 * @param  {string} erc20TokenAddress The ERC20 token address.
 		 * @returns The asset ID.
-		 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
+		 * @throws {@link DripsErrors.addressError} if the `erc20TokenAddress` address is not valid.
 		 */
-		export const getIdFromAddress = (tokenAddress: string): string => {
-			validateAddress(tokenAddress);
+		export const getIdFromAddress = (erc20TokenAddress: string): string => {
+			validateAddress(erc20TokenAddress);
 
-			return toBN(tokenAddress).toString();
+			return toBN(erc20TokenAddress).toString();
 		};
+	}
+
+	export namespace Constants {
+		export const MAX_DRIPS_RECEIVERS = 100;
+		export const MAX_SPLITS_RECEIVERS = 200;
+		export const TOTAL_SPLITS_WEIGHT = 1_000_000;
+		export const AMT_PER_SEC_MULTIPLIER = toBN(10).pow(18);
 	}
 
 	export namespace DripsReceiverConfiguration {
