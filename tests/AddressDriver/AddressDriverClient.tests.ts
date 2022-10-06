@@ -4,16 +4,18 @@ import { assert } from 'chai';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import type { BigNumberish } from 'ethers';
-import { constants, Wallet } from 'ethers';
+import { ethers, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressDriver';
+import type { SplitsReceiverStruct, DripsReceiverStruct, DripsHistoryStruct } from '../../contracts/AddressDriver';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import type { DripsReceiver } from '../../src/common/types';
+import type { CycleInfo, DripsReceiver } from '../../src/common/types';
+import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
+import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -882,6 +884,316 @@ describe('AddressDriverClient', () => {
 					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId),
 					transferToAddress
 				),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('squeezeDrips', () => {
+		it('should validate the ERC20 token address', async () => {
+			// Arrange
+			const erc20Address = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
+
+			sinon.stub(Utils.Cycle, 'getInfo').returns({
+				currentCycleStartDate: new Date(new Date().setDate(new Date().getDate() + 7))
+			} as CycleInfo);
+
+			addressDriverContractStub.calcUserId.withArgs(testAddressDriverClient.signerAddress).resolves(internals.toBN(1));
+
+			// Act
+			await testAddressDriverClient.squeezeDrips(erc20Address, 1);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(erc20Address),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentMissingError when senderId is null', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDrips(Wallet.createRandom().address, null as unknown as BigNumberish);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when senderId is undefined', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDrips(Wallet.createRandom().address, undefined as unknown as BigNumberish);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should call the squeezeDrips() method of the AddressDriver contract', async () => {
+			// Arrange
+			const userId = 100;
+			const senderId = 1;
+			const erc20Address = '0x24412a9358A0bfE83c07B415BC2EC2C608364D92';
+			const assetId = Utils.Asset.getIdFromAddress(erc20Address);
+
+			const dripsSetEvents: DripsSetEvent[] = [
+				{
+					assetId,
+					userId: senderId.toString(),
+					receiversHash: '1h',
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId.toString(),
+							config: 1
+						}
+					],
+					blockTimestamp: new Date().setDate(new Date().getDate() - 1),
+					dripsHistoryHash: '1',
+					maxEnd: String(new Date().setDate(new Date().getDate() + 10))
+				},
+				{
+					assetId,
+					userId: senderId.toString(),
+					receiversHash: '2h',
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId.toString(),
+							config: 2
+						}
+					],
+					blockTimestamp: new Date().setDate(new Date().getDate() - 2),
+					dripsHistoryHash: '2',
+					maxEnd: String(new Date().setDate(new Date().getDate() + 10))
+				},
+				{
+					assetId: '1',
+					userId: senderId.toString(),
+					receiversHash: '4h',
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId.toString(),
+							config: 4
+						}
+					],
+					blockTimestamp: new Date().setDate(new Date().getDate() - 4),
+					dripsHistoryHash: '4',
+					maxEnd: String(new Date().setDate(new Date().getDate() + 10))
+				},
+				{
+					assetId,
+					userId: senderId.toString(),
+					receiversHash: '6h',
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: '200',
+							config: 6
+						}
+					],
+					blockTimestamp: new Date().setDate(new Date().getDate() - 6),
+					dripsHistoryHash: '6',
+					maxEnd: String(new Date().setDate(new Date().getDate() + 10))
+				},
+				{
+					assetId,
+					userId: senderId.toString(),
+					receiversHash: '8h',
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId.toString(),
+							config: 8
+						}
+					],
+					blockTimestamp: new Date().setDate(new Date().getDate() - 8),
+					dripsHistoryHash: '8',
+					maxEnd: String(new Date().setDate(new Date().getDate() + 10))
+				},
+				{
+					assetId: '1',
+					userId: senderId.toString(),
+					receiversHash: '10h',
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId.toString(),
+							config: 10
+						}
+					],
+					blockTimestamp: new Date().setDate(new Date().getDate() - 10),
+					dripsHistoryHash: '10',
+					maxEnd: String(new Date().setDate(new Date().getDate() + 10))
+				}
+			];
+
+			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves(dripsSetEvents);
+
+			sinon.stub(Utils.Cycle, 'getInfo').returns({
+				currentCycleStartDate: new Date(new Date().setDate(new Date().getDate() - 5))
+			} as CycleInfo);
+
+			addressDriverContractStub.calcUserId
+				.withArgs(testAddressDriverClient.signerAddress)
+				.resolves(internals.toBN(userId));
+
+			// Act
+			await testAddressDriverClient.squeezeDrips(erc20Address, senderId);
+
+			// Assert
+			assert(
+				addressDriverContractStub.squeezeDrips.calledOnceWithExactly(
+					erc20Address,
+					senderId,
+					'6',
+					sinon.match(
+						(history: DripsHistoryStruct[]) =>
+							history[0].dripsHash === '6h' &&
+							history[0].receivers.length === 0 &&
+							history[1].dripsHash === '4h' &&
+							history[1].receivers.length === 0 &&
+							history[2].dripsHash === ethers.constants.HashZero &&
+							history[2].receivers.length > 0 &&
+							history[3].dripsHash === ethers.constants.HashZero &&
+							history[3].receivers.length > 0
+					)
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('squeezeDripsFromHistory', () => {
+		it('should validate the ERC20 token address', async () => {
+			// Arrange
+			const erc20Address = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			// Act
+			await testAddressDriverClient.squeezeDripsFromHistory(erc20Address, 1, 'historyHash', []);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(erc20Address),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentMissingError when senderId is null', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					null as unknown as BigNumberish,
+					'historyHash',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when senderId is undefined', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					undefined as unknown as BigNumberish,
+					'historyHash',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when historyHash is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					1,
+					undefined as unknown as string,
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when dripsHistory is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.squeezeDripsFromHistory(
+					Wallet.createRandom().address,
+					1,
+					'historyHash',
+					undefined as unknown as DripsHistoryStruct[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should call the squeezeDripsFromHistory() method of the AddressDriver contract', async () => {
+			// Arrange
+			const senderId = 1;
+			const historyHash = 'historyHash';
+			const dripsHistory: DripsHistoryStruct[] = [];
+			const erc20Address = '0x24412a9358A0bfE83c07B415BC2EC2C608364D92';
+
+			// Act
+			await testAddressDriverClient.squeezeDripsFromHistory(erc20Address, senderId, historyHash, dripsHistory);
+
+			// Assert
+			assert(
+				addressDriverContractStub.squeezeDrips.calledOnceWithExactly(erc20Address, senderId, historyHash, dripsHistory),
 				'Expected method to be called with different arguments'
 			);
 		});
