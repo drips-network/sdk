@@ -1,9 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import Utils from '../utils';
-import { nameOf, toBN } from '../common/internals';
+import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
-import type { DripsReceiverSeenEvent, DripsSetEvent, SplitEntry, UserAssetConfig } from './types';
+import type { DripsSetEvent, SplitEntry, UserAssetConfig } from './types';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -123,92 +123,6 @@ export default class DripsSubgraphClient {
 		const response = await this.query<ApiResponse>(gql.getDripsSetEventsByUserId, { userId });
 
 		return response?.data?.dripsSetEvents || [];
-	}
-
-	/**
-	 * Returns the senders for which drips can be squeezed for a given receiver.
-	 * @param  {string} receiverId The receiver's user ID.
-	 * @returns A `Promise` which resolves to a map with keys being the sender IDs and values the asset IDs.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
-	 */
-	public async getSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
-		type ApiResponse = {
-			dripsReceiverSeenEvents: DripsReceiverSeenEvent[];
-		};
-
-		// Get all `DripsReceiverSeen` events for the given receiver.
-		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverId });
-		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
-
-		if (!dripsReceiverSeenEvents?.length) {
-			return {};
-		}
-
-		const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
-		const squeezableSenders: Record<string, string[]> = {}; // key: senderId, value: [assetId, assetId]
-		const processedSenders: Record<string, boolean> = {};
-
-		// Iterate over all `DripsReceiverSeen` events.
-		for (let i = 0; i < dripsReceiverSeenEvents.length; i++) {
-			const dripsReceiverSeenEvent = dripsReceiverSeenEvents[i];
-
-			const { senderUserId } = dripsReceiverSeenEvent;
-
-			if (!processedSenders[senderUserId]) {
-				// Mark the sender as processed in order not to process the same sender ID multiple times.
-				processedSenders[senderUserId] = true;
-
-				// For each event's sender, get all user asset configurations.
-				const senderAssetConfigs = await this.getAllUserAssetConfigsByUserId(senderUserId);
-
-				// Iterate over all sender configurations.
-				for (let j = 0; j < senderAssetConfigs.length; j++) {
-					const senderAssetConfig = senderAssetConfigs[j];
-
-					// Iterate over all configuration drip entries.
-					for (let k = 0; k < senderAssetConfig.dripsEntries.length; k++) {
-						const dripEntry = senderAssetConfig.dripsEntries[k];
-
-						// Get the rate of dripping from the config.
-						const { amountPerSec } = Utils.DripsReceiverConfiguration.fromUint256(
-							senderAssetConfig.dripsEntries[0]?.config
-						);
-
-						// Keep only the configurations that drip to the `receiverId`.
-						if (dripEntry.userId === receiverId && amountPerSec > 0 && senderAssetConfig.balance > 0) {
-							const configUpdateTimestamp = new Date(toBN(senderAssetConfig.lastUpdatedBlockTimestamp).toNumber());
-
-							// If the configuration was updated before the start of the current timestamp.
-							if (configUpdateTimestamp < currentCycleStartDate) {
-								// Calculate the seconds that elapsed from the time the configuration was updated until the start of the current cycle.
-								const elapsedSecsUntilCurrentCycleStart = Math.floor(
-									(currentCycleStartDate.getTime() - configUpdateTimestamp.getTime()) / 1000
-								);
-
-								const drippedAmount = toBN(amountPerSec).mul(elapsedSecsUntilCurrentCycleStart);
-
-								// If the balance is greater than the dripped amount, the receiver will have drips to squeeze in the current cycle.
-								if (senderAssetConfig.balance > drippedAmount) {
-									if (!squeezableSenders[senderUserId]) {
-										squeezableSenders[senderUserId] = [];
-									}
-									squeezableSenders[senderUserId].push(senderAssetConfig.assetId);
-								}
-							}
-							// If the configuration was updated after the start of the current timestamp the receiver will have drips to squeeze in the current cycle.
-							else {
-								if (!squeezableSenders[senderUserId]) {
-									squeezableSenders[senderUserId] = [];
-								}
-								squeezableSenders[senderUserId].push(senderAssetConfig.assetId);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return squeezableSenders;
 	}
 
 	/** @internal */
