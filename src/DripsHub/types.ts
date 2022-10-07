@@ -1,4 +1,5 @@
 import type { BigNumber } from 'ethers';
+import type { ReceivableDrips } from 'src/common/types';
 
 export type DripsState = {
 	/** The current drips receivers list hash. */
@@ -20,4 +21,9 @@ export type DripsHubClientConstants = {
 	MAX_SPLITS_RECEIVERS: number;
 	AMT_PER_SEC_MULTIPLIER: BigNumber;
 	AMT_PER_SEC_EXTRA_DECIMALS: number;
+};
+
+export type ReceivableTokenBalance = {
+	tokenAddress: string;
+	receivableDrips: ReceivableDrips;
 };
