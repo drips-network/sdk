@@ -1,20 +1,18 @@
-import type { BigNumberish } from 'ethers';
-
 export type SplitEntry = {
-	readonly weight: BigNumberish;
-	readonly userId: BigNumberish;
+	readonly weight: bigint;
+	readonly userId: string;
 };
 
 export type UserAssetConfig = {
 	readonly id: string;
 	readonly assetId: string;
-	readonly balance: BigNumberish;
-	readonly amountCollected: BigNumberish;
+	readonly balance: bigint;
+	readonly amountCollected: bigint;
 	readonly dripsEntries: {
-		readonly config: BigNumberish;
+		readonly config: bigint;
 		readonly userId: string;
 	}[];
-	readonly lastUpdatedBlockTimestamp: BigNumberish;
+	readonly lastUpdatedBlockTimestamp: bigint;
 };
 
 export type DripsSetEvent = {
@@ -25,9 +23,9 @@ export type DripsSetEvent = {
 	readonly dripsHistoryHash: string;
 	readonly dripsReceiverSeenEvents: {
 		readonly receiverUserId: string;
-		readonly config: BigNumberish;
+		readonly config: bigint;
 	}[];
-	readonly blockTimestamp: BigNumberish;
+	readonly blockTimestamp: bigint;
 };
 
 export type DripsReceiverSeenEvent = {

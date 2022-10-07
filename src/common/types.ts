@@ -1,12 +1,10 @@
-import type { BigNumber, BigNumberish } from 'ethers';
-
 export type DripsReceiverConfig = {
 	/** The UNIX timestamp (in seconds) when dripping should start. When setting a config, it must be greater than or equal to `0`. If set to `0`, the smart contract will use the timestamp when drips are configured. */
-	readonly start: BigNumberish;
+	readonly start: bigint;
 	/** The duration (in seconds) of dripping. When setting a config, it must be greater than or equal to `0`. If set to `0`, the smart contract will drip until the balance runs out. */
-	readonly duration: BigNumberish;
+	readonly duration: bigint;
 	/** The amount per second being dripped. When setting a config, it must be in the smallest unit (e.g. Wei), greater than `0` and be multiplied by `10 ^ 18` (`DripsHubClient.constants.AMT_PER_SEC_MULTIPLIER`). */
-	readonly amountPerSec: BigNumberish;
+	readonly amountPerSec: bigint;
 };
 
 export type DripsMetadata = {
@@ -26,18 +24,18 @@ export type CycleInfo = {
 	nextCycleStartDate: Date;
 };
 
-export type DripsReceiver = { userId: BigNumberish; config: DripsReceiverConfig };
+export type DripsReceiver = { userId: bigint; config: DripsReceiverConfig };
 
 export type ReceivableDrips = {
 	/** The amount which would be received. */
-	receivableAmt: BigNumber;
+	receivableAmt: bigint;
 	/** The number of cycles which would still be receivable after the call. */
 	receivableCycles: number;
 };
 
 export type SqueezableDrips = {
 	/** The squeezed amount. */
-	amt: BigNumber;
+	amt: bigint;
 	/** The next timestamp that can be squeezed. */
 	nextSqueezed: number;
 };

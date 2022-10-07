@@ -4,13 +4,12 @@ import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import type { BigNumberish, BytesLike } from 'ethers';
-import { Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { toBN } from '../../src/common/internals';
 import * as internals from '../../src/common/internals';
 import type { DripsHistoryStruct } from '../../contracts/AddressDriver';
 import type { DripsReceiverStruct } from '../../contracts/DripsHub';
@@ -21,9 +20,9 @@ describe('DripsHubClient', () => {
 	const TEST_TOTAL_SPLITS_WEIGHT = 10;
 	const TEST_MAX_DRIPS_RECEIVERS = 10;
 	const TEST_MAX_SPLITS_RECEIVERS = 20;
-	const TEST_MAX_TOTAL_BALANCE = toBN(1);
+	const TEST_MAX_TOTAL_BALANCE = BigNumber.from(1);
 	const TEST_AMT_PER_SEC_EXTRA_DECIMALS = 18;
-	const TEST_AMT_PER_SEC_MULTIPLIER = toBN(1000);
+	const TEST_AMT_PER_SEC_MULTIPLIER = BigNumber.from(1000);
 
 	let networkStub: StubbedInstance<Network>;
 	let providerStub: StubbedInstance<JsonRpcProvider>;
@@ -138,6 +137,8 @@ describe('DripsHubClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
+			dripsHubContractStub.totalBalance.withArgs(tokenAddress).resolves(BigNumber.from(1));
+
 			// Act
 			await testDripsHubClient.getTotalBalanceForToken(tokenAddress);
 
@@ -148,6 +149,8 @@ describe('DripsHubClient', () => {
 		it('should call the totalBalance() method of the AddressDriver contract ', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
+
+			dripsHubContractStub.totalBalance.withArgs(tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getTotalBalanceForToken(tokenAddress);
@@ -160,7 +163,7 @@ describe('DripsHubClient', () => {
 	describe('getReceivableDripsCyclesCount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
@@ -178,7 +181,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getReceivableDripsCyclesCount(undefined as unknown as BigNumberish, tokenAddress);
+				await testDripsHubClient.getReceivableDripsCyclesCount(undefined as unknown as string, tokenAddress);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -191,7 +194,7 @@ describe('DripsHubClient', () => {
 
 		it('should call the receivableDripsCycles() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
@@ -205,10 +208,15 @@ describe('DripsHubClient', () => {
 	describe('getReceivableDrips()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
-			const maxCycles = 1;
+			const userId = '1';
+			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			dripsHubContractStub.receivableDrips.withArgs(userId, tokenAddress, maxCycles).resolves({
+				receivableAmt: BigNumber.from(1),
+				receivableCycles: 1
+			} as any);
 
 			// Act
 			await testDripsHubClient.getReceivableDrips(userId, tokenAddress, maxCycles);
@@ -224,7 +232,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getReceivableDrips(undefined as unknown as BigNumberish, tokenAddress, 1);
+				await testDripsHubClient.getReceivableDrips(undefined as unknown as string, tokenAddress, 1n);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -242,7 +250,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getReceivableDrips(1, tokenAddress, undefined as unknown as BigNumberish);
+				await testDripsHubClient.getReceivableDrips('1', tokenAddress, undefined as unknown as bigint);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -255,14 +263,21 @@ describe('DripsHubClient', () => {
 
 		it('should call the receivableDrips() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
-			const maxCycles = 1;
+			const userId = '1';
+			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 
+			dripsHubContractStub.receivableDrips.withArgs(userId, tokenAddress, maxCycles).resolves({
+				receivableAmt: BigNumber.from(1),
+				receivableCycles: 1
+			} as any);
+
 			// Act
-			await testDripsHubClient.getReceivableDrips(userId, tokenAddress, maxCycles);
+			const receivableDrips = await testDripsHubClient.getReceivableDrips(userId, tokenAddress, maxCycles);
 
 			// Assert
+			assert.equal(receivableDrips.receivableAmt, 1n);
+			assert.equal(receivableDrips.receivableCycles, 1);
 			assert(dripsHubContractStub.receivableDrips.calledOnceWithExactly(userId, tokenAddress, maxCycles));
 		});
 	});
@@ -270,8 +285,8 @@ describe('DripsHubClient', () => {
 	describe('receiveDrips()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
-			const maxCycles = 1;
+			const userId = '1';
+			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
@@ -289,7 +304,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.receiveDrips(undefined as unknown as BigNumberish, tokenAddress, 1);
+				await testDripsHubClient.receiveDrips(undefined as unknown as string, tokenAddress, 1n);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -307,7 +322,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.receiveDrips(1, tokenAddress, undefined as unknown as BigNumberish);
+				await testDripsHubClient.receiveDrips('1', tokenAddress, undefined as unknown as bigint);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -320,8 +335,8 @@ describe('DripsHubClient', () => {
 
 		it('should call the receiveDrips() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
-			const maxCycles = 1;
+			const userId = '1';
+			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
@@ -335,12 +350,19 @@ describe('DripsHubClient', () => {
 	describe('getSqueezableDrips()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
-			const senderId = 1;
+			const userId = '1';
+			const senderId = '1';
 			const historyHash = '0x';
 			const dripsHistory: DripsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			dripsHubContractStub.squeezableDrips
+				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
+				.resolves({
+					amt: BigNumber.from(1),
+					nextSqueezed: 1
+				} as any);
 
 			// Act
 			await testDripsHubClient.getSqueezableDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
@@ -356,7 +378,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getSqueezableDrips(undefined as unknown as BigNumberish, tokenAddress, 1, '', []);
+				await testDripsHubClient.getSqueezableDrips(undefined as unknown as string, tokenAddress, '1', '', []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -374,7 +396,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getSqueezableDrips(1, tokenAddress, undefined as unknown as BigNumberish, '', []);
+				await testDripsHubClient.getSqueezableDrips('1', tokenAddress, undefined as unknown as string, '', []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -392,7 +414,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getSqueezableDrips(1, tokenAddress, 1, undefined as unknown as BytesLike, []);
+				await testDripsHubClient.getSqueezableDrips('1', tokenAddress, '1', undefined as unknown as BytesLike, []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -411,9 +433,9 @@ describe('DripsHubClient', () => {
 			try {
 				// Act
 				await testDripsHubClient.getSqueezableDrips(
-					1,
+					'1',
 					tokenAddress,
-					1,
+					'1',
 					')x',
 					undefined as unknown as DripsHistoryStruct[]
 				);
@@ -429,11 +451,18 @@ describe('DripsHubClient', () => {
 
 		it('should call the squeezableDrips() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
-			const senderId = 1;
+			const userId = '1';
+			const senderId = '1';
 			const historyHash = '0x';
 			const dripsHistory: DripsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
+
+			dripsHubContractStub.squeezableDrips
+				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
+				.resolves({
+					amt: BigNumber.from(1),
+					nextSqueezed: 1
+				} as any);
 
 			// Act
 			await testDripsHubClient.getSqueezableDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
@@ -454,8 +483,8 @@ describe('DripsHubClient', () => {
 	describe('getNextSqueezedDrips()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
-			const senderId = 1;
+			const userId = '1';
+			const senderId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
@@ -473,7 +502,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getNextSqueezedDrips(undefined as unknown as BigNumberish, tokenAddress, 1);
+				await testDripsHubClient.getNextSqueezedDrips(undefined as unknown as string, tokenAddress, '1');
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -491,7 +520,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getNextSqueezedDrips(1, tokenAddress, undefined as unknown as BigNumberish);
+				await testDripsHubClient.getNextSqueezedDrips('1', tokenAddress, undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -504,8 +533,8 @@ describe('DripsHubClient', () => {
 
 		it('should call the nextSqueezedDrips() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
-			const senderId = 1;
+			const userId = '1';
+			const senderId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
@@ -519,9 +548,11 @@ describe('DripsHubClient', () => {
 	describe('getSplittable()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			dripsHubContractStub.splittable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getSplittable(userId, tokenAddress);
@@ -537,7 +568,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getSplittable(undefined as unknown as BigNumberish, tokenAddress);
+				await testDripsHubClient.getSplittable(undefined as unknown as string, tokenAddress);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -550,8 +581,10 @@ describe('DripsHubClient', () => {
 
 		it('should call the splittable() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
+
+			dripsHubContractStub.splittable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getSplittable(userId, tokenAddress);
@@ -564,9 +597,11 @@ describe('DripsHubClient', () => {
 	describe('getCollectable()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			dripsHubContractStub.collectable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getCollectable(userId, tokenAddress);
@@ -582,7 +617,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getCollectable(undefined as unknown as BigNumberish, tokenAddress);
+				await testDripsHubClient.getCollectable(undefined as unknown as string, tokenAddress);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -595,8 +630,10 @@ describe('DripsHubClient', () => {
 
 		it('should call the collectable() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
+
+			dripsHubContractStub.collectable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getCollectable(userId, tokenAddress);
@@ -609,7 +646,7 @@ describe('DripsHubClient', () => {
 	describe('getDripsState()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
@@ -627,7 +664,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getDripsState(undefined as unknown as BigNumberish, tokenAddress);
+				await testDripsHubClient.getDripsState(undefined as unknown as string, tokenAddress);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -640,7 +677,7 @@ describe('DripsHubClient', () => {
 
 		it('should call the dripsState() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
@@ -654,8 +691,8 @@ describe('DripsHubClient', () => {
 	describe('getBalanceAt()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = 1;
-			const timestamp = 11111;
+			const userId = '1';
+			const timestamp = 11111n;
 			const receivers: DripsReceiverStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
@@ -669,12 +706,12 @@ describe('DripsHubClient', () => {
 
 		it('should validate the drips receivers', async () => {
 			// Arrange
-			const userId = 1;
-			const timestamp = 11111;
+			const userId = '1';
+			const timestamp = 11111n;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 			const tokenAddress = Wallet.createRandom().address;
@@ -701,7 +738,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getBalanceAt(undefined as unknown as BigNumberish, tokenAddress, [], 1);
+				await testDripsHubClient.getBalanceAt(undefined as unknown as string, tokenAddress, [], 1n);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -719,7 +756,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getBalanceAt(1, tokenAddress, [], undefined as unknown as BigNumberish);
+				await testDripsHubClient.getBalanceAt('1', tokenAddress, [], undefined as unknown as bigint);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -732,13 +769,13 @@ describe('DripsHubClient', () => {
 
 		it('should call the balanceAt() method of the AddressDriver contract ', async () => {
 			// Arrange
-			const userId = 1;
-			const timestamp = 11111;
+			const userId = '1';
+			const timestamp = 11111n;
 			const tokenAddress = Wallet.createRandom().address;
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 

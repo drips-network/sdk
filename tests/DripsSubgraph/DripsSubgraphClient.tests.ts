@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import * as sinon from 'sinon';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
@@ -7,7 +7,6 @@ import * as gql from '../../src/DripsSubgraph/gql';
 import type { UserAssetConfig, SplitEntry } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import type { DripsSetEventObject } from '../../contracts/DripsHub';
-import { toBN } from '../../src/common/internals';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -77,15 +76,15 @@ describe('DripsSubgraphClient', () => {
 			const expectedConfig: UserAssetConfig = {
 				id: configId,
 				assetId,
-				balance: 3,
-				amountCollected: 4,
+				balance: 3n,
+				amountCollected: 4n,
 				dripsEntries: [
 					{
 						userId: '5',
-						config: '0x010000000200000003'
+						config: BigNumber.from('0x010000000200000003').toBigInt()
 					}
 				],
-				lastUpdatedBlockTimestamp: 6
+				lastUpdatedBlockTimestamp: 6n
 			};
 
 			const queryStub = sinon
@@ -120,15 +119,15 @@ describe('DripsSubgraphClient', () => {
 				{
 					id: configId,
 					assetId,
-					balance: 3,
-					amountCollected: 4,
+					balance: 3n,
+					amountCollected: 4n,
 					dripsEntries: [
 						{
 							userId: '5',
-							config: '0x010000000200000003'
+							config: BigNumber.from('0x010000000200000003').toBigInt()
 						}
 					],
-					lastUpdatedBlockTimestamp: 6
+					lastUpdatedBlockTimestamp: 6n
 				}
 			];
 
@@ -181,7 +180,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const splitsEntries: SplitEntry[] = [
 				{
-					weight: '2',
+					weight: 2n,
 					userId: '3'
 				}
 			];
@@ -237,7 +236,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const dripsSetEvents: DripsSetEventObject[] = [
 				{
-					userId: toBN(1)
+					userId: BigNumber.from(1)
 				} as DripsSetEventObject
 			];
 			const clientStub = sinon
