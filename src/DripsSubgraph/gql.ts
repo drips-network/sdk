@@ -54,6 +54,7 @@ query getDripsSetEventsByUserId($userId: BigInt!) {
     }
     blockTimestamp
 		maxEnd
+		balance
   }
 }
 `;

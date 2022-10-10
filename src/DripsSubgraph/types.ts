@@ -16,9 +16,10 @@ export type UserAssetConfig = {
 };
 
 export type DripsSetEvent = {
-	readonly maxEnd: string;
 	readonly userId: string;
+	readonly maxEnd: string;
 	readonly assetId: string;
+	readonly balance: bigint;
 	readonly receiversHash: string;
 	readonly dripsHistoryHash: string;
 	readonly dripsReceiverSeenEvents: {
