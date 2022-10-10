@@ -280,7 +280,7 @@ describe('internals', () => {
 			let threw = false;
 			const receivers = [
 				{
-					userId: undefined as unknown as bigint,
+					userId: undefined as unknown as string,
 					config: { amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
@@ -303,7 +303,7 @@ describe('internals', () => {
 			let threw = false;
 			const receivers: DripsReceiver[] = [
 				{
-					userId: 123n,
+					userId: '123',
 					config: undefined as unknown as DripsReceiverConfig
 				}
 			];
@@ -325,7 +325,7 @@ describe('internals', () => {
 			// Arrange
 			const receivers: DripsReceiver[] = [
 				{
-					userId: 123n,
+					userId: '123',
 					config: { amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];

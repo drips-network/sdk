@@ -80,7 +80,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 };
 
 /** @internal */
-export const validateDripsReceivers = (receivers: { userId: bigint; config: DripsReceiverConfig }[]) => {
+export const validateDripsReceivers = (receivers: { userId: string; config: DripsReceiverConfig }[]) => {
 	if (!receivers) {
 		throw DripsErrors.argumentMissingError(
 			`Drips receivers validation failed: '${nameOf({ receivers })}' is missing.`,

@@ -287,13 +287,13 @@ export default class AddressDriverClient {
 		validateAddress(tokenAddress);
 		validateDripsReceivers(
 			newReceivers.map((r) => ({
-				userId: BigNumber.from(r.userId).toBigInt(),
+				userId: r.userId.toString(),
 				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			}))
 		);
 		validateDripsReceivers(
 			currentReceivers.map((r) => ({
-				userId: BigNumber.from(r.userId).toBigInt(),
+				userId: r.userId.toString(),
 				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			}))
 		);

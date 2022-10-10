@@ -373,7 +373,7 @@ export default class DripsHubClient {
 		validateAddress(tokenAddress);
 		validateDripsReceivers(
 			receivers.map((r) => ({
-				userId: BigNumber.from(r.userId).toBigInt(),
+				userId: r.userId.toString(),
 				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			}))
 		);

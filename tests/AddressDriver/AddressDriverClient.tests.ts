@@ -540,21 +540,21 @@ describe('AddressDriverClient', () => {
 
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
-					userId: 3,
+					userId: '3',
 					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
-					userId: 2,
+					userId: '2',
 					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
+					userId: '2',
 					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 1,
+					userId: '1',
 					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
@@ -569,16 +569,16 @@ describe('AddressDriverClient', () => {
 				validateDripsReceiversStub.calledWithExactly(
 					sinon.match(
 						(r: DripsReceiver[]) =>
-							r[0].userId === BigNumber.from(receivers[0].userId).toBigInt() &&
-							r[1].userId === BigNumber.from(receivers[1].userId).toBigInt() &&
-							r[2].userId === BigNumber.from(receivers[2].userId).toBigInt()
+							r[0].userId === receivers[0].userId &&
+							r[1].userId === receivers[1].userId &&
+							r[2].userId === receivers[2].userId
 					)
 				),
 				'Expected method to be called with different arguments'
 			);
 			assert(
 				validateDripsReceiversStub.calledWithExactly(
-					sinon.match((r: DripsReceiver[]) => r[0].userId === BigNumber.from(currentReceivers[0].userId).toBigInt())
+					sinon.match((r: DripsReceiver[]) => r[0].userId === currentReceivers[0].userId)
 				),
 				'Expected method to be called with different arguments'
 			);

@@ -24,7 +24,7 @@ export type CycleInfo = {
 	nextCycleStartDate: Date;
 };
 
-export type DripsReceiver = { userId: bigint; config: DripsReceiverConfig };
+export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
 
 export type ReceivableDrips = {
 	/** The amount which would be received. */
