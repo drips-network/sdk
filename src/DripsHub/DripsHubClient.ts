@@ -4,6 +4,7 @@ import type { DripsMetadata, ReceivableDrips, SqueezableDrips } from 'src/common
 import type { BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct } from 'contracts/DripsHub';
+import type { DripsSetEvent } from 'src/DripsSubgraph/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import { isNullOrUndefined, nameOf, validateAddress, validateDripsReceivers } from '../common/internals';
 import Utils from '../utils';
@@ -138,14 +139,14 @@ export default class DripsHubClient {
 	 * Calculates the receivable drips.
 	 * @param  {bigint} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @param  {bigint} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
+	 * @param  {number} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
 	 * If too high, receiving may become too expensive to fit in a single transaction.
 	 * @returns A `Promise` which resolves to the {@link ReceivableDrips}.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` or the `maxCycles` is missing.
 	 */
-	public async getReceivableDrips(userId: bigint, tokenAddress: string, maxCycles: bigint): Promise<ReceivableDrips> {
+	public async getReceivableDrips(userId: bigint, tokenAddress: string, maxCycles: number): Promise<ReceivableDrips> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -400,15 +401,15 @@ export default class DripsHubClient {
 
 	/**
 	 * Returns the receivable balance for all user tokens.
-	 * @param  {string} userId The user ID.
-	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. When set, it must be greater than `0`.
+	 * @param  {bigint} userId The user ID.
+	 * @param  {number} maxCycles The maximum number of received drips cycles. When set, it must be greater than `0`.
 	 * @returns A `Promise` which resolves to the receivable token balances.
 	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than `0`.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
 	public async getBalancesForUser(
-		userId: string,
-		maxCycles: BigNumberish = Number.MAX_SAFE_INTEGER
+		userId: bigint,
+		maxCycles: number = Number.MAX_SAFE_INTEGER
 	): Promise<ReceivableTokenBalance[]> {
 		if (isNullOrUndefined(userId)) {
 			throw DripsErrors.argumentMissingError(
@@ -431,17 +432,30 @@ export default class DripsHubClient {
 			return [];
 		}
 
-		const tokenBalances: { tokenAddress: string; receivableDrips: ReceivableDrips }[] = [];
+		const uniqueTokenEvents = dripsSetEvents.reduce((unique: DripsSetEvent[], ev: DripsSetEvent) => {
+			if (!unique.some((obj: DripsSetEvent) => obj.assetId === ev.assetId)) {
+				unique.push(ev);
+			}
+			return unique;
+		}, []);
 
-		dripsSetEvents.forEach(async (dripsSetEvent) => {
+		const tokenBalances: Promise<{
+			tokenAddress: string;
+			receivableDrips: ReceivableDrips;
+		}>[] = [];
+
+		uniqueTokenEvents.forEach(async (dripsSetEvent) => {
 			const tokenAddress = Utils.Asset.getAddressFromId(dripsSetEvent.assetId);
 
-			const receivableDrips = await this.getReceivableDrips(userId, tokenAddress, maxCycles);
+			const promise = this.getReceivableDrips(userId, tokenAddress, maxCycles).then((receivableDrips) => ({
+				tokenAddress,
+				receivableDrips
+			}));
 
-			tokenBalances.push({ tokenAddress, receivableDrips });
+			tokenBalances.push(promise);
 		});
 
-		return tokenBalances;
+		return Promise.all(tokenBalances);
 	}
 
 	async #getConstants(): Promise<DripsHubClientConstants> {
