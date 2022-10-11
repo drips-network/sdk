@@ -146,7 +146,7 @@ export default class DripsSubgraphClient {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ query, variables })
+			body: JSON.stringify({ query, variables }, (_, value) => (typeof value === 'bigint' ? value.toString() : value))
 		});
 
 		if (resp.status >= 200 && resp.status <= 299) {
