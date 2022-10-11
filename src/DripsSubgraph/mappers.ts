@@ -7,6 +7,7 @@ import type {
 	UserAssetConfig
 } from './types';
 
+/** @internal */
 export const mapUserAssetConfigToDto = (userAssetConfig: ApiUserAssetConfig): UserAssetConfig => ({
 	id: userAssetConfig.id,
 	assetId: BigInt(userAssetConfig.assetId),
@@ -19,11 +20,13 @@ export const mapUserAssetConfigToDto = (userAssetConfig: ApiUserAssetConfig): Us
 	lastUpdatedBlockTimestamp: BigInt(userAssetConfig.lastUpdatedBlockTimestamp)
 });
 
+/** @internal */
 export const mapSplitEntryToDto = (splitEntry: ApiSplitEntry): SplitEntry => ({
 	userId: BigInt(splitEntry.userId),
 	weight: BigInt(splitEntry.weight)
 });
 
+/** @internal */
 export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSetEvent => ({
 	userId: BigInt(dripsSetEvent.userId),
 	assetId: BigInt(dripsSetEvent.assetId),
