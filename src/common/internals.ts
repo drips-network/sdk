@@ -8,10 +8,6 @@ import type { DripsReceiverConfig } from './types';
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
 
-/**
- * internals.ts contains shared functions that are *not* meant to be publicly exposed.
- */
-
 /** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];
 

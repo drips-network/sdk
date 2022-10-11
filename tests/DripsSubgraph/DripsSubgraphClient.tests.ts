@@ -4,9 +4,16 @@ import * as sinon from 'sinon';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import * as gql from '../../src/DripsSubgraph/gql';
-import type { UserAssetConfig, SplitEntry } from '../../src/DripsSubgraph/types';
+import type {
+	UserAssetConfig,
+	ApiUserAssetConfig,
+	ApiSplitEntry,
+	ApiDripsSetEvent,
+	SplitEntry,
+	DripsSetEvent
+} from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
-import type { DripsSetEventObject } from '../../contracts/DripsHub';
+import * as mappers from '../../src/DripsSubgraph/mappers';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -66,35 +73,75 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getUserAssetConfig()', () => {
-		it('should return the expected result', async () => {
+	describe('getUserAssetConfigById()', () => {
+		it('should return null when the user asset configuration is not found', async () => {
 			// Arrange
-			const userId = '1';
-			const assetId = '2';
+			const userId = 1n;
+			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
-			const expectedConfig: UserAssetConfig = {
+			const apiConfig: ApiUserAssetConfig = {
 				id: configId,
-				assetId,
-				balance: 3n,
-				amountCollected: 4n,
+				assetId: assetId.toString(),
+				balance: '3',
+				amountCollected: '4',
 				dripsEntries: [
 					{
 						userId: '5',
-						config: BigNumber.from('0x010000000200000003').toBigInt()
+						config: BigNumber.from('0x010000000200000003').toString()
 					}
 				],
-				lastUpdatedBlockTimestamp: 6n
+				lastUpdatedBlockTimestamp: '6'
+			};
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getUserAssetConfigById, { configId: `${apiConfig.id}` })
+				.resolves({
+					data: {
+						userAssetConfig: null
+					}
+				});
+
+			// Act
+			const actualConfig = await testSubgraphClient.getUserAssetConfigById(userId, assetId);
+
+			// Assert
+			assert.isNull(actualConfig);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const userId = 1n;
+			const assetId = 2n;
+			const configId = `${userId}-${assetId}`;
+
+			const apiConfig: ApiUserAssetConfig = {
+				id: configId,
+				assetId: assetId.toString(),
+				balance: '3',
+				amountCollected: '4',
+				dripsEntries: [
+					{
+						userId: '5',
+						config: BigNumber.from('0x010000000200000003').toString()
+					}
+				],
+				lastUpdatedBlockTimestamp: '6'
 			};
 
 			const queryStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserAssetConfigById, { configId: `${expectedConfig.id}` })
+				.withArgs(gql.getUserAssetConfigById, { configId: `${apiConfig.id}` })
 				.resolves({
 					data: {
-						userAssetConfig: expectedConfig
+						userAssetConfig: apiConfig
 					}
 				});
+
+			const expectedConfig: UserAssetConfig = {} as UserAssetConfig;
+
+			const mapperStub = sinon.stub(mappers, 'mapUserAssetConfigToDto').withArgs(apiConfig).returns(expectedConfig);
 
 			// Act
 			const actualConfig = await testSubgraphClient.getUserAssetConfigById(userId, assetId);
@@ -105,29 +152,30 @@ describe('DripsSubgraphClient', () => {
 				queryStub.calledOnceWithExactly(gql.getUserAssetConfigById, sinon.match({ configId })),
 				'Expected method to be called with different arguments'
 			);
+			assert(mapperStub.calledOnceWithExactly(apiConfig), 'Expected method to be called with different arguments');
 		});
 	});
 
-	describe('getAllUserAssetConfigs()', () => {
+	describe('getAllUserAssetConfigsByUserId()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = '1';
-			const assetId = '2';
+			const userId = 1n;
+			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
-			const expectedAssetConfigs: UserAssetConfig[] = [
+			const apiConfigs: ApiUserAssetConfig[] = [
 				{
 					id: configId,
-					assetId,
-					balance: 3n,
-					amountCollected: 4n,
+					assetId: assetId.toString(),
+					balance: '3',
+					amountCollected: '4',
 					dripsEntries: [
 						{
 							userId: '5',
-							config: BigNumber.from('0x010000000200000003').toBigInt()
+							config: BigNumber.from('0x010000000200000003').toString()
 						}
 					],
-					lastUpdatedBlockTimestamp: 6n
+					lastUpdatedBlockTimestamp: '6'
 				}
 			];
 
@@ -137,25 +185,33 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						user: {
-							assetConfigs: expectedAssetConfigs
+							assetConfigs: apiConfigs
 						}
 					}
 				});
+
+			const expectedConfig: UserAssetConfig = {} as UserAssetConfig;
+
+			const mapperStub = sinon.stub(mappers, 'mapUserAssetConfigToDto').withArgs(apiConfigs[0]).returns(expectedConfig);
 
 			// Act
 			const actualConfigs = await testSubgraphClient.getAllUserAssetConfigsByUserId(userId);
 
 			// Assert
-			assert.equal(actualConfigs, expectedAssetConfigs);
+			assert.equal(actualConfigs[0], expectedConfig);
 			assert(
 				queryStub.calledOnceWithExactly(gql.getAllUserAssetConfigsByUserId, { userId }),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				mapperStub.calledOnceWith(sinon.match((c: ApiUserAssetConfig) => c.id === apiConfigs[0].id)),
 				'Expected method to be called with different arguments'
 			);
 		});
 
 		it('should return an empty array if configs do not exist', async () => {
 			// Arrange
-			const userId = '1';
+			const userId = 1n;
 
 			sinon
 				.stub(testSubgraphClient, 'query')
@@ -177,10 +233,10 @@ describe('DripsSubgraphClient', () => {
 	describe('getSplitsConfig()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = '1';
-			const splitsEntries: SplitEntry[] = [
+			const userId = 1n;
+			const splitsEntries: ApiSplitEntry[] = [
 				{
-					weight: 2n,
+					weight: '2',
 					userId: '3'
 				}
 			];
@@ -195,20 +251,28 @@ describe('DripsSubgraphClient', () => {
 					}
 				});
 
+			const expectedSplitEntry: SplitEntry = {} as SplitEntry;
+
+			const mapperStub = sinon
+				.stub(mappers, 'mapSplitEntryToDto')
+				.withArgs(splitsEntries[0])
+				.returns(expectedSplitEntry);
+
 			// Act
 			const splits = await testSubgraphClient.getSplitsConfigByUserId(userId);
 
 			// Assert
-			assert.equal(splits, splitsEntries);
+			assert.equal(splits[0], expectedSplitEntry);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getSplitsConfigByUserId, { userId }),
 				'Expected method to be called with different arguments'
 			);
+			assert(mapperStub.calledOnceWith(splitsEntries[0]), 'Expected method to be called with different arguments');
 		});
 
 		it('should return an empty array when splits does not exist', async () => {
 			// Arrange
-			const userId = '1';
+			const userId = 1n;
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getSplitsConfigByUserId, { userId })
@@ -230,14 +294,14 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getDripsSetEvents()', () => {
+	describe('getDripsSetEventsByUserId()', () => {
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = '1';
-			const dripsSetEvents: DripsSetEventObject[] = [
+			const userId = 1n;
+			const dripsSetEvents: ApiDripsSetEvent[] = [
 				{
-					userId: BigNumber.from(1)
-				} as DripsSetEventObject
+					userId: '1'
+				} as ApiDripsSetEvent
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
@@ -248,21 +312,28 @@ describe('DripsSubgraphClient', () => {
 					}
 				});
 
+			const expectedDripsSetEvent = {} as DripsSetEvent;
+
+			const mapperStub = sinon
+				.stub(mappers, 'mapDripsSetEventToDto')
+				.withArgs(dripsSetEvents[0])
+				.returns(expectedDripsSetEvent);
+
 			// Act
 			const result = await testSubgraphClient.getDripsSetEventsByUserId(userId);
 
 			// Assert
-			assert.equal(result.length, 1);
-			assert.equal(result[0].userId, dripsSetEvents[0].userId.toString());
+			assert.equal(result[0], expectedDripsSetEvent);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId }),
 				'Expected method to be called with different arguments'
 			);
+			assert(mapperStub.calledOnceWith(dripsSetEvents[0]), 'Expected method to be called with different arguments');
 		});
 
 		it('should return an empty array when DripsSetEvent entries do not exist', async () => {
 			// Arrange
-			const userId = '1';
+			const userId = 1n;
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getDripsSetEventsByUserId, { userId })

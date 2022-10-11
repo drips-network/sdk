@@ -3,7 +3,15 @@ import Utils from '../utils';
 import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
-import type { DripsSetEvent, SplitEntry, UserAssetConfig } from './types';
+import type {
+	DripsSetEvent,
+	ApiUserAssetConfig,
+	SplitEntry,
+	UserAssetConfig,
+	ApiSplitEntry,
+	ApiDripsSetEvent
+} from './types';
+import { mapDripsSetEventToDto, mapSplitEntryToDto, mapUserAssetConfigToDto } from './mappers';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -56,73 +64,79 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's drips configuration for the given asset.
-	 * @param  {string} userId The user ID.
-	 * @param  {string} assetId The asset ID.
-	 * @returns A `Promise` which resolves to the user's drips configuration.
+	 * @param  {bigint} userId The user ID.
+	 * @param  {bigint} assetId The asset ID.
+	 * @returns A `Promise` which resolves to the user's drips configuration, or `null` if the configuration is not found.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserAssetConfigById(userId: string, assetId: string): Promise<UserAssetConfig> {
+	public async getUserAssetConfigById(userId: bigint, assetId: bigint): Promise<UserAssetConfig | null> {
 		type ApiResponse = {
-			userAssetConfig: UserAssetConfig;
+			userAssetConfig: ApiUserAssetConfig;
 		};
 
 		const response = await this.query<ApiResponse>(gql.getUserAssetConfigById, {
 			configId: `${userId}-${assetId}`
 		});
 
-		return response?.data?.userAssetConfig;
+		const userAssetConfig = response?.data?.userAssetConfig;
+
+		if (!userAssetConfig) {
+			return null;
+		}
+
+		return mapUserAssetConfigToDto(userAssetConfig);
 	}
 
 	/**
 	 * Returns all drips configurations for the given user.
-	 * @param  {string} userId The user ID.
+	 * @param  {bigint} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigsByUserId(userId: bigint): Promise<UserAssetConfig[]> {
 		type ApiResponse = {
 			user: {
-				assetConfigs: UserAssetConfig[];
+				assetConfigs: ApiUserAssetConfig[];
 			};
 		};
 
 		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigsByUserId, { userId });
 
-		return response?.data?.user?.assetConfigs || [];
+		return response?.data?.user?.assetConfigs?.map(mapUserAssetConfigToDto) || [];
 	}
 
 	/**
 	 * Returns the user's splits configuration.
-	 * @param  {string} userId The user ID.
+	 * @param  {bigint} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfigByUserId(userId: string): Promise<SplitEntry[]> {
+	public async getSplitsConfigByUserId(userId: bigint): Promise<SplitEntry[]> {
 		type ApiResponse = {
 			user: {
-				splitsEntries: SplitEntry[];
+				splitsEntries: ApiSplitEntry[];
 			};
 		};
 
 		const response = await this.query<ApiResponse>(gql.getSplitsConfigByUserId, { userId });
 
-		return response?.data?.user?.splitsEntries || [];
+		return response?.data?.user?.splitsEntries?.map(mapSplitEntryToDto) || [];
 	}
 
 	/**
 	 * Returns the user's `DripsSetEvent`s.
-	 * @param  {string} userId The user ID.
+	 * @param  {bigint} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's `DripsSetEvent`s.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsSetEventsByUserId(userId: string): Promise<DripsSetEvent[]> {
+	public async getDripsSetEventsByUserId(userId: bigint): Promise<DripsSetEvent[]> {
 		type ApiResponse = {
-			dripsSetEvents: DripsSetEvent[];
+			dripsSetEvents: ApiDripsSetEvent[];
 		};
 
 		const response = await this.query<ApiResponse>(gql.getDripsSetEventsByUserId, { userId });
 
-		return response?.data?.dripsSetEvents || [];
+		return response?.data?.dripsSetEvents?.map(mapDripsSetEventToDto) || [];
 	}
 
 	/** @internal */

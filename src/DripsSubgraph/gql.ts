@@ -1,16 +1,32 @@
+export const getUserAssetConfigById = `#graphql
+query getUserAssetConfigById($configId: ID!) {
+	userAssetConfig(id: $configId) {
+		id
+		assetId
+		dripsEntries {
+			userId
+			config
+		}
+		balance
+		amountCollected
+		lastUpdatedBlockTimestamp
+	}
+}
+`;
+
 export const getAllUserAssetConfigsByUserId = `#graphql
 query getAllUserAssetConfigsByUserId($userId: ID!) {
   user(id: $userId) {
     assetConfigs {
       id
 			assetId
+			dripsEntries {
+				userId
+				config
+			}
 			balance
 			amountCollected
-      dripsEntries {
-        config
-        receiverUserId
-      }
-      lastUpdatedBlockTimestamp
+			lastUpdatedBlockTimestamp
     }
   }
 }
@@ -20,26 +36,10 @@ export const getSplitsConfigByUserId = `#graphql
 query getSplitsConfigByUserId($userId: ID!) {
   user(id: $userId) {
 		splitsEntries {
-			receiverUserId
+			userId
 			weight
 		}
   }
-}
-`;
-
-export const getUserAssetConfigById = `#graphql
-query getUserAssetConfigById($configId: ID!) {
-	userAssetConfig(id: $configId) {
-		id
-		assetId
-		balance
-		amountCollected
-		dripsEntries {
-			config
-			receiverUserId
-		}
-		lastUpdatedBlockTimestamp
-	}
 }
 `;
 
@@ -48,13 +48,13 @@ query getDripsSetEventsByUserId($userId: BigInt!) {
   dripsSetEvents(where: {userId: $userId}) {
     userId
     assetId
-    dripsHistoryHash
     dripsReceiverSeenEvents {
       receiverUserId
     }
+    dripsHistoryHash
+		balance
     blockTimestamp
 		maxEnd
-		balance
   }
 }
 `;

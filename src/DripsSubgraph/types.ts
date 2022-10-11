@@ -1,34 +1,63 @@
-export type SplitEntry = {
-	readonly weight: bigint;
-	readonly userId: string;
+export type ApiUserAssetConfig = {
+	id: string;
+	assetId: string;
+	dripsEntries: {
+		userId: string;
+		config: string;
+	}[];
+	balance: string;
+	amountCollected: string;
+	lastUpdatedBlockTimestamp: string;
 };
 
 export type UserAssetConfig = {
-	readonly id: string;
-	readonly assetId: string;
-	readonly balance: bigint;
-	readonly amountCollected: bigint;
-	readonly dripsEntries: {
-		readonly config: bigint;
-		readonly userId: string;
+	id: string;
+	assetId: bigint;
+	dripsEntries: {
+		userId: bigint;
+		config: bigint;
 	}[];
-	readonly lastUpdatedBlockTimestamp: bigint;
+	balance: bigint;
+	amountCollected: bigint;
+	lastUpdatedBlockTimestamp: bigint;
+};
+
+export type ApiSplitEntry = {
+	userId: string;
+	weight: string;
+};
+
+export type SplitEntry = {
+	userId: bigint;
+	weight: bigint;
+};
+
+export type ApiDripsSetEvent = {
+	userId: string;
+	assetId: string;
+	dripsReceiverSeenEvents: {
+		receiverUserId: string;
+		config: string;
+	}[];
+	dripsHistoryHash: string;
+	balance: string;
+	blockTimestamp: string;
+	maxEnd: string;
 };
 
 export type DripsSetEvent = {
-	readonly userId: string;
-	readonly maxEnd: string;
-	readonly assetId: string;
-	readonly balance: bigint;
-	readonly receiversHash: string;
-	readonly dripsHistoryHash: string;
-	readonly dripsReceiverSeenEvents: {
-		readonly receiverUserId: string;
-		readonly config: bigint;
+	userId: bigint;
+	assetId: bigint;
+	dripsReceiverSeenEvents: {
+		receiverUserId: bigint;
+		config: bigint;
 	}[];
-	readonly blockTimestamp: bigint;
+	dripsHistoryHash: string;
+	balance: bigint;
+	blockTimestamp: bigint;
+	maxEnd: bigint;
 };
 
 export type DripsReceiverSeenEvent = {
-	readonly senderUserId: string;
+	senderUserId: string;
 };
