@@ -340,8 +340,8 @@ describe('internals', () => {
 				validateDripsReceiverConfigObjStub.calledWithExactly(
 					sinon.match(
 						(config: DripsReceiverConfig) =>
-							Utils.DripsReceiverConfiguration.toUint256String(config) ===
-							Utils.DripsReceiverConfiguration.toUint256String(receivers[0].config)
+							Utils.DripsReceiverConfiguration.toUint256(config) ===
+							Utils.DripsReceiverConfiguration.toUint256(receivers[0].config)
 					)
 				),
 				'Expected method to be called with different arguments'

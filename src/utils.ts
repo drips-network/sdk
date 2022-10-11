@@ -61,10 +61,10 @@ namespace Utils {
 	export namespace Asset {
 		/**
 		 * Returns the ERC20 token address for the given asset.
-		 * @param  {string} assetId The asset ID.
+		 * @param  {bigint} assetId The asset ID.
 		 * @returns The ERC20 token address.
 		 */
-		export const getAddressFromId = (assetId: string): string =>
+		export const getAddressFromId = (assetId: bigint): string =>
 			ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
 
 		/**
@@ -73,22 +73,22 @@ namespace Utils {
 		 * @returns The asset ID.
 		 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 		 */
-		export const getIdFromAddress = (tokenAddress: string): string => {
+		export const getIdFromAddress = (tokenAddress: string): bigint => {
 			validateAddress(tokenAddress);
 
-			return BigNumber.from(tokenAddress).toString();
+			return BigNumber.from(tokenAddress).toBigInt();
 		};
 	}
 
 	export namespace DripsReceiverConfiguration {
 		/**
-		 * Converts a drips receiver configuration to a `uint256` string.
+		 * Converts a drips receiver configuration to a `uint256`.
 		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration.
-		 * @returns The drips receiver configuration as a `uint256` string.
+		 * @returns The drips receiver configuration as a `uint256`.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.dripsReceiverError} if the `dripsReceiverConfig` is not valid.
 		 */
-		export const toUint256String = (dripsReceiverConfig: DripsReceiverConfig): string => {
+		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): bigint => {
 			validateDripsReceiverConfigObj(dripsReceiverConfig);
 
 			const { start, duration, amountPerSec } = dripsReceiverConfig;
@@ -100,7 +100,7 @@ namespace Utils {
 			config = config.shl(32);
 			config = config.or(duration);
 
-			return config.toString();
+			return config.toBigInt();
 		};
 
 		/**

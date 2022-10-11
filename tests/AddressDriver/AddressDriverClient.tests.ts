@@ -506,21 +506,21 @@ describe('AddressDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 2n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
@@ -541,21 +541,21 @@ describe('AddressDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: '3',
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: '2',
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: '2',
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: '1',
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 2n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
@@ -614,7 +614,7 @@ describe('AddressDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 
@@ -641,21 +641,21 @@ describe('AddressDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3n,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2n,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2n,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1n,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 2n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
@@ -700,11 +700,11 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				}
 			];
 
@@ -731,11 +731,11 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 
@@ -762,27 +762,27 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 1n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2n, duration: 1n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
 				}
 			];
 
@@ -809,11 +809,11 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 100n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				}
 			];
 
@@ -840,11 +840,11 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				},
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 100n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
 				}
 			];
 

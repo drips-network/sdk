@@ -37,7 +37,7 @@ describe('Utils', () => {
 				// assertions
 
 				// Act
-				const result = await Utils.Cycle.getInfo(5);
+				const result = Utils.Cycle.getInfo(5);
 
 				// Assert
 				assert.equal(result.cycleDurationSecs, 604800n);
@@ -51,10 +51,10 @@ describe('Utils', () => {
 	});
 
 	describe('Assets', () => {
-		describe('getTokenAddressFromAssetId()', () => {
+		describe('getAddressFromId()', () => {
 			it('should return the expected result', () => {
 				// Arrange
-				const assetId = '1033236945445138540915192691692934361059155904726';
+				const assetId = 1033236945445138540915192691692934361059155904726n;
 
 				// Act
 				const token = Utils.Asset.getAddressFromId(assetId);
@@ -64,7 +64,7 @@ describe('Utils', () => {
 			});
 		});
 
-		describe('getAssetIdFromAddress()', () => {
+		describe('getIdFromAddress()', () => {
 			it('should validate ERC20 address', () => {
 				// Arrange
 				const tokenAddress = '-1';
@@ -88,13 +88,13 @@ describe('Utils', () => {
 				const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
 
 				// Assert
-				assert.equal(assetId, BigNumber.from(tokenAddress).toString());
+				assert.equal(assetId, BigNumber.from(tokenAddress).toBigInt());
 			});
 		});
 	});
 
 	describe('DripsReceiverConfiguration', () => {
-		describe('toUint256String()', () => {
+		describe('toUint256()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
 				const config: DripsReceiverConfig = { start: 1n, duration: 1n, amountPerSec: 1n };
@@ -102,7 +102,7 @@ describe('Utils', () => {
 				const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfigObj');
 
 				// Act
-				Utils.DripsReceiverConfiguration.toUint256String(config);
+				Utils.DripsReceiverConfiguration.toUint256(config);
 
 				// Assert
 				assert(
@@ -116,14 +116,14 @@ describe('Utils', () => {
 				const expectedConfig = '0x010000000200000003';
 
 				// Act
-				const config: string = Utils.DripsReceiverConfiguration.toUint256String({
+				const config: bigint = Utils.DripsReceiverConfiguration.toUint256({
 					start: 2n,
 					duration: 3n,
 					amountPerSec: 1n
 				});
 
 				// Assert
-				assert.equal(config, BigNumber.from(expectedConfig).toString());
+				assert.equal(config, BigNumber.from(expectedConfig).toBigInt());
 			});
 		});
 

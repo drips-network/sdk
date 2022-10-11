@@ -711,7 +711,7 @@ describe('DripsHubClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 			const tokenAddress = Wallet.createRandom().address;
@@ -725,7 +725,7 @@ describe('DripsHubClient', () => {
 				validateDripsReceiversStub.calledOnceWithExactly(
 					sinon.match(
 						(r: { userId: BigNumberish; config: DripsReceiverConfig }[]) =>
-							Utils.DripsReceiverConfiguration.toUint256String(r[0].config) === receivers[0].config
+							Utils.DripsReceiverConfiguration.toUint256(r[0].config) === receivers[0].config
 					)
 				)
 			);
@@ -775,7 +775,7 @@ describe('DripsHubClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 
