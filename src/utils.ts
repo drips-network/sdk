@@ -1,12 +1,6 @@
-import type { BigNumberish } from 'ethers';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import {
-	toBN,
-	validateAddress,
-	validateDripsReceiverConfigBN,
-	validateDripsReceiverConfigObj
-} from './common/internals';
+import { validateAddress, validateDripsReceiverConfigBN, validateDripsReceiverConfigObj } from './common/internals';
 import type { DripsMetadata, CycleInfo, DripsReceiverConfig } from './common/types';
 
 namespace Utils {
@@ -47,7 +41,7 @@ namespace Utils {
 				);
 			}
 
-			const cycleDurationSecs = toBN(Network.dripsMetadata[chainId].CYCLE_SECS).toBigInt();
+			const cycleDurationSecs = BigInt(Network.dripsMetadata[chainId].CYCLE_SECS);
 
 			const currentCycleSecs = BigInt(Math.floor(getUnixTime(new Date()))) % cycleDurationSecs;
 
@@ -67,11 +61,11 @@ namespace Utils {
 	export namespace Asset {
 		/**
 		 * Returns the ERC20 token address for the given asset.
-		 * @param  {string} assetId The asset ID.
+		 * @param  {bigint} assetId The asset ID.
 		 * @returns The ERC20 token address.
 		 */
-		export const getAddressFromId = (assetId: BigNumberish): string =>
-			ethers.utils.getAddress(toBN(assetId).toHexString());
+		export const getAddressFromId = (assetId: bigint): string =>
+			ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
 
 		/**
 		 * Returns the asset ID for the given ERC20 token.
@@ -79,34 +73,34 @@ namespace Utils {
 		 * @returns The asset ID.
 		 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 		 */
-		export const getIdFromAddress = (tokenAddress: string): string => {
+		export const getIdFromAddress = (tokenAddress: string): bigint => {
 			validateAddress(tokenAddress);
 
-			return toBN(tokenAddress).toString();
+			return BigNumber.from(tokenAddress).toBigInt();
 		};
 	}
 
 	export namespace DripsReceiverConfiguration {
 		/**
-		 * Converts a drips receiver configuration to a `uint256` string.
+		 * Converts a drips receiver configuration to a `uint256`.
 		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration.
-		 * @returns The drips receiver configuration as a `uint256` string.
+		 * @returns The drips receiver configuration as a `uint256`.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.dripsReceiverError} if the `dripsReceiverConfig` is not valid.
 		 */
-		export const toUint256String = (dripsReceiverConfig: DripsReceiverConfig): string => {
+		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): bigint => {
 			validateDripsReceiverConfigObj(dripsReceiverConfig);
 
 			const { start, duration, amountPerSec } = dripsReceiverConfig;
 
-			let config = toBN(amountPerSec);
+			let config = BigNumber.from(amountPerSec);
 
 			config = config.shl(32);
 			config = config.or(start);
 			config = config.shl(32);
 			config = config.or(duration);
 
-			return config.toString();
+			return config.toBigInt();
 		};
 
 		/**
@@ -116,19 +110,19 @@ namespace Utils {
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
 		 */
-		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
+		export const fromUint256 = (dripsReceiverConfig: bigint): DripsReceiverConfig => {
 			validateDripsReceiverConfigBN(dripsReceiverConfig);
 
-			const configAsBN = toBN(dripsReceiverConfig);
+			const configAsBN = BigNumber.from(dripsReceiverConfig);
 
 			const amountPerSec = configAsBN.shr(64);
 			const duration = configAsBN.and(2 ** 32 - 1);
 			const start = configAsBN.shr(32).and(2 ** 32 - 1);
 
 			return {
-				amountPerSec,
-				duration,
-				start
+				amountPerSec: amountPerSec.toBigInt(),
+				duration: duration.toBigInt(),
+				start: start.toBigInt()
 			};
 		};
 	}

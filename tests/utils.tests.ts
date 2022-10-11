@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import sinon from 'ts-sinon';
 import { DripsErrorCode } from '../src/common/DripsError';
 import * as internals from '../src/common/internals';
@@ -37,7 +37,7 @@ describe('Utils', () => {
 				// assertions
 
 				// Act
-				const result = await Utils.Cycle.getInfo(5);
+				const result = Utils.Cycle.getInfo(5);
 
 				// Assert
 				assert.equal(result.cycleDurationSecs, 604800n);
@@ -51,20 +51,20 @@ describe('Utils', () => {
 	});
 
 	describe('Assets', () => {
-		describe('getTokenAddressFromAssetId()', () => {
+		describe('getAddressFromId()', () => {
 			it('should return the expected result', () => {
 				// Arrange
-				const assetId = '1033236945445138540915192691692934361059155904726';
+				const assetId = 1033236945445138540915192691692934361059155904726n;
 
 				// Act
 				const token = Utils.Asset.getAddressFromId(assetId);
 
 				// Assert
-				assert.equal(token, ethers.utils.getAddress(internals.toBN(assetId).toHexString()));
+				assert.equal(token, ethers.utils.getAddress(BigNumber.from(assetId).toHexString()));
 			});
 		});
 
-		describe('getAssetIdFromAddress()', () => {
+		describe('getIdFromAddress()', () => {
 			it('should validate ERC20 address', () => {
 				// Arrange
 				const tokenAddress = '-1';
@@ -88,21 +88,21 @@ describe('Utils', () => {
 				const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
 
 				// Assert
-				assert.equal(assetId, internals.toBN(tokenAddress).toString());
+				assert.equal(assetId, BigNumber.from(tokenAddress).toBigInt());
 			});
 		});
 	});
 
 	describe('DripsReceiverConfiguration', () => {
-		describe('toUint256String()', () => {
+		describe('toUint256()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
-				const config: DripsReceiverConfig = { start: 1, duration: 1, amountPerSec: 1 };
+				const config: DripsReceiverConfig = { start: 1n, duration: 1n, amountPerSec: 1n };
 
 				const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfigObj');
 
 				// Act
-				Utils.DripsReceiverConfiguration.toUint256String(config);
+				Utils.DripsReceiverConfiguration.toUint256(config);
 
 				// Assert
 				assert(
@@ -116,21 +116,21 @@ describe('Utils', () => {
 				const expectedConfig = '0x010000000200000003';
 
 				// Act
-				const config: string = Utils.DripsReceiverConfiguration.toUint256String({
-					start: 2,
-					duration: 3,
-					amountPerSec: 1
+				const config: bigint = Utils.DripsReceiverConfiguration.toUint256({
+					start: 2n,
+					duration: 3n,
+					amountPerSec: 1n
 				});
 
 				// Assert
-				assert.equal(config, internals.toBN(expectedConfig).toString());
+				assert.equal(config, BigNumber.from(expectedConfig).toBigInt());
 			});
 		});
 
 		describe('fromUint256()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
-				const config = '0x010000000200000003';
+				const config = BigNumber.from('0x010000000200000003').toBigInt();
 
 				const validateDripsReceiverConfigBNStub = sinon.stub(internals, 'validateDripsReceiverConfigBN');
 
@@ -147,33 +147,35 @@ describe('Utils', () => {
 			it('should return the expected result', async () => {
 				// Arrange
 				const expectedConfig: DripsReceiverConfig = {
-					start: internals.toBN(2),
-					duration: internals.toBN(3),
-					amountPerSec: internals.toBN(1)
+					start: 2n,
+					duration: 3n,
+					amountPerSec: 1n
 				};
 				const { start, duration, amountPerSec } = expectedConfig;
 
 				// Act
-				const config: DripsReceiverConfig = Utils.DripsReceiverConfiguration.fromUint256('0x010000000200000003');
+				const config: DripsReceiverConfig = Utils.DripsReceiverConfiguration.fromUint256(
+					BigNumber.from('0x010000000200000003').toBigInt()
+				);
 
 				// Assert
 				assert(
-					internals.toBN(config.amountPerSec).eq(expectedConfig.amountPerSec),
+					BigNumber.from(config.amountPerSec).eq(expectedConfig.amountPerSec),
 					`Expected config '${internals.nameOf({ amountPerSec })}' to be equal to '${
 						expectedConfig.amountPerSec
-					}' but was '${internals.toBN(config.amountPerSec).toHexString()}'`
+					}' but was '${BigNumber.from(config.amountPerSec).toHexString()}'`
 				);
 				assert(
-					internals.toBN(config.start).eq(expectedConfig.start),
+					BigNumber.from(config.start).eq(expectedConfig.start),
 					`Expected config '${internals.nameOf({ start })}' to be equal to '${
 						expectedConfig.start
-					}' but was '${internals.toBN(config.start).toHexString()}'`
+					}' but was '${BigNumber.from(config.start).toHexString()}'`
 				);
 				assert(
-					internals.toBN(config.duration).eq(expectedConfig.duration),
+					BigNumber.from(config.duration).eq(expectedConfig.duration),
 					`Expected config '${internals.nameOf({ duration })} 'to be equal to '${
 						expectedConfig.duration
-					}' but was '${internals.toBN(config.duration).toHexString()}'`
+					}' but was '${BigNumber.from(config.duration).toHexString()}'`
 				);
 			});
 		});

@@ -1,7 +1,6 @@
 /* eslint-disable no-useless-escape */
 
 import type { SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiverConfig } from './types';
@@ -9,18 +8,11 @@ import type { DripsReceiverConfig } from './types';
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
 
-/**
- * internals.ts contains shared functions that are *not* meant to be publicly exposed.
- */
-
 /** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];
 
 /** @internal */
 export const isNullOrUndefined = (obj: any) => obj == null;
-
-/** @internal */
-export const toBN = (value: BigNumberish) => ethers.BigNumber.from(value);
 
 /** @internal */
 export const validateAddress = (address: string) => {
@@ -30,7 +22,7 @@ export const validateAddress = (address: string) => {
 };
 
 /** @internal */
-export const validateDripsReceiverConfigBN = (dripsReceiverConfig: BigNumberish): void => {
+export const validateDripsReceiverConfigBN = (dripsReceiverConfig: bigint): void => {
 	if (isNullOrUndefined(dripsReceiverConfig)) {
 		throw DripsErrors.argumentMissingError(
 			`Drips receiver config validation failed: '${nameOf({ dripsReceiverConfig })}' is missing.`,
@@ -38,9 +30,7 @@ export const validateDripsReceiverConfigBN = (dripsReceiverConfig: BigNumberish)
 		);
 	}
 
-	const configAsBN = toBN(dripsReceiverConfig);
-
-	if (configAsBN.lte(0)) {
+	if (dripsReceiverConfig <= 0) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: : '${nameOf({ dripsReceiverConfig })}' must be greater than 0.`,
 			nameOf({ dripsReceiverConfig }),
@@ -60,7 +50,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 
 	const { start, duration, amountPerSec } = dripsReceiverConfig;
 
-	if (isNullOrUndefined(start) || toBN(start).lt(0)) {
+	if (start < 0) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: '${nameOf({ start })}' must be greater than or equal to 0`,
 			nameOf({ start }),
@@ -68,7 +58,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 		);
 	}
 
-	if (isNullOrUndefined(duration) || toBN(duration).lt(0)) {
+	if (duration < 0) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: '${nameOf({ duration })}' must be greater than or equal to 0`,
 			nameOf({ duration }),
@@ -76,7 +66,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 		);
 	}
 
-	if (isNullOrUndefined(amountPerSec) || toBN(amountPerSec).lte(0)) {
+	if (amountPerSec <= 0) {
 		throw DripsErrors.dripsReceiverError(
 			`Drips receiver config validation failed: '${nameOf({ amountPerSec })}' must be greater than 0.`,
 			nameOf({ amountPerSec }),
@@ -86,7 +76,7 @@ export const validateDripsReceiverConfigObj = (dripsReceiverConfig: DripsReceive
 };
 
 /** @internal */
-export const validateDripsReceivers = (receivers: { userId: BigNumberish; config: DripsReceiverConfig }[]) => {
+export const validateDripsReceivers = (receivers: { userId: string; config: DripsReceiverConfig }[]) => {
 	if (!receivers) {
 		throw DripsErrors.argumentMissingError(
 			`Drips receivers validation failed: '${nameOf({ receivers })}' is missing.`,
@@ -163,7 +153,7 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 				);
 			}
 
-			if (toBN(weight).lte(0)) {
+			if (weight <= 0) {
 				throw DripsErrors.splitsReceiverError(
 					`Splits receiver config validation failed: : '${nameOf({ weight })}' must be greater than 0.`,
 					nameOf({ weight }),

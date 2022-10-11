@@ -1,6 +1,5 @@
 import { assert } from 'chai';
 import type { BigNumberish } from 'ethers';
-import { Wallet } from 'ethers';
 import sinon from 'ts-sinon';
 import * as internals from '../../src/common/internals';
 import { DripsErrorCode } from '../../src/common/DripsError';
@@ -66,25 +65,6 @@ describe('internals', () => {
 		});
 	});
 
-	describe('toBN()', () => {
-		it('should return the expected result', async () => {
-			// Arrange
-			const num1 = 123;
-			const num2 = '123';
-			const num3 = await Wallet.createRandom().getAddress();
-
-			// Act
-			const bn1 = internals.toBN(num1);
-			const bn2 = internals.toBN(num2);
-			const bn3 = internals.toBN(num3);
-
-			// Assert
-			assert(bn1.eq(internals.toBN(num1)), `Expected big number to be ${bn1} but was ${internals.toBN(num1)}`);
-			assert(bn2.eq(internals.toBN(num2)), `Expected big number to be ${bn2} but was ${internals.toBN(num2)}`);
-			assert(bn3.eq(internals.toBN(num3)), `Expected big number to be ${bn3} but was ${internals.toBN(num3)}`);
-		});
-	});
-
 	describe('validateAddress()', () => {
 		it('should throw addressError error when the input is missing', () => {
 			// Arrange
@@ -131,7 +111,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigBN(undefined as unknown as BigNumberish);
+				internals.validateDripsReceiverConfigBN(undefined as unknown as bigint);
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -147,7 +127,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigBN(0);
+				internals.validateDripsReceiverConfigBN(0n);
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -163,7 +143,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigBN(-1);
+				internals.validateDripsReceiverConfigBN(-1n);
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -197,7 +177,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: -1, duration: 1, amountPerSec: 1 });
+				internals.validateDripsReceiverConfigObj({ start: -1n, duration: 1n, amountPerSec: 1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -213,7 +193,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: 1, duration: -1, amountPerSec: 1 });
+				internals.validateDripsReceiverConfigObj({ start: 1n, duration: -1n, amountPerSec: 1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -229,7 +209,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: 1, duration: 1, amountPerSec: 0 });
+				internals.validateDripsReceiverConfigObj({ start: 1n, duration: 1n, amountPerSec: 0n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -245,7 +225,7 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: 1, duration: 1, amountPerSec: -1 });
+				internals.validateDripsReceiverConfigObj({ start: 1n, duration: 1n, amountPerSec: -1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 				threw = true;
@@ -279,7 +259,7 @@ describe('internals', () => {
 			let threw = false;
 			const receivers = Array(101).fill({
 				userId: undefined as unknown as number,
-				config: { amountPerSec: 1, duration: 1, start: 1 }
+				config: { amountPerSec: 1n, duration: 1n, start: 1n }
 			});
 
 			try {
@@ -301,7 +281,7 @@ describe('internals', () => {
 			const receivers = [
 				{
 					userId: undefined as unknown as string,
-					config: { amountPerSec: 1, duration: 1, start: 1 }
+					config: { amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
 
@@ -346,7 +326,7 @@ describe('internals', () => {
 			const receivers: DripsReceiver[] = [
 				{
 					userId: '123',
-					config: { amountPerSec: 1, duration: 1, start: 1 }
+					config: { amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
 
@@ -360,8 +340,8 @@ describe('internals', () => {
 				validateDripsReceiverConfigObjStub.calledWithExactly(
 					sinon.match(
 						(config: DripsReceiverConfig) =>
-							Utils.DripsReceiverConfiguration.toUint256String(config) ===
-							Utils.DripsReceiverConfiguration.toUint256String(receivers[0].config)
+							Utils.DripsReceiverConfiguration.toUint256(config) ===
+							Utils.DripsReceiverConfiguration.toUint256(receivers[0].config)
 					)
 				),
 				'Expected method to be called with different arguments'
@@ -436,7 +416,7 @@ describe('internals', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: '123',
+					userId: 123,
 					weight: undefined as unknown as BigNumberish
 				}
 			];
@@ -459,7 +439,7 @@ describe('internals', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: '123',
+					userId: 123n,
 					weight: 0
 				}
 			];
@@ -482,7 +462,7 @@ describe('internals', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: '123',
+					userId: 123n,
 					weight: -1
 				}
 			];

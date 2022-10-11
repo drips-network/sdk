@@ -3,8 +3,7 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import type { BigNumberish } from 'ethers';
-import { constants, Wallet } from 'ethers';
+import { BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressDriver';
@@ -148,6 +147,10 @@ describe('AddressDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
+			erc20ContractStub.allowance
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.dripsMetadata.CONTRACT_ADDRESS_DRIVER)
+				.resolves(BigNumber.from(1));
+
 			sinon
 				.stub(IERC20__factory, 'connect')
 				.withArgs(tokenAddress, testAddressDriverClient.signer)
@@ -166,15 +169,20 @@ describe('AddressDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
+			erc20ContractStub.allowance
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.dripsMetadata.CONTRACT_ADDRESS_DRIVER)
+				.resolves(BigNumber.from(1));
+
 			sinon
 				.stub(IERC20__factory, 'connect')
 				.withArgs(tokenAddress, testAddressDriverClient.signer)
 				.returns(erc20ContractStub);
 
 			// Act
-			await testAddressDriverClient.getAllowance(tokenAddress);
+			const allowance = await testAddressDriverClient.getAllowance(tokenAddress);
 
 			// Assert
+			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
 					testAddressDriverClient.signerAddress,
@@ -235,7 +243,7 @@ describe('AddressDriverClient', () => {
 			// Arrange
 			addressDriverContractStub.calcUserId
 				.withArgs(testAddressDriverClient.signerAddress)
-				.resolves(internals.toBN(111));
+				.resolves(BigNumber.from(111));
 
 			// Act
 			await testAddressDriverClient.getUserId();
@@ -253,7 +261,7 @@ describe('AddressDriverClient', () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
-			addressDriverContractStub.calcUserId.resolves(internals.toBN(1));
+			addressDriverContractStub.calcUserId.resolves(BigNumber.from(1));
 
 			// Act
 			await testAddressDriverClient.getUserIdByAddress(userAddress);
@@ -265,7 +273,7 @@ describe('AddressDriverClient', () => {
 		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
-			addressDriverContractStub.calcUserId.withArgs(userAddress).resolves(internals.toBN(111));
+			addressDriverContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
 
 			// Act
 			await testAddressDriverClient.getUserIdByAddress(userAddress);
@@ -323,7 +331,7 @@ describe('AddressDriverClient', () => {
 
 			try {
 				// Act
-				await testAddressDriverClient.give(undefined as unknown as BigNumberish, tokenAddress, 1);
+				await testAddressDriverClient.give(undefined as unknown as bigint, tokenAddress, 1n);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -340,7 +348,7 @@ describe('AddressDriverClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testAddressDriverClient.give(1, tokenAddress, 1);
+			await testAddressDriverClient.give(1n, tokenAddress, 1n);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -348,8 +356,8 @@ describe('AddressDriverClient', () => {
 
 		it('should call the give() method of the AddressDriver contract', async () => {
 			// Arrange
-			const amount = 100;
-			const receiverId = 1;
+			const amount = 100n;
+			const receiverId = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
@@ -498,28 +506,28 @@ describe('AddressDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 2, start: 2 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1);
+			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -532,29 +540,29 @@ describe('AddressDriverClient', () => {
 
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
-					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+					userId: '3',
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					userId: '2',
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					userId: '2',
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 2, start: 2 })
+					userId: '1',
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
 			const validateDripsReceiversStub = sinon.stub(internals, 'validateDripsReceivers');
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1);
+			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
@@ -587,7 +595,7 @@ describe('AddressDriverClient', () => {
 					[],
 					[],
 					undefined as unknown as string,
-					0
+					0n
 				);
 			} catch (error: any) {
 				// Assert
@@ -606,19 +614,19 @@ describe('AddressDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, [], transferToAddress, 1);
+			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, [], transferToAddress, 1n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					currentReceivers,
-					1,
+					1n,
 					[],
 					transferToAddress
 				),
@@ -632,37 +640,37 @@ describe('AddressDriverClient', () => {
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
-					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 3, duration: 3, start: 3 })
+					userId: 3n,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					userId: 2n,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					userId: 2n,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 2, start: 2 })
+					userId: 1n,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1);
+			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					currentReceivers,
-					1,
+					1n,
 					sinon
-						.match((r: DripsReceiverStruct[]) => r[0].userId === 1)
-						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2))
+						.match((r: DripsReceiverStruct[]) => r[0].userId === 1n)
+						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2n))
 						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2)),
 					transferToAddress
 				),
@@ -676,11 +684,11 @@ describe('AddressDriverClient', () => {
 			const transferToAddress = Wallet.createRandom().address;
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as number);
+			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
 
 			// Assert
 			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], transferToAddress),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0n, [], transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -692,29 +700,23 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(
-				tokenAddress,
-				[],
-				receivers,
-				transferToAddress,
-				undefined as unknown as number
-			);
+			await testAddressDriverClient.setDrips(tokenAddress, [], receivers, transferToAddress, 0n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					[],
-					0,
+					0n,
 					sinon.match((r: DripsReceiverStruct[]) => r[0].config < r[1].config),
 					transferToAddress
 				),
@@ -729,29 +731,23 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(
-				tokenAddress,
-				[],
-				receivers,
-				transferToAddress,
-				undefined as unknown as number
-			);
+			await testAddressDriverClient.setDrips(tokenAddress, [], receivers, transferToAddress, 0n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					[],
-					0,
+					0n,
 					sinon.match((r: DripsReceiverStruct[]) => r[0].config < r[1].config),
 					transferToAddress
 				),
@@ -766,45 +762,39 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 2 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 1, start: 2 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 2, duration: 1, start: 2 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(
-				tokenAddress,
-				[],
-				receivers,
-				transferToAddress,
-				undefined as unknown as number
-			);
+			await testAddressDriverClient.setDrips(tokenAddress, [], receivers, transferToAddress, 0n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					[],
-					0,
+					0n,
 					sinon.match((r: DripsReceiverStruct[]) => r.length === 4),
 					transferToAddress
 				),
@@ -819,29 +809,23 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 100, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(
-				tokenAddress,
-				[],
-				receivers,
-				transferToAddress,
-				undefined as unknown as number
-			);
+			await testAddressDriverClient.setDrips(tokenAddress, [], receivers, transferToAddress, 0n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					[],
-					0,
+					0n,
 					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId),
 					transferToAddress
 				),
@@ -856,34 +840,41 @@ describe('AddressDriverClient', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 1, duration: 1, start: 200 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
 				},
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256String({ amountPerSec: 100, duration: 1, start: 1 })
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
 				}
 			];
 
 			// Act
-			await testAddressDriverClient.setDrips(
-				tokenAddress,
-				[],
-				receivers,
-				transferToAddress,
-				undefined as unknown as number
-			);
+			await testAddressDriverClient.setDrips(tokenAddress, [], receivers, transferToAddress, 0n);
 
 			// Assert
 			assert(
 				addressDriverContractStub.setDrips.calledOnceWithExactly(
 					tokenAddress,
 					[],
-					0,
+					0n,
 					sinon.match((r: DripsReceiverStruct[]) => r[0].userId < r[1].userId),
 					transferToAddress
 				),
 				'Expected method to be called with different arguments'
 			);
+		});
+	});
+
+	describe('getAddressByUserId', () => {
+		it('should return the expected result', () => {
+			const expectedAddress = '0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D';
+			const userId = 998697365313809816557299962230702436787341785997n;
+
+			// Act
+			const actualAddress = AddressDriverClient.getUserAddress(userId);
+
+			// Assert
+			assert.equal(actualAddress, expectedAddress);
 		});
 	});
 });

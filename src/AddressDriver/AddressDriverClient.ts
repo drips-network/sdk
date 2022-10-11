@@ -2,8 +2,8 @@
 
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, ContractTransaction, BigNumber } from 'ethers';
-import { constants } from 'ethers';
+import type { ContractTransaction } from 'ethers';
+import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { DripsMetadata } from 'src/common/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
@@ -12,7 +12,6 @@ import Utils from '../utils';
 import {
 	validateAddress,
 	nameOf,
-	toBN,
 	isNullOrUndefined,
 	validateDripsReceivers,
 	validateSplitsReceivers
@@ -150,12 +149,17 @@ export default class AddressDriverClient {
 	 * @returns A `Promise` which resolves to the remaining number of tokens.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
-	public async getAllowance(tokenAddress: string): Promise<BigNumber> {
+	public async getAllowance(tokenAddress: string): Promise<bigint> {
 		validateAddress(tokenAddress);
 
 		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
-		return signerAsErc20Contract.allowance(this.#signerAddress, this.#dripsMetadata.CONTRACT_ADDRESS_DRIVER);
+		const allowance = await signerAsErc20Contract.allowance(
+			this.#signerAddress,
+			this.#dripsMetadata.CONTRACT_ADDRESS_DRIVER
+		);
+
+		return allowance.toBigInt();
 	}
 
 	/**
@@ -178,10 +182,10 @@ export default class AddressDriverClient {
 	 * This is the user ID to which the `AddressDriverClient` is linked and manages drips.
 	 * @returns A `Promise` which resolves to the user ID.
 	 */
-	public async getUserId(): Promise<string> {
+	public async getUserId(): Promise<bigint> {
 		const userId = await this.#addressDriverContract.calcUserId(this.#signerAddress);
 
-		return userId.toString();
+		return userId.toBigInt();
 	}
 
 	/**
@@ -190,12 +194,12 @@ export default class AddressDriverClient {
 	 * @returns A `Promise` which resolves to the user ID.
 	 * @throws {DripsErrors.addressError} if the `userAddress` address is not valid.
 	 */
-	public async getUserIdByAddress(userAddress: string): Promise<string> {
+	public async getUserIdByAddress(userAddress: string): Promise<bigint> {
 		validateAddress(userAddress);
 
 		const userId = await this.#addressDriverContract.calcUserId(userAddress);
 
-		return userId.toString();
+		return userId.toBigInt();
 	}
 
 	/**
@@ -215,14 +219,14 @@ export default class AddressDriverClient {
 	/**
 	 * Gives funds from the `AddressDriverClient`'s `signer` to the receiver.
 	 * The receiver can collect them immediately.
-	 * @param  {BigNumberish} receiverId The receiver user ID.
+	 * @param  {bigint} receiverId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei).
+	 * @param  {bigint} amount The amount to give (in the smallest unit, e.g. Wei).
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {DripsErrors.argumentMissingError} if the `receiverId` is missing.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
-	public give(receiverId: BigNumberish, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public give(receiverId: bigint, tokenAddress: string, amount: bigint): Promise<ContractTransaction> {
 		if (isNullOrUndefined(receiverId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not give: '${nameOf({ receiverId })}' is missing.`,
@@ -263,7 +267,7 @@ export default class AddressDriverClient {
 	 *
 	 * Pass an empty array if you want to clear all receivers from this configuration.
 	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.
-	 * @param  {BigNumberish} balanceDelta The `signer`'s drips balance change to be applied:
+	 * @param  {bigint} balanceDelta The `signer`'s drips balance change to be applied:
 	 * - Positive to add funds to the drips balance.
 	 * - Negative to remove funds from the drips balance.
 	 * - `0` to leave drips balance as is (default value).
@@ -278,16 +282,19 @@ export default class AddressDriverClient {
 		currentReceivers: DripsReceiverStruct[],
 		newReceivers: DripsReceiverStruct[],
 		transferToAddress: string,
-		balanceDelta: BigNumberish = 0
+		balanceDelta: bigint = BigInt(0)
 	): Promise<ContractTransaction> {
 		validateAddress(tokenAddress);
 		validateDripsReceivers(
-			newReceivers.map((r) => ({ userId: r.userId, config: Utils.DripsReceiverConfiguration.fromUint256(r.config) }))
+			newReceivers.map((r) => ({
+				userId: r.userId.toString(),
+				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+			}))
 		);
 		validateDripsReceivers(
 			currentReceivers.map((r) => ({
-				userId: r.userId,
-				config: Utils.DripsReceiverConfiguration.fromUint256(r.config)
+				userId: r.userId.toString(),
+				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			}))
 		);
 
@@ -307,13 +314,27 @@ export default class AddressDriverClient {
 		);
 	}
 
+	public static getUserAddress = (userId: bigint): string => {
+		const userIdAsBN = BigNumber.from(userId);
+
+		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
+		const userAddress = userIdAsBN.and(mask);
+
+		return ethers.utils.getAddress(userAddress.toHexString());
+	};
+
 	// #region Private Methods
 
 	#formatDripsReceivers(receivers: DripsReceiverStruct[]) {
 		// Drips receivers must be sorted by user ID and config, deduplicated, and without amount per second <= 0.
 
 		const uniqueReceivers = receivers.reduce((unique: DripsReceiverStruct[], o) => {
-			if (!unique.some((obj: DripsReceiverStruct) => obj.userId === o.userId && toBN(obj.config).eq(toBN(o.config)))) {
+			if (
+				!unique.some(
+					(obj: DripsReceiverStruct) =>
+						obj.userId === o.userId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
+				)
+			) {
 				unique.push(o);
 			}
 			return unique;
@@ -322,14 +343,14 @@ export default class AddressDriverClient {
 		const sortedReceivers = uniqueReceivers
 			// Sort by userId.
 			.sort((a, b) =>
-				toBN(a.userId).gt(toBN(b.userId))
+				BigNumber.from(a.userId).gt(BigNumber.from(b.userId))
 					? 1
-					: toBN(a.userId).lt(toBN(b.userId))
+					: BigNumber.from(a.userId).lt(BigNumber.from(b.userId))
 					? -1
 					: // Sort by config.
-					toBN(a.config).gt(toBN(b.config))
+					BigNumber.from(a.config).gt(BigNumber.from(b.config))
 					? 1
-					: toBN(a.config).lt(toBN(b.config))
+					: BigNumber.from(a.config).lt(BigNumber.from(b.config))
 					? -1
 					: 0
 			);
@@ -348,7 +369,11 @@ export default class AddressDriverClient {
 
 		const sortedReceivers = uniqueReceivers.sort((a, b) =>
 			// Sort by user ID.
-			toBN(a.userId).gt(toBN(b.userId)) ? 1 : toBN(a.userId).lt(toBN(b.userId)) ? -1 : 0
+			BigNumber.from(a.userId).gt(BigNumber.from(b.userId))
+				? 1
+				: BigNumber.from(a.userId).lt(BigNumber.from(b.userId))
+				? -1
+				: 0
 		);
 
 		return sortedReceivers;
