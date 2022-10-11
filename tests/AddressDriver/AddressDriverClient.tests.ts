@@ -864,4 +864,17 @@ describe('AddressDriverClient', () => {
 			);
 		});
 	});
+
+	describe('getAddressByUserId', () => {
+		it('should return the expected result', () => {
+			const expectedAddress = '0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D';
+			const userId = 998697365313809816557299962230702436787341785997n;
+
+			// Act
+			const actualAddress = AddressDriverClient.getUserAddress(userId);
+
+			// Assert
+			assert.equal(actualAddress, expectedAddress);
+		});
+	});
 });

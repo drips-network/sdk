@@ -3,7 +3,7 @@
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { ContractTransaction } from 'ethers';
-import { BigNumber, constants } from 'ethers';
+import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { DripsMetadata } from 'src/common/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
@@ -313,6 +313,15 @@ export default class AddressDriverClient {
 			transferToAddress
 		);
 	}
+
+	public static getUserAddress = (userId: bigint): string => {
+		const userIdAsBN = BigNumber.from(userId);
+
+		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
+		const userAddress = userIdAsBN.and(mask);
+
+		return ethers.utils.getAddress(userAddress.toHexString());
+	};
 
 	// #region Private Methods
 
