@@ -324,7 +324,7 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('give()', () => {
-		it('should throw argumentMissingError when receiverId is missing', async () => {
+		it('should throw argumentMissingError when receiverUserId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -357,15 +357,15 @@ describe('AddressDriverClient', () => {
 		it('should call the give() method of the AddressDriver contract', async () => {
 			// Arrange
 			const amount = 100n;
-			const receiverId = 1n;
+			const receiverUserId = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
-			await testAddressDriverClient.give(receiverId, tokenAddress, amount);
+			await testAddressDriverClient.give(receiverUserId, tokenAddress, amount);
 
 			// Assert
 			assert(
-				addressDriverContractStub.give.calledOnceWithExactly(receiverId, tokenAddress, amount),
+				addressDriverContractStub.give.calledOnceWithExactly(receiverUserId, tokenAddress, amount),
 				'Expected method to be called with different arguments'
 			);
 		});

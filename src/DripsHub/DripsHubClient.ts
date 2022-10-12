@@ -178,7 +178,7 @@ export default class DripsHubClient {
 	 * @param  {bigint} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
 	 * If too high, receiving may become too expensive to fit in a single transaction.
-	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` or the `maxCycles` is missing.
 	 */

@@ -1,5 +1,3 @@
-/* eslint-disable no-nested-ternary */
-
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { ContractTransaction } from 'ethers';
@@ -14,14 +12,16 @@ import {
 	nameOf,
 	isNullOrUndefined,
 	validateDripsReceivers,
-	validateSplitsReceivers
+	validateSplitsReceivers,
+	formatDripsReceivers,
+	formatSplitReceivers
 } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import type { AddressDriver as AddressDriverContract } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 
 /**
- * A client for managing drips and splits for a user identified by an Ethereum address.
+ * A client for managing Drips for a user identified by an Ethereum address.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} smart contract.
  */
 export default class AddressDriverClient {
@@ -31,7 +31,7 @@ export default class AddressDriverClient {
 	/**
 	 * Returns the `AddressDriverClient`'s `signer`.
 	 *
-	 * This is the user to which the `AddressDriverClient` is linked and manages drips.
+	 * This is the user to which the `AddressDriverClient` is linked and manages Drips.
 	 *
 	 * The `signer` is the `provider`'s signer.
 	 *
@@ -86,7 +86,7 @@ export default class AddressDriverClient {
 	/**
 	 * Creates a new immutable `AddressDriverClient` instance.
 	 * @param  {JsonRpcProvider} provider The `provider` must have a `signer` associated with it.
-	 * **This signer will be the _sole_ "user" to which the new `AddressDriverClient` instance will be linked for managing their drips and cannot be changed after creation**.
+	 * **This signer will be the user the new `AddressDriverClient` will manage and cannot be changed after creation**.
 	 *
 	 * The `provider` can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
@@ -165,7 +165,7 @@ export default class AddressDriverClient {
 	/**
 	 * Sets the maximum allowance value for the `AddressDriver` smart contract over the `AddressDriverClient`'s `signer` tokens for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
 	public approve(tokenAddress: string): Promise<ContractTransaction> {
@@ -206,8 +206,8 @@ export default class AddressDriverClient {
 	 * Collects the received and already split funds for the `AddressDriverClient`'s `signer` and transfers them from the smart contract to an address.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {string} transferToAddress The address to send collected funds to.
-	 * @returns A `Promise` which resolves to the contract transaction.
-	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` are not valid.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` is not valid.
 	 */
 	public async collect(tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
 		validateAddress(tokenAddress);
@@ -219,24 +219,33 @@ export default class AddressDriverClient {
 	/**
 	 * Gives funds from the `AddressDriverClient`'s `signer` to the receiver.
 	 * The receiver can collect them immediately.
-	 * @param  {bigint} receiverId The receiver user ID.
+	 * @param  {bigint} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @param  {bigint} amount The amount to give (in the smallest unit, e.g. Wei).
-	 * @returns A `Promise` which resolves to the contract transaction.
-	 * @throws {DripsErrors.argumentMissingError} if the `receiverId` is missing.
+	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei). It must be greater than `0`.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
+	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
+	 * @throws {DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 */
-	public give(receiverId: bigint, tokenAddress: string, amount: bigint): Promise<ContractTransaction> {
-		if (isNullOrUndefined(receiverId)) {
+	public give(receiverUserId: bigint, tokenAddress: string, amount: bigint): Promise<ContractTransaction> {
+		if (isNullOrUndefined(receiverUserId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not give: '${nameOf({ receiverId })}' is missing.`,
-				nameOf({ receiverId })
+				`Could not give: '${nameOf({ receiverUserId })}' is missing.`,
+				nameOf({ receiverUserId })
 			);
 		}
 
 		validateAddress(tokenAddress);
 
-		return this.#addressDriverContract.give(receiverId, tokenAddress, amount);
+		if (amount <= 0) {
+			throw DripsErrors.argumentError(
+				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
+				nameOf({ amount }),
+				amount
+			);
+		}
+
+		return this.#addressDriverContract.give(receiverUserId, tokenAddress, amount);
 	}
 
 	/**
@@ -245,15 +254,15 @@ export default class AddressDriverClient {
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 *
 	 * Pass an empty array if you want to clear all receivers from this configuration.
-	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.argumentMissingError} if `receivers` are missing.
-	 * @throws {DripsErrors.argumentError} if `receivers`' count exceeds the max allowed drips receivers.
+	 * @throws {DripsErrors.argumentError} if `receivers`' count exceeds the max allowed splits receivers.
 	 * @throws {DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 */
 	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
 		validateSplitsReceivers(receivers);
 
-		return this.#addressDriverContract.setSplits(this.#formatSplitReceivers(receivers));
+		return this.#addressDriverContract.setSplits(formatSplitReceivers(receivers));
 	}
 
 	/**
@@ -271,11 +280,11 @@ export default class AddressDriverClient {
 	 * - Positive to add funds to the drips balance.
 	 * - Negative to remove funds from the drips balance.
 	 * - `0` to leave drips balance as is (default value).
-	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
-	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` are not valid.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` or the `transferToAddress` is not valid.
 	 * @throws {DripsErrors.argumentError} if `currentReceivers`' or `newReceivers`' count exceeds the max allowed drips receivers.
-	 * @throws {DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` are not valid.
+	 * @throws {DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` is not valid.
 	 */
 	public setDrips(
 		tokenAddress: string,
@@ -307,9 +316,9 @@ export default class AddressDriverClient {
 
 		return this.#addressDriverContract.setDrips(
 			tokenAddress,
-			this.#formatDripsReceivers(currentReceivers),
+			formatDripsReceivers(currentReceivers),
 			balanceDelta,
-			this.#formatDripsReceivers(newReceivers),
+			formatDripsReceivers(newReceivers),
 			transferToAddress
 		);
 	}
@@ -322,62 +331,4 @@ export default class AddressDriverClient {
 
 		return ethers.utils.getAddress(userAddress.toHexString());
 	};
-
-	// #region Private Methods
-
-	#formatDripsReceivers(receivers: DripsReceiverStruct[]) {
-		// Drips receivers must be sorted by user ID and config, deduplicated, and without amount per second <= 0.
-
-		const uniqueReceivers = receivers.reduce((unique: DripsReceiverStruct[], o) => {
-			if (
-				!unique.some(
-					(obj: DripsReceiverStruct) =>
-						obj.userId === o.userId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
-				)
-			) {
-				unique.push(o);
-			}
-			return unique;
-		}, []);
-
-		const sortedReceivers = uniqueReceivers
-			// Sort by userId.
-			.sort((a, b) =>
-				BigNumber.from(a.userId).gt(BigNumber.from(b.userId))
-					? 1
-					: BigNumber.from(a.userId).lt(BigNumber.from(b.userId))
-					? -1
-					: // Sort by config.
-					BigNumber.from(a.config).gt(BigNumber.from(b.config))
-					? 1
-					: BigNumber.from(a.config).lt(BigNumber.from(b.config))
-					? -1
-					: 0
-			);
-		return sortedReceivers;
-	}
-
-	#formatSplitReceivers(receivers: SplitsReceiverStruct[]): SplitsReceiverStruct[] {
-		// Splits receivers must be sorted by user ID, deduplicated, and without weights <= 0.
-
-		const uniqueReceivers = receivers.reduce((unique: SplitsReceiverStruct[], o) => {
-			if (!unique.some((obj: SplitsReceiverStruct) => obj.userId === o.userId && obj.weight === o.weight)) {
-				unique.push(o);
-			}
-			return unique;
-		}, []);
-
-		const sortedReceivers = uniqueReceivers.sort((a, b) =>
-			// Sort by user ID.
-			BigNumber.from(a.userId).gt(BigNumber.from(b.userId))
-				? 1
-				: BigNumber.from(a.userId).lt(BigNumber.from(b.userId))
-				? -1
-				: 0
-		);
-
-		return sortedReceivers;
-	}
-
-	// #endregion
 }

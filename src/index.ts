@@ -8,15 +8,15 @@ export { default as AddressDriverClient } from './AddressDriver/AddressDriverCli
 
 // Common
 export { DripsErrorCode, DripsError } from './common/DripsError';
-export * from './common/types';
+export * as DripsCommonTypes from './common/types';
 
 // DripsHub
 export { default as DripsHubClient } from './DripsHub/DripsHubClient';
-export * from './DripsHub/types';
+export * as DripsHubClientTypes from './DripsHub/types';
 
 // Drips Subgraph
 export { default as DripsSubgraphClient } from './DripsSubgraph/DripsSubgraphClient';
-export * from './DripsSubgraph/types';
+export * as DripsSubgraphTypes from './DripsSubgraph/types';
 
 // Utils
 export { default as Utils } from './utils';

@@ -12,7 +12,9 @@ export type DripsMetadata = {
 	readonly CYCLE_SECS: string;
 	readonly SUBGRAPH_URL: string;
 	readonly CONTRACT_DRIPS_HUB: string;
+	readonly CONTRACT_NFT_DRIVER: string;
 	readonly CONTRACT_ADDRESS_DRIVER: string;
+	readonly CONTRACT_NFT_DRIVER_LOGIC: string;
 	readonly CONTRACT_DRIPS_HUB_LOGIC: string;
 	readonly CONTRACT_ADDRESS_DRIVER_LOGIC: string;
 };
