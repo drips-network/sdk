@@ -1,10 +1,10 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { NFTDriver as NFTDriverContract } from 'contracts';
 import type { Network } from '@ethersproject/networks';
 import type { DripsMetadata } from 'src/common/types';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/NFTDriver';
+import type { NFTDriver as NFTDriverContract } from '../../contracts';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import { DripsErrors } from '../common/DripsError';
 import {

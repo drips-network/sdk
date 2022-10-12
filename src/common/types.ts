@@ -17,6 +17,8 @@ export type DripsMetadata = {
 	readonly CONTRACT_NFT_DRIVER_LOGIC: string;
 	readonly CONTRACT_DRIPS_HUB_LOGIC: string;
 	readonly CONTRACT_ADDRESS_DRIVER_LOGIC: string;
+	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER: string;
+	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER_LOGIC: string;
 };
 
 export type CycleInfo = {
