@@ -240,7 +240,7 @@ export default class AddressDriverClient {
 
 		validateAddress(tokenAddress);
 
-		if (amount <= 0) {
+		if (!amount || amount < 0) {
 			throw DripsErrors.argumentError(
 				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
 				nameOf({ amount }),
@@ -253,7 +253,7 @@ export default class AddressDriverClient {
 
 	/**
 	 * Sets the splits configuration.
-	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
+	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array if you want to clear all receivers.
@@ -274,7 +274,7 @@ export default class AddressDriverClient {
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
-	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers.
+	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array if you want to clear all receivers.
 	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.

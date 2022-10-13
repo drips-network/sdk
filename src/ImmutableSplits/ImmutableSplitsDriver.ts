@@ -123,7 +123,7 @@ export default class ImmutableSplitsDriverClient {
 	 * @param  {UserMetadataStruct[]} metadata The list of user metadata to emit for the created user.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
-	 * @throws {DripsErrors.argumentMissingError} if `receivers` or `metadata` is missing.
+	 * @throws {DripsErrors.argumentMissingError} if the `receivers` are missing.
 	 * @throws {DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 */
 	public async createSplits(

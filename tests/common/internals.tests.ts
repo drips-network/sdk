@@ -6,6 +6,7 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import type { DripsReceiver, DripsReceiverConfig } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
+import type { DripsReceiverStruct } from '../../contracts/DripsHub';
 
 describe('internals', () => {
 	afterEach(() => {
@@ -478,6 +479,124 @@ describe('internals', () => {
 
 			// Assert
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('formatDripsReceivers()', () => {
+		it('should sort by the expected order when userID1=userID2 but config1<config2', async () => {
+			// Arrange
+			const receivers: DripsReceiverStruct[] = [
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+				}
+			];
+
+			// Act
+			const formattedReceivers = internals.formatDripsReceivers(receivers);
+
+			// Assert
+			assert.isTrue(formattedReceivers[0].config < formattedReceivers[1].config);
+		});
+
+		it('should sort by the expected order when userID1=userID2 but config1>config2', async () => {
+			// Arrange
+			const receivers: DripsReceiverStruct[] = [
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+				}
+			];
+
+			// Act
+			const formattedReceivers = internals.formatDripsReceivers(receivers);
+
+			// Assert
+			assert.isTrue(formattedReceivers[0].config < formattedReceivers[1].config);
+		});
+
+		it('should remove duplicates', async () => {
+			// Arrange
+			const receivers: DripsReceiverStruct[] = [
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 2n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 1n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
+				},
+				{
+					userId: 2,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
+				}
+			];
+
+			// Act
+			const formattedReceivers = internals.formatDripsReceivers(receivers);
+
+			// Assert
+			assert.equal(formattedReceivers.length, 4);
+		});
+
+		it('should sort by the expected order when userID1>userID2', async () => {
+			// Arrange
+			const receivers: DripsReceiverStruct[] = [
+				{
+					userId: 100,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
+				},
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+				}
+			];
+
+			// Act
+			const formattedReceivers = internals.formatDripsReceivers(receivers);
+
+			// Assert
+			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+		});
+
+		it('should sort by the expected order when userID1<userID2', async () => {
+			// Arrange
+			const receivers: DripsReceiverStruct[] = [
+				{
+					userId: 1,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+				},
+				{
+					userId: 100,
+					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
+				}
+			];
+
+			// Act
+			const formattedReceivers = internals.formatDripsReceivers(receivers);
+
+			// Assert
+			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
 		});
 	});
 });

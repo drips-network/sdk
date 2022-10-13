@@ -1,6 +1,6 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
-import type { DripsMetadata, ReceivableDrips, SqueezableDrips } from 'src/common/types';
+import type { DripsMetadata, ReceivableDrips } from 'src/common/types';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct } from 'contracts/DripsHub';
@@ -144,7 +144,8 @@ export default class DripsHubClient {
 	 * If too high, receiving may become too expensive to fit in a single transaction.
 	 * @returns A `Promise` which resolves to the {@link ReceivableDrips}.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {DripsErrors.argumentMissingError} if the `userId` or the `maxCycles` is missing.
+	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than or equal to `0`.
 	 */
 	public async getReceivableDrips(
 		userId: BigNumberish,
@@ -160,14 +161,15 @@ export default class DripsHubClient {
 			);
 		}
 
-		if (!maxCycles) {
-			throw DripsErrors.argumentMissingError(
+		if (!maxCycles || maxCycles < 0) {
+			throw DripsErrors.argumentError(
 				`Could not get receivable drips: '${nameOf({ maxCycles })}' is missing.`,
-				nameOf({ maxCycles })
+				nameOf({ maxCycles }),
+				maxCycles
 			);
 		}
 
-		const receivableDrips = await this.#dripsHubContract.receivableDrips(userId, tokenAddress, maxCycles);
+		const receivableDrips = await this.#dripsHubContract.receiveDripsResult(userId, tokenAddress, maxCycles);
 
 		return {
 			receivableAmt: receivableDrips.receivableAmt.toBigInt(),
@@ -184,7 +186,8 @@ export default class DripsHubClient {
 	 * If too high, receiving may become too expensive to fit in a single transaction.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {DripsErrors.argumentMissingError} if the `userId` or the `maxCycles` is missing.
+	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than or equal to `0`.
 	 */
 	public receiveDrips(
 		userId: BigNumberish,
@@ -200,10 +203,11 @@ export default class DripsHubClient {
 			);
 		}
 
-		if (!maxCycles) {
-			throw DripsErrors.argumentMissingError(
+		if (!maxCycles || maxCycles < 0) {
+			throw DripsErrors.argumentError(
 				`Could not receive drips: '${nameOf({ maxCycles })}' is missing.`,
-				nameOf({ maxCycles })
+				nameOf({ maxCycles }),
+				maxCycles
 			);
 		}
 
@@ -211,14 +215,14 @@ export default class DripsHubClient {
 	}
 
 	/**
-	 * Calculates the squeezable drips.
+	 * Calculates the squeezable drips amount.
 	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
 	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
-	 * @returns A `Promise` which resolves to the {@link SqueezableDrips}.
+	 * @returns A `Promise` which resolves to the the squeezed amount.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
@@ -228,7 +232,7 @@ export default class DripsHubClient {
 		senderId: BigNumberish,
 		historyHash: BytesLike,
 		dripsHistory: DripsHistoryStruct[]
-	): Promise<SqueezableDrips> {
+	): Promise<bigint> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -259,7 +263,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		const squeezableDrips = await this.#dripsHubContract.squeezableDrips(
+		const squeezableDrips = await this.#dripsHubContract.squeezeDripsResult(
 			userId,
 			tokenAddress,
 			senderId,
@@ -267,39 +271,7 @@ export default class DripsHubClient {
 			dripsHistory
 		);
 
-		return {
-			amt: squeezableDrips.amt.toBigInt(),
-			nextSqueezed: squeezableDrips.nextSqueezed
-		};
-	}
-
-	/**
-	 * Returns the next timestamp for which the user can squeeze drips from the sender.
-	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
-	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
-	 * @returns A `Promise` which resolves to the next timestamp that can be squeezed.
-	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
-	 */
-	public getNextSqueezedDrips(userId: BigNumberish, tokenAddress: string, senderId: BigNumberish): Promise<number> {
-		validateAddress(tokenAddress);
-
-		if (isNullOrUndefined(userId)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not get next squeezable drips timestamp: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
-			);
-		}
-
-		if (isNullOrUndefined(senderId)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not get next squeezable drips timestamp: '${nameOf({ senderId })}' is missing.`,
-				nameOf({ senderId })
-			);
-		}
-
-		return this.#dripsHubContract.nextSqueezedDrips(userId, tokenAddress, senderId);
+		return squeezableDrips.toBigInt();
 	}
 
 	/**
@@ -356,7 +328,7 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public getDripsState(userId: BigNumberish, tokenAddress: string): Promise<DripsState> {
+	public async getDripsState(userId: BigNumberish, tokenAddress: string): Promise<DripsState> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -366,7 +338,18 @@ export default class DripsHubClient {
 			);
 		}
 
-		return this.#dripsHubContract.dripsState(userId, tokenAddress);
+		const { dripsHash, dripsHistoryHash, updateTime, balance, maxEnd } = await this.#dripsHubContract.dripsState(
+			userId,
+			tokenAddress
+		);
+
+		return {
+			dripsHash,
+			dripsHistoryHash,
+			updateTime,
+			balance: balance?.toBigInt(),
+			maxEnd
+		};
 	}
 
 	/**
@@ -417,7 +400,7 @@ export default class DripsHubClient {
 	 * @param  {BigNumberish} userId The user ID.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. When set, it must be greater than `0`.
 	 * @returns A `Promise` which resolves to the receivable token balances.
-	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than `0`.
+	 * @throws {DripsErrors.argumentError} if `maxCycles` is less than `0`.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
 	public async getBalancesForUser(
@@ -431,7 +414,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		if (maxCycles <= 0) {
+		if (!maxCycles || maxCycles < 0) {
 			throw DripsErrors.argumentError(
 				`Could not get balances: '${nameOf({ maxCycles })}' is must be greater than 0.`,
 				nameOf({ maxCycles }),
@@ -480,11 +463,11 @@ export default class DripsHubClient {
 		const AMT_PER_SEC_EXTRA_DECIMALS = await this.#dripsHubContract.AMT_PER_SEC_EXTRA_DECIMALS();
 
 		return {
-			MAX_TOTAL_BALANCE,
+			MAX_TOTAL_BALANCE: MAX_TOTAL_BALANCE.toBigInt(),
 			TOTAL_SPLITS_WEIGHT,
-			MAX_DRIPS_RECEIVERS,
-			MAX_SPLITS_RECEIVERS,
-			AMT_PER_SEC_MULTIPLIER,
+			MAX_DRIPS_RECEIVERS: MAX_DRIPS_RECEIVERS.toNumber(),
+			MAX_SPLITS_RECEIVERS: MAX_SPLITS_RECEIVERS.toNumber(),
+			AMT_PER_SEC_MULTIPLIER: AMT_PER_SEC_MULTIPLIER.toBigInt(),
 			AMT_PER_SEC_EXTRA_DECIMALS
 		};
 	}

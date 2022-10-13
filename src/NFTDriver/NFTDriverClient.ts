@@ -235,7 +235,7 @@ export default class NFTDriverClient {
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
-	 * @throws {DripsErrors.argumentMissingError} if `tokenId` or `receiverUserId` is missing.
+	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 */
@@ -259,7 +259,7 @@ export default class NFTDriverClient {
 			);
 		}
 
-		if (amount <= 0) {
+		if (!amount || amount < 0) {
 			throw DripsErrors.argumentError(
 				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
 				nameOf({ amount }),
@@ -280,7 +280,7 @@ export default class NFTDriverClient {
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
-	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers.
+	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array if you want to clear all receivers.
 	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.
@@ -345,7 +345,7 @@ export default class NFTDriverClient {
 	/**
 	 * Sets the splits configuration.
 	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID. The token ID is equal to the user ID controlled by it.
-	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
+	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array if you want to clear all receivers.

@@ -74,6 +74,38 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getUserAssetConfigById()', () => {
+		it('should throw argumentMissingError error when user ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getUserAssetConfigById(undefined as unknown as number, 1);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getUserAssetConfigById(1, undefined as unknown as number);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should return null when the user asset configuration is not found', async () => {
 			// Arrange
 			const userId = 1n;
@@ -157,6 +189,22 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getAllUserAssetConfigsByUserId()', () => {
+		it('should throw argumentMissingError error when user ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getAllUserAssetConfigsByUserId(undefined as unknown as number);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = 1n;
@@ -231,6 +279,22 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getSplitsConfig()', () => {
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getSplitsConfigByUserId(undefined as unknown as number);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = 1n;
@@ -295,6 +359,22 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getDripsSetEventsByUserId()', () => {
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getDripsSetEventsByUserId(undefined as unknown as number);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = 1n;
@@ -339,7 +419,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getDripsSetEventsByUserId, { userId })
 				.resolves({
 					data: {
-						dripsSetEvents: []
+						dripsSetEvents: undefined
 					}
 				});
 

@@ -13,11 +13,14 @@ export type DripsMetadata = {
 	readonly SUBGRAPH_URL: string;
 	readonly CONTRACT_DRIPS_HUB: string;
 	readonly CONTRACT_NFT_DRIVER: string;
+	readonly CONTRACT_NFT_DRIVER_ID: string;
 	readonly CONTRACT_ADDRESS_DRIVER: string;
-	readonly CONTRACT_NFT_DRIVER_LOGIC: string;
 	readonly CONTRACT_DRIPS_HUB_LOGIC: string;
+	readonly CONTRACT_ADDRESS_DRIVER_ID: string;
+	readonly CONTRACT_NFT_DRIVER_LOGIC: string;
 	readonly CONTRACT_ADDRESS_DRIVER_LOGIC: string;
 	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER: string;
+	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER_ID: string;
 	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER_LOGIC: string;
 };
 
@@ -35,11 +38,4 @@ export type ReceivableDrips = {
 	receivableAmt: bigint;
 	/** The number of cycles which would still be receivable after the call. */
 	receivableCycles: number;
-};
-
-export type SqueezableDrips = {
-	/** The squeezed amount. */
-	amt: bigint;
-	/** The next timestamp that can be squeezed. */
-	nextSqueezed: number;
 };

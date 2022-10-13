@@ -11,8 +11,7 @@ import { DripsHub__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
-import type { DripsHistoryStruct } from '../../contracts/AddressDriver';
-import type { DripsReceiverStruct } from '../../contracts/DripsHub';
+import type { DripsHistoryStruct, DripsReceiverStruct } from '../../contracts/DripsHub';
 import type { DripsReceiverConfig, ReceivableDrips } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
@@ -20,8 +19,8 @@ import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
 	const TEST_TOTAL_SPLITS_WEIGHT = 10;
-	const TEST_MAX_DRIPS_RECEIVERS = 10;
-	const TEST_MAX_SPLITS_RECEIVERS = 20;
+	const TEST_MAX_DRIPS_RECEIVERS = BigNumber.from(100);
+	const TEST_MAX_SPLITS_RECEIVERS = BigNumber.from(200);
 	const TEST_MAX_TOTAL_BALANCE = BigNumber.from(1);
 	const TEST_AMT_PER_SEC_EXTRA_DECIMALS = 18;
 	const TEST_AMT_PER_SEC_MULTIPLIER = BigNumber.from(1000);
@@ -102,11 +101,11 @@ describe('DripsHubClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(testDripsHubClient.constants.MAX_TOTAL_BALANCE, TEST_MAX_TOTAL_BALANCE);
+			assert.equal(testDripsHubClient.constants.MAX_TOTAL_BALANCE, TEST_MAX_TOTAL_BALANCE.toBigInt());
 			assert.equal(testDripsHubClient.constants.TOTAL_SPLITS_WEIGHT, TEST_TOTAL_SPLITS_WEIGHT);
-			assert.equal(testDripsHubClient.constants.MAX_DRIPS_RECEIVERS, TEST_MAX_DRIPS_RECEIVERS);
-			assert.equal(testDripsHubClient.constants.MAX_SPLITS_RECEIVERS, TEST_MAX_SPLITS_RECEIVERS);
-			assert.equal(testDripsHubClient.constants.AMT_PER_SEC_MULTIPLIER, TEST_AMT_PER_SEC_MULTIPLIER);
+			assert.equal(testDripsHubClient.constants.MAX_DRIPS_RECEIVERS, TEST_MAX_DRIPS_RECEIVERS.toNumber());
+			assert.equal(testDripsHubClient.constants.MAX_SPLITS_RECEIVERS, TEST_MAX_SPLITS_RECEIVERS.toNumber());
+			assert.equal(testDripsHubClient.constants.AMT_PER_SEC_MULTIPLIER, TEST_AMT_PER_SEC_MULTIPLIER.toBigInt());
 			assert.equal(testDripsHubClient.constants.AMT_PER_SEC_EXTRA_DECIMALS, TEST_AMT_PER_SEC_EXTRA_DECIMALS);
 			assert.equal(testDripsHubClient.network.chainId, TEST_CHAIN_ID);
 			assert.equal((await testDripsHubClient.provider.getNetwork()).chainId, networkStub.chainId);
@@ -219,7 +218,7 @@ describe('DripsHubClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
-			dripsHubContractStub.receivableDrips.withArgs(userId, tokenAddress, maxCycles).resolves({
+			dripsHubContractStub.receiveDripsResult.withArgs(userId, tokenAddress, maxCycles).resolves({
 				receivableAmt: BigNumber.from(1),
 				receivableCycles: 1
 			} as any);
@@ -259,7 +258,7 @@ describe('DripsHubClient', () => {
 				await testDripsHubClient.getReceivableDrips(1n, tokenAddress, undefined as unknown as number);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -273,7 +272,7 @@ describe('DripsHubClient', () => {
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
 
-			dripsHubContractStub.receivableDrips.withArgs(userId, tokenAddress, maxCycles).resolves({
+			dripsHubContractStub.receiveDripsResult.withArgs(userId, tokenAddress, maxCycles).resolves({
 				receivableAmt: BigNumber.from(1),
 				receivableCycles: 1
 			} as any);
@@ -284,7 +283,7 @@ describe('DripsHubClient', () => {
 			// Assert
 			assert.equal(receivableDrips.receivableAmt, 1n);
 			assert.equal(receivableDrips.receivableCycles, 1);
-			assert(dripsHubContractStub.receivableDrips.calledOnceWithExactly(userId, tokenAddress, maxCycles));
+			assert(dripsHubContractStub.receiveDripsResult.calledOnceWithExactly(userId, tokenAddress, maxCycles));
 		});
 	});
 
@@ -321,7 +320,7 @@ describe('DripsHubClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw argumentMissingError when maxCycles is missing', async () => {
+		it('should throw argumentError when maxCycles is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -331,7 +330,7 @@ describe('DripsHubClient', () => {
 				await testDripsHubClient.receiveDrips(1n, tokenAddress, undefined as unknown as bigint);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -363,12 +362,9 @@ describe('DripsHubClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
-			dripsHubContractStub.squeezableDrips
+			dripsHubContractStub.squeezeDripsResult
 				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
-				.resolves({
-					amt: BigNumber.from(1),
-					nextSqueezed: 1
-				} as any);
+				.resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getSqueezableDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
@@ -455,27 +451,24 @@ describe('DripsHubClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should call the squeezableDrips() method of the AddressDriver contract', async () => {
+		it('should call the squeezeDripsResult() method of the AddressDriver contract', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = 1;
 			const senderId = 1n;
 			const historyHash = '0x';
 			const dripsHistory: DripsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 
-			dripsHubContractStub.squeezableDrips
+			dripsHubContractStub.squeezeDripsResult
 				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
-				.resolves({
-					amt: BigNumber.from(1),
-					nextSqueezed: 1
-				} as any);
+				.resolves(BigNumber.from(1));
 
 			// Act
 			await testDripsHubClient.getSqueezableDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
 
 			// Assert
 			assert(
-				dripsHubContractStub.squeezableDrips.calledOnceWithExactly(
+				dripsHubContractStub.squeezeDripsResult.calledOnceWithExactly(
 					userId,
 					tokenAddress,
 					senderId,
@@ -483,71 +476,6 @@ describe('DripsHubClient', () => {
 					dripsHistory
 				)
 			);
-		});
-	});
-
-	describe('getNextSqueezedDrips()', () => {
-		it('should validate the ERC20 address', async () => {
-			// Arrange
-			const userId = 1n;
-			const senderId = 1n;
-			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
-
-			// Act
-			await testDripsHubClient.getNextSqueezedDrips(userId, tokenAddress, senderId);
-
-			// Assert
-			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
-		});
-
-		it('should throw argumentMissingError when userId is missing', async () => {
-			// Arrange
-			let threw = false;
-			const tokenAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testDripsHubClient.getNextSqueezedDrips(undefined as unknown as bigint, tokenAddress, 1n);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw argumentMissingError when senderId is missing', async () => {
-			// Arrange
-			let threw = false;
-			const tokenAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testDripsHubClient.getNextSqueezedDrips(1n, tokenAddress, undefined as unknown as bigint);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should call the nextSqueezedDrips() method of the AddressDriver contract', async () => {
-			// Arrange
-			const userId = 1n;
-			const senderId = 1n;
-			const tokenAddress = Wallet.createRandom().address;
-
-			// Act
-			await testDripsHubClient.getNextSqueezedDrips(userId, tokenAddress, senderId);
-
-			// Assert
-			assert(dripsHubContractStub.nextSqueezedDrips.calledOnceWithExactly(userId, tokenAddress, senderId));
 		});
 	});
 
@@ -656,6 +584,8 @@ describe('DripsHubClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
+			dripsHubContractStub.dripsState.withArgs(userId, tokenAddress).resolves({} as any);
+
 			// Act
 			await testDripsHubClient.getDripsState(userId, tokenAddress);
 
@@ -685,6 +615,8 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = 1n;
 			const tokenAddress = Wallet.createRandom().address;
+
+			dripsHubContractStub.dripsState.withArgs(userId, tokenAddress).resolves({} as any);
 
 			// Act
 			await testDripsHubClient.getDripsState(userId, tokenAddress);

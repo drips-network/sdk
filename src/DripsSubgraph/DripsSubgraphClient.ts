@@ -36,14 +36,14 @@ export default class DripsSubgraphClient {
 	 * Creates a new immutable `DripsSubgraphClient` instance.
 	 *
 	 * @param  {string} chainId The chain ID.
-	 * @throws {DripsErrors.argumentError} if the `chainId` is missing.
+	 * @throws {DripsErrors.argumentMissingError} if the `chainId` is missing.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
 	public static create(chainId: number): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'DripsSubgraphClient' instance: the chain ID is missing.",
+				`Could not create a new 'DripsSubgraphClient' instance: ${nameOf({ chainId })} is missing.`,
 				nameOf({ chainId })
 			);
 		}
@@ -68,9 +68,24 @@ export default class DripsSubgraphClient {
 	 * @param  {BigNumberish} userId The user ID.
 	 * @param  {BigNumberish} assetId The asset ID.
 	 * @returns A `Promise` which resolves to the user's drips configuration, or `null` if the configuration is not found.
+	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getUserAssetConfigById(userId: BigNumberish, assetId: BigNumberish): Promise<UserAssetConfig | null> {
+		if (!userId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
+				nameOf({ userId })
+			);
+		}
+
+		if (!assetId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user asset config: ${nameOf({ assetId })} is missing.`,
+				nameOf({ assetId })
+			);
+		}
+
 		type ApiResponse = {
 			userAssetConfig: ApiUserAssetConfig;
 		};
@@ -92,9 +107,17 @@ export default class DripsSubgraphClient {
 	 * Returns all drips configurations for the given user.
 	 * @param  {BigNumberish} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
+	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getAllUserAssetConfigsByUserId(userId: BigNumberish): Promise<UserAssetConfig[]> {
+		if (!userId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
+				nameOf({ userId })
+			);
+		}
+
 		type ApiResponse = {
 			user: {
 				assetConfigs: ApiUserAssetConfig[];
@@ -110,9 +133,17 @@ export default class DripsSubgraphClient {
 	 * Returns the user's splits configuration.
 	 * @param  {BigNumberish} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
+	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getSplitsConfigByUserId(userId: BigNumberish): Promise<SplitEntry[]> {
+		if (!userId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
+				nameOf({ userId })
+			);
+		}
+
 		type ApiResponse = {
 			user: {
 				splitsEntries: ApiSplitEntry[];
@@ -128,9 +159,17 @@ export default class DripsSubgraphClient {
 	 * Returns the user's `DripsSetEvent`s.
 	 * @param  {BigNumberish} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's `DripsSetEvent`s.
+	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getDripsSetEventsByUserId(userId: BigNumberish): Promise<DripsSetEvent[]> {
+		if (!userId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
+				nameOf({ userId })
+			);
+		}
+
 		type ApiResponse = {
 			dripsSetEvents: ApiDripsSetEvent[];
 		};
