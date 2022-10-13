@@ -1,4 +1,5 @@
 /* eslint-disable no-await-in-loop */
+import type { BigNumberish } from 'ethers';
 import Utils from '../utils';
 import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -64,12 +65,12 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's drips configuration for the given asset.
-	 * @param  {bigint} userId The user ID.
-	 * @param  {bigint} assetId The asset ID.
+	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {BigNumberish} assetId The asset ID.
 	 * @returns A `Promise` which resolves to the user's drips configuration, or `null` if the configuration is not found.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserAssetConfigById(userId: bigint, assetId: bigint): Promise<UserAssetConfig | null> {
+	public async getUserAssetConfigById(userId: BigNumberish, assetId: BigNumberish): Promise<UserAssetConfig | null> {
 		type ApiResponse = {
 			userAssetConfig: ApiUserAssetConfig;
 		};
@@ -89,11 +90,11 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns all drips configurations for the given user.
-	 * @param  {bigint} userId The user ID.
+	 * @param  {BigNumberish} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getAllUserAssetConfigsByUserId(userId: bigint): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigsByUserId(userId: BigNumberish): Promise<UserAssetConfig[]> {
 		type ApiResponse = {
 			user: {
 				assetConfigs: ApiUserAssetConfig[];
@@ -107,11 +108,11 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's splits configuration.
-	 * @param  {bigint} userId The user ID.
+	 * @param  {BigNumberish} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfigByUserId(userId: bigint): Promise<SplitEntry[]> {
+	public async getSplitsConfigByUserId(userId: BigNumberish): Promise<SplitEntry[]> {
 		type ApiResponse = {
 			user: {
 				splitsEntries: ApiSplitEntry[];
@@ -125,11 +126,11 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's `DripsSetEvent`s.
-	 * @param  {bigint} userId The user ID.
+	 * @param  {BigNumberish} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's `DripsSetEvent`s.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsSetEventsByUserId(userId: bigint): Promise<DripsSetEvent[]> {
+	public async getDripsSetEventsByUserId(userId: BigNumberish): Promise<DripsSetEvent[]> {
 		type ApiResponse = {
 			dripsSetEvents: ApiDripsSetEvent[];
 		};
