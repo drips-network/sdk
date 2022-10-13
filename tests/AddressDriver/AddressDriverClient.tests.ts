@@ -688,7 +688,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0n, [], transferToAddress),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
