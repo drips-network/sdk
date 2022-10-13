@@ -148,6 +148,7 @@ export default class NFTDriverClient {
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
 	 * @returns A `Promise` which resolves to the minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
+	 * @throws {DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
 	public async mint(transferToAddress: string): Promise<bigint> {
 		if (!transferToAddress) {
@@ -156,6 +157,8 @@ export default class NFTDriverClient {
 				nameOf({ transferToAddress })
 			);
 		}
+
+		validateAddress(transferToAddress);
 
 		const txResponse = await this.#nftDriverContract.mint(transferToAddress);
 
@@ -171,6 +174,7 @@ export default class NFTDriverClient {
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
 	 * @returns A `Promise` which resolves to the minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
+	 * @throws {DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
 	public async safeMint(transferToAddress: string): Promise<bigint> {
 		if (!transferToAddress) {
@@ -179,6 +183,8 @@ export default class NFTDriverClient {
 				nameOf({ transferToAddress })
 			);
 		}
+
+		validateAddress(transferToAddress);
 
 		const txResponse = await this.#nftDriverContract.safeMint(transferToAddress);
 

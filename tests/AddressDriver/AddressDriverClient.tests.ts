@@ -342,6 +342,24 @@ describe('AddressDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
+		it('should throw argumentMissingError when amount is less than or equal to 0', async () => {
+			// Arrange
+			let threw = false;
+			const tokenAddress = Wallet.createRandom().address;
+
+			try {
+				// Act
+				await testAddressDriverClient.give(1n, tokenAddress, -1n);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;

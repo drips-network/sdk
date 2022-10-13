@@ -2,7 +2,7 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import type { BigNumberish, BytesLike } from 'ethers';
+import type { BigNumberish, BytesLike, ContractReceipt, ContractTransaction, Event } from 'ethers';
 import { Wallet } from 'ethers';
 import { assert } from 'chai';
 import type { NFTDriver } from '../../contracts';
@@ -140,7 +140,127 @@ describe('NFTDriverClient', () => {
 		});
 	});
 
-	// TODO: Add tests for `mint` and `safeMint` methods after manually test that the logic makes sense.
+	describe('mint()', () => {
+		it('should throw argumentMissingError when transferToAddress is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await testNftDriverClient.mint(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should validate the ERC20 address', async () => {
+			// Arrange
+			const transferToAddress = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ args: { tokenId: 1 } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.mint.withArgs(transferToAddress).resolves(txResponse);
+
+			// Act
+			await testNftDriverClient.mint(transferToAddress);
+
+			// Assert
+			assert(validateAddressStub.calledOnceWithExactly(transferToAddress));
+		});
+
+		it('should return the expected token', async () => {
+			// Arrange
+			const expectedTokenId = 1n;
+			const transferToAddress = Wallet.createRandom().address;
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.mint.withArgs(transferToAddress).resolves(txResponse);
+
+			// Act
+			const actualTokenId = await testNftDriverClient.mint(transferToAddress);
+
+			// Assert
+			assert.equal(actualTokenId, expectedTokenId);
+			assert(
+				nftDriverContractStub.mint.calledOnceWithExactly(transferToAddress),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('safeMint()', () => {
+		it('should throw argumentMissingError when transferToAddress is missing', async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await testNftDriverClient.safeMint(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should validate the ERC20 address', async () => {
+			// Arrange
+			const transferToAddress = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ args: { tokenId: 1 } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMint.withArgs(transferToAddress).resolves(txResponse);
+
+			// Act
+			await testNftDriverClient.safeMint(transferToAddress);
+
+			// Assert
+			assert(validateAddressStub.calledOnceWithExactly(transferToAddress));
+		});
+
+		it('should return the expected token', async () => {
+			// Arrange
+			const expectedTokenId = 1n;
+			const transferToAddress = Wallet.createRandom().address;
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMint.withArgs(transferToAddress).resolves(txResponse);
+
+			// Act
+			const actualTokenId = await testNftDriverClient.safeMint(transferToAddress);
+
+			// Assert
+			assert.equal(actualTokenId, expectedTokenId);
+			assert(
+				nftDriverContractStub.safeMint.calledOnceWithExactly(transferToAddress),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
 
 	describe('collect()', () => {
 		it('should throw argumentMissingError when tokenId is missing', async () => {
