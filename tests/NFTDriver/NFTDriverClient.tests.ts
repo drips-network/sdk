@@ -136,7 +136,6 @@ describe('NFTDriverClient', () => {
 			);
 			assert.equal(testNftDriverClient.signerAddress, await signerStub.getAddress());
 			assert.equal(testNftDriverClient.dripsHub.network.chainId, dripsHubClientStub.network.chainId);
-			assert.equal(testNftDriverClient.subgraph.apiUrl, Utils.Network.dripsMetadata[TEST_CHAIN_ID].SUBGRAPH_URL);
 		});
 	});
 

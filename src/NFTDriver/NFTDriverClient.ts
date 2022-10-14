@@ -5,7 +5,6 @@ import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/NFTDriver';
 import type { NFTDriver as NFTDriverContract } from '../../contracts';
-import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import { DripsErrors } from '../common/DripsError';
 import {
 	formatDripsReceivers,
@@ -52,12 +51,6 @@ export default class NFTDriverClient {
 	/** Returns a {@link DripsHubClient} connected to the same provider as the `NFTDriverClient.` */
 	public get dripsHub(): DripsHubClient {
 		return this.#dripsHub;
-	}
-
-	#subgraph!: DripsSubgraphClient;
-	/** Returns a {@link DripsSubgraphClient} connected to the same network as the `NFTDriverClient.` */
-	public get subgraph(): DripsSubgraphClient {
-		return this.#subgraph;
 	}
 
 	#network!: Network;
@@ -136,7 +129,6 @@ export default class NFTDriverClient {
 		nftDriverClient.#dripsMetadata = dripsMetadata;
 		nftDriverClient.#signerAddress = await signer.getAddress();
 		nftDriverClient.#dripsHub = await DripsHubClient.create(provider);
-		nftDriverClient.#subgraph = DripsSubgraphClient.create(network.chainId);
 		nftDriverClient.#nftDriverContract = NFTDriver__factory.connect(dripsMetadata.CONTRACT_NFT_DRIVER, signer);
 
 		return nftDriverClient;
