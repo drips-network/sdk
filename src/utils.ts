@@ -100,7 +100,7 @@ namespace Utils {
 
 			const { dripId, start, duration, amountPerSec } = dripsReceiverConfig;
 
-			let config = BigNumber.from(dripId || 0); // If no `dripId` is provided set it to the default value of 0.
+			let config = BigNumber.from(dripId);
 			config = config.shl(160);
 			config = config.or(amountPerSec);
 			config = config.shl(32);
