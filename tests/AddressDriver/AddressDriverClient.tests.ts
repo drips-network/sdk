@@ -3,6 +3,7 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
+import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
@@ -722,6 +723,57 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert.equal(actualAddress, expectedAddress);
+		});
+	});
+
+	describe('emitUserMetadata()', () => {
+		it('should throw argumentMissingError when key missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.emitUserMetadata(undefined as unknown as BigNumberish, 'value');
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError when value missing', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				await testAddressDriverClient.emitUserMetadata('key', undefined as unknown as BytesLike);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should call the emitUserMetadata() method of the NFTDriver contract', async () => {
+			// Arrange
+			const key = '1';
+			const value = 'value';
+
+			// Act
+			await testAddressDriverClient.emitUserMetadata(key, value);
+
+			// Assert
+			assert(
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(key, value),
+				'Expected method to be called with different arguments'
+			);
 		});
 	});
 });
