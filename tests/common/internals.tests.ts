@@ -105,14 +105,14 @@ describe('internals', () => {
 		});
 	});
 
-	describe('validateDripsReceiverConfigBN()', () => {
+	describe('validateDripsReceiverConfig()', () => {
 		it('should throw argumentMissingError when config is missing', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigBN(undefined as unknown as bigint);
+				internals.validateDripsReceiverConfig(undefined as unknown as DripsReceiverConfig);
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -122,49 +122,15 @@ describe('internals', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when drips receiver configuration is equal to 0', () => {
+		it('should throw dripsReceiverError when drips receiver configuration dripId is less than 0', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigBN(0n);
+				internals.validateDripsReceiverConfig({ dripId: -1n, start: 1n, duration: 1n, amountPerSec: 1n });
 			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when drips receiver configuration is less than 0', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfigBN(-1n);
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-	});
-
-	describe('validateDripsReceiverConfigObj()', () => {
-		it('should throw argumentMissingError when config is missing', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfigObj(undefined as unknown as DripsReceiverConfig);
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
 			}
 
@@ -178,9 +144,9 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: -1n, duration: 1n, amountPerSec: 1n });
+				internals.validateDripsReceiverConfig({ dripId: 1n, start: -1n, duration: 1n, amountPerSec: 1n });
 			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
+				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
 			}
 
@@ -194,9 +160,9 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: 1n, duration: -1n, amountPerSec: 1n });
+				internals.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: -1n, amountPerSec: 1n });
 			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
+				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
 			}
 
@@ -210,9 +176,9 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: 1n, duration: 1n, amountPerSec: 0n });
+				internals.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: 0n });
 			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
+				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
 			}
 
@@ -226,9 +192,9 @@ describe('internals', () => {
 
 			// Act
 			try {
-				internals.validateDripsReceiverConfigObj({ start: 1n, duration: 1n, amountPerSec: -1n });
+				internals.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: -1n });
 			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
+				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
 			}
 
@@ -282,7 +248,7 @@ describe('internals', () => {
 			const receivers = [
 				{
 					userId: undefined as unknown as string,
-					config: { amountPerSec: 1n, duration: 1n, start: 1n }
+					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
 
@@ -327,11 +293,11 @@ describe('internals', () => {
 			const receivers: DripsReceiver[] = [
 				{
 					userId: '123',
-					config: { amountPerSec: 1n, duration: 1n, start: 1n }
+					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
 
-			const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfigObj');
+			const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfig');
 
 			// Act
 			internals.validateDripsReceivers(receivers);
@@ -488,11 +454,16 @@ describe('internals', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({
+						dripId: 1n,
+						amountPerSec: 1n,
+						duration: 1n,
+						start: 200n
+					})
 				}
 			];
 
@@ -508,11 +479,16 @@ describe('internals', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({
+						dripId: 1n,
+						amountPerSec: 1n,
+						duration: 1n,
+						start: 200n
+					})
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 
@@ -528,27 +504,27 @@ describe('internals', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 1n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
 				}
 			];
 
@@ -564,11 +540,21 @@ describe('internals', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({
+						dripId: 1n,
+						amountPerSec: 100n,
+						duration: 1n,
+						start: 1n
+					})
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({
+						dripId: 1n,
+						amountPerSec: 1n,
+						duration: 1n,
+						start: 200n
+					})
 				}
 			];
 
@@ -584,11 +570,21 @@ describe('internals', () => {
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 200n })
+					config: Utils.DripsReceiverConfiguration.toUint256({
+						dripId: 1n,
+						amountPerSec: 1n,
+						duration: 1n,
+						start: 200n
+					})
 				},
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 100n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({
+						dripId: 1n,
+						amountPerSec: 100n,
+						duration: 1n,
+						start: 1n
+					})
 				}
 			];
 

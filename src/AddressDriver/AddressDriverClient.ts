@@ -287,6 +287,7 @@ export default class AddressDriverClient {
 	 * @throws {DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
 	 * @throws {DripsErrors.argumentError} if `currentReceivers`' or `newReceivers`' count exceeds the max allowed drips receivers.
 	 * @throws {DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` is not valid.
+	 * @throws {DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 */
 	public setDrips(
 		tokenAddress: string,

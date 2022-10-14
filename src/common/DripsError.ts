@@ -7,7 +7,8 @@ export enum DripsErrorCode {
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
 	SUBGRAPH_QUERY_ERROR = 'SUBGRAPH_QUERY_ERROR',
 	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
-	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER'
+	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER',
+	INVALID_DRIPS_RECEIVER_CONFIG = 'INVALID_DRIPS_RECEIVER_CONFIG'
 }
 
 export class DripsError extends Error {
@@ -53,6 +54,14 @@ export class DripsErrors {
 
 	static dripsReceiverError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER, message, {
+			invalidProperty: {
+				name: invalidPropertyName,
+				value: invalidPropertyValue
+			}
+		});
+
+	static dripsReceiverConfigError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
+		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG, message, {
 			invalidProperty: {
 				name: invalidPropertyName,
 				value: invalidPropertyValue

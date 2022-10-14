@@ -363,7 +363,10 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {DripsErrors.argumentError} if `receivers`' count exceeds the max allowed drips receivers.
-	 * @throws {DripsErrors.dripsReceiverError} if any of the the `receivers` is not valid.	 */
+	 * @throws {DripsErrors.dripsReceiverError} if any of the the `receivers` is not valid.
+	 * @throws {DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
+	 *
+	 */
 	public getBalanceAt(
 		userId: BigNumberish,
 		tokenAddress: string,

@@ -97,9 +97,9 @@ describe('Utils', () => {
 		describe('toUint256()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
-				const config: DripsReceiverConfig = { start: 1n, duration: 1n, amountPerSec: 1n };
+				const config: DripsReceiverConfig = { dripId: 1n, start: 1n, duration: 1n, amountPerSec: 1n };
 
-				const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfigObj');
+				const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfig');
 
 				// Act
 				Utils.DripsReceiverConfiguration.toUint256(config);
@@ -113,13 +113,14 @@ describe('Utils', () => {
 
 			it('should return the expected result', async () => {
 				// Arrange
-				const expectedConfig = '0x010000000200000003';
+				const expectedConfig = 269599466671506397946670150870196306736371444226143594574070383902750000n;
 
 				// Act
 				const config: bigint = Utils.DripsReceiverConfiguration.toUint256({
-					start: 2n,
-					duration: 3n,
-					amountPerSec: 1n
+					dripId: 10000n,
+					start: 20000n,
+					duration: 30000n,
+					amountPerSec: 40000n
 				});
 
 				// Assert
@@ -130,16 +131,27 @@ describe('Utils', () => {
 		describe('fromUint256()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
-				const config = BigNumber.from('0x010000000200000003').toBigInt();
+				const config =
+					BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toBigInt();
 
-				const validateDripsReceiverConfigBNStub = sinon.stub(internals, 'validateDripsReceiverConfigBN');
+				const configObj = Utils.DripsReceiverConfiguration.fromUint256(config);
+
+				const validateDripsReceiverConfigBNStub = sinon.stub(internals, 'validateDripsReceiverConfig');
 
 				// Act
 				Utils.DripsReceiverConfiguration.fromUint256(config);
 
 				// Assert
 				assert(
-					validateDripsReceiverConfigBNStub.calledOnceWithExactly(config),
+					validateDripsReceiverConfigBNStub.calledOnceWithExactly(
+						sinon.match(
+							(c: DripsReceiverConfig) =>
+								c.dripId === configObj.dripId &&
+								c.start === configObj.start &&
+								c.duration === configObj.duration &&
+								c.amountPerSec === configObj.amountPerSec
+						)
+					),
 					'Expected method to be called with different arguments'
 				);
 			});
@@ -147,15 +159,16 @@ describe('Utils', () => {
 			it('should return the expected result', async () => {
 				// Arrange
 				const expectedConfig: DripsReceiverConfig = {
-					start: 2n,
-					duration: 3n,
-					amountPerSec: 1n
+					dripId: 10000n,
+					start: 20000n,
+					duration: 30000n,
+					amountPerSec: 40000n
 				};
 				const { start, duration, amountPerSec } = expectedConfig;
 
 				// Act
 				const config: DripsReceiverConfig = Utils.DripsReceiverConfiguration.fromUint256(
-					BigNumber.from('0x010000000200000003').toBigInt()
+					BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toBigInt()
 				);
 
 				// Assert

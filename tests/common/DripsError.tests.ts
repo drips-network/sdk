@@ -139,4 +139,26 @@ describe('DripsErrors', () => {
 			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_ERROR);
 		});
 	});
+
+	describe('dripsReceiverConfigError()', () => {
+		it('should return expected error details', () => {
+			// Act
+			const expectedMessage = 'Error';
+			const expectedInvalidPropertyValue = 'Value';
+			const expectedInvalidPropertyName = 'Property';
+
+			// Act
+			const { code, message, context } = DripsErrors.dripsReceiverConfigError(
+				expectedMessage,
+				expectedInvalidPropertyName,
+				expectedInvalidPropertyValue
+			);
+
+			// Assert
+			assert.equal(message, expectedMessage);
+			assert.equal(code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
+			assert.equal((context as any).invalidProperty.name, expectedInvalidPropertyName);
+			assert.equal((context as any).invalidProperty.value, expectedInvalidPropertyValue);
+		});
+	});
 });

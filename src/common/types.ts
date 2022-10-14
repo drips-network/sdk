@@ -1,10 +1,15 @@
 export type DripsReceiverConfig = {
+	/** An arbitrary number used to identify a drip. When setting a config, it must be greater than or equal to `0`. It's a part of the configuration but the protocol doesn't use it. */
+	dripId: bigint;
+
 	/** The UNIX timestamp (in seconds) when dripping should start. When setting a config, it must be greater than or equal to `0`. If set to `0`, the smart contract will use the timestamp when drips are configured. */
-	readonly start: bigint;
+	start: bigint;
+
 	/** The duration (in seconds) of dripping. When setting a config, it must be greater than or equal to `0`. If set to `0`, the smart contract will drip until the balance runs out. */
-	readonly duration: bigint;
+	duration: bigint;
+
 	/** The amount per second being dripped. When setting a config, it must be in the smallest unit (e.g. Wei), greater than `0` and be multiplied by `10 ^ 18` (`DripsHubClient.constants.AMT_PER_SEC_MULTIPLIER`). */
-	readonly amountPerSec: bigint;
+	amountPerSec: bigint;
 };
 
 export type DripsMetadata = {

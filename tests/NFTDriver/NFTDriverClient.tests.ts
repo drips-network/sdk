@@ -440,21 +440,21 @@ describe('NFTDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
@@ -476,21 +476,21 @@ describe('NFTDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: '3',
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: '2',
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: '2',
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: '1',
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 
@@ -551,7 +551,7 @@ describe('NFTDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 
@@ -603,21 +603,21 @@ describe('NFTDriverClient', () => {
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3n,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 3n, duration: 3n, start: 3n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const newReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 2n,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2n,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 1n,
-					config: Utils.DripsReceiverConfiguration.toUint256({ amountPerSec: 2n, duration: 2n, start: 2n })
+					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
 

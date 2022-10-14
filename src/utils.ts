@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import { validateAddress, validateDripsReceiverConfigBN, validateDripsReceiverConfigObj } from './common/internals';
+import { validateAddress, validateDripsReceiverConfig } from './common/internals';
 import type { DripsMetadata, CycleInfo, DripsReceiverConfig } from './common/types';
 
 namespace Utils {
@@ -89,19 +89,20 @@ namespace Utils {
 
 	export namespace DripsReceiverConfiguration {
 		/**
-		 * Converts a drips receiver configuration to a `uint256`.
-		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration.
+		 * Converts a drips receiver configuration object to a `uint256`.
+		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration object.
 		 * @returns The drips receiver configuration as a `uint256`.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {DripsErrors.dripsReceiverError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {DripsErrors.dripsReceiverConfigError} if the `dripsReceiverConfig` is not valid.
 		 */
 		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): bigint => {
-			validateDripsReceiverConfigObj(dripsReceiverConfig);
+			validateDripsReceiverConfig(dripsReceiverConfig);
 
-			const { start, duration, amountPerSec } = dripsReceiverConfig;
+			const { dripId, start, duration, amountPerSec } = dripsReceiverConfig;
 
-			let config = BigNumber.from(amountPerSec);
-
+			let config = BigNumber.from(dripId || 0); // If no `dripId` is provided set it to the default value of 0.
+			config = config.shl(160);
+			config = config.or(amountPerSec);
 			config = config.shl(32);
 			config = config.or(start);
 			config = config.shl(32);
@@ -113,24 +114,28 @@ namespace Utils {
 		/**
 		 * Converts a `uint256` that represent a drips receiver configuration to an object.
 		 * @param  {BigNumberish} dripsReceiverConfig The drips receiver configuration as`uint256`.
-		 * @returns The drips receiver configuration.
+		 * @returns The drips receiver configuration object.
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
 		 */
 		export const fromUint256 = (dripsReceiverConfig: bigint): DripsReceiverConfig => {
-			validateDripsReceiverConfigBN(dripsReceiverConfig);
+			const configAsBn = BigNumber.from(dripsReceiverConfig);
 
-			const configAsBN = BigNumber.from(dripsReceiverConfig);
+			const dripId = configAsBn.shr(160 + 32 + 32);
+			const amountPerSec = configAsBn.shr(32 + 32).and(BigNumber.from(1).shl(160).sub(1));
+			const start = configAsBn.shr(32).and(BigNumber.from(1).shl(32).sub(1));
+			const duration = configAsBn.and(BigNumber.from(1).shl(32).sub(1));
 
-			const amountPerSec = configAsBN.shr(64);
-			const duration = configAsBN.and(2 ** 32 - 1);
-			const start = configAsBN.shr(32).and(2 ** 32 - 1);
-
-			return {
+			const config = {
+				dripId: dripId.toBigInt(),
 				amountPerSec: amountPerSec.toBigInt(),
 				duration: duration.toBigInt(),
 				start: start.toBigInt()
 			};
+
+			validateDripsReceiverConfig(config);
+
+			return config;
 		};
 	}
 }

@@ -120,7 +120,7 @@ describe('DripsSubgraphClient', () => {
 				dripsEntries: [
 					{
 						userId: '5',
-						config: BigNumber.from('0x010000000200000003').toString()
+						config: BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toString()
 					}
 				],
 				lastUpdatedBlockTimestamp: '6'
@@ -156,7 +156,7 @@ describe('DripsSubgraphClient', () => {
 				dripsEntries: [
 					{
 						userId: '5',
-						config: BigNumber.from('0x010000000200000003').toString()
+						config: BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toString()
 					}
 				],
 				lastUpdatedBlockTimestamp: '6'
@@ -220,7 +220,8 @@ describe('DripsSubgraphClient', () => {
 					dripsEntries: [
 						{
 							userId: '5',
-							config: BigNumber.from('0x010000000200000003').toString()
+							config:
+								BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toString()
 						}
 					],
 					lastUpdatedBlockTimestamp: '6'
