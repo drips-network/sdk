@@ -60,9 +60,10 @@ query getDripsSetEventsByUserId($userId: BigInt!) {
 `;
 
 export const getDripsReceiverSeenEventsByReceiverId = `#graphql
-query getDripsReceiverSeenEventsByReceiverId($receiverId: BigInt!) {
-  dripsReceiverSeenEvents(where: {receiverUserId: $receiverId}) {
-    senderUserId
+query getDripsReceiverSeenEventsByReceiverId($receiverUserId: BigInt!) {
+  dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}) {
+    config
+		senderUserId
 		dripsSetEvent
   }
 }

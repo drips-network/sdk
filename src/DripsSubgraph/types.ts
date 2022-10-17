@@ -58,6 +58,16 @@ export type DripsSetEvent = {
 	maxEnd: bigint;
 };
 
-export type DripsReceiverSeenEvent = {
+export type ApiDripsReceiverSeenEvent = {
+	config: string;
 	senderUserId: string;
+	receiverUserId: string;
+	dripsSetEvent: ApiDripsSetEvent;
+};
+
+export type DripsReceiverSeenEvent = {
+	config: bigint;
+	senderUserId: bigint;
+	receiverUserId: bigint;
+	dripsSetEvent: DripsSetEvent;
 };

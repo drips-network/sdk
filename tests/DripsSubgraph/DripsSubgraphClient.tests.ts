@@ -10,7 +10,9 @@ import type {
 	ApiSplitEntry,
 	ApiDripsSetEvent,
 	SplitEntry,
-	DripsSetEvent
+	DripsSetEvent,
+	ApiDripsReceiverSeenEvent,
+	DripsReceiverSeenEvent
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
@@ -433,6 +435,136 @@ describe('DripsSubgraphClient', () => {
 				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId }),
 				'Expected method to be called with different arguments'
 			);
+		});
+	});
+
+	describe('getDripsReceiverSeenEventsByReceiverId()', () => {
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(undefined as unknown as number);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const receiverUserId = 1n;
+			const dripsReceiverSeenEvents: ApiDripsReceiverSeenEvent[] = [
+				{
+					receiverUserId: '1',
+					dripsSetEvent: {} as ApiDripsSetEvent
+				} as ApiDripsReceiverSeenEvent
+			];
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId })
+				.resolves({
+					data: {
+						dripsReceiverSeenEvents
+					}
+				});
+
+			const expectedDripsReceiverSeenEvent = {} as DripsReceiverSeenEvent;
+
+			const mapperStub = sinon
+				.stub(mappers, 'mapDripsReceiverSeenEventToDto')
+				.withArgs(dripsReceiverSeenEvents[0])
+				.returns(expectedDripsReceiverSeenEvent);
+
+			// Act
+			const result = await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(receiverUserId);
+
+			// Assert
+			assert.equal(result[0], expectedDripsReceiverSeenEvent);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId }),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				mapperStub.calledOnceWith(dripsReceiverSeenEvents[0]),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should return an empty array when DripsReceiverSeen event entries do not exist', async () => {
+			// Arrange
+			const receiverUserId = 1n;
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId })
+				.resolves({
+					data: {
+						dripsReceiverSeenEvents: []
+					}
+				});
+
+			// Act
+			const dripsSetEvents = await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(receiverUserId);
+
+			// Assert
+			assert.isEmpty(dripsSetEvents);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getUsersStreamingToUser()', () => {
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getUsersStreamingToUser(undefined as unknown as number);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const receiverUserId = 1n;
+			const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [
+				{
+					senderUserId: 1n,
+					dripsSetEvent: {} as DripsSetEvent
+				} as DripsReceiverSeenEvent,
+				{
+					senderUserId: 1n,
+					dripsSetEvent: {} as DripsSetEvent
+				} as DripsReceiverSeenEvent,
+				{
+					senderUserId: 2n,
+					dripsSetEvent: {} as DripsSetEvent
+				} as DripsReceiverSeenEvent
+			];
+
+			sinon
+				.stub(DripsSubgraphClient.prototype, 'getDripsReceiverSeenEventsByReceiverId')
+				.resolves(dripsReceiverSeenEvents);
+
+			// Act
+			const result = await testSubgraphClient.getUsersStreamingToUser(receiverUserId);
+
+			// Assert
+			assert.equal(result.length, 2);
+			assert.equal(result[0], 1n);
+			assert.equal(result[1], 2n);
 		});
 	});
 
