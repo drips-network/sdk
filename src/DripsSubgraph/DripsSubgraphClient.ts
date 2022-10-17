@@ -10,9 +10,16 @@ import type {
 	SplitEntry,
 	UserAssetConfig,
 	ApiSplitEntry,
-	ApiDripsSetEvent
+	ApiDripsSetEvent,
+	DripsReceiverSeenEvent,
+	ApiDripsReceiverSeenEvent
 } from './types';
-import { mapDripsSetEventToDto, mapSplitEntryToDto, mapUserAssetConfigToDto } from './mappers';
+import {
+	mapDripsReceiverSeenEventToDto,
+	mapDripsSetEventToDto,
+	mapSplitEntryToDto,
+	mapUserAssetConfigToDto
+} from './mappers';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -138,6 +145,62 @@ export default class DripsSubgraphClient {
 		const response = await this.query<ApiResponse>(gql.getDripsSetEventsByUserId, { userId });
 
 		return response?.data?.dripsSetEvents?.map(mapDripsSetEventToDto) || [];
+	}
+
+	/**
+	 * Returns all `DripsReceiverSeen` events for a given receiver.
+	 * @param  {BigNumberish} receiverUserId The receiver's user ID.
+	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeenEvent`s.
+	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getDripsReceiverSeenEventsByReceiverId(receiverUserId: BigNumberish): Promise<DripsReceiverSeenEvent[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
+				nameOf({ receiverUserId })
+			);
+		}
+
+		type ApiResponse = {
+			dripsReceiverSeenEvents: ApiDripsReceiverSeenEvent[];
+		};
+
+		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId });
+		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
+
+		if (!dripsReceiverSeenEvents?.length) {
+			return [];
+		}
+
+		return dripsReceiverSeenEvents.map(mapDripsReceiverSeenEventToDto);
+	}
+
+	/**
+	 * Returns the users that stream funds to a given receiver.
+	 * @param  {BigNumberish} receiverUserId The receiver's user ID.
+	 * @returns A `Promise` which resolves to the users that stream funds to the given receiver.
+	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getUsersStreamingToUser(receiverUserId: BigNumberish): Promise<bigint[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
+				nameOf({ receiverUserId })
+			);
+		}
+
+		const dripReceiverSeenEvents = await this.getDripsReceiverSeenEventsByReceiverId(receiverUserId);
+
+		const uniqueSenders = dripReceiverSeenEvents.reduce((unique: bigint[], o: DripsReceiverSeenEvent) => {
+			if (!unique.some((id: bigint) => id === o.senderUserId)) {
+				unique.push(o.senderUserId);
+			}
+			return unique;
+		}, []);
+
+		return uniqueSenders;
 	}
 
 	/** @internal */

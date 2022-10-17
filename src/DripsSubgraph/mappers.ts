@@ -1,7 +1,9 @@
 import type {
+	ApiDripsReceiverSeenEvent,
 	ApiDripsSetEvent,
 	ApiSplitEntry,
 	ApiUserAssetConfig,
+	DripsReceiverSeenEvent,
 	DripsSetEvent,
 	SplitEntry,
 	UserAssetConfig
@@ -38,4 +40,14 @@ export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSet
 	balance: BigInt(dripsSetEvent.balance),
 	blockTimestamp: BigInt(dripsSetEvent.blockTimestamp),
 	maxEnd: BigInt(dripsSetEvent.maxEnd)
+});
+
+/** @internal */
+export const mapDripsReceiverSeenEventToDto = (
+	dripsReceiverSeenEvent: ApiDripsReceiverSeenEvent
+): DripsReceiverSeenEvent => ({
+	config: BigInt(dripsReceiverSeenEvent.config),
+	senderUserId: BigInt(dripsReceiverSeenEvent.senderUserId),
+	receiverUserId: BigInt(dripsReceiverSeenEvent.receiverUserId),
+	dripsSetEvent: mapDripsSetEventToDto(dripsReceiverSeenEvent.dripsSetEvent)
 });
