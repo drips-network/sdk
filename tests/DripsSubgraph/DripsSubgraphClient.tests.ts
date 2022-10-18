@@ -7,9 +7,9 @@ import * as gql from '../../src/DripsSubgraph/gql';
 import type {
 	UserAssetConfig,
 	ApiUserAssetConfig,
-	ApiSplitEntry,
+	ApiSplitsEntry,
 	ApiDripsSetEvent,
-	SplitEntry,
+	SplitsEntry,
 	DripsSetEvent,
 	ApiDripsReceiverSeenEvent,
 	DripsReceiverSeenEvent
@@ -121,6 +121,7 @@ describe('DripsSubgraphClient', () => {
 				amountCollected: '4',
 				dripsEntries: [
 					{
+						id: '1',
 						userId: '5',
 						config: BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toString()
 					}
@@ -157,6 +158,7 @@ describe('DripsSubgraphClient', () => {
 				amountCollected: '4',
 				dripsEntries: [
 					{
+						id: '1',
 						userId: '5',
 						config: BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toString()
 					}
@@ -221,6 +223,7 @@ describe('DripsSubgraphClient', () => {
 					amountCollected: '4',
 					dripsEntries: [
 						{
+							id: '1',
 							userId: '5',
 							config:
 								BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toString()
@@ -301,8 +304,9 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = 1n;
-			const splitsEntries: ApiSplitEntry[] = [
+			const splitsEntries: ApiSplitsEntry[] = [
 				{
+					id: '1',
 					weight: '2',
 					userId: '3'
 				}
@@ -318,7 +322,7 @@ describe('DripsSubgraphClient', () => {
 					}
 				});
 
-			const expectedSplitEntry: SplitEntry = {} as SplitEntry;
+			const expectedSplitEntry: SplitsEntry = {} as SplitsEntry;
 
 			const mapperStub = sinon
 				.stub(mappers, 'mapSplitEntryToDto')
@@ -462,7 +466,7 @@ describe('DripsSubgraphClient', () => {
 				{
 					receiverUserId: '1',
 					dripsSetEvent: {} as ApiDripsSetEvent
-				} as ApiDripsReceiverSeenEvent
+				} as unknown as ApiDripsReceiverSeenEvent
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
@@ -541,17 +545,17 @@ describe('DripsSubgraphClient', () => {
 			const receiverUserId = 1n;
 			const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [
 				{
-					senderUserId: 1n,
+					senderUserId: '1',
 					dripsSetEvent: {} as DripsSetEvent
-				} as DripsReceiverSeenEvent,
+				} as unknown as DripsReceiverSeenEvent,
 				{
-					senderUserId: 1n,
+					senderUserId: '1',
 					dripsSetEvent: {} as DripsSetEvent
-				} as DripsReceiverSeenEvent,
+				} as unknown as DripsReceiverSeenEvent,
 				{
-					senderUserId: 2n,
+					senderUserId: '2',
 					dripsSetEvent: {} as DripsSetEvent
-				} as DripsReceiverSeenEvent
+				} as unknown as DripsReceiverSeenEvent
 			];
 
 			sinon

@@ -7,9 +7,9 @@ import * as gql from './gql';
 import type {
 	DripsSetEvent,
 	ApiUserAssetConfig,
-	SplitEntry,
+	SplitsEntry,
 	UserAssetConfig,
-	ApiSplitEntry,
+	ApiSplitsEntry,
 	ApiDripsSetEvent,
 	DripsReceiverSeenEvent,
 	ApiDripsReceiverSeenEvent
@@ -143,7 +143,7 @@ export default class DripsSubgraphClient {
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfigByUserId(userId: BigNumberish): Promise<SplitEntry[]> {
+	public async getSplitsConfigByUserId(userId: BigNumberish): Promise<SplitsEntry[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
@@ -153,7 +153,7 @@ export default class DripsSubgraphClient {
 
 		type ApiResponse = {
 			user: {
-				splitsEntries: ApiSplitEntry[];
+				splitsEntries: ApiSplitsEntry[];
 			};
 		};
 

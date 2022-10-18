@@ -4,6 +4,7 @@ query getUserAssetConfigById($configId: ID!) {
 		id
 		assetId
 		dripsEntries {
+			id
 			userId
 			config
 		}
@@ -21,6 +22,7 @@ query getAllUserAssetConfigsByUserId($userId: ID!) {
       id
 			assetId
 			dripsEntries {
+				id
 				userId
 				config
 			}
@@ -46,10 +48,13 @@ query getSplitsConfigByUserId($userId: ID!) {
 export const getDripsSetEventsByUserId = `#graphql
 query getDripsSetEventsByUserId($userId: BigInt!) {
   dripsSetEvents(where: {userId: $userId}) {
+		id
     userId
     assetId
     dripsReceiverSeenEvents {
+			id
       receiverUserId
+			config
     }
     dripsHistoryHash
 		balance
@@ -62,9 +67,16 @@ query getDripsSetEventsByUserId($userId: BigInt!) {
 export const getDripsReceiverSeenEventsByReceiverId = `#graphql
 query getDripsReceiverSeenEventsByReceiverId($receiverUserId: BigInt!) {
   dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}) {
+		id
     config
+		receiverUserId
 		senderUserId
-		dripsSetEvent
+		dripsSetEvent {
+			id
+			userId
+			assetId
+		}
+    blockTimestamp
   }
 }
 `;
