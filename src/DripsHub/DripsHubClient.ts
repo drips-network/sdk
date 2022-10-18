@@ -116,13 +116,13 @@ export default class DripsHubClient {
 	/**
 	 * Returns the cycles count from which drips can be collected.
 	 * This function can be used to detect if there are too many cycles to analyze in a single transaction.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A `Promise` which resolves to the cycles count.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public getReceivableDripsCyclesCount(userId: BigNumberish, tokenAddress: string): Promise<number> {
+	public getReceivableDripsCyclesCount(userId: string, tokenAddress: string): Promise<number> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -137,7 +137,7 @@ export default class DripsHubClient {
 
 	/**
 	 * Calculates the receivable drips.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
@@ -148,7 +148,7 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than or equal to `0`.
 	 */
 	public async getReceivableDrips(
-		userId: BigNumberish,
+		userId: string,
 		tokenAddress: string,
 		maxCycles: BigNumberish
 	): Promise<ReceivableDrips> {
@@ -179,7 +179,7 @@ export default class DripsHubClient {
 
 	/**
 	 * Receives drips.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
@@ -189,11 +189,7 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than or equal to `0`.
 	 */
-	public receiveDrips(
-		userId: BigNumberish,
-		tokenAddress: string,
-		maxCycles: BigNumberish
-	): Promise<ContractTransaction> {
+	public receiveDrips(userId: string, tokenAddress: string, maxCycles: BigNumberish): Promise<ContractTransaction> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -216,9 +212,9 @@ export default class DripsHubClient {
 
 	/**
 	 * Calculates the squeezable drips amount.
-	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
+	 * @param  {string} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
 	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
@@ -227,9 +223,9 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
 	public async getSqueezableDrips(
-		userId: BigNumberish,
+		userId: string,
 		tokenAddress: string,
-		senderId: BigNumberish,
+		senderId: string,
 		historyHash: BytesLike,
 		dripsHistory: DripsHistoryStruct[]
 	): Promise<bigint> {
@@ -276,13 +272,13 @@ export default class DripsHubClient {
 
 	/**
 	 * Returns user's received but not split yet funds.
-	 * @param  {BigNumberish} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns Promise
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public async getSplittable(userId: BigNumberish, tokenAddress: string): Promise<bigint> {
+	public async getSplittable(userId: string, tokenAddress: string): Promise<bigint> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -299,13 +295,13 @@ export default class DripsHubClient {
 
 	/**
 	 * Returns the user's received funds that are already split and ready to be collected.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the collectable amount.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public async getCollectable(userId: BigNumberish, tokenAddress: string): Promise<bigint> {
+	public async getCollectable(userId: string, tokenAddress: string): Promise<bigint> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -322,13 +318,13 @@ export default class DripsHubClient {
 
 	/**
 	 * Returns the user's drips state.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A Promise which resolves to the {@link DripsState}.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public async getDripsState(userId: BigNumberish, tokenAddress: string): Promise<DripsState> {
+	public async getDripsState(userId: string, tokenAddress: string): Promise<DripsState> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -354,7 +350,7 @@ export default class DripsHubClient {
 
 	/**
 	 * Returns the user's drips balance at a given timestamp.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} receivers The users's current drips receivers.
 	 * @param  {BigNumberish} timestamp The timestamp for which the balance should be calculated. It can't be lower than the timestamp of the last call to `setDrips`.
@@ -367,12 +363,7 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 *
 	 */
-	public getBalanceAt(
-		userId: BigNumberish,
-		tokenAddress: string,
-		receivers: DripsReceiverStruct[],
-		timestamp: BigNumberish
-	) {
+	public getBalanceAt(userId: string, tokenAddress: string, receivers: DripsReceiverStruct[], timestamp: BigNumberish) {
 		validateAddress(tokenAddress);
 		validateDripsReceivers(
 			receivers.map((r) => ({
@@ -400,14 +391,14 @@ export default class DripsHubClient {
 
 	/**
 	 * Returns the receivable balance for all user tokens.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. When set, it must be greater than `0`.
 	 * @returns A `Promise` which resolves to the receivable token balances.
 	 * @throws {DripsErrors.argumentError} if `maxCycles` is less than `0`.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
 	public async getBalancesForUser(
-		userId: BigNumberish,
+		userId: string,
 		maxCycles: BigNumberish = Number.MAX_SAFE_INTEGER
 	): Promise<ReceivableTokenBalance[]> {
 		if (isNullOrUndefined(userId)) {
@@ -425,7 +416,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		const dripsSetEvents = await this.#subgraph.getDripsSetEventsByUserId(userId);
+		const dripsSetEvents = await this.#subgraph.getDripsSetEventsByUserId(BigNumber.from(userId).toString());
 
 		if (!dripsSetEvents?.length) {
 			return [];

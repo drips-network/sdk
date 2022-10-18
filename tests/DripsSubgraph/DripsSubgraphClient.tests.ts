@@ -12,7 +12,8 @@ import type {
 	SplitsEntry,
 	DripsSetEvent,
 	ApiDripsReceiverSeenEvent,
-	DripsReceiverSeenEvent
+	DripsReceiverSeenEvent,
+	ApiUserMetadataEvent
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
@@ -81,7 +82,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getUserAssetConfigById(undefined as unknown as number, 1);
+				await testSubgraphClient.getUserAssetConfigById(undefined as unknown as string, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -97,7 +98,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getUserAssetConfigById(1, undefined as unknown as number);
+				await testSubgraphClient.getUserAssetConfigById('1', undefined as unknown as number);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -110,7 +111,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return null when the user asset configuration is not found', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
@@ -147,7 +148,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
@@ -198,7 +199,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getAllUserAssetConfigsByUserId(undefined as unknown as number);
+				await testSubgraphClient.getAllUserAssetConfigsByUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -211,7 +212,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
@@ -265,7 +266,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return an empty array if configs do not exist', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 
 			sinon
 				.stub(testSubgraphClient, 'query')
@@ -290,7 +291,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getSplitsConfigByUserId(undefined as unknown as number);
+				await testSubgraphClient.getSplitsConfigByUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -303,7 +304,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const splitsEntries: ApiSplitsEntry[] = [
 				{
 					id: '1',
@@ -343,7 +344,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return an empty array when splits does not exist', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getSplitsConfigByUserId, { userId })
@@ -371,7 +372,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getDripsSetEventsByUserId(undefined as unknown as number);
+				await testSubgraphClient.getDripsSetEventsByUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -384,7 +385,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const dripsSetEvents: ApiDripsSetEvent[] = [
 				{
 					userId: '1'
@@ -420,7 +421,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return an empty array when DripsSetEvent entries do not exist', async () => {
 			// Arrange
-			const userId = 1n;
+			const userId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getDripsSetEventsByUserId, { userId })
@@ -448,7 +449,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(undefined as unknown as number);
+				await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -461,7 +462,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const receiverUserId = 1n;
+			const receiverUserId = '1';
 			const dripsReceiverSeenEvents: ApiDripsReceiverSeenEvent[] = [
 				{
 					receiverUserId: '1',
@@ -501,7 +502,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return an empty array when DripsReceiverSeen event entries do not exist', async () => {
 			// Arrange
-			const receiverUserId = 1n;
+			const receiverUserId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId })
@@ -529,7 +530,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getUsersStreamingToUser(undefined as unknown as number);
+				await testSubgraphClient.getUsersStreamingToUser(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -542,7 +543,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const receiverUserId = 1n;
+			const receiverUserId = '1';
 			const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [
 				{
 					senderUserId: '1',
@@ -569,6 +570,147 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(result.length, 2);
 			assert.equal(result[0], 1n);
 			assert.equal(result[1], 2n);
+		});
+	});
+
+	describe('getUserMetadataByUserId()', () => {
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getUserMetadataByUserId(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return null when no metadata found', async () => {
+			// Arrange
+			const userId = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getUserMetadataByUserId, { userId })
+				.resolves({
+					data: {
+						userMetadataEvent: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getUserMetadataByUserId(userId);
+
+			// Assert
+			assert.isNull(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const userId = '1';
+			const userMetadataEvent: ApiUserMetadataEvent = {
+				id: '1',
+				key: '2',
+				value: '3',
+				lastUpdatedBlockTimestamp: '4'
+			};
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getUserMetadataByUserId, { userId })
+				.resolves({
+					data: {
+						userMetadataEvent
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getUserMetadataByUserId(userId);
+
+			// Assert
+			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
+			assert.equal(metadata!.userId, userMetadataEvent.id);
+			assert.equal(metadata!.value, userMetadataEvent.value);
+			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getUserMetadataByUserId, { userId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getUserMetadataByKey()', () => {
+		it('should throw argumentMissingError error when asset ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getUserMetadataByKey(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return empty array when no metadata found', async () => {
+			// Arrange
+			const key = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getUserMetadataByKey, { key })
+				.resolves({
+					data: {
+						userMetadataEvents: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getUserMetadataByKey(key);
+
+			// Assert
+			assert.isEmpty(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const key = '1';
+			const userMetadataEvents: ApiUserMetadataEvent[] = [
+				{
+					id: '1',
+					key: '2',
+					value: '3',
+					lastUpdatedBlockTimestamp: '4'
+				}
+			];
+
+			const clientStub = sinon.stub(testSubgraphClient, 'query').withArgs(gql.getUserMetadataByKey, { key }).resolves({
+				data: {
+					userMetadataEvents
+				}
+			});
+
+			// Act
+			const metadata = await testSubgraphClient.getUserMetadataByKey(key);
+
+			// Assert
+			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
+			assert.equal(metadata![0].userId, userMetadataEvents[0].id);
+			assert.equal(metadata![0].value, userMetadataEvents[0].value);
+			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getUserMetadataByKey, { key }),
+				'Expected method to be called with different arguments'
+			);
 		});
 	});
 

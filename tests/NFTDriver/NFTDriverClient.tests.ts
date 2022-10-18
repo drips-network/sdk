@@ -326,7 +326,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.give(undefined as unknown as bigint, 1, tokenAddress, 1);
+				await testNftDriverClient.give(undefined as unknown as bigint, '1', tokenAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -344,7 +344,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.give(1, undefined as unknown as bigint, tokenAddress, 1);
+				await testNftDriverClient.give(1, undefined as unknown as string, tokenAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -362,7 +362,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.give(1, 1, tokenAddress, -1);
+				await testNftDriverClient.give(1, ' 1', tokenAddress, -1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -380,7 +380,7 @@ describe('NFTDriverClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testNftDriverClient.give(tokenId, 1, tokenAddress, 1);
+			await testNftDriverClient.give(tokenId, ' 1', tokenAddress, 1);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -390,7 +390,7 @@ describe('NFTDriverClient', () => {
 			// Arrange
 			const tokenId = 1;
 			const amount = 100;
-			const receiverUserId = 1;
+			const receiverUserId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act

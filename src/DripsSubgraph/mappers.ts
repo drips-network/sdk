@@ -3,10 +3,12 @@ import type {
 	ApiDripsSetEvent,
 	ApiSplitsEntry,
 	ApiUserAssetConfig,
+	ApiUserMetadataEvent,
 	DripsReceiverSeenEvent,
 	DripsSetEvent,
 	SplitsEntry,
-	UserAssetConfig
+	UserAssetConfig,
+	UserMetadata
 } from './types';
 
 /** @internal */
@@ -59,4 +61,12 @@ export const mapDripsReceiverSeenEventToDto = (
 		assetId: BigInt(dripsReceiverSeenEvent.dripsSetEvent.assetId)
 	},
 	blockTimestamp: BigInt(dripsReceiverSeenEvent.blockTimestamp)
+});
+
+/** @internal */
+export const mapUserMetadataEventToDto = (userMetadata: ApiUserMetadataEvent): UserMetadata => ({
+	userId: userMetadata.id,
+	value: userMetadata.value,
+	key: BigInt(userMetadata.key),
+	lastUpdatedBlockTimestamp: BigInt(userMetadata.lastUpdatedBlockTimestamp)
 });

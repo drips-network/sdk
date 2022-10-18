@@ -223,7 +223,7 @@ export default class NFTDriverClient {
 	 * Transfers funds from the user's wallet to the `DripsHub` smart contract.
 	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID.
 	 * The token ID is equal to the user ID controlled by it.
-	 * @param  {BigNumberish} receiverUserId The receiver user ID.
+	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
@@ -233,7 +233,7 @@ export default class NFTDriverClient {
 	 */
 	public give(
 		tokenId: BigNumberish,
-		receiverUserId: BigNumberish,
+		receiverUserId: string,
 		tokenAddress: string,
 		amount: BigNumberish
 	): Promise<ContractTransaction> {

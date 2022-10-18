@@ -222,7 +222,7 @@ export default class AddressDriverClient {
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `DripsHub` smart contract.
-	 * @param  {BigNumberish} receiverUserId The receiver user ID.
+	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g. Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
@@ -230,7 +230,7 @@ export default class AddressDriverClient {
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 */
-	public give(receiverUserId: BigNumberish, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public give(receiverUserId: string, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
 		if (isNullOrUndefined(receiverUserId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not give: '${nameOf({ receiverUserId })}' is missing.`,
@@ -328,10 +328,10 @@ export default class AddressDriverClient {
 
 	/**
 	 * Returns a user's address given a user ID.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @returns The user's address.
 	 */
-	public static getUserAddress = (userId: BigNumberish): string => {
+	public static getUserAddress = (userId: string): string => {
 		const userIdAsBN = BigNumber.from(userId);
 
 		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
