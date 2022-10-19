@@ -4,6 +4,7 @@ query getUserAssetConfigById($configId: ID!) {
 		id
 		assetId
 		dripsEntries {
+			id
 			userId
 			config
 		}
@@ -21,6 +22,7 @@ query getAllUserAssetConfigsByUserId($userId: ID!) {
       id
 			assetId
 			dripsEntries {
+				id
 				userId
 				config
 			}
@@ -44,12 +46,15 @@ query getSplitsConfigByUserId($userId: ID!) {
 `;
 
 export const getDripsSetEventsByUserId = `#graphql
-query getDripsSetEventsByUserId($userId: BigInt!) {
+query getDripsSetEventsByUserId($userId: String!) {
   dripsSetEvents(where: {userId: $userId}) {
+		id
     userId
     assetId
     dripsReceiverSeenEvents {
+			id
       receiverUserId
+			config
     }
     dripsHistoryHash
 		balance
@@ -60,11 +65,40 @@ query getDripsSetEventsByUserId($userId: BigInt!) {
 `;
 
 export const getDripsReceiverSeenEventsByReceiverId = `#graphql
-query getDripsReceiverSeenEventsByReceiverId($receiverUserId: BigInt!) {
+query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!) {
   dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}) {
+		id
     config
+		receiverUserId
 		senderUserId
-		dripsSetEvent
+		dripsSetEvent {
+			id
+			userId
+			assetId
+		}
+    blockTimestamp
+  }
+}
+`;
+
+export const getUserMetadataByUserId = `#graphql
+query getUserMetadataByUserId($userId: String!) {
+  userMetadataEvent(id: $userId) {
+		id
+    key
+    value
+    lastUpdatedBlockTimestamp
+  }
+}
+`;
+
+export const getUserMetadataByKey = `#graphql
+query getUserMetadataByKey($key: BigInt!) {
+  userMetadataEvents(where: {key: $key}) {
+		id
+    key
+    value
+    lastUpdatedBlockTimestamp
   }
 }
 `;

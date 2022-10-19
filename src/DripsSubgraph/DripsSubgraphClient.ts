@@ -1,5 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish } from 'ethers';
+import { BigNumber } from 'ethers';
 import Utils from '../utils';
 import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -7,18 +8,21 @@ import * as gql from './gql';
 import type {
 	DripsSetEvent,
 	ApiUserAssetConfig,
-	SplitEntry,
+	SplitsEntry,
 	UserAssetConfig,
-	ApiSplitEntry,
+	ApiSplitsEntry,
 	ApiDripsSetEvent,
 	DripsReceiverSeenEvent,
-	ApiDripsReceiverSeenEvent
+	ApiDripsReceiverSeenEvent,
+	ApiUserMetadataEvent,
+	UserMetadata
 } from './types';
 import {
 	mapDripsReceiverSeenEventToDto,
 	mapDripsSetEventToDto,
 	mapSplitEntryToDto,
-	mapUserAssetConfigToDto
+	mapUserAssetConfigToDto,
+	mapUserMetadataEventToDto
 } from './mappers';
 
 /**
@@ -72,13 +76,13 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's drips configuration for the given asset.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @param  {BigNumberish} assetId The asset ID.
 	 * @returns A `Promise` which resolves to the user's drips configuration, or `null` if the configuration is not found.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserAssetConfigById(userId: BigNumberish, assetId: BigNumberish): Promise<UserAssetConfig | null> {
+	public async getUserAssetConfigById(userId: string, assetId: BigNumberish): Promise<UserAssetConfig | null> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
@@ -103,21 +107,17 @@ export default class DripsSubgraphClient {
 
 		const userAssetConfig = response?.data?.userAssetConfig;
 
-		if (!userAssetConfig) {
-			return null;
-		}
-
-		return mapUserAssetConfigToDto(userAssetConfig);
+		return userAssetConfig ? mapUserAssetConfigToDto(userAssetConfig) : null;
 	}
 
 	/**
 	 * Returns all drips configurations for the given user.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getAllUserAssetConfigsByUserId(userId: BigNumberish): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
@@ -138,12 +138,12 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's splits configuration.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfigByUserId(userId: BigNumberish): Promise<SplitEntry[]> {
+	public async getSplitsConfigByUserId(userId: string): Promise<SplitsEntry[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
@@ -153,7 +153,7 @@ export default class DripsSubgraphClient {
 
 		type ApiResponse = {
 			user: {
-				splitsEntries: ApiSplitEntry[];
+				splitsEntries: ApiSplitsEntry[];
 			};
 		};
 
@@ -164,12 +164,12 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the user's `DripsSetEvent`s.
-	 * @param  {BigNumberish} userId The user ID.
+	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's `DripsSetEvent`s.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsSetEventsByUserId(userId: BigNumberish): Promise<DripsSetEvent[]> {
+	public async getDripsSetEventsByUserId(userId: string): Promise<DripsSetEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset config: ${nameOf({ userId })} is missing.`,
@@ -188,12 +188,12 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns all `DripsReceiverSeen` events for a given receiver.
-	 * @param  {BigNumberish} receiverUserId The receiver's user ID.
+	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeenEvent`s.
 	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsReceiverSeenEventsByReceiverId(receiverUserId: BigNumberish): Promise<DripsReceiverSeenEvent[]> {
+	public async getDripsReceiverSeenEventsByReceiverId(receiverUserId: string): Promise<DripsReceiverSeenEvent[]> {
 		if (!receiverUserId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
@@ -217,12 +217,12 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns the users that stream funds to a given receiver.
-	 * @param  {BigNumberish} receiverUserId The receiver's user ID.
+	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @returns A `Promise` which resolves to the users that stream funds to the given receiver.
 	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUsersStreamingToUser(receiverUserId: BigNumberish): Promise<bigint[]> {
+	public async getUsersStreamingToUser(receiverUserId: string): Promise<bigint[]> {
 		if (!receiverUserId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
@@ -240,6 +240,58 @@ export default class DripsSubgraphClient {
 		}, []);
 
 		return uniqueSenders;
+	}
+
+	/**
+	 * Returns the user's metadata.
+	 * @param  {string} userId The user ID.
+	 * @returns A `Promise` which resolves to the user's metadata, or `null` if not found.
+	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getUserMetadataByUserId(userId: string): Promise<UserMetadata | null> {
+		if (!userId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user metadata: ${nameOf({ userId })} is missing.`,
+				nameOf({ userId })
+			);
+		}
+
+		type ApiResponse = {
+			userMetadataEvent: ApiUserMetadataEvent | null;
+		};
+
+		const response = await this.query<ApiResponse>(gql.getUserMetadataByUserId, { userId });
+
+		const userMetadataEvent = response?.data?.userMetadataEvent;
+
+		return userMetadataEvent ? mapUserMetadataEventToDto(userMetadataEvent) : null;
+	}
+
+	/**
+	 * Returns all user metadata given a key.
+	 * @param  {string} key The metadata key.
+	 * @returns A `Promise` which resolves to the users' metadata.
+	 * @throws {DripsErrors.argumentMissingError} if the `key` is missing.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getUserMetadataByKey(key: BigNumberish): Promise<UserMetadata[]> {
+		if (!key) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get user metadata: ${nameOf({ key })} is missing.`,
+				nameOf({ key })
+			);
+		}
+
+		type ApiResponse = {
+			userMetadataEvents: ApiUserMetadataEvent[];
+		};
+
+		const response = await this.query<ApiResponse>(gql.getUserMetadataByKey, { key: BigNumber.from(key).toString() });
+
+		const userMetadataEvents = response?.data?.userMetadataEvents;
+
+		return userMetadataEvents ? userMetadataEvents.map(mapUserMetadataEventToDto) : [];
 	}
 
 	/** @internal */

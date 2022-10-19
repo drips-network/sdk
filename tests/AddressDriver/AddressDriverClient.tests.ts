@@ -332,7 +332,7 @@ describe('AddressDriverClient', () => {
 
 			try {
 				// Act
-				await testAddressDriverClient.give(undefined as unknown as bigint, tokenAddress, 1n);
+				await testAddressDriverClient.give(undefined as unknown as string, tokenAddress, 1n);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -350,7 +350,7 @@ describe('AddressDriverClient', () => {
 
 			try {
 				// Act
-				await testAddressDriverClient.give(1n, tokenAddress, -1n);
+				await testAddressDriverClient.give('1', tokenAddress, -1n);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -367,7 +367,7 @@ describe('AddressDriverClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			// Act
-			await testAddressDriverClient.give(1n, tokenAddress, 1n);
+			await testAddressDriverClient.give('1', tokenAddress, 1n);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -376,7 +376,7 @@ describe('AddressDriverClient', () => {
 		it('should call the give() method of the AddressDriver contract', async () => {
 			// Arrange
 			const amount = 100n;
-			const receiverUserId = 1n;
+			const receiverUserId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
@@ -716,7 +716,7 @@ describe('AddressDriverClient', () => {
 	describe('getAddressByUserId', () => {
 		it('should return the expected result', () => {
 			const expectedAddress = '0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D';
-			const userId = 998697365313809816557299962230702436787341785997n;
+			const userId = '998697365313809816557299962230702436787341785997';
 
 			// Act
 			const actualAddress = AddressDriverClient.getUserAddress(userId);

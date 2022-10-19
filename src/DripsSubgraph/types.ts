@@ -2,6 +2,7 @@ export type ApiUserAssetConfig = {
 	id: string;
 	assetId: string;
 	dripsEntries: {
+		id: string;
 		userId: string;
 		config: string;
 	}[];
@@ -14,7 +15,8 @@ export type UserAssetConfig = {
 	id: string;
 	assetId: bigint;
 	dripsEntries: {
-		userId: bigint;
+		id: string;
+		userId: string;
 		config: bigint;
 	}[];
 	balance: bigint;
@@ -22,20 +24,24 @@ export type UserAssetConfig = {
 	lastUpdatedBlockTimestamp: bigint;
 };
 
-export type ApiSplitEntry = {
+export type ApiSplitsEntry = {
+	id: string;
 	userId: string;
 	weight: string;
 };
 
-export type SplitEntry = {
-	userId: bigint;
+export type SplitsEntry = {
+	id: string;
+	userId: string;
 	weight: bigint;
 };
 
 export type ApiDripsSetEvent = {
+	id: string;
 	userId: string;
 	assetId: string;
 	dripsReceiverSeenEvents: {
+		id: string;
 		receiverUserId: string;
 		config: string;
 	}[];
@@ -46,10 +52,12 @@ export type ApiDripsSetEvent = {
 };
 
 export type DripsSetEvent = {
-	userId: bigint;
+	id: string;
+	userId: string;
 	assetId: bigint;
 	dripsReceiverSeenEvents: {
-		receiverUserId: bigint;
+		id: string;
+		receiverUserId: string;
 		config: bigint;
 	}[];
 	dripsHistoryHash: string;
@@ -59,15 +67,39 @@ export type DripsSetEvent = {
 };
 
 export type ApiDripsReceiverSeenEvent = {
+	id: string;
 	config: string;
 	senderUserId: string;
 	receiverUserId: string;
-	dripsSetEvent: ApiDripsSetEvent;
+	dripsSetEvent: {
+		id: string;
+		assetId: string;
+	};
+	blockTimestamp: string;
 };
 
 export type DripsReceiverSeenEvent = {
+	id: string;
 	config: bigint;
 	senderUserId: bigint;
 	receiverUserId: bigint;
-	dripsSetEvent: DripsSetEvent;
+	dripsSetEvent: {
+		id: string;
+		assetId: bigint;
+	};
+	blockTimestamp: bigint;
+};
+
+export type ApiUserMetadataEvent = {
+	id: string;
+	key: string;
+	value: string;
+	lastUpdatedBlockTimestamp: string;
+};
+
+export type UserMetadata = {
+	userId: string;
+	key: bigint;
+	value: string;
+	lastUpdatedBlockTimestamp: bigint;
 };

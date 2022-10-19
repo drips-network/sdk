@@ -1,12 +1,14 @@
 import type {
 	ApiDripsReceiverSeenEvent,
 	ApiDripsSetEvent,
-	ApiSplitEntry,
+	ApiSplitsEntry,
 	ApiUserAssetConfig,
+	ApiUserMetadataEvent,
 	DripsReceiverSeenEvent,
 	DripsSetEvent,
-	SplitEntry,
-	UserAssetConfig
+	SplitsEntry,
+	UserAssetConfig,
+	UserMetadata
 } from './types';
 
 /** @internal */
@@ -14,7 +16,8 @@ export const mapUserAssetConfigToDto = (userAssetConfig: ApiUserAssetConfig): Us
 	id: userAssetConfig.id,
 	assetId: BigInt(userAssetConfig.assetId),
 	dripsEntries: userAssetConfig.dripsEntries?.map((d) => ({
-		userId: BigInt(d.userId),
+		id: d.id,
+		userId: d.userId,
 		config: BigInt(d.config)
 	})),
 	balance: BigInt(userAssetConfig.balance),
@@ -23,17 +26,20 @@ export const mapUserAssetConfigToDto = (userAssetConfig: ApiUserAssetConfig): Us
 });
 
 /** @internal */
-export const mapSplitEntryToDto = (splitEntry: ApiSplitEntry): SplitEntry => ({
-	userId: BigInt(splitEntry.userId),
+export const mapSplitEntryToDto = (splitEntry: ApiSplitsEntry): SplitsEntry => ({
+	id: splitEntry.id,
+	userId: splitEntry.userId,
 	weight: BigInt(splitEntry.weight)
 });
 
 /** @internal */
 export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSetEvent => ({
-	userId: BigInt(dripsSetEvent.userId),
+	id: dripsSetEvent.id,
+	userId: dripsSetEvent.userId,
 	assetId: BigInt(dripsSetEvent.assetId),
 	dripsReceiverSeenEvents: dripsSetEvent.dripsReceiverSeenEvents?.map((r) => ({
-		receiverUserId: BigInt(r.receiverUserId),
+		id: r.id,
+		receiverUserId: r.receiverUserId,
 		config: BigInt(r.config)
 	})),
 	dripsHistoryHash: dripsSetEvent.dripsHistoryHash,
@@ -46,8 +52,21 @@ export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSet
 export const mapDripsReceiverSeenEventToDto = (
 	dripsReceiverSeenEvent: ApiDripsReceiverSeenEvent
 ): DripsReceiverSeenEvent => ({
+	id: dripsReceiverSeenEvent.id,
 	config: BigInt(dripsReceiverSeenEvent.config),
 	senderUserId: BigInt(dripsReceiverSeenEvent.senderUserId),
 	receiverUserId: BigInt(dripsReceiverSeenEvent.receiverUserId),
-	dripsSetEvent: mapDripsSetEventToDto(dripsReceiverSeenEvent.dripsSetEvent)
+	dripsSetEvent: {
+		id: dripsReceiverSeenEvent.dripsSetEvent.id,
+		assetId: BigInt(dripsReceiverSeenEvent.dripsSetEvent.assetId)
+	},
+	blockTimestamp: BigInt(dripsReceiverSeenEvent.blockTimestamp)
+});
+
+/** @internal */
+export const mapUserMetadataEventToDto = (userMetadata: ApiUserMetadataEvent): UserMetadata => ({
+	userId: userMetadata.id,
+	value: userMetadata.value,
+	key: BigInt(userMetadata.key),
+	lastUpdatedBlockTimestamp: BigInt(userMetadata.lastUpdatedBlockTimestamp)
 });

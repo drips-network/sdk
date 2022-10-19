@@ -8,7 +8,7 @@ import {
 import type {
 	ApiDripsReceiverSeenEvent,
 	ApiDripsSetEvent,
-	ApiSplitEntry,
+	ApiSplitsEntry,
 	ApiUserAssetConfig
 } from '../../src/DripsSubgraph/types';
 
@@ -19,7 +19,7 @@ describe('mappers', () => {
 			const apiConfig: ApiUserAssetConfig = {
 				id: '1',
 				assetId: '2',
-				dripsEntries: [{ userId: '3', config: '4' }],
+				dripsEntries: [{ id: '1', userId: '3', config: '4' }],
 				balance: '5',
 				amountCollected: '6',
 				lastUpdatedBlockTimestamp: '7'
@@ -31,6 +31,7 @@ describe('mappers', () => {
 			// Assert
 			assert.equal(result.id, apiConfig.id);
 			assert.equal(result.assetId.toString(), apiConfig.assetId);
+			assert.equal(result.dripsEntries[0].id.toString(), apiConfig.dripsEntries[0].id);
 			assert.equal(result.dripsEntries[0].userId.toString(), apiConfig.dripsEntries[0].userId);
 			assert.equal(result.dripsEntries[0].config.toString(), apiConfig.dripsEntries[0].config);
 			assert.equal(result.balance.toString(), apiConfig.balance);
@@ -43,9 +44,10 @@ describe('mappers', () => {
 		it('should return the expected result', () => {
 			// Arrange
 			const apiDripsSetEvent: ApiDripsSetEvent = {
+				id: '100',
 				userId: '1',
 				assetId: '2',
-				dripsReceiverSeenEvents: [{ receiverUserId: '3', config: '4' }],
+				dripsReceiverSeenEvents: [{ id: '1', receiverUserId: '3', config: '4' }],
 				dripsHistoryHash: '5',
 				balance: '6',
 				blockTimestamp: '7',
@@ -56,8 +58,10 @@ describe('mappers', () => {
 			const result = mapDripsSetEventToDto(apiDripsSetEvent);
 
 			// Assert
+			assert.equal(result.id.toString(), apiDripsSetEvent.id);
 			assert.equal(result.userId.toString(), apiDripsSetEvent.userId);
 			assert.equal(result.assetId.toString(), apiDripsSetEvent.assetId);
+			assert.equal(result.dripsReceiverSeenEvents[0].id.toString(), apiDripsSetEvent.dripsReceiverSeenEvents[0].id);
 			assert.equal(
 				result.dripsReceiverSeenEvents[0].receiverUserId.toString(),
 				apiDripsSetEvent.dripsReceiverSeenEvents[0].receiverUserId
@@ -76,7 +80,8 @@ describe('mappers', () => {
 	describe('mapSplitEntryToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiSplitEntry: ApiSplitEntry = {
+			const apiSplitEntry: ApiSplitsEntry = {
+				id: '100',
 				userId: '1',
 				weight: '2'
 			};
@@ -85,6 +90,7 @@ describe('mappers', () => {
 			const result = mapSplitEntryToDto(apiSplitEntry);
 
 			// Assert
+			assert.equal(result.id.toString(), apiSplitEntry.id);
 			assert.equal(result.userId.toString(), apiSplitEntry.userId);
 			assert.equal(result.weight.toString(), apiSplitEntry.weight);
 		});
@@ -94,47 +100,29 @@ describe('mappers', () => {
 		it('should return the expected result', () => {
 			// Arrange
 			const apiDripsReceiverSeenEvent: ApiDripsReceiverSeenEvent = {
+				id: '100',
 				config: '1',
 				dripsSetEvent: {
-					userId: '1',
-					assetId: '2',
-					dripsReceiverSeenEvents: [{ receiverUserId: '3', config: '4' }],
-					dripsHistoryHash: '5',
-					balance: '6',
-					blockTimestamp: '7',
-					maxEnd: '7'
+					id: '100',
+					assetId: '2'
 				},
 				receiverUserId: '2',
-				senderUserId: '3'
+				senderUserId: '3',
+				blockTimestamp: '4'
 			};
 
 			// Act
 			const result = mapDripsReceiverSeenEventToDto(apiDripsReceiverSeenEvent);
 
 			// Assert
+			assert.equal(result.id.toString(), apiDripsReceiverSeenEvent.id);
 			assert.equal(result.config.toString(), apiDripsReceiverSeenEvent.config);
+			assert.equal(result.dripsSetEvent.id, apiDripsReceiverSeenEvent.dripsSetEvent.id);
 			assert.equal(result.senderUserId.toString(), apiDripsReceiverSeenEvent.senderUserId);
+			assert.equal(result.blockTimestamp.toString(), apiDripsReceiverSeenEvent.blockTimestamp);
 			assert.equal(result.receiverUserId.toString(), apiDripsReceiverSeenEvent.receiverUserId);
-			assert.equal(result.dripsSetEvent.userId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.userId);
 			assert.equal(result.dripsSetEvent.assetId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.assetId);
-			assert.equal(
-				result.dripsSetEvent.dripsReceiverSeenEvents[0].receiverUserId.toString(),
-				apiDripsReceiverSeenEvent.dripsSetEvent.dripsReceiverSeenEvents[0].receiverUserId
-			);
-			assert.equal(
-				result.dripsSetEvent.dripsReceiverSeenEvents[0].config.toString(),
-				apiDripsReceiverSeenEvent.dripsSetEvent.dripsReceiverSeenEvents[0].config
-			);
-			assert.equal(
-				result.dripsSetEvent.dripsHistoryHash.toString(),
-				apiDripsReceiverSeenEvent.dripsSetEvent.dripsHistoryHash
-			);
-			assert.equal(result.dripsSetEvent.balance.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.balance);
-			assert.equal(
-				result.dripsSetEvent.blockTimestamp.toString(),
-				apiDripsReceiverSeenEvent.dripsSetEvent.blockTimestamp
-			);
-			assert.equal(result.dripsSetEvent.maxEnd.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.maxEnd);
+			assert.equal(result.dripsSetEvent.assetId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.assetId);
 		});
 	});
 });
