@@ -11,7 +11,7 @@ import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
-import type { DripsHubClientConstants, DripsState, ReceivableTokenBalance } from './types';
+import type { DripsState, ReceivableTokenBalance } from './types';
 
 /**
  * A client for interacting with the read-only {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} API.
@@ -40,12 +40,6 @@ export default class DripsHubClient {
 	/** Returns the `DripsHubClient`'s `network` {@link DripsMetadata}. */
 	public get dripsMetadata() {
 		return this.#dripsMetadata;
-	}
-
-	#constants!: DripsHubClientConstants;
-	/** Returns the protocol constants. */
-	public get constants() {
-		return this.#constants;
 	}
 
 	private constructor() {}
@@ -86,7 +80,6 @@ export default class DripsHubClient {
 		dripsHub.#dripsMetadata = dripsMetadata;
 		dripsHub.#subgraph = DripsSubgraphClient.create(network.chainId);
 		dripsHub.#dripsHubContract = DripsHub__factory.connect(dripsMetadata.CONTRACT_DRIPS_HUB, provider);
-		dripsHub.#constants = await dripsHub.#getConstants();
 
 		return dripsHub;
 	}
@@ -397,10 +390,7 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.argumentError} if `maxCycles` is less than `0`.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public async getBalancesForUser(
-		userId: string,
-		maxCycles: BigNumberish = Number.MAX_SAFE_INTEGER
-	): Promise<ReceivableTokenBalance[]> {
+	public async getBalancesForUser(userId: string, maxCycles: number = 2 ** 32 - 1): Promise<ReceivableTokenBalance[]> {
 		if (isNullOrUndefined(userId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get balances: '${nameOf({ userId })}' is missing.`,
@@ -446,23 +436,5 @@ export default class DripsHubClient {
 		});
 
 		return Promise.all(tokenBalances);
-	}
-
-	async #getConstants(): Promise<DripsHubClientConstants> {
-		const MAX_TOTAL_BALANCE = await this.#dripsHubContract.MAX_TOTAL_BALANCE();
-		const TOTAL_SPLITS_WEIGHT = await this.#dripsHubContract.TOTAL_SPLITS_WEIGHT();
-		const MAX_DRIPS_RECEIVERS = await this.#dripsHubContract.MAX_DRIPS_RECEIVERS();
-		const MAX_SPLITS_RECEIVERS = await this.#dripsHubContract.MAX_SPLITS_RECEIVERS();
-		const AMT_PER_SEC_MULTIPLIER = await this.#dripsHubContract.AMT_PER_SEC_MULTIPLIER();
-		const AMT_PER_SEC_EXTRA_DECIMALS = await this.#dripsHubContract.AMT_PER_SEC_EXTRA_DECIMALS();
-
-		return {
-			MAX_TOTAL_BALANCE: MAX_TOTAL_BALANCE.toBigInt(),
-			TOTAL_SPLITS_WEIGHT,
-			MAX_DRIPS_RECEIVERS: MAX_DRIPS_RECEIVERS.toNumber(),
-			MAX_SPLITS_RECEIVERS: MAX_SPLITS_RECEIVERS.toNumber(),
-			AMT_PER_SEC_MULTIPLIER: AMT_PER_SEC_MULTIPLIER.toBigInt(),
-			AMT_PER_SEC_EXTRA_DECIMALS
-		};
 	}
 }

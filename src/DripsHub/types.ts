@@ -13,15 +13,6 @@ export type DripsState = {
 	maxEnd: number;
 };
 
-export type DripsHubClientConstants = {
-	MAX_TOTAL_BALANCE: bigint;
-	TOTAL_SPLITS_WEIGHT: number;
-	MAX_DRIPS_RECEIVERS: number;
-	MAX_SPLITS_RECEIVERS: number;
-	AMT_PER_SEC_MULTIPLIER: bigint;
-	AMT_PER_SEC_EXTRA_DECIMALS: number;
-};
-
 export type ReceivableTokenBalance = {
 	tokenAddress: string;
 	receivableDrips: ReceivableDrips;

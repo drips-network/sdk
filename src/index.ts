@@ -26,5 +26,8 @@ export { default as ImmutableSplitsDriverClient } from './ImmutableSplits/Immuta
 // NFTDriver
 export { default as NFTDriverClient } from './NFTDriver/NFTDriverClient';
 
+// constants
+export { default as constants } from './constants';
+
 // Utils
 export { default as Utils } from './utils';
