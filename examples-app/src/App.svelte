@@ -82,7 +82,7 @@
 
 			<TabPanel>
 				<Give {addressDriverClient} />
-				<Collect {addressDriverClient} {dripsSubgraphClient} />
+				<Collect {addressDriverClient} />
 				<!-- <Squeeze {addressDriverClient} {dripsSubgraphClient} /> -->
 			</TabPanel>
 

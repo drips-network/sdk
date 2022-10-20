@@ -67,10 +67,13 @@
 					.map(async (d) => {
 						const userId = await addressDriverClient.getUserIdByAddress(d.userAddress);
 
-						const config = Utils.DripsReceiverConfiguration.toUint256String({
-							start: d.config.start || 0,
-							duration: d.config.duration || 0,
-							amountPerSec: BigNumber.from(d.config.amountPerSec).mul(Utils.Constants.AMT_PER_SEC_MULTIPLIER)
+						const config = Utils.DripsReceiverConfiguration.toUint256({
+							dripId: BigInt(Math.floor(Math.random() * 1_000_000_000)), // Do NOT use this in production.
+							start: d.config.start ? BigInt(d.config.start) : BigInt(0),
+							duration: d.config.duration ? BigInt(d.config.duration) : BigInt(0),
+							amountPerSec: BigNumber.from(d.config.amountPerSec)
+								.mul(addressDriverClient.dripsHub.constants.AMT_PER_SEC_MULTIPLIER)
+								.toBigInt()
 						});
 
 						return {

@@ -1,3 +1,4 @@
+import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
 import { validateAddress, validateDripsReceiverConfig } from './common/internals';
@@ -68,10 +69,10 @@ namespace Utils {
 	export namespace Asset {
 		/**
 		 * Returns the ERC20 token address for the given asset.
-		 * @param  {bigint} assetId The asset ID.
+		 * @param  {BigNumberish} assetId The asset ID.
 		 * @returns The ERC20 token address.
 		 */
-		export const getAddressFromId = (assetId: bigint): string =>
+		export const getAddressFromId = (assetId: BigNumberish): string =>
 			ethers.utils.getAddress(BigNumber.from(assetId).toHexString());
 
 		/**
@@ -118,7 +119,7 @@ namespace Utils {
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
 		 */
-		export const fromUint256 = (dripsReceiverConfig: bigint): DripsReceiverConfig => {
+		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
 			const configAsBn = BigNumber.from(dripsReceiverConfig);
 
 			const dripId = configAsBn.shr(160 + 32 + 32);

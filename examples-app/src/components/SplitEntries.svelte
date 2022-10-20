@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { AddressDriverClient, DripsSubgraphClient, SplitEntry } from 'radicle-drips';
+	import type { AddressDriverClient, DripsSubgraphClient, DripsSubgraphTypes } from 'radicle-drips';
 	import JSONTree from 'svelte-json-tree';
 
 	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	let errorMessage: string;
-	let splitEntries: SplitEntry[];
+	let splitEntries: DripsSubgraphTypes.SplitsEntry[];
 
 	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getSplitsConfig();
