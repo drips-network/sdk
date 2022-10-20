@@ -33,7 +33,7 @@
 		started = false;
 	};
 
-	let allowance: BigNumber;
+	let allowance: bigint;
 	let tokenToGetAllowance: string;
 	let allowanceErrorMessage: string;
 
@@ -43,6 +43,7 @@
 			allowanceErrorMessage = null;
 
 			allowance = await addressDriverClient.getAllowance(tokenAddress);
+			console.log(allowance);
 		} catch (error: any) {
 			allowance = null;
 			allowanceErrorMessage = error.message;
@@ -135,7 +136,7 @@
 					<div class="terminal-alert terminal-alert-error">
 						<p>{allowanceErrorMessage}</p>
 					</div>
-				{:else if allowance}
+				{:else if allowance >= 0}
 					<div class="terminal-alert terminal-alert-primary">
 						<p>Token {tokenToGetAllowance} allowance: {allowance}</p>
 					</div>

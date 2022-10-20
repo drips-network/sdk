@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressDriverClient, DripsReceiverConfig, Utils } from 'radicle-drips';
+	import { AddressDriverClient, DripsCommonTypes, Utils } from 'radicle-drips';
 	import { BigNumber, BigNumberish } from 'ethers';
 
 	export let addressDriverClient: AddressDriverClient;
@@ -8,13 +8,13 @@
 
 	let debugConfigInput: BigNumberish;
 	let debugConfigErrorMessage: string;
-	let debugConfigResult: DripsReceiverConfig;
+	let debugConfigResult: DripsCommonTypes.DripsReceiverConfig;
 
 	const debugConfig = async (config: BigNumberish) => {
 		debugConfigErrorMessage = null;
 
 		try {
-			debugConfigResult = Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(config));
+			debugConfigResult = Utils.DripsReceiverConfiguration.fromUint256(config);
 		} catch (error: any) {
 			debugConfigErrorMessage = error.message;
 
@@ -22,7 +22,7 @@
 		}
 	};
 
-	let getAssetIdResult: string;
+	let getAssetIdResult: bigint;
 	let getAssetIdInput: string;
 	let getAssetIdErrorMessage: string;
 
