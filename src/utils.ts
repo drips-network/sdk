@@ -119,7 +119,7 @@ namespace Utils {
 		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
 		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
 		 */
-		export const fromUint256 = (dripsReceiverConfig: bigint): DripsReceiverConfig => {
+		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
 			const configAsBn = BigNumber.from(dripsReceiverConfig);
 
 			const dripId = configAsBn.shr(160 + 32 + 32);
