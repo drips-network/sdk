@@ -4,7 +4,6 @@
 	import { createEventDispatcher } from 'svelte';
 
 	export let addressDriverClient: AddressDriverClient;
-	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	const dispatch = createEventDispatcher();
 

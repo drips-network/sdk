@@ -184,10 +184,10 @@ export default class AddressDriverClient {
 	 * This is the user ID to which the `AddressDriverClient` is linked and manages Drips.
 	 * @returns A `Promise` which resolves to the user ID.
 	 */
-	public async getUserId(): Promise<bigint> {
+	public async getUserId(): Promise<string> {
 		const userId = await this.#addressDriverContract.calcUserId(this.#signerAddress);
 
-		return userId.toBigInt();
+		return userId.toString();
 	}
 
 	/**
@@ -196,12 +196,12 @@ export default class AddressDriverClient {
 	 * @returns A `Promise` which resolves to the user ID.
 	 * @throws {DripsErrors.addressError} if the `userAddress` address is not valid.
 	 */
-	public async getUserIdByAddress(userAddress: string): Promise<bigint> {
+	public async getUserIdByAddress(userAddress: string): Promise<string> {
 		validateAddress(userAddress);
 
 		const userId = await this.#addressDriverContract.calcUserId(userAddress);
 
-		return userId.toBigInt();
+		return userId.toString();
 	}
 
 	/**
