@@ -740,7 +740,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getNftSubAccountsByOwner, { ownerAddress })
 				.resolves({
 					data: {
-						nftSubAccounts: null
+						nftsubAccounts: null
 					}
 				});
 
@@ -754,7 +754,7 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const ownerAddress = Wallet.createRandom().address;
-			const nftSubAccounts: ApiNftSubAccount[] = [
+			const nftsubAccounts: ApiNftSubAccount[] = [
 				{
 					id: '1',
 					ownerAddress: Wallet.createRandom().address
@@ -766,7 +766,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getNftSubAccountsByOwner, { ownerAddress })
 				.resolves({
 					data: {
-						nftSubAccounts
+						nftsubAccounts
 					}
 				});
 
@@ -774,8 +774,8 @@ describe('DripsSubgraphClient', () => {
 			const result = await testSubgraphClient.getNftSubAccountsByOwner(ownerAddress);
 
 			// Assert
-			assert.equal(result![0].tokenId, nftSubAccounts[0].id);
-			assert.equal(result![0].ownerAddress, nftSubAccounts[0].ownerAddress);
+			assert.equal(result![0].tokenId, nftsubAccounts[0].id);
+			assert.equal(result![0].ownerAddress, nftsubAccounts[0].ownerAddress);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getNftSubAccountsByOwner, { ownerAddress }),
 				'Expected method to be called with different arguments'

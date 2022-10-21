@@ -307,12 +307,12 @@ export default class DripsSubgraphClient {
 		validateAddress(ownerAddress);
 
 		type ApiResponse = {
-			nftSubAccounts: ApiNftSubAccount[];
+			nftsubAccounts: ApiNftSubAccount[];
 		};
 
 		const response = await this.query<ApiResponse>(gql.getNftSubAccountsByOwner, { ownerAddress });
 
-		const nftSubAccounts = response?.data?.nftSubAccounts;
+		const nftSubAccounts = response?.data?.nftsubAccounts;
 
 		return nftSubAccounts
 			? nftSubAccounts.map((s) => ({
