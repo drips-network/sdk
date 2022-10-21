@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { AddressDriverClient, DripsCommonTypes, Utils } from 'radicle-drips';
-	import { BigNumber, BigNumberish } from 'ethers';
+	import type { BigNumberish } from 'ethers';
+	import { AddressDriverClient, DripsReceiverConfig, Utils } from 'radicle-drips';
 
 	export let addressDriverClient: AddressDriverClient;
 
@@ -8,7 +8,7 @@
 
 	let debugConfigInput: BigNumberish;
 	let debugConfigErrorMessage: string;
-	let debugConfigResult: DripsCommonTypes.DripsReceiverConfig;
+	let debugConfigResult: DripsReceiverConfig;
 
 	const debugConfig = async (config: BigNumberish) => {
 		debugConfigErrorMessage = null;

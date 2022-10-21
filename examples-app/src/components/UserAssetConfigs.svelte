@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { AddressDriverClient, DripsCommonTypes, DripsSubgraphClient, DripsSubgraphTypes } from 'radicle-drips';
+	import type { AddressDriverClient, DripsSubgraphClient, UserAssetConfig } from 'radicle-drips';
 	import JSONTree from 'svelte-json-tree';
 
 	export let addressDriverClient: AddressDriverClient;
 	export let dripsSubgraphClient: DripsSubgraphClient;
 
 	let errorMessage: string;
-	let userAssetConfigs: DripsSubgraphTypes.UserAssetConfig[];
+	let userAssetConfigs: UserAssetConfig[];
 
 	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getAllDripsConfigurations();
