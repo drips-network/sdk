@@ -51,6 +51,7 @@ query getDripsSetEventsByUserId($userId: String!) {
 		id
     userId
     assetId
+		receiversHash
     dripsReceiverSeenEvents {
 			id
       receiverUserId
@@ -75,6 +76,7 @@ query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!) {
 			id
 			userId
 			assetId
+			receiversHash
 		}
     blockTimestamp
   }

@@ -45,7 +45,8 @@ export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSet
 	dripsHistoryHash: dripsSetEvent.dripsHistoryHash,
 	balance: BigInt(dripsSetEvent.balance),
 	blockTimestamp: BigInt(dripsSetEvent.blockTimestamp),
-	maxEnd: BigInt(dripsSetEvent.maxEnd)
+	maxEnd: BigInt(dripsSetEvent.maxEnd),
+	receiversHash: dripsSetEvent.receiversHash
 });
 
 /** @internal */
@@ -58,7 +59,8 @@ export const mapDripsReceiverSeenEventToDto = (
 	receiverUserId: BigInt(dripsReceiverSeenEvent.receiverUserId),
 	dripsSetEvent: {
 		id: dripsReceiverSeenEvent.dripsSetEvent.id,
-		assetId: BigInt(dripsReceiverSeenEvent.dripsSetEvent.assetId)
+		assetId: BigInt(dripsReceiverSeenEvent.dripsSetEvent.assetId),
+		receiversHash: dripsReceiverSeenEvent.dripsSetEvent.receiversHash
 	},
 	blockTimestamp: BigInt(dripsReceiverSeenEvent.blockTimestamp)
 });
