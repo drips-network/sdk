@@ -101,12 +101,6 @@ describe('DripsHubClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(testDripsHubClient.constants.MAX_TOTAL_BALANCE, TEST_MAX_TOTAL_BALANCE.toBigInt());
-			assert.equal(testDripsHubClient.constants.TOTAL_SPLITS_WEIGHT, TEST_TOTAL_SPLITS_WEIGHT);
-			assert.equal(testDripsHubClient.constants.MAX_DRIPS_RECEIVERS, TEST_MAX_DRIPS_RECEIVERS.toNumber());
-			assert.equal(testDripsHubClient.constants.MAX_SPLITS_RECEIVERS, TEST_MAX_SPLITS_RECEIVERS.toNumber());
-			assert.equal(testDripsHubClient.constants.AMT_PER_SEC_MULTIPLIER, TEST_AMT_PER_SEC_MULTIPLIER.toBigInt());
-			assert.equal(testDripsHubClient.constants.AMT_PER_SEC_EXTRA_DECIMALS, TEST_AMT_PER_SEC_EXTRA_DECIMALS);
 			assert.equal(testDripsHubClient.network.chainId, TEST_CHAIN_ID);
 			assert.equal((await testDripsHubClient.provider.getNetwork()).chainId, networkStub.chainId);
 			assert.equal(
