@@ -49,6 +49,7 @@ export type ApiDripsSetEvent = {
 	balance: string;
 	blockTimestamp: string;
 	maxEnd: string;
+	receiversHash: string;
 };
 
 export type DripsSetEvent = {
@@ -64,6 +65,7 @@ export type DripsSetEvent = {
 	balance: bigint;
 	blockTimestamp: bigint;
 	maxEnd: bigint;
+	receiversHash: string;
 };
 
 export type ApiDripsReceiverSeenEvent = {
@@ -74,6 +76,7 @@ export type ApiDripsReceiverSeenEvent = {
 	dripsSetEvent: {
 		id: string;
 		assetId: string;
+		receiversHash: string;
 	};
 	blockTimestamp: string;
 };
@@ -86,6 +89,7 @@ export type DripsReceiverSeenEvent = {
 	dripsSetEvent: {
 		id: string;
 		assetId: bigint;
+		receiversHash: string;
 	};
 	blockTimestamp: bigint;
 };
