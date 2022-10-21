@@ -109,10 +109,7 @@ export const getNftSubAccountsByOwner = `#graphql
 query getNftSubAccountsByOwner($ownerAddress: String!) {
 	nftSubAccounts(where: {ownerAddress: $ownerAddress}) {
 		id
-		userId
-		assetId
-		balance
-		lastUpdatedBlockTimestamp
+		ownerAddress
 	}
 }
 `;

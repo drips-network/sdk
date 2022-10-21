@@ -5,7 +5,8 @@ import {
 	SplitsEntry,
 	DripsSetEvent,
 	DripsReceiverSeenEvent,
-	UserMetadata
+	UserMetadata,
+	NftSubAccount
 } from './DripsSubgraph/types';
 
 // TODO: Contract typings. We can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079).
@@ -45,6 +46,7 @@ export {
 	DripsState,
 	SplitsEntry,
 	UserMetadata,
+	NftSubAccount,
 	DripsSetEvent,
 	DripsMetadata,
 	DripsReceiver,
