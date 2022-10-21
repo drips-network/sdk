@@ -51,7 +51,8 @@ describe('mappers', () => {
 				dripsHistoryHash: '5',
 				balance: '6',
 				blockTimestamp: '7',
-				maxEnd: '7'
+				maxEnd: '7',
+				receiversHash: '0x00'
 			};
 
 			// Act
@@ -104,7 +105,8 @@ describe('mappers', () => {
 				config: '1',
 				dripsSetEvent: {
 					id: '100',
-					assetId: '2'
+					assetId: '2',
+					receiversHash: '0x00'
 				},
 				receiverUserId: '2',
 				senderUserId: '3',
