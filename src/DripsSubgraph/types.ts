@@ -103,3 +103,13 @@ export type UserMetadata = {
 	value: string;
 	lastUpdatedBlockTimestamp: bigint;
 };
+
+export type ApiNftSubAccount = {
+	id: string;
+	ownerAddress: string;
+};
+
+export type NftSubAccount = {
+	tokenId: string;
+	ownerAddress: string;
+};

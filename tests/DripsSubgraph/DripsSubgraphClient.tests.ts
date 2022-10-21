@@ -13,10 +13,12 @@ import type {
 	DripsSetEvent,
 	ApiDripsReceiverSeenEvent,
 	DripsReceiverSeenEvent,
-	ApiUserMetadataEvent
+	ApiUserMetadataEvent,
+	ApiNftSubAccount
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
+import * as internals from '../../src/common/internals';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -709,6 +711,73 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getUserMetadataByKey, { key }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getNftSubAccountsByOwner()', () => {
+		it('should validate the ERC20 address', async () => {
+			// Arrange
+			const ownerAddress = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getUserMetadataByKey, { ownerAddress });
+
+			// Act
+			await testSubgraphClient.getNftSubAccountsByOwner(ownerAddress);
+
+			// Assert
+			assert(validateAddressStub.calledOnceWithExactly(ownerAddress));
+		});
+
+		it('should return empty array when no sub accounts found', async () => {
+			// Arrange
+			const ownerAddress = Wallet.createRandom().address;
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getNftSubAccountsByOwner, { ownerAddress })
+				.resolves({
+					data: {
+						nftSubAccounts: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getNftSubAccountsByOwner(ownerAddress);
+
+			// Assert
+			assert.isEmpty(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const ownerAddress = Wallet.createRandom().address;
+			const nftSubAccounts: ApiNftSubAccount[] = [
+				{
+					id: '1',
+					ownerAddress: Wallet.createRandom().address
+				}
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getNftSubAccountsByOwner, { ownerAddress })
+				.resolves({
+					data: {
+						nftSubAccounts
+					}
+				});
+
+			// Act
+			const result = await testSubgraphClient.getNftSubAccountsByOwner(ownerAddress);
+
+			// Assert
+			assert.equal(result![0].tokenId, nftSubAccounts[0].id);
+			assert.equal(result![0].ownerAddress, nftSubAccounts[0].ownerAddress);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getNftSubAccountsByOwner, { ownerAddress }),
 				'Expected method to be called with different arguments'
 			);
 		});

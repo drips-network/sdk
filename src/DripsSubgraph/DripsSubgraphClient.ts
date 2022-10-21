@@ -2,7 +2,7 @@
 import type { BigNumberish } from 'ethers';
 import { BigNumber } from 'ethers';
 import Utils from '../utils';
-import { nameOf } from '../common/internals';
+import { nameOf, validateAddress } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
 import type {
@@ -15,7 +15,9 @@ import type {
 	DripsReceiverSeenEvent,
 	ApiDripsReceiverSeenEvent,
 	ApiUserMetadataEvent,
-	UserMetadata
+	UserMetadata,
+	NftSubAccount,
+	ApiNftSubAccount
 } from './types';
 import {
 	mapDripsReceiverSeenEventToDto,
@@ -292,6 +294,32 @@ export default class DripsSubgraphClient {
 		const userMetadataEvents = response?.data?.userMetadataEvents;
 
 		return userMetadataEvents ? userMetadataEvents.map(mapUserMetadataEventToDto) : [];
+	}
+
+	/**
+	 * Returns all NFT sub accounts for a given owner.
+	 * @param  {string} ownerAddress The owner's address.
+	 * @returns A `Promise` which resolves to the owner's NFT sub accounts.
+	 * @throws {DripsErrors.addressError} if the `ownerAddress` is not valid.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getNftSubAccountsByOwner(ownerAddress: string): Promise<NftSubAccount[]> {
+		validateAddress(ownerAddress);
+
+		type ApiResponse = {
+			nftSubAccounts: ApiNftSubAccount[];
+		};
+
+		const response = await this.query<ApiResponse>(gql.getNftSubAccountsByOwner, { ownerAddress });
+
+		const nftSubAccounts = response?.data?.nftSubAccounts;
+
+		return nftSubAccounts
+			? nftSubAccounts.map((s) => ({
+					tokenId: s.id,
+					ownerAddress: s.ownerAddress
+			  }))
+			: [];
 	}
 
 	/** @internal */

@@ -7,7 +7,7 @@
 	$: isConnected = Boolean(addressDriverClient) && Boolean(dripsSubgraphClient);
 	$: if (isConnected) getClientsDetails();
 
-	let userId: bigint;
+	let userId: string;
 
 	const getClientsDetails = async () => {
 		userId = await addressDriverClient.getUserId();
