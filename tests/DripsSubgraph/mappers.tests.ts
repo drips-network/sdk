@@ -3,13 +3,15 @@ import {
 	mapDripsReceiverSeenEventToDto,
 	mapDripsSetEventToDto,
 	mapSplitEntryToDto,
-	mapUserAssetConfigToDto
+	mapUserAssetConfigToDto,
+	mapUserMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
 import type {
 	ApiDripsReceiverSeenEvent,
 	ApiDripsSetEvent,
 	ApiSplitsEntry,
-	ApiUserAssetConfig
+	ApiUserAssetConfig,
+	ApiUserMetadataEvent
 } from '../../src/DripsSubgraph/types';
 
 describe('mappers', () => {
@@ -125,6 +127,29 @@ describe('mappers', () => {
 			assert.equal(result.receiverUserId.toString(), apiDripsReceiverSeenEvent.receiverUserId);
 			assert.equal(result.dripsSetEvent.assetId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.assetId);
 			assert.equal(result.dripsSetEvent.assetId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.assetId);
+		});
+	});
+
+	describe('mapUserMetadataEventToDto()', () => {
+		it('should return the expected result', () => {
+			// Arrange
+			const apiUserMetadataEvent: ApiUserMetadataEvent = {
+				id: '100',
+				userId: '1',
+				value: '2',
+				key: '3',
+				lastUpdatedBlockTimestamp: '4'
+			};
+
+			// Act
+			const result = mapUserMetadataEventToDto(apiUserMetadataEvent);
+
+			// Assert
+			assert.equal(result.value, apiUserMetadataEvent.value);
+			assert.equal(result.userId, apiUserMetadataEvent.userId);
+			assert.equal(result.id.toString(), apiUserMetadataEvent.id);
+			assert.equal(result.key.toString(), apiUserMetadataEvent.key);
+			assert.equal(result.lastUpdatedBlockTimestamp.toString(), apiUserMetadataEvent.lastUpdatedBlockTimestamp);
 		});
 	});
 });

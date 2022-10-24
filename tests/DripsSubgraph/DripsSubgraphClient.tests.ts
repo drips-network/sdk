@@ -640,7 +640,7 @@ describe('DripsSubgraphClient', () => {
 
 			// Assert
 			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
-			assert.equal(metadata![0].userId, userMetadataEvents[0].id);
+			assert.equal(metadata![0].userId, userMetadataEvents[0].userId);
 			assert.equal(metadata![0].value, userMetadataEvents[0].value);
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
@@ -683,7 +683,7 @@ describe('DripsSubgraphClient', () => {
 
 			// Assert
 			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
-			assert.equal(metadata![0].userId, userMetadataEvents[0].id);
+			assert.equal(metadata![0].userId, userMetadataEvents[0].userId);
 			assert.equal(metadata![0].value, userMetadataEvents[0].value);
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
@@ -776,7 +776,7 @@ describe('DripsSubgraphClient', () => {
 
 			// Assert
 			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
-			assert.equal(metadata!.userId, userMetadataEvent.id);
+			assert.equal(metadata!.userId, userMetadataEvent.userId);
 			assert.equal(metadata!.value, userMetadataEvent.value);
 			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
 			assert(
