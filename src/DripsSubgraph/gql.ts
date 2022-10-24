@@ -83,8 +83,8 @@ query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!) {
 }
 `;
 
-export const getUserMetadataByUser = `#graphql
-query getUserMetadataByUser($userId: String!) {
+export const getMetadataHistoryForUser = `#graphql
+query getMetadataHistoryForUser($userId: String!) {
   userMetadataEvents(where: {userId: $userId}) {
 		id
     key

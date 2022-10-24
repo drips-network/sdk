@@ -575,13 +575,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getUserMetadataByUser()', () => {
+	describe('getMetadataHistoryForUser()', () => {
 		it('should throw argumentMissingError error when asset ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getUserMetadataByUser(undefined as unknown as string);
+				await testSubgraphClient.getMetadataHistoryForUser(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -598,7 +598,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserMetadataByUser, { userId })
+				.withArgs(gql.getMetadataHistoryForUser, { userId })
 				.resolves({
 					data: {
 						userMetadataEvent: null
@@ -606,7 +606,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getUserMetadataByUser(userId);
+			const metadata = await testSubgraphClient.getMetadataHistoryForUser(userId);
 
 			// Assert
 			assert.isNull(metadata);
@@ -625,7 +625,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserMetadataByUser, { userId })
+				.withArgs(gql.getMetadataHistoryForUser, { userId })
 				.resolves({
 					data: {
 						userMetadataEvent
@@ -633,7 +633,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getUserMetadataByUser(userId);
+			const metadata = await testSubgraphClient.getMetadataHistoryForUser(userId);
 
 			// Assert
 			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
@@ -641,7 +641,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata!.value, userMetadataEvent.value);
 			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getUserMetadataByUser, { userId }),
+				clientStub.calledOnceWithExactly(gql.getMetadataHistoryForUser, { userId }),
 				'Expected method to be called with different arguments'
 			);
 		});

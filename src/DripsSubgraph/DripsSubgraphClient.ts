@@ -1,4 +1,6 @@
 /* eslint-disable no-await-in-loop */
+import type { BigNumberish } from 'ethers';
+import { BigNumber } from 'ethers';
 import Utils from '../utils';
 import { nameOf, validateAddress } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -24,7 +26,6 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
-import { BigNumber, BigNumberish } from 'ethers';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -250,7 +251,7 @@ export default class DripsSubgraphClient {
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserMetadataByUser(userId: string): Promise<UserMetadata | null> {
+	public async getMetadataHistoryForUser(userId: string): Promise<UserMetadata | null> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: ${nameOf({ userId })} is missing.`,
@@ -262,7 +263,7 @@ export default class DripsSubgraphClient {
 			userMetadataEvent: ApiUserMetadataEvent | null;
 		};
 
-		const response = await this.query<ApiResponse>(gql.getUserMetadataByUser, { userId });
+		const response = await this.query<ApiResponse>(gql.getMetadataHistoryForUser, { userId });
 
 		const userMetadataEvent = response?.data?.userMetadataEvent;
 
