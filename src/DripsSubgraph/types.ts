@@ -98,13 +98,15 @@ export type ApiUserMetadataEvent = {
 	id: string;
 	key: string;
 	value: string;
+	userId: string;
 	lastUpdatedBlockTimestamp: string;
 };
 
 export type UserMetadata = {
-	userId: string;
+	id: string;
 	key: bigint;
 	value: string;
+	userId: string;
 	lastUpdatedBlockTimestamp: bigint;
 };
 

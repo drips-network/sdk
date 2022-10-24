@@ -83,24 +83,26 @@ query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!) {
 }
 `;
 
-export const getUserMetadataByUserId = `#graphql
-query getUserMetadataByUserId($userId: String!) {
-  userMetadataEvent(id: $userId) {
+export const getUserMetadataByUser = `#graphql
+query getUserMetadataByUser($userId: String!) {
+  userMetadataEvents(where: {userId: $userId}) {
 		id
     key
     value
+    userId
     lastUpdatedBlockTimestamp
   }
 }
 `;
 
-export const getUserMetadataByKey = `#graphql
-query getUserMetadataByKey($key: BigInt!) {
-  userMetadataEvents(where: {key: $key}) {
+export const getLatestUserMetadata = `#graphql
+query getLatestUserMetadata($id: String!) {
+  userMetadataByKey(id: $id) {
 		id
     key
     value
-    lastUpdatedBlockTimestamp
+    userId
+		lastUpdatedBlockTimestamp
   }
 }
 `;

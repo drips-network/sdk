@@ -67,6 +67,7 @@ export const mapDripsReceiverSeenEventToDto = (
 
 /** @internal */
 export const mapUserMetadataEventToDto = (userMetadata: ApiUserMetadataEvent): UserMetadata => ({
+	id: userMetadata.id,
 	userId: userMetadata.id,
 	value: userMetadata.value,
 	key: BigInt(userMetadata.key),

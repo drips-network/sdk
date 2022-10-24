@@ -1,6 +1,4 @@
 /* eslint-disable no-await-in-loop */
-import type { BigNumberish } from 'ethers';
-import { BigNumber } from 'ethers';
 import Utils from '../utils';
 import { nameOf, validateAddress } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
@@ -26,6 +24,7 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
+import { BigNumber, BigNumberish } from 'ethers';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -245,13 +244,13 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the user's metadata.
+	 * Returns the history of all user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's metadata, or `null` if not found.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserMetadataByUserId(userId: string): Promise<UserMetadata | null> {
+	public async getUserMetadataByUser(userId: string): Promise<UserMetadata | null> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: ${nameOf({ userId })} is missing.`,
@@ -263,7 +262,7 @@ export default class DripsSubgraphClient {
 			userMetadataEvent: ApiUserMetadataEvent | null;
 		};
 
-		const response = await this.query<ApiResponse>(gql.getUserMetadataByUserId, { userId });
+		const response = await this.query<ApiResponse>(gql.getUserMetadataByUser, { userId });
 
 		const userMetadataEvent = response?.data?.userMetadataEvent;
 
@@ -271,17 +270,18 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all user metadata given a key.
+	 * Returns the latest metadata update for the given `userId`-`key` pair.
+	 * @param  {string} userId The user ID.
 	 * @param  {string} key The metadata key.
-	 * @returns A `Promise` which resolves to the users' metadata.
-	 * @throws {DripsErrors.argumentMissingError} if the `key` is missing.
+	 * @returns A `Promise` which resolves to the user's metadata.
+	 * @throws {DripsErrors.argumentMissingError} if any of the required parameter is missing.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUserMetadataByKey(key: BigNumberish): Promise<UserMetadata[]> {
-		if (!key) {
+	public async getLatestUserMetadata(userId: string, key: BigNumberish): Promise<UserMetadata[]> {
+		if (!userId || !key) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get user metadata: ${nameOf({ key })} is missing.`,
-				nameOf({ key })
+				`Could not get user metadata: '${nameOf({ userId })}' and '${nameOf({ key })}' are required.`,
+				userId ? nameOf({ userId }) : nameOf({ key })
 			);
 		}
 
@@ -289,7 +289,9 @@ export default class DripsSubgraphClient {
 			userMetadataEvents: ApiUserMetadataEvent[];
 		};
 
-		const response = await this.query<ApiResponse>(gql.getUserMetadataByKey, { key: BigNumber.from(key).toString() });
+		const response = await this.query<ApiResponse>(gql.getLatestUserMetadata, {
+			key: `${userId}-${BigNumber.from(key)}`
+		});
 
 		const userMetadataEvents = response?.data?.userMetadataEvents;
 

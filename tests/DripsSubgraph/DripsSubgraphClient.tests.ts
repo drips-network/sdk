@@ -575,13 +575,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getUserMetadataByUserId()', () => {
+	describe('getUserMetadataByUser()', () => {
 		it('should throw argumentMissingError error when asset ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getUserMetadataByUserId(undefined as unknown as string);
+				await testSubgraphClient.getUserMetadataByUser(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -598,7 +598,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserMetadataByUserId, { userId })
+				.withArgs(gql.getUserMetadataByUser, { userId })
 				.resolves({
 					data: {
 						userMetadataEvent: null
@@ -606,7 +606,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getUserMetadataByUserId(userId);
+			const metadata = await testSubgraphClient.getUserMetadataByUser(userId);
 
 			// Assert
 			assert.isNull(metadata);
@@ -619,12 +619,13 @@ describe('DripsSubgraphClient', () => {
 				id: '1',
 				key: '2',
 				value: '3',
-				lastUpdatedBlockTimestamp: '4'
+				userId: '5',
+				lastUpdatedBlockTimestamp: '5'
 			};
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserMetadataByUserId, { userId })
+				.withArgs(gql.getUserMetadataByUser, { userId })
 				.resolves({
 					data: {
 						userMetadataEvent
@@ -632,7 +633,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getUserMetadataByUserId(userId);
+			const metadata = await testSubgraphClient.getUserMetadataByUser(userId);
 
 			// Assert
 			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
@@ -640,19 +641,35 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata!.value, userMetadataEvent.value);
 			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getUserMetadataByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getUserMetadataByUser, { userId }),
 				'Expected method to be called with different arguments'
 			);
 		});
 	});
 
-	describe('getUserMetadataByKey()', () => {
-		it('should throw argumentMissingError error when asset ID is missing', async () => {
+	describe('getLatestUserMetadata()', () => {
+		it('should throw argumentMissingError error when user ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getUserMetadataByKey(undefined as unknown as string);
+				await testSubgraphClient.getLatestUserMetadata(undefined as unknown as string, 'key');
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentMissingError error when key is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getLatestUserMetadata('1', undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -666,10 +683,11 @@ describe('DripsSubgraphClient', () => {
 		it('should return empty array when no metadata found', async () => {
 			// Arrange
 			const key = '1';
+			const userId = '1';
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getUserMetadataByKey, { key })
+				.withArgs(gql.getLatestUserMetadata, { key: `${userId}-${BigNumber.from(key)}` })
 				.resolves({
 					data: {
 						userMetadataEvents: null
@@ -677,7 +695,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getUserMetadataByKey(key);
+			const metadata = await testSubgraphClient.getLatestUserMetadata(userId, key);
 
 			// Assert
 			assert.isEmpty(metadata);
@@ -685,24 +703,32 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const key = '1';
 			const userMetadataEvents: ApiUserMetadataEvent[] = [
 				{
 					id: '1',
 					key: '2',
 					value: '3',
-					lastUpdatedBlockTimestamp: '4'
+					userId: '4',
+					lastUpdatedBlockTimestamp: '5'
 				}
 			];
 
-			const clientStub = sinon.stub(testSubgraphClient, 'query').withArgs(gql.getUserMetadataByKey, { key }).resolves({
-				data: {
-					userMetadataEvents
-				}
-			});
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getLatestUserMetadata, {
+					key: `${userMetadataEvents[0].userId}-${BigNumber.from(userMetadataEvents[0].key)}`
+				})
+				.resolves({
+					data: {
+						userMetadataEvents
+					}
+				});
 
 			// Act
-			const metadata = await testSubgraphClient.getUserMetadataByKey(key);
+			const metadata = await testSubgraphClient.getLatestUserMetadata(
+				userMetadataEvents[0].userId,
+				userMetadataEvents[0].key
+			);
 
 			// Assert
 			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
@@ -710,7 +736,9 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata![0].value, userMetadataEvents[0].value);
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getUserMetadataByKey, { key }),
+				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, {
+					key: `${userMetadataEvents[0].userId}-${BigNumber.from(userMetadataEvents[0].key)}`
+				}),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -722,7 +750,7 @@ describe('DripsSubgraphClient', () => {
 			const ownerAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
-			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getUserMetadataByKey, { ownerAddress });
+			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getNftSubAccountsByOwner, { ownerAddress });
 
 			// Act
 			await testSubgraphClient.getNftSubAccountsByOwner(ownerAddress);
