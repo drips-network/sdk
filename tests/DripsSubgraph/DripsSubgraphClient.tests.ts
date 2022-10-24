@@ -575,13 +575,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getMetadataHistoryForUser()', () => {
+	describe('getMetadataHistory()', () => {
 		it('should throw argumentMissingError error when asset ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getMetadataHistoryForUser(undefined as unknown as string);
+				await testSubgraphClient.getMetadataHistory(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -592,13 +592,13 @@ describe('DripsSubgraphClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should return null when no metadata found', async () => {
+		it('should return an empty array when no metadata found', async () => {
 			// Arrange
 			const userId = '1';
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getMetadataHistoryForUser, { userId })
+				.withArgs(gql.getMetadataHistoryByUser, { userId })
 				.resolves({
 					data: {
 						userMetadataEvent: null
@@ -606,42 +606,91 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getMetadataHistoryForUser(userId);
+			const metadata = await testSubgraphClient.getMetadataHistory(userId);
 
 			// Assert
-			assert.isNull(metadata);
+			assert.isEmpty(metadata);
 		});
 
-		it('should return the expected result', async () => {
+		it('should return the expected result when querying only by user ID', async () => {
 			// Arrange
-			const userId = '1';
-			const userMetadataEvent: ApiUserMetadataEvent = {
-				id: '1',
-				key: '2',
-				value: '3',
-				userId: '5',
-				lastUpdatedBlockTimestamp: '5'
-			};
+			const userMetadataEvents: ApiUserMetadataEvent[] = [
+				{
+					id: '1',
+					key: '2',
+					value: '3',
+					userId: '5',
+					lastUpdatedBlockTimestamp: '5'
+				}
+			];
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getMetadataHistoryForUser, { userId })
+				.withArgs(gql.getMetadataHistoryByUser, {
+					userId: userMetadataEvents[0].userId
+				})
 				.resolves({
 					data: {
-						userMetadataEvent
+						userMetadataEvents
 					}
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getMetadataHistoryForUser(userId);
+			const metadata = await testSubgraphClient.getMetadataHistory(userMetadataEvents[0].userId);
 
 			// Assert
-			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
-			assert.equal(metadata!.userId, userMetadataEvent.id);
-			assert.equal(metadata!.value, userMetadataEvent.value);
-			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
+			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
+			assert.equal(metadata![0].userId, userMetadataEvents[0].id);
+			assert.equal(metadata![0].value, userMetadataEvents[0].value);
+			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getMetadataHistoryForUser, { userId }),
+				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByUser, {
+					userId: userMetadataEvents[0].userId
+				}),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should return the expected result when querying by user ID and key', async () => {
+			// Arrange
+			const userMetadataEvents: ApiUserMetadataEvent[] = [
+				{
+					id: '1',
+					key: '2',
+					value: '3',
+					userId: '5',
+					lastUpdatedBlockTimestamp: '5'
+				}
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getMetadataHistoryByUserAndKey, {
+					userId: userMetadataEvents[0].userId,
+					key: userMetadataEvents[0].key.toString()
+				})
+				.resolves({
+					data: {
+						userMetadataEvents
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getMetadataHistory(
+				userMetadataEvents[0].userId,
+				userMetadataEvents[0].key
+			);
+
+			// Assert
+			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
+			assert.equal(metadata![0].userId, userMetadataEvents[0].id);
+			assert.equal(metadata![0].value, userMetadataEvents[0].value);
+			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByUserAndKey, {
+					userId: userMetadataEvents[0].userId,
+					key: userMetadataEvents[0].key
+				}),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -680,7 +729,7 @@ describe('DripsSubgraphClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should return empty array when no metadata found', async () => {
+		it('should return null when no metadata found', async () => {
 			// Arrange
 			const key = '1';
 			const userId = '1';
@@ -698,46 +747,41 @@ describe('DripsSubgraphClient', () => {
 			const metadata = await testSubgraphClient.getLatestUserMetadata(userId, key);
 
 			// Assert
-			assert.isEmpty(metadata);
+			assert.isNull(metadata);
 		});
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userMetadataEvents: ApiUserMetadataEvent[] = [
-				{
-					id: '1',
-					key: '2',
-					value: '3',
-					userId: '4',
-					lastUpdatedBlockTimestamp: '5'
-				}
-			];
+			const userMetadataEvent: ApiUserMetadataEvent = {
+				id: '1',
+				key: '2',
+				value: '3',
+				userId: '4',
+				lastUpdatedBlockTimestamp: '5'
+			};
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getLatestUserMetadata, {
-					key: `${userMetadataEvents[0].userId}-${BigNumber.from(userMetadataEvents[0].key)}`
+					key: `${userMetadataEvent.userId}-${BigNumber.from(userMetadataEvent.key)}`
 				})
 				.resolves({
 					data: {
-						userMetadataEvents
+						userMetadataEvent
 					}
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getLatestUserMetadata(
-				userMetadataEvents[0].userId,
-				userMetadataEvents[0].key
-			);
+			const metadata = await testSubgraphClient.getLatestUserMetadata(userMetadataEvent.userId, userMetadataEvent.key);
 
 			// Assert
-			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
-			assert.equal(metadata![0].userId, userMetadataEvents[0].id);
-			assert.equal(metadata![0].value, userMetadataEvents[0].value);
-			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
+			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
+			assert.equal(metadata!.userId, userMetadataEvent.id);
+			assert.equal(metadata!.value, userMetadataEvent.value);
+			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, {
-					key: `${userMetadataEvents[0].userId}-${BigNumber.from(userMetadataEvents[0].key)}`
+					key: `${userMetadataEvent.userId}-${BigNumber.from(userMetadataEvent.key)}`
 				}),
 				'Expected method to be called with different arguments'
 			);
