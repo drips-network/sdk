@@ -297,14 +297,14 @@ export default class DripsSubgraphClient {
 		}
 
 		type ApiResponse = {
-			userMetadataEvent: ApiUserMetadataEvent;
+			userMetadataByKey: ApiUserMetadataEvent;
 		};
 
 		const response = await this.query<ApiResponse>(gql.getLatestUserMetadata, {
 			id: `${userId}-${BigNumber.from(key)}`
 		});
 
-		const userMetadataEvent = response?.data?.userMetadataEvent;
+		const userMetadataEvent = response?.data?.userMetadataByKey;
 
 		return userMetadataEvent ? mapUserMetadataEventToDto(userMetadataEvent) : null;
 	}

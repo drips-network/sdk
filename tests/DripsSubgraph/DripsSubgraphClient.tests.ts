@@ -752,7 +752,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userMetadataEvent: ApiUserMetadataEvent = {
+			const userMetadataByKey: ApiUserMetadataEvent = {
 				id: '1',
 				key: '2',
 				value: '3',
@@ -763,25 +763,25 @@ describe('DripsSubgraphClient', () => {
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getLatestUserMetadata, {
-					id: `${userMetadataEvent.userId}-${BigNumber.from(userMetadataEvent.key)}`
+					id: `${userMetadataByKey.userId}-${BigNumber.from(userMetadataByKey.key)}`
 				})
 				.resolves({
 					data: {
-						userMetadataEvent
+						userMetadataByKey
 					}
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getLatestUserMetadata(userMetadataEvent.userId, userMetadataEvent.key);
+			const metadata = await testSubgraphClient.getLatestUserMetadata(userMetadataByKey.userId, userMetadataByKey.key);
 
 			// Assert
-			assert.equal(metadata!.key.toString(), userMetadataEvent.key);
-			assert.equal(metadata!.userId, userMetadataEvent.userId);
-			assert.equal(metadata!.value, userMetadataEvent.value);
-			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataEvent.lastUpdatedBlockTimestamp);
+			assert.equal(metadata!.key.toString(), userMetadataByKey.key);
+			assert.equal(metadata!.userId, userMetadataByKey.userId);
+			assert.equal(metadata!.value, userMetadataByKey.value);
+			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataByKey.lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, {
-					id: `${userMetadataEvent.userId}-${BigNumber.from(userMetadataEvent.key)}`
+					id: `${userMetadataByKey.userId}-${BigNumber.from(userMetadataByKey.key)}`
 				}),
 				'Expected method to be called with different arguments'
 			);
