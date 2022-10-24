@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AddressDriver, AddressDriverClient, DripsSubgraphClient, Utils } from 'radicle-drips';
+	import { AddressDriver, AddressDriverClient, constants, DripsSubgraphClient, Utils } from 'radicle-drips';
 	import { BigNumber, ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let addressDriverClient: AddressDriverClient;
@@ -71,9 +71,7 @@
 							dripId: BigInt(Math.floor(Math.random() * 1_000_000_000)), // Do NOT use this in production.
 							start: d.config.start ? BigInt(d.config.start) : BigInt(0),
 							duration: d.config.duration ? BigInt(d.config.duration) : BigInt(0),
-							amountPerSec: BigNumber.from(d.config.amountPerSec)
-								.mul(addressDriverClient.dripsHub.constants.AMT_PER_SEC_MULTIPLIER)
-								.toBigInt()
+							amountPerSec: BigNumber.from(d.config.amountPerSec).mul(constants.AMT_PER_SEC_MULTIPLIER).toBigInt()
 						});
 
 						return {
