@@ -3,10 +3,10 @@ import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import type { BigNumberish, BytesLike, ContractReceipt, ContractTransaction, Event } from 'ethers';
-import { Wallet } from 'ethers';
+import { BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
-import type { NFTDriver } from '../../contracts';
-import { NFTDriver__factory } from '../../contracts';
+import type { IERC20, NFTDriver } from '../../contracts';
+import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
@@ -136,6 +136,105 @@ describe('NFTDriverClient', () => {
 			);
 			assert.equal(testNftDriverClient.signerAddress, await signerStub.getAddress());
 			assert.equal(testNftDriverClient.dripsHub.network.chainId, dripsHubClientStub.network.chainId);
+		});
+	});
+
+	describe('getAllowance()', () => {
+		it('should validate the ERC20 address', async () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			const erc20ContractStub = stubInterface<IERC20>();
+
+			erc20ContractStub.allowance
+				.withArgs(await signerStub.getAddress(), testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER)
+				.resolves(BigNumber.from(1));
+
+			sinon
+				.stub(IERC20__factory, 'connect')
+				.withArgs(tokenAddress, testNftDriverClient.signer)
+				.returns(erc20ContractStub);
+
+			// Act
+			await testNftDriverClient.getAllowance(tokenAddress);
+
+			// Assert
+			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
+		});
+
+		it('should call the getAllowance() method of the ERC20 contract', async () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+
+			const erc20ContractStub = stubInterface<IERC20>();
+
+			erc20ContractStub.allowance
+				.withArgs(await signerStub.getAddress(), testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER)
+				.resolves(BigNumber.from(1));
+
+			sinon
+				.stub(IERC20__factory, 'connect')
+				.withArgs(tokenAddress, testNftDriverClient.signer)
+				.returns(erc20ContractStub);
+
+			// Act
+			const allowance = await testNftDriverClient.getAllowance(tokenAddress);
+
+			// Assert
+			assert.equal(allowance, 1n);
+			assert(
+				erc20ContractStub.allowance.calledOnceWithExactly(
+					testNftDriverClient.signerAddress,
+					testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('approve()', () => {
+		it('should validate the ERC20 address', async () => {
+			// Arrange
+			const tokenAddress = 'invalid address';
+			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+
+			const erc20ContractStub = stubInterface<IERC20>();
+
+			sinon
+				.stub(IERC20__factory, 'connect')
+				.withArgs(tokenAddress, testNftDriverClient.signer)
+				.returns(erc20ContractStub);
+
+			// Act
+			await testNftDriverClient.approve(tokenAddress);
+
+			// Assert
+			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
+		});
+
+		it('should call the approve() method of the ERC20 contract', async () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+
+			const erc20ContractStub = stubInterface<IERC20>();
+
+			sinon
+				.stub(IERC20__factory, 'connect')
+				.withArgs(tokenAddress, testNftDriverClient.signer)
+				.returns(erc20ContractStub);
+
+			// Act
+			await testNftDriverClient.approve(tokenAddress);
+
+			// Assert
+			assert(
+				erc20ContractStub.approve.calledOnceWithExactly(
+					testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER,
+					constants.MaxUint256
+				),
+				'Expected method to be called with different arguments'
+			);
 		});
 	});
 

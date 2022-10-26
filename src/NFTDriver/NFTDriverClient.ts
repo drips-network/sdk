@@ -2,9 +2,10 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import type { DripsMetadata } from 'src/common/types';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import { BigNumber } from 'ethers';
+import { constants, BigNumber } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/NFTDriver';
 import type { NFTDriver as NFTDriverContract } from '../../contracts';
+import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 import {
 	formatDripsReceivers,
@@ -17,7 +18,6 @@ import {
 } from '../common/internals';
 import Utils from '../utils';
 import DripsHubClient from '../DripsHub/DripsHubClient';
-import { NFTDriver__factory } from '../../contracts';
 
 /**
  * A client for managing Drips for a user identified by an NFT.
@@ -135,6 +135,39 @@ export default class NFTDriverClient {
 	}
 
 	/**
+	 * Returns the remaining number of tokens the `NFTDriver` smart contract is allowed to spend on behalf of the user for the given ERC20 token.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @returns A `Promise` which resolves to the remaining number of tokens.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
+	 */
+	public async getAllowance(tokenAddress: string): Promise<bigint> {
+		validateAddress(tokenAddress);
+
+		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
+
+		const allowance = await signerAsErc20Contract.allowance(
+			this.#signerAddress,
+			this.#dripsMetadata.CONTRACT_NFT_DRIVER
+		);
+
+		return allowance.toBigInt();
+	}
+
+	/**
+	 * Sets the maximum allowance value for the `NFTDriver` smart contract over the user's tokens for the given ERC20 token.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @returns A `Promise` which resolves to the `ContractTransaction`.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` is not valid.
+	 */
+	public approve(tokenAddress: string): Promise<ContractTransaction> {
+		validateAddress(tokenAddress);
+
+		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
+
+		return signerAsErc20Contract.approve(this.#dripsMetadata.CONTRACT_NFT_DRIVER, constants.MaxUint256);
+	}
+
+	/**
 	 * Mints a new token controlling a new user ID and transfers it to an address.
 	 * Usage of this method is discouraged, use `safeMint` whenever possible.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
@@ -221,7 +254,7 @@ export default class NFTDriverClient {
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `DripsHub` smart contract.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID.
+	 * @param  {BigNumberish} tokenId The ID of the token representing the giving user.
 	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
@@ -267,14 +300,14 @@ export default class NFTDriverClient {
 	/**
 	 * Sets a drips configuration.
 	 * Transfers funds from the user's wallet to the `DripsHub` smart contract to fulfill the change of the drips balance.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID.
+	 * @param  {BigNumberish} tokenId The ID of the token representing the configured user ID.
 	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
 	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).
 	 * Duplicate receivers are not allowed and will only be processed once.
-	 * Pass an empty array if you want to clear all receivers.
+	 * Pass an empty array  if you want to clear all receivers.
 	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.
 	 * @param  {BigNumberish} balanceDelta The drips balance change to be applied:
 	 * - Positive to add funds to the drips balance.
@@ -338,7 +371,8 @@ export default class NFTDriverClient {
 
 	/**
 	 * Sets the splits configuration.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID. The token ID is equal to the user ID controlled by it.
+	 * @param  {BigNumberish} tokenId The ID of the token representing the configured user ID.
+	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
