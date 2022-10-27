@@ -112,13 +112,10 @@
 					</Modal>
 				</li>
 				<li>
-					<a href="https://v2.docs.drips.network/docs/whats-a-drip.html" target="_blank" class="menu-item"
-						><span>Docs</span></a
-					>
+					<a href="https://v2.docs.drips.network/docs/whats-a-drip.html" class="menu-item"><span>Docs</span></a>
 				</li>
 				<li>
-					<a href="https://github.com/radicle-dev/drips-js-sdk" target="_blank" class="menu-item"><span>GitHub</span></a
-					>
+					<a href="https://github.com/radicle-dev/drips-js-sdk" class="menu-item"><span>GitHub</span></a>
 				</li>
 				<li>
 					<button class="btn-disclaimer" on:click={toggleTheme}>
