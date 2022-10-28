@@ -1,0 +1,9 @@
+overwrite: true
+schema: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+generates:
+  src/DripsSubgraph/generated/graphql-types.ts:
+    plugins:
+      - 'typescript'
+  src/DripsSubgraph/generated/graphql.schema.json:
+    plugins:
+      - 'introspection'

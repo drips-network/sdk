@@ -1,0 +1,2 @@
+schema: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+documents: 'src/**/*.{gql,js,ts,jsx,tsx}'
