@@ -5,19 +5,14 @@ import Utils from '../utils';
 import { nameOf, validateAddress } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
+import type * as SubgraphTypes from './generated/graphql-types';
 import type {
 	DripsSetEvent,
-	ApiUserAssetConfig,
 	SplitsEntry,
 	UserAssetConfig,
-	ApiSplitsEntry,
-	ApiDripsSetEvent,
 	DripsReceiverSeenEvent,
-	ApiDripsReceiverSeenEvent,
-	ApiUserMetadataEvent,
 	UserMetadata,
-	NftSubAccount,
-	ApiNftSubAccount
+	NftSubAccount
 } from './types';
 import {
 	mapDripsReceiverSeenEventToDto,
@@ -99,11 +94,11 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
-			userAssetConfig: ApiUserAssetConfig;
+		type QueryResponse = {
+			userAssetConfig: SubgraphTypes.UserAssetConfig;
 		};
 
-		const response = await this.query<ApiResponse>(gql.getUserAssetConfigById, {
+		const response = await this.query<QueryResponse>(gql.getUserAssetConfigById, {
 			configId: `${userId}-${assetId}`
 		});
 
@@ -127,13 +122,13 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
+		type QueryResponse = {
 			user: {
-				assetConfigs: ApiUserAssetConfig[];
+				assetConfigs: SubgraphTypes.UserAssetConfig[];
 			};
 		};
 
-		const response = await this.query<ApiResponse>(gql.getAllUserAssetConfigsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getAllUserAssetConfigsByUserId, { userId });
 
 		return response?.data?.user?.assetConfigs?.map(mapUserAssetConfigToDto) || [];
 	}
@@ -153,13 +148,13 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
+		type QueryResponse = {
 			user: {
-				splitsEntries: ApiSplitsEntry[];
+				splitsEntries: SubgraphTypes.SplitsEntry[];
 			};
 		};
 
-		const response = await this.query<ApiResponse>(gql.getSplitsConfigByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getSplitsConfigByUserId, { userId });
 
 		return response?.data?.user?.splitsEntries?.map(mapSplitEntryToDto) || [];
 	}
@@ -179,11 +174,11 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
-			dripsSetEvents: ApiDripsSetEvent[];
+		type QueryResponse = {
+			dripsSetEvents: SubgraphTypes.DripsSetEvent[];
 		};
 
-		const response = await this.query<ApiResponse>(gql.getDripsSetEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getDripsSetEventsByUserId, { userId });
 
 		return response?.data?.dripsSetEvents?.map(mapDripsSetEventToDto) || [];
 	}
@@ -203,11 +198,11 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
-			dripsReceiverSeenEvents: ApiDripsReceiverSeenEvent[];
+		type QueryResponse = {
+			dripsReceiverSeenEvents: SubgraphTypes.DripsReceiverSeenEvent[];
 		};
 
-		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId });
+		const response = await this.query<QueryResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId });
 		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
 
 		if (!dripsReceiverSeenEvents?.length) {
@@ -260,19 +255,19 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
-			userMetadataEvents: ApiUserMetadataEvent[];
+		type QueryResponse = {
+			userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
 		};
 
-		let response: { data: ApiResponse };
+		let response: { data: QueryResponse };
 
 		if (key) {
-			response = await this.query<ApiResponse>(gql.getMetadataHistoryByUserAndKey, {
+			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
 				userId,
 				key: `${BigNumber.from(key)}`
 			});
 		} else {
-			response = await this.query<ApiResponse>(gql.getMetadataHistoryByUser, { userId });
+			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUser, { userId });
 		}
 
 		const userMetadataEvents = response?.data?.userMetadataEvents;
@@ -296,11 +291,11 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		type ApiResponse = {
-			userMetadataByKey: ApiUserMetadataEvent;
+		type QueryResponse = {
+			userMetadataByKey: SubgraphTypes.UserMetadataEvent;
 		};
 
-		const response = await this.query<ApiResponse>(gql.getLatestUserMetadata, {
+		const response = await this.query<QueryResponse>(gql.getLatestUserMetadata, {
 			id: `${userId}-${BigNumber.from(key)}`
 		});
 
@@ -319,11 +314,11 @@ export default class DripsSubgraphClient {
 	public async getNftSubAccountsByOwner(ownerAddress: string): Promise<NftSubAccount[]> {
 		validateAddress(ownerAddress);
 
-		type ApiResponse = {
-			nftsubAccounts: ApiNftSubAccount[];
+		type QueryResponse = {
+			nftsubAccounts: SubgraphTypes.NftSubAccount[];
 		};
 
-		const response = await this.query<ApiResponse>(gql.getNftSubAccountsByOwner, { ownerAddress });
+		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, { ownerAddress });
 
 		const nftSubAccounts = response?.data?.nftsubAccounts;
 

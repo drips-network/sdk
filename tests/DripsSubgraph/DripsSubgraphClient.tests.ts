@@ -6,19 +6,14 @@ import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import * as gql from '../../src/DripsSubgraph/gql';
 import type {
 	UserAssetConfig,
-	ApiUserAssetConfig,
-	ApiSplitsEntry,
-	ApiDripsSetEvent,
 	SplitsEntry,
 	DripsSetEvent,
-	ApiDripsReceiverSeenEvent,
-	DripsReceiverSeenEvent,
-	ApiUserMetadataEvent,
-	ApiNftSubAccount
+	DripsReceiverSeenEvent
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
 import * as internals from '../../src/common/internals';
+import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -117,7 +112,7 @@ describe('DripsSubgraphClient', () => {
 			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
-			const apiConfig: ApiUserAssetConfig = {
+			const apiConfig: SubgraphTypes.UserAssetConfig = {
 				id: configId,
 				assetId: assetId.toString(),
 				balance: '3',
@@ -130,7 +125,7 @@ describe('DripsSubgraphClient', () => {
 					}
 				],
 				lastUpdatedBlockTimestamp: '6'
-			};
+			} as SubgraphTypes.UserAssetConfig;
 
 			sinon
 				.stub(testSubgraphClient, 'query')
@@ -154,7 +149,7 @@ describe('DripsSubgraphClient', () => {
 			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
-			const apiConfig: ApiUserAssetConfig = {
+			const apiConfig: SubgraphTypes.UserAssetConfig = {
 				id: configId,
 				assetId: assetId.toString(),
 				balance: '3',
@@ -167,7 +162,7 @@ describe('DripsSubgraphClient', () => {
 					}
 				],
 				lastUpdatedBlockTimestamp: '6'
-			};
+			} as SubgraphTypes.UserAssetConfig;
 
 			const queryStub = sinon
 				.stub(testSubgraphClient, 'query')
@@ -218,7 +213,7 @@ describe('DripsSubgraphClient', () => {
 			const assetId = 2n;
 			const configId = `${userId}-${assetId}`;
 
-			const apiConfigs: ApiUserAssetConfig[] = [
+			const apiConfigs: SubgraphTypes.UserAssetConfig[] = [
 				{
 					id: configId,
 					assetId: assetId.toString(),
@@ -233,7 +228,7 @@ describe('DripsSubgraphClient', () => {
 						}
 					],
 					lastUpdatedBlockTimestamp: '6'
-				}
+				} as SubgraphTypes.UserAssetConfig
 			];
 
 			const queryStub = sinon
@@ -261,7 +256,7 @@ describe('DripsSubgraphClient', () => {
 				'Expected method to be called with different arguments'
 			);
 			assert(
-				mapperStub.calledOnceWith(sinon.match((c: ApiUserAssetConfig) => c.id === apiConfigs[0].id)),
+				mapperStub.calledOnceWith(sinon.match((c: SubgraphTypes.UserAssetConfig) => c.id === apiConfigs[0].id)),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -307,12 +302,12 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
-			const splitsEntries: ApiSplitsEntry[] = [
+			const splitsEntries: SubgraphTypes.SplitsEntry[] = [
 				{
 					id: '1',
 					weight: '2',
 					userId: '3'
-				}
+				} as SubgraphTypes.SplitsEntry
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
@@ -388,10 +383,10 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
-			const dripsSetEvents: ApiDripsSetEvent[] = [
+			const dripsSetEvents: SubgraphTypes.DripsSetEvent[] = [
 				{
 					userId: '1'
-				} as ApiDripsSetEvent
+				} as SubgraphTypes.DripsSetEvent
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
@@ -465,11 +460,11 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const receiverUserId = '1';
-			const dripsReceiverSeenEvents: ApiDripsReceiverSeenEvent[] = [
+			const dripsReceiverSeenEvents: SubgraphTypes.DripsReceiverSeenEvent[] = [
 				{
 					receiverUserId: '1',
-					dripsSetEvent: {} as ApiDripsSetEvent
-				} as unknown as ApiDripsReceiverSeenEvent
+					dripsSetEvent: {} as SubgraphTypes.DripsSetEvent
+				} as unknown as SubgraphTypes.DripsReceiverSeenEvent
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
@@ -614,7 +609,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result when querying only by user ID', async () => {
 			// Arrange
-			const userMetadataEvents: ApiUserMetadataEvent[] = [
+			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
 				{
 					id: '1',
 					key: '2',
@@ -653,7 +648,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result when querying by user ID and key', async () => {
 			// Arrange
-			const userMetadataEvents: ApiUserMetadataEvent[] = [
+			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
 				{
 					id: '1',
 					key: '2',
@@ -752,7 +747,7 @@ describe('DripsSubgraphClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userMetadataByKey: ApiUserMetadataEvent = {
+			const userMetadataByKey: SubgraphTypes.UserMetadataEvent = {
 				id: '1',
 				key: '2',
 				value: '3',
@@ -826,7 +821,7 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const ownerAddress = Wallet.createRandom().address;
-			const nftsubAccounts: ApiNftSubAccount[] = [
+			const nftsubAccounts: SubgraphTypes.NftSubAccount[] = [
 				{
 					id: '1',
 					ownerAddress: Wallet.createRandom().address
