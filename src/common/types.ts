@@ -39,10 +39,3 @@ export type CycleInfo = {
 };
 
 export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
-
-export type ReceivableDrips = {
-	/** The amount which would be received. */
-	receivableAmt: bigint;
-	/** The number of cycles which would still be receivable after the call. */
-	receivableCycles: number;
-};

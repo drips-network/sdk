@@ -12,9 +12,10 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import type { DripsHistoryStruct, DripsReceiverStruct } from '../../contracts/DripsHub';
-import type { DripsReceiverConfig, ReceivableDrips } from '../../src/common/types';
+import type { DripsReceiverConfig } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
+import type { ReceivableDrips } from '../../src/DripsHub/types';
 
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -719,14 +720,14 @@ describe('DripsHubClient', () => {
 		});
 	});
 
-	describe('getBalancesForUser()', () => {
+	describe('getAllReceivableBalancesForUser()', () => {
 		it('should throw argumentMissingError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 
 			try {
 				// Act
-				await testDripsHubClient.getBalancesForUser(undefined as unknown as string);
+				await testDripsHubClient.getAllReceivableBalancesForUser(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -743,7 +744,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getBalancesForUser('1', -1);
+				await testDripsHubClient.getAllReceivableBalancesForUser('1', -1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -762,7 +763,7 @@ describe('DripsHubClient', () => {
 			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
 
 			// Act
-			const balances = await testDripsHubClient.getBalancesForUser(userId, maxCycles);
+			const balances = await testDripsHubClient.getAllReceivableBalancesForUser(userId, maxCycles);
 
 			// Assert
 			assert.isEmpty(balances);
@@ -772,22 +773,26 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 			const maxCycles = 10;
+			const tokenAddress1 = Wallet.createRandom().address;
+			const tokenAddress2 = Wallet.createRandom().address;
 
 			const dripsSetEvents: DripsSetEvent[] = [
 				{
-					assetId: Utils.Asset.getIdFromAddress(Wallet.createRandom().address)
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
 				} as DripsSetEvent,
 				{
-					assetId: Utils.Asset.getIdFromAddress(Wallet.createRandom().address)
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
 				} as DripsSetEvent
 			];
 
 			const receivableDrips: ReceivableDrips[] = [
 				{
+					tokenAddress: tokenAddress1,
 					receivableAmt: BigInt(1),
 					receivableCycles: 1
 				},
 				{
+					tokenAddress: tokenAddress2,
 					receivableAmt: BigInt(2),
 					receivableCycles: 2
 				}
@@ -803,15 +808,15 @@ describe('DripsHubClient', () => {
 			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
 
 			// Act
-			const balances = await testDripsHubClient.getBalancesForUser(userId, maxCycles);
+			const balances = await testDripsHubClient.getAllReceivableBalancesForUser(userId, maxCycles);
 
 			// Assert
 			assert.equal(balances[0].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[0].assetId));
-			assert.equal(balances[0].receivableDrips.receivableAmt, receivableDrips[0].receivableAmt);
-			assert.equal(balances[0].receivableDrips.receivableCycles, receivableDrips[0].receivableCycles);
+			assert.equal(balances[0].receivableAmt, receivableDrips[0].receivableAmt);
+			assert.equal(balances[0].receivableCycles, receivableDrips[0].receivableCycles);
 			assert.equal(balances[1].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[1].assetId));
-			assert.equal(balances[1].receivableDrips.receivableAmt, receivableDrips[1].receivableAmt);
-			assert.equal(balances[1].receivableDrips.receivableCycles, receivableDrips[1].receivableCycles);
+			assert.equal(balances[1].receivableAmt, receivableDrips[1].receivableAmt);
+			assert.equal(balances[1].receivableCycles, receivableDrips[1].receivableCycles);
 		});
 	});
 });

@@ -1,5 +1,3 @@
-import type { ReceivableDrips } from 'src/common/types';
-
 export type DripsState = {
 	/** The current drips receivers list hash. */
 	dripsHash: string;
@@ -13,7 +11,13 @@ export type DripsState = {
 	maxEnd: number;
 };
 
-export type ReceivableTokenBalance = {
+export type ReceivableDrips = {
+	/** The token address. */
 	tokenAddress: string;
-	receivableDrips: ReceivableDrips;
+
+	/** The amount which would be received. */
+	receivableAmt: bigint;
+
+	/** The number of cycles which would still be receivable after the call. */
+	receivableCycles: number;
 };

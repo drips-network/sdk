@@ -3,11 +3,10 @@ import {
 	DripsMetadata,
 	CycleInfo,
 	DripsReceiver,
-	ReceivableDrips,
 	DripsReceiverStruct,
 	SplitsReceiverStruct
 } from './common/types';
-import { DripsState, ReceivableTokenBalance } from './DripsHub/types';
+import { DripsState, ReceivableDrips } from './DripsHub/types';
 import {
 	UserAssetConfig,
 	SplitsEntry,
@@ -63,6 +62,5 @@ export {
 	DripsReceiverStruct,
 	DripsReceiverConfig,
 	SplitsReceiverStruct,
-	DripsReceiverSeenEvent,
-	ReceivableTokenBalance
+	DripsReceiverSeenEvent
 };

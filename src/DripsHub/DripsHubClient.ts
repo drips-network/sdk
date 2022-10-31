@@ -1,6 +1,6 @@
 import type { Network } from '@ethersproject/networks';
 import type { Provider } from '@ethersproject/providers';
-import type { DripsMetadata, ReceivableDrips } from 'src/common/types';
+import type { DripsMetadata } from 'src/common/types';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct } from 'contracts/DripsHub';
@@ -11,7 +11,7 @@ import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
-import type { DripsState, ReceivableTokenBalance } from './types';
+import type { DripsState, ReceivableDrips } from './types';
 
 /**
  * A client for interacting with the read-only {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub} API.
@@ -129,16 +129,16 @@ export default class DripsHubClient {
 	}
 
 	/**
-	 * Calculates the receivable drips.
+	 * Calculates the receivable drips for the given parameters.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
 	 * If too high, receiving may become too expensive to fit in a single transaction.
-	 * @returns A `Promise` which resolves to the {@link ReceivableDrips}.
+	 * @returns A `Promise` which resolves to the receivable drips.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
-	 * @throws {DripsErrors.argumentError} if the `maxCycles` is less than or equal to `0`.
+	 * @throws {DripsErrors.argumentError} if the `maxCycles` is not valid.
 	 */
 	public async getReceivableDrips(
 		userId: string,
@@ -165,13 +165,14 @@ export default class DripsHubClient {
 		const receivableDrips = await this.#dripsHubContract.receiveDripsResult(userId, tokenAddress, maxCycles);
 
 		return {
+			tokenAddress,
 			receivableAmt: receivableDrips.receivableAmt.toBigInt(),
 			receivableCycles: receivableDrips.receivableCycles
 		};
 	}
 
 	/**
-	 * Receives drips.
+	 * Receives drips for the user. Calling this function does not collect but makes the funds ready to be split and collected.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
@@ -383,14 +384,20 @@ export default class DripsHubClient {
 	}
 
 	/**
-	 * Returns the receivable balance for all user tokens.
+	 * Calculates the receivable drips for all user tokens.
 	 * @param  {string} userId The user ID.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. When set, it must be greater than `0`.
-	 * @returns A `Promise` which resolves to the receivable token balances.
-	 * @throws {DripsErrors.argumentError} if `maxCycles` is less than `0`.
+	 * If too low, receiving will be cheap, but may not cover many cycles.
+	 * If too high, receiving may become too expensive to fit in a single transaction.
+	 * @returns A `Promise` which resolves to the receivable drips.
+	 * @see {@link getReceivableDrips} for calculating the receivable drips for a _single_ token.
 	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {DripsErrors.argumentError} if `maxCycles` is not valid.
 	 */
-	public async getBalancesForUser(userId: string, maxCycles: number = 2 ** 32 - 1): Promise<ReceivableTokenBalance[]> {
+	public async getAllReceivableBalancesForUser(
+		userId: string,
+		maxCycles: number = 2 ** 32 - 1
+	): Promise<ReceivableDrips[]> {
 		if (isNullOrUndefined(userId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get balances: '${nameOf({ userId })}' is missing.`,
@@ -419,22 +426,16 @@ export default class DripsHubClient {
 			return unique;
 		}, []);
 
-		const tokenBalances: Promise<{
-			tokenAddress: string;
-			receivableDrips: ReceivableDrips;
-		}>[] = [];
+		const tokenDrips: Promise<ReceivableDrips>[] = [];
 
-		uniqueTokenEvents.forEach(async (dripsSetEvent) => {
+		uniqueTokenEvents.forEach((dripsSetEvent) => {
 			const tokenAddress = Utils.Asset.getAddressFromId(dripsSetEvent.assetId);
 
-			const promise = this.getReceivableDrips(userId, tokenAddress, maxCycles).then((receivableDrips) => ({
-				tokenAddress,
-				receivableDrips
-			}));
+			const getReceivableDripsPromise = this.getReceivableDrips(userId, tokenAddress, maxCycles);
 
-			tokenBalances.push(promise);
+			tokenDrips.push(getReceivableDripsPromise);
 		});
 
-		return Promise.all(tokenBalances);
+		return Promise.all(tokenDrips);
 	}
 }
