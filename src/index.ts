@@ -1,4 +1,12 @@
-import { DripsReceiverConfig, DripsMetadata, CycleInfo, DripsReceiver, ReceivableDrips } from './common/types';
+import {
+	DripsReceiverConfig,
+	DripsMetadata,
+	CycleInfo,
+	DripsReceiver,
+	ReceivableDrips,
+	DripsReceiverStruct,
+	SplitsReceiverStruct
+} from './common/types';
 import { DripsState, ReceivableTokenBalance } from './DripsHub/types';
 import {
 	UserAssetConfig,
@@ -52,7 +60,9 @@ export {
 	DripsReceiver,
 	UserAssetConfig,
 	ReceivableDrips,
+	DripsReceiverStruct,
 	DripsReceiverConfig,
+	SplitsReceiverStruct,
 	DripsReceiverSeenEvent,
 	ReceivableTokenBalance
 };
