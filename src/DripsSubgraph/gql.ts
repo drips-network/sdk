@@ -96,7 +96,7 @@ query getMetadataHistoryByUser($userId: String!) {
 `;
 
 export const getMetadataHistoryByUserAndKey = `#graphql
-query getMetadataHistoryByUserAndKey($userId: String!, $key: String!) {
+query getMetadataHistoryByUserAndKey($userId: String!, $key: BigInt!) {
   userMetadataEvents(where: {userId: $userId, key: $key}) {
 		id
     key
@@ -108,7 +108,7 @@ query getMetadataHistoryByUserAndKey($userId: String!, $key: String!) {
 `;
 
 export const getLatestUserMetadata = `#graphql
-query getLatestUserMetadata($id: String!) {
+query getLatestUserMetadata($id: ID!) {
   userMetadataByKey(id: $id) {
 		id
     key
@@ -120,7 +120,7 @@ query getLatestUserMetadata($id: String!) {
 `;
 
 export const getNftSubAccountsByOwner = `#graphql
-query getNftSubAccountsByOwner($ownerAddress: String!) {
+query getNftSubAccountsByOwner($ownerAddress: Bytes!) {
 	nftsubAccounts(where: {ownerAddress: $ownerAddress}) {
 		id
 		ownerAddress

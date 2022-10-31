@@ -1,5 +1,6 @@
-# Generated contracts
+# Generated code
 contracts
+src/DripsSubgraph/generated/**/*
 
 # Tests coverage
 coverage

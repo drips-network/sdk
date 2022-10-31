@@ -6,26 +6,20 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
-import type {
-	ApiDripsReceiverSeenEvent,
-	ApiDripsSetEvent,
-	ApiSplitsEntry,
-	ApiUserAssetConfig,
-	ApiUserMetadataEvent
-} from '../../src/DripsSubgraph/types';
+import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 
 describe('mappers', () => {
 	describe('mapUserAssetConfigToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiConfig: ApiUserAssetConfig = {
+			const apiConfig: SubgraphTypes.UserAssetConfig = {
 				id: '1',
 				assetId: '2',
 				dripsEntries: [{ id: '1', userId: '3', config: '4' }],
 				balance: '5',
 				amountCollected: '6',
 				lastUpdatedBlockTimestamp: '7'
-			};
+			} as SubgraphTypes.UserAssetConfig;
 
 			// Act
 			const result = mapUserAssetConfigToDto(apiConfig);
@@ -45,7 +39,7 @@ describe('mappers', () => {
 	describe('mapDripsSetEventToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiDripsSetEvent: ApiDripsSetEvent = {
+			const apiDripsSetEvent: SubgraphTypes.DripsSetEvent = {
 				id: '100',
 				userId: '1',
 				assetId: '2',
@@ -55,7 +49,7 @@ describe('mappers', () => {
 				blockTimestamp: '7',
 				maxEnd: '7',
 				receiversHash: '0x00'
-			};
+			} as SubgraphTypes.DripsSetEvent;
 
 			// Act
 			const result = mapDripsSetEventToDto(apiDripsSetEvent);
@@ -83,11 +77,11 @@ describe('mappers', () => {
 	describe('mapSplitEntryToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiSplitEntry: ApiSplitsEntry = {
+			const apiSplitEntry: SubgraphTypes.SplitsEntry = {
 				id: '100',
 				userId: '1',
 				weight: '2'
-			};
+			} as SubgraphTypes.SplitsEntry;
 
 			// Act
 			const result = mapSplitEntryToDto(apiSplitEntry);
@@ -102,7 +96,7 @@ describe('mappers', () => {
 	describe('mapDripsReceiverSeenEventToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiDripsReceiverSeenEvent: ApiDripsReceiverSeenEvent = {
+			const apiDripsReceiverSeenEvent: SubgraphTypes.DripsReceiverSeenEvent = {
 				id: '100',
 				config: '1',
 				dripsSetEvent: {
@@ -113,7 +107,7 @@ describe('mappers', () => {
 				receiverUserId: '2',
 				senderUserId: '3',
 				blockTimestamp: '4'
-			};
+			} as SubgraphTypes.DripsReceiverSeenEvent;
 
 			// Act
 			const result = mapDripsReceiverSeenEventToDto(apiDripsReceiverSeenEvent);
@@ -133,13 +127,13 @@ describe('mappers', () => {
 	describe('mapUserMetadataEventToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiUserMetadataEvent: ApiUserMetadataEvent = {
+			const apiUserMetadataEvent: SubgraphTypes.UserMetadataEvent = {
 				id: '100',
 				userId: '1',
 				value: '2',
 				key: '3',
 				lastUpdatedBlockTimestamp: '4'
-			};
+			} as SubgraphTypes.UserMetadataEvent;
 
 			// Act
 			const result = mapUserMetadataEventToDto(apiUserMetadataEvent);

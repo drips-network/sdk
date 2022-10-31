@@ -17,7 +17,7 @@
 	"scripts": {
 		"lint": "eslint . --ext .ts",
 		"lint-and-fix": "eslint . --ext .ts --fix",
-		"build": "npm run build:contracts && npm run build:lib && npx typedoc --excludeInternal src/index.ts",
+		"build": "npm run generate-graphql-types && npm run build:contracts && npm run build:lib && npx typedoc --excludeInternal src/index.ts",
 		"build:lib": "tsup --dts",
 		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/abi/**.json",
 		"build:lib-fast": "tsup",
@@ -25,10 +25,12 @@
 		"prepare": "npm run build",
 		"pretest": "tsup",
 		"test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'",
-		"test:coverage": "nyc npm run test"
+		"test:coverage": "nyc npm run test",
+		"generate-graphql-types": "graphql-codegen --config graphql.codegen.yml"
 	},
 	"devDependencies": {
 		"@ethersproject/providers": "^5.6.8",
+		"@graphql-codegen/cli": "2.13.8",
 		"@istanbuljs/nyc-config-typescript": "^1.0.2",
 		"@typechain/ethers-v5": "^10.0.0",
 		"@types/chai": "^4.3.1",
@@ -44,6 +46,7 @@
 		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-prettier": "^4.0.0",
 		"ethers": "^5.6.2",
+		"graphql": "^16.6.0",
 		"mocha": "^10.0.0",
 		"nodemon": "^2.0.16",
 		"nyc": "^15.1.0",
@@ -55,7 +58,9 @@
 		"typechain": "^8.0.0",
 		"typedoc": "^0.22.17",
 		"typescript": "^4.6.4",
-		"web3": "^1.7.3"
+		"web3": "^1.7.3",
+		"@graphql-codegen/typescript": "2.8.0",
+		"@graphql-codegen/introspection": "2.2.1"
 	},
 	"peerDependencies": {
 		"ethers": "^5.6.2"

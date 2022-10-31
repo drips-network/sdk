@@ -1,18 +1,8 @@
-import type {
-	ApiDripsReceiverSeenEvent,
-	ApiDripsSetEvent,
-	ApiSplitsEntry,
-	ApiUserAssetConfig,
-	ApiUserMetadataEvent,
-	DripsReceiverSeenEvent,
-	DripsSetEvent,
-	SplitsEntry,
-	UserAssetConfig,
-	UserMetadata
-} from './types';
+import type { DripsReceiverSeenEvent, DripsSetEvent, SplitsEntry, UserAssetConfig, UserMetadata } from './types';
+import type * as SubgraphTypes from './generated/graphql-types';
 
 /** @internal */
-export const mapUserAssetConfigToDto = (userAssetConfig: ApiUserAssetConfig): UserAssetConfig => ({
+export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
 	id: userAssetConfig.id,
 	assetId: BigInt(userAssetConfig.assetId),
 	dripsEntries: userAssetConfig.dripsEntries?.map((d) => ({
@@ -26,14 +16,14 @@ export const mapUserAssetConfigToDto = (userAssetConfig: ApiUserAssetConfig): Us
 });
 
 /** @internal */
-export const mapSplitEntryToDto = (splitEntry: ApiSplitsEntry): SplitsEntry => ({
+export const mapSplitEntryToDto = (splitEntry: SubgraphTypes.SplitsEntry): SplitsEntry => ({
 	id: splitEntry.id,
 	userId: splitEntry.userId,
 	weight: BigInt(splitEntry.weight)
 });
 
 /** @internal */
-export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSetEvent => ({
+export const mapDripsSetEventToDto = (dripsSetEvent: SubgraphTypes.DripsSetEvent): DripsSetEvent => ({
 	id: dripsSetEvent.id,
 	userId: dripsSetEvent.userId,
 	assetId: BigInt(dripsSetEvent.assetId),
@@ -51,7 +41,7 @@ export const mapDripsSetEventToDto = (dripsSetEvent: ApiDripsSetEvent): DripsSet
 
 /** @internal */
 export const mapDripsReceiverSeenEventToDto = (
-	dripsReceiverSeenEvent: ApiDripsReceiverSeenEvent
+	dripsReceiverSeenEvent: SubgraphTypes.DripsReceiverSeenEvent
 ): DripsReceiverSeenEvent => ({
 	id: dripsReceiverSeenEvent.id,
 	config: BigInt(dripsReceiverSeenEvent.config),
@@ -66,7 +56,7 @@ export const mapDripsReceiverSeenEventToDto = (
 });
 
 /** @internal */
-export const mapUserMetadataEventToDto = (userMetadata: ApiUserMetadataEvent): UserMetadata => ({
+export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadata => ({
 	id: userMetadata.id,
 	value: userMetadata.value,
 	userId: userMetadata.userId,
