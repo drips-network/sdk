@@ -11,13 +11,31 @@ export type DripsState = {
 	maxEnd: number;
 };
 
-export type ReceivableDrips = {
+export type ReceivableBalance = {
 	/** The token address. */
 	tokenAddress: string;
 
 	/** The amount which would be received. */
-	receivableAmt: bigint;
+	receivableAmount: bigint;
 
-	/** The number of cycles which would still be receivable after the call. */
-	receivableCycles: number;
+	/** The number of cycles that would still be receivable after `receivableAmount` is received. */
+	remainingReceivableCycles: number;
 };
+
+export type SplittableBalance = {
+	/** The token address. */
+	tokenAddress: string;
+
+	/** The amount which would be splitted. */
+	splittableAmount: bigint;
+};
+
+export type CollectableBalance = {
+	/** The token address. */
+	tokenAddress: string;
+
+	/** The amount which would be collected. */
+	collectableAmount: bigint;
+};
+
+export type AssetId = bigint;

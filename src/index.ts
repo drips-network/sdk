@@ -6,7 +6,7 @@ import {
 	DripsReceiverStruct,
 	SplitsReceiverStruct
 } from './common/types';
-import { DripsState, ReceivableDrips } from './DripsHub/types';
+import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance } from './DripsHub/types';
 import {
 	UserAssetConfig,
 	SplitsEntry,
@@ -58,7 +58,9 @@ export {
 	DripsMetadata,
 	DripsReceiver,
 	UserAssetConfig,
-	ReceivableDrips,
+	ReceivableBalance,
+	SplittableBalance,
+	CollectableBalance,
 	DripsReceiverStruct,
 	DripsReceiverConfig,
 	SplitsReceiverStruct,

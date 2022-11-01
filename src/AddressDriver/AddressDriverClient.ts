@@ -31,7 +31,7 @@ export default class AddressDriverClient {
 
 	#signer!: JsonRpcSigner;
 	/**
-	 * Returns the user.
+	 * Returns the `AddressDriverClient`'s `signer`.
 	 *
 	 * This is the user to which the `AddressDriverClient` is linked and manages Drips.
 	 *
