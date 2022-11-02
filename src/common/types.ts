@@ -14,7 +14,7 @@ export type DripsReceiverConfig = {
 	amountPerSec: bigint;
 };
 
-export type DripsMetadata = {
+export type NetworkConfig = {
 	readonly NAME: string;
 	readonly CYCLE_SECS: string;
 	readonly SUBGRAPH_URL: string;

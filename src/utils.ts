@@ -2,11 +2,11 @@ import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
 import { validateAddress, validateDripsReceiverConfig } from './common/internals';
-import type { DripsMetadata, CycleInfo, DripsReceiverConfig } from './common/types';
+import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
 
 namespace Utils {
 	export namespace Network {
-		export const dripsMetadata: Record<number, DripsMetadata> = {
+		export const configs: Record<number, NetworkConfig> = {
 			5: {
 				NAME: 'goerli',
 				CYCLE_SECS: '604800', // 1 week.
@@ -27,7 +27,7 @@ namespace Utils {
 		};
 
 		export const SUPPORTED_CHAINS: readonly number[] = Object.freeze(
-			Object.keys(dripsMetadata).map((chainId) => parseInt(chainId, 10))
+			Object.keys(configs).map((chainId) => parseInt(chainId, 10))
 		);
 
 		export const isSupportedChain = (chainId: number) => {
@@ -49,7 +49,7 @@ namespace Utils {
 				);
 			}
 
-			const cycleDurationSecs = BigInt(Network.dripsMetadata[chainId].CYCLE_SECS);
+			const cycleDurationSecs = BigInt(Network.configs[chainId].CYCLE_SECS);
 
 			const currentCycleSecs = BigInt(Math.floor(getUnixTime(new Date()))) % cycleDurationSecs;
 

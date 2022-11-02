@@ -41,7 +41,7 @@ describe('AddressDriverClient', () => {
 		addressDriverContractStub = stubInterface<AddressDriver>();
 		sinon
 			.stub(AddressDriver__factory, 'connect')
-			.withArgs(Utils.Network.dripsMetadata[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerStub)
 			.returns(addressDriverContractStub);
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
@@ -131,12 +131,12 @@ describe('AddressDriverClient', () => {
 				await providerStub.getSigner().getAddress()
 			);
 			assert.equal(
-				testAddressDriverClient.dripsMetadata,
-				Utils.Network.dripsMetadata[(await providerStub.getNetwork()).chainId]
+				testAddressDriverClient.networkConfig,
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId]
 			);
 			assert.equal(testAddressDriverClient.signerAddress, await signerStub.getAddress());
 			assert.equal(testAddressDriverClient.dripsHub.network.chainId, dripsHubClientStub.network.chainId);
-			assert.equal(testAddressDriverClient.subgraph.apiUrl, Utils.Network.dripsMetadata[TEST_CHAIN_ID].SUBGRAPH_URL);
+			assert.equal(testAddressDriverClient.subgraph.apiUrl, Utils.Network.configs[TEST_CHAIN_ID].SUBGRAPH_URL);
 		});
 	});
 
@@ -149,7 +149,7 @@ describe('AddressDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testAddressDriverClient.dripsMetadata.CONTRACT_ADDRESS_DRIVER)
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER)
 				.resolves(BigNumber.from(1));
 
 			sinon
@@ -171,7 +171,7 @@ describe('AddressDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testAddressDriverClient.dripsMetadata.CONTRACT_ADDRESS_DRIVER)
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER)
 				.resolves(BigNumber.from(1));
 
 			sinon
@@ -187,7 +187,7 @@ describe('AddressDriverClient', () => {
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
 					testAddressDriverClient.signerAddress,
-					testAddressDriverClient.dripsMetadata.CONTRACT_ADDRESS_DRIVER
+					testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -231,7 +231,7 @@ describe('AddressDriverClient', () => {
 			// Assert
 			assert(
 				erc20ContractStub.approve.calledOnceWithExactly(
-					testAddressDriverClient.dripsMetadata.CONTRACT_ADDRESS_DRIVER,
+					testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER,
 					constants.MaxUint256
 				),
 				'Expected method to be called with different arguments'

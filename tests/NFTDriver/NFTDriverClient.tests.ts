@@ -41,7 +41,7 @@ describe('NFTDriverClient', () => {
 		nftDriverContractStub = stubInterface<NFTDriver>();
 		sinon
 			.stub(NFTDriver__factory, 'connect')
-			.withArgs(Utils.Network.dripsMetadata[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerStub)
 			.returns(nftDriverContractStub);
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
@@ -130,10 +130,7 @@ describe('NFTDriverClient', () => {
 				await testNftDriverClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
 			);
-			assert.equal(
-				testNftDriverClient.dripsMetadata,
-				Utils.Network.dripsMetadata[(await providerStub.getNetwork()).chainId]
-			);
+			assert.equal(testNftDriverClient.networkConfig, Utils.Network.configs[(await providerStub.getNetwork()).chainId]);
 			assert.equal(testNftDriverClient.signerAddress, await signerStub.getAddress());
 			assert.equal(testNftDriverClient.dripsHub.network.chainId, dripsHubClientStub.network.chainId);
 		});
@@ -148,7 +145,7 @@ describe('NFTDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER)
+				.withArgs(await signerStub.getAddress(), testNftDriverClient.networkConfig.CONTRACT_NFT_DRIVER)
 				.resolves(BigNumber.from(1));
 
 			sinon
@@ -170,7 +167,7 @@ describe('NFTDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER)
+				.withArgs(await signerStub.getAddress(), testNftDriverClient.networkConfig.CONTRACT_NFT_DRIVER)
 				.resolves(BigNumber.from(1));
 
 			sinon
@@ -186,7 +183,7 @@ describe('NFTDriverClient', () => {
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
 					testNftDriverClient.signerAddress,
-					testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER
+					testNftDriverClient.networkConfig.CONTRACT_NFT_DRIVER
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -230,7 +227,7 @@ describe('NFTDriverClient', () => {
 			// Assert
 			assert(
 				erc20ContractStub.approve.calledOnceWithExactly(
-					testNftDriverClient.dripsMetadata.CONTRACT_NFT_DRIVER,
+					testNftDriverClient.networkConfig.CONTRACT_NFT_DRIVER,
 					constants.MaxUint256
 				),
 				'Expected method to be called with different arguments'

@@ -66,7 +66,7 @@ export default class DripsSubgraphClient {
 		const subgraphClient = new DripsSubgraphClient();
 
 		subgraphClient.#chainId = chainId;
-		subgraphClient.#apiUrl = Utils.Network.dripsMetadata[subgraphClient.#chainId].SUBGRAPH_URL;
+		subgraphClient.#apiUrl = Utils.Network.configs[subgraphClient.#chainId].SUBGRAPH_URL;
 
 		return subgraphClient;
 	}

@@ -195,7 +195,7 @@ describe('Utils', () => {
 	});
 
 	describe('Network', () => {
-		describe('dripsMetadata', () => {
+		describe('networkConfig', () => {
 			it('should export only unique and supported chain IDs', () => {
 				// Arrange
 				const chainIds = [5];

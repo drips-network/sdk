@@ -1,6 +1,6 @@
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { DripsMetadata } from 'src/common/types';
+import type { NetworkConfig } from 'src/common/types';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DripsHub';
@@ -61,10 +61,10 @@ export default class DripsHubClient {
 		return this.#provider;
 	}
 
-	#dripsMetadata!: DripsMetadata;
-	/** Returns the `DripsHubClient`'s `network` {@link DripsMetadata}. */
-	public get dripsMetadata() {
-		return this.#dripsMetadata;
+	#networkConfig!: NetworkConfig;
+	/** Returns the `DripsHubClient`'s `network` {@link NetworkConfig}. */
+	public get networkConfig() {
+		return this.#networkConfig;
 	}
 
 	private constructor() {}
@@ -75,11 +75,13 @@ export default class DripsHubClient {
 	 * @param  {JsonRpcProvider} provider
 	 * The provider can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
+	 * @param  {NetworkConfig} customNetworkConfig Override network configuration.
+	 * If `undefined` (default value) and the provider is connected to an officially supported network, configuration will be automatically selected based on the provider's network.
 	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(provider: JsonRpcProvider): Promise<DripsHubClient> {
+	public static async create(provider: JsonRpcProvider, customNetworkConfig?: NetworkConfig): Promise<DripsHubClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
 				"Could not create a new 'DripsHubClient': the provider is missing.",
@@ -107,17 +109,17 @@ export default class DripsHubClient {
 				network?.chainId
 			);
 		}
-		const dripsMetadata = Utils.Network.dripsMetadata[network.chainId];
+		const networkConfig = customNetworkConfig ?? Utils.Network.configs[network.chainId];
 
 		const dripsHubClient = new DripsHubClient();
 
 		dripsHubClient.#signer = signer;
 		dripsHubClient.#network = network;
 		dripsHubClient.#provider = provider;
-		dripsHubClient.#dripsMetadata = dripsMetadata;
+		dripsHubClient.#networkConfig = networkConfig;
 		dripsHubClient.#signerAddress = await signer.getAddress();
 		dripsHubClient.#subgraph = DripsSubgraphClient.create(network.chainId);
-		dripsHubClient.#dripsHubContract = DripsHub__factory.connect(dripsMetadata.CONTRACT_DRIPS_HUB, signer);
+		dripsHubClient.#dripsHubContract = DripsHub__factory.connect(networkConfig.CONTRACT_DRIPS_HUB, signer);
 
 		return dripsHubClient;
 	}

@@ -1,6 +1,6 @@
 import {
 	DripsReceiverConfig,
-	DripsMetadata,
+	NetworkConfig,
 	CycleInfo,
 	DripsReceiver,
 	DripsReceiverStruct,
@@ -55,7 +55,7 @@ export {
 	UserMetadata,
 	NftSubAccount,
 	DripsSetEvent,
-	DripsMetadata,
+	NetworkConfig,
 	DripsReceiver,
 	UserAssetConfig,
 	ReceivableBalance,

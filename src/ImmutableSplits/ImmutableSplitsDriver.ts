@@ -2,7 +2,7 @@ import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { ImmutableSplitsDriver, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/ImmutableSplitsDriver';
 import type { ContractTransaction } from 'ethers';
-import type { DripsMetadata } from 'src/common/types';
+import type { NetworkConfig } from 'src/common/types';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
@@ -51,10 +51,10 @@ export default class ImmutableSplitsDriverClient {
 		return this.#provider;
 	}
 
-	#dripsMetadata!: DripsMetadata;
-	/** Returns the `ImmutableSplitsDriverClient`'s `network` {@link DripsMetadata}. */
-	public get dripsMetadata() {
-		return this.#dripsMetadata;
+	#networkConfig!: NetworkConfig;
+	/** Returns the `ImmutableSplitsDriverClient`'s `network` {@link NetworkConfig}. */
+	public get networkConfig() {
+		return this.#networkConfig;
 	}
 
 	private constructor() {}
@@ -98,17 +98,17 @@ export default class ImmutableSplitsDriverClient {
 				network?.chainId
 			);
 		}
-		const dripsMetadata = Utils.Network.dripsMetadata[network.chainId];
+		const networkConfig = Utils.Network.configs[network.chainId];
 
 		const immutableSplitsDriverClient = new ImmutableSplitsDriverClient();
 
 		immutableSplitsDriverClient.#signer = signer;
 		immutableSplitsDriverClient.#network = network;
 		immutableSplitsDriverClient.#provider = provider;
-		immutableSplitsDriverClient.#dripsMetadata = dripsMetadata;
+		immutableSplitsDriverClient.#networkConfig = networkConfig;
 		immutableSplitsDriverClient.#signerAddress = await signer.getAddress();
 		immutableSplitsDriverClient.#immutableSplitsDriverContract = ImmutableSplitsDriver__factory.connect(
-			dripsMetadata.CONTRACT_IMMUTABLE_SPLITS_DRIVER,
+			networkConfig.CONTRACT_IMMUTABLE_SPLITS_DRIVER,
 			signer
 		);
 

@@ -42,7 +42,7 @@ describe('ImmutableSplitsDriverClient', () => {
 		immutableSplitsDriverContractStub = stubInterface<ImmutableSplitsDriver>();
 		sinon
 			.stub(ImmutableSplitsDriver__factory, 'connect')
-			.withArgs(Utils.Network.dripsMetadata[TEST_CHAIN_ID].CONTRACT_IMMUTABLE_SPLITS_DRIVER, signerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_IMMUTABLE_SPLITS_DRIVER, signerStub)
 			.returns(immutableSplitsDriverContractStub);
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
@@ -132,8 +132,8 @@ describe('ImmutableSplitsDriverClient', () => {
 				await providerStub.getSigner().getAddress()
 			);
 			assert.equal(
-				testImmutableSplitsDriverClient.dripsMetadata,
-				Utils.Network.dripsMetadata[(await providerStub.getNetwork()).chainId]
+				testImmutableSplitsDriverClient.networkConfig,
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId]
 			);
 			assert.equal(testImmutableSplitsDriverClient.signerAddress, await signerStub.getAddress());
 		});

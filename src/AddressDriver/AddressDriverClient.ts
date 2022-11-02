@@ -3,7 +3,7 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { DripsMetadata } from 'src/common/types';
+import type { NetworkConfig } from 'src/common/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import Utils from '../utils';
@@ -76,10 +76,10 @@ export default class AddressDriverClient {
 		return this.#provider;
 	}
 
-	#dripsMetadata!: DripsMetadata;
-	/** Returns the `AddressDriverClient`'s `network` {@link DripsMetadata}. */
-	public get dripsMetadata() {
-		return this.#dripsMetadata;
+	#networkConfig!: NetworkConfig;
+	/** Returns the `AddressDriverClient`'s `network` {@link NetworkConfig}. */
+	public get networkConfig() {
+		return this.#networkConfig;
 	}
 
 	private constructor() {}
@@ -92,13 +92,18 @@ export default class AddressDriverClient {
 	 *
 	 * The `provider` can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
+	 * @param  {NetworkConfig} customNetworkConfig Override network configuration.
+	 * If `undefined` (default value) and the provider is connected to an officially supported network, configuration will be automatically selected based on the provider's network.
 	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {DripsErrors.argumentError} if the `provider`'s singer is missing.
 	 * @throws {DripsErrors.addressError} if the `provider`'s signer address is not valid.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(provider: JsonRpcProvider): Promise<AddressDriverClient> {
+	public static async create(
+		provider: JsonRpcProvider,
+		customNetworkConfig?: NetworkConfig
+	): Promise<AddressDriverClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
 				"Could not create a new 'AddressDriverClient': the provider is missing.",
@@ -126,19 +131,19 @@ export default class AddressDriverClient {
 				network?.chainId
 			);
 		}
-		const dripsMetadata = Utils.Network.dripsMetadata[network.chainId];
+		const networkConfig = customNetworkConfig ?? Utils.Network.configs[network.chainId];
 
 		const addressDriverClient = new AddressDriverClient();
 
 		addressDriverClient.#signer = signer;
 		addressDriverClient.#network = network;
 		addressDriverClient.#provider = provider;
-		addressDriverClient.#dripsMetadata = dripsMetadata;
+		addressDriverClient.#networkConfig = networkConfig;
 		addressDriverClient.#signerAddress = await signer.getAddress();
 		addressDriverClient.#dripsHub = await DripsHubClient.create(provider);
 		addressDriverClient.#subgraph = DripsSubgraphClient.create(network.chainId);
 		addressDriverClient.#addressDriverContract = AddressDriver__factory.connect(
-			dripsMetadata.CONTRACT_ADDRESS_DRIVER,
+			networkConfig.CONTRACT_ADDRESS_DRIVER,
 			signer
 		);
 
@@ -158,7 +163,7 @@ export default class AddressDriverClient {
 
 		const allowance = await signerAsErc20Contract.allowance(
 			this.#signerAddress,
-			this.#dripsMetadata.CONTRACT_ADDRESS_DRIVER
+			this.#networkConfig.CONTRACT_ADDRESS_DRIVER
 		);
 
 		return allowance.toBigInt();
@@ -175,7 +180,7 @@ export default class AddressDriverClient {
 
 		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
-		return signerAsErc20Contract.approve(this.#dripsMetadata.CONTRACT_ADDRESS_DRIVER, constants.MaxUint256);
+		return signerAsErc20Contract.approve(this.#networkConfig.CONTRACT_ADDRESS_DRIVER, constants.MaxUint256);
 	}
 
 	/**
