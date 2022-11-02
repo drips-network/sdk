@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
-	import type { NFTDriverClient } from 'radicle-drips';
+	import type { NFTDriverClient, SplitsReceiverStruct } from 'radicle-drips';
 
 	export let nftDriverClient: NFTDriverClient | undefined;
 
@@ -10,7 +10,7 @@
 		weight: string | undefined;
 	};
 
-	const splitsInputs = [
+	const splitsInputs: SplitsInput[] = [
 		{ receiverUserId: '', weight: undefined },
 		{ receiverUserId: '', weight: undefined }
 	];
@@ -28,19 +28,19 @@
 		errorMessage = undefined;
 
 		try {
-			const splits = await Promise.all(
+			const splits: SplitsReceiverStruct[] = await Promise.all(
 				splitsInputs
 					.filter((s) => s.receiverUserId?.length && s.weight)
 					.map(async (s) => ({
 						userId: s.receiverUserId,
-						weight: s.weight
+						weight: s.weight as string
 					}))
 			);
 
 			tx = await nftDriverClient?.setSplits(configuredUserId, splits);
 			console.log(tx);
 
-			txReceipt = await tx.wait();
+			txReceipt = await tx?.wait();
 			console.log(txReceipt);
 		} catch (error: any) {
 			errorMessage = error.message;

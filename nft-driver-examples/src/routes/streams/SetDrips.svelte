@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Utils, type DripsSubgraphClient, type NFTDriverClient, constants } from 'radicle-drips';
+	import { Utils, type DripsSubgraphClient, type NFTDriverClient, constants, type DripsReceiverStruct } from 'radicle-drips';
 	import { BigNumber, type ContractReceipt, type ContractTransaction } from 'ethers';
 	import { isConnected } from '$lib/stores';
-	import DripsReceiverConfig from '../utils/DripsReceiverConfig.svelte';
 
 	export let nftDriverClient: NFTDriverClient | undefined;
 	export let subgraphClient: DripsSubgraphClient | undefined;
@@ -64,11 +63,11 @@
 		errorMessage = undefined;
 
 		try {
-			const balanceDelta = 1000000000000000; // Configure the user asset config without updating the balance.
+			const balanceDelta = 0; // Configure the user asset config without updating the balance.
 
 			const currentReceivers = await getCurrentReceivers();
 
-			const newReceivers = await Promise.all(
+			const newReceivers: DripsReceiverStruct[] = await Promise.all(
 				dripsInputs
 					// Ignore inputs without values.
 					.filter((d) => d.config.amountPerSec && d.receiverUserId.length)
