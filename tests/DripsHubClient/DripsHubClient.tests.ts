@@ -12,7 +12,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
-import type { DripsReceiverConfig } from '../../src/common/types';
+import type { DripsReceiverConfig, NetworkConfig } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance, ReceivableBalance, SplittableBalance } from '../../src/DripsHub/types';
@@ -122,6 +122,18 @@ describe('DripsHubClient', () => {
 
 			// Assert
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should set the custom network config when provided', async () => {
+			// Arrange
+			const customAddress = Wallet.createRandom().address;
+			const customNetworkConfig = { CONTRACT_DRIPS_HUB: customAddress } as NetworkConfig;
+
+			// Act
+			const client = await DripsHubClient.create(providerStub, customNetworkConfig);
+
+			// Assert
+			assert.equal(client.networkConfig.CONTRACT_DRIPS_HUB, customAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {

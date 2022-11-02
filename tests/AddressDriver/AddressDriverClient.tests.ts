@@ -13,7 +13,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import type { DripsReceiver } from '../../src/common/types';
+import type { DripsReceiver, NetworkConfig } from '../../src/common/types';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -120,6 +120,18 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should set the custom network config when provided', async () => {
+			// Arrange
+			const customAddress = Wallet.createRandom().address;
+			const customNetworkConfig = { CONTRACT_ADDRESS_DRIVER: customAddress } as NetworkConfig;
+
+			// Act
+			const client = await AddressDriverClient.create(providerStub, customNetworkConfig);
+
+			// Assert
+			assert.equal(client.networkConfig.CONTRACT_ADDRESS_DRIVER, customAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {

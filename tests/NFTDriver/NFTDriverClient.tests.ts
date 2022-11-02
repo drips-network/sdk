@@ -13,7 +13,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/NFTDriver';
-import type { DripsReceiver } from '../../src/common/types';
+import type { DripsReceiver, NetworkConfig } from '../../src/common/types';
 
 describe('NFTDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -120,6 +120,18 @@ describe('NFTDriverClient', () => {
 
 			// Assert
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should set the custom network config when provided', async () => {
+			// Arrange
+			const customAddress = Wallet.createRandom().address;
+			const customNetworkConfig = { CONTRACT_NFT_DRIVER: customAddress } as NetworkConfig;
+
+			// Act
+			const client = await NFTDriverClient.create(providerStub, customNetworkConfig);
+
+			// Assert
+			assert.equal(client.networkConfig.CONTRACT_NFT_DRIVER, customAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
