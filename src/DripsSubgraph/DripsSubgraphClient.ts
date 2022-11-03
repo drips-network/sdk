@@ -44,11 +44,13 @@ export default class DripsSubgraphClient {
 	 * Creates a new immutable `DripsSubgraphClient` instance.
 	 *
 	 * @param  {string} chainId The chain ID.
+	 * @param  {string} customApiUrl Override subgraph's `apiUrl`.
+	 * If it's `undefined` (default value) and the `chainId` is officially supported by the client, the subgraph's `apiUrl` will be automatically selected based on the `chainId`.
 	 * @throws {DripsErrors.argumentMissingError} if the `chainId` is missing.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
-	public static create(chainId: number): DripsSubgraphClient {
+	public static create(chainId: number, customApiUrl?: string): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not create a new 'DripsSubgraphClient' instance: ${nameOf({ chainId })} is missing.`,
@@ -66,7 +68,7 @@ export default class DripsSubgraphClient {
 		const subgraphClient = new DripsSubgraphClient();
 
 		subgraphClient.#chainId = chainId;
-		subgraphClient.#apiUrl = Utils.Network.configs[subgraphClient.#chainId].SUBGRAPH_URL;
+		subgraphClient.#apiUrl = customApiUrl ?? Utils.Network.configs[subgraphClient.#chainId].SUBGRAPH_URL;
 
 		return subgraphClient;
 	}

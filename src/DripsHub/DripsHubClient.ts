@@ -76,7 +76,7 @@ export default class DripsHubClient {
 	 * The provider can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
 	 * @param  {NetworkConfig} customNetworkConfig Override network configuration.
-	 * If `undefined` (default value) and the provider is connected to an officially supported network, configuration will be automatically selected based on the provider's network.
+	 * If it's `undefined` (default value) and the`provider` is officially supported by the client, the configuration will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.

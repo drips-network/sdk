@@ -86,7 +86,7 @@ export default class NFTDriverClient {
 	 * The `provider` can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
 	 * @param  {NetworkConfig} customNetworkConfig Override network configuration.
-	 * If `undefined` (default value) and the provider is connected to an officially supported network, configuration will be automatically selected based on the provider's network.
+	 * If it's `undefined` (default value) and the`provider` is officially supported by the client, the configuration will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `NFTDriverClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {DripsErrors.argumentError} if the `provider`'s singer is missing.

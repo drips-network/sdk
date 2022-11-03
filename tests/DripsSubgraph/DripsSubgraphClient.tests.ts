@@ -66,6 +66,17 @@ describe('DripsSubgraphClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
+		it('should set the custom network config when provided', () => {
+			// Arrange
+			const customApiUrl = 'https://custom-api-url.com';
+
+			// Act
+			const client = DripsSubgraphClient.create(TEST_CHAIN_ID, customApiUrl);
+
+			// Assert
+			assert.equal(client.apiUrl, customApiUrl);
+		});
+
 		it('should create a fully initialized client instance', () => {
 			// Assert
 			assert.equal(testSubgraphClient.chainId, TEST_CHAIN_ID);
