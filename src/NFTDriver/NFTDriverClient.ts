@@ -175,7 +175,7 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async mint(transferToAddress: string): Promise<bigint> {
+	public async mint(transferToAddress: string): Promise<string> {
 		if (!transferToAddress) {
 			throw DripsErrors.argumentMissingError(
 				`Could not mint: '${nameOf({ transferToAddress })}' is missing.`,
@@ -191,7 +191,7 @@ export default class NFTDriverClient {
 		const [transferEvent] = txReceipt.events!;
 		const { tokenId } = transferEvent.args!;
 
-		return BigInt(tokenId);
+		return BigInt(tokenId).toString();
 	}
 
 	/**
@@ -201,7 +201,7 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async safeMint(transferToAddress: string): Promise<bigint> {
+	public async safeMint(transferToAddress: string): Promise<string> {
 		if (!transferToAddress) {
 			throw DripsErrors.argumentMissingError(
 				`Could not (safely) mint: '${nameOf({ transferToAddress })}' is missing.`,
@@ -217,14 +217,14 @@ export default class NFTDriverClient {
 		const [transferEvent] = txReceipt.events!;
 		const { tokenId } = transferEvent.args!;
 
-		return BigInt(tokenId);
+		return BigInt(tokenId).toString();
 	}
 
 	// TODO: Add squeezing support.
 
 	/**
 	 * Collects the received and already split funds and transfers them from the `DripsHub` smart contract to an address.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID.
+	 * @param  {string} tokenId The ID of the token representing the collecting user ID.
 	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {string} transferToAddress The address to send collected funds to.
@@ -232,11 +232,7 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.argumentMissingError} if the `tokenId` is missing.
 	 * @throws {DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
 	 */
-	public async collect(
-		tokenId: BigNumberish,
-		tokenAddress: string,
-		transferToAddress: string
-	): Promise<ContractTransaction> {
+	public async collect(tokenId: string, tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not collect '${nameOf({ tokenId })}' is missing.`,
@@ -254,7 +250,7 @@ export default class NFTDriverClient {
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `DripsHub` smart contract.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the giving user.
+	 * @param  {string} tokenId The ID of the token representing the giving user.
 	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
@@ -265,7 +261,7 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 */
 	public give(
-		tokenId: BigNumberish,
+		tokenId: string,
 		receiverUserId: string,
 		tokenAddress: string,
 		amount: BigNumberish
@@ -300,7 +296,7 @@ export default class NFTDriverClient {
 	/**
 	 * Sets a drips configuration.
 	 * Transfers funds from the user's wallet to the `DripsHub` smart contract to fulfill the change of the drips balance.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the configured user ID.
+	 * @param  {string} tokenId The ID of the token representing the configured user ID.
 	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
@@ -322,7 +318,7 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 */
 	public setDrips(
-		tokenId: BigNumberish,
+		tokenId: string,
 		tokenAddress: string,
 		currentReceivers: DripsReceiverStruct[],
 		newReceivers: DripsReceiverStruct[],
@@ -371,7 +367,7 @@ export default class NFTDriverClient {
 
 	/**
 	 * Sets the splits configuration.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the configured user ID.
+	 * @param  {string} tokenId The ID of the token representing the configured user ID.
 	 * The token ID is equal to the user ID controlled by it.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
@@ -382,7 +378,7 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.argumentError} if `receivers`' count exceeds the max allowed splits receivers.
 	 * @throws {DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 */
-	public setSplits(tokenId: BigNumberish, receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
+	public setSplits(tokenId: string, receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not set splits: '${nameOf({ tokenId })}' is missing.`,
@@ -398,13 +394,13 @@ export default class NFTDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {BigNumberish} tokenId The ID of the token representing the collecting user ID. The token ID is equal to the user ID controlled by it.
+	 * @param  {string} tokenId The ID of the token representing the collecting user ID. The token ID is equal to the user ID controlled by it.
 	 * @param  {BigNumberish} key The metadata key.
 	 * @param  {BytesLike} value The metadata value.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
-	public emitUserMetadata(tokenId: BigNumberish, key: BigNumberish, value: BytesLike): Promise<ContractTransaction> {
+	public emitUserMetadata(tokenId: string, key: BigNumberish, value: BytesLike): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not set emit user metadata: '${nameOf({ tokenId })}' is missing.`,
