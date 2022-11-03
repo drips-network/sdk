@@ -286,7 +286,7 @@ describe('NFTDriverClient', () => {
 
 		it('should return the expected token', async () => {
 			// Arrange
-			const expectedTokenId = 1n;
+			const expectedTokenId = '1';
 			const transferToAddress = Wallet.createRandom().address;
 
 			const waitFake = async () =>
@@ -347,7 +347,7 @@ describe('NFTDriverClient', () => {
 
 		it('should return the expected token', async () => {
 			// Arrange
-			const expectedTokenId = 1n;
+			const expectedTokenId = '1';
 			const transferToAddress = Wallet.createRandom().address;
 
 			const waitFake = async () =>
@@ -377,7 +377,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.collect(undefined as unknown as bigint, testAddress, testAddress);
+				await testNftDriverClient.collect(undefined as unknown as string, testAddress, testAddress);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -390,7 +390,7 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the ERC20 and transferTo addresses', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
@@ -411,7 +411,7 @@ describe('NFTDriverClient', () => {
 
 		it('should call the collect() method of the NFTDriver contract', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -434,7 +434,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.give(undefined as unknown as bigint, '1', tokenAddress, 1);
+				await testNftDriverClient.give(undefined as unknown as string, '1', tokenAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -452,7 +452,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.give(1, undefined as unknown as string, tokenAddress, 1);
+				await testNftDriverClient.give('1', undefined as unknown as string, tokenAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -470,7 +470,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.give(1, ' 1', tokenAddress, -1);
+				await testNftDriverClient.give('1', ' 1', tokenAddress, -1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -483,7 +483,7 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
@@ -496,7 +496,7 @@ describe('NFTDriverClient', () => {
 
 		it('should call the give() method of the NFTDriver contract', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const amount = 100;
 			const receiverUserId = '1';
 			const tokenAddress = Wallet.createRandom().address;
@@ -521,14 +521,7 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.setDrips(
-					undefined as unknown as BigNumberish,
-					tokenAddress,
-					[],
-					[],
-					transferToAddress,
-					1
-				);
+				await testNftDriverClient.setDrips(undefined as unknown as string, tokenAddress, [], [], transferToAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -541,7 +534,7 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
@@ -576,7 +569,7 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the drips receivers', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -633,7 +626,7 @@ describe('NFTDriverClient', () => {
 			// Act
 			try {
 				await testNftDriverClient.setDrips(
-					1,
+					'1',
 					Wallet.createRandom().address,
 					[],
 					[],
@@ -652,7 +645,7 @@ describe('NFTDriverClient', () => {
 
 		it('should clear drips when new receivers is an empty list', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
@@ -681,7 +674,7 @@ describe('NFTDriverClient', () => {
 
 		it('should set balanceDelta to the default value of 0 when balanceDelta is not provided', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -704,7 +697,7 @@ describe('NFTDriverClient', () => {
 
 		it('should call the setDrips() method of the NFTDriver contract', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
@@ -760,7 +753,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.setSplits(undefined as unknown as BigNumberish, []);
+				await testNftDriverClient.setSplits(undefined as unknown as string, []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -777,7 +770,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.setSplits(1, undefined as unknown as SplitsReceiverStruct[]);
+				await testNftDriverClient.setSplits('1', undefined as unknown as SplitsReceiverStruct[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -790,7 +783,7 @@ describe('NFTDriverClient', () => {
 
 		it('clears splits when new receivers is an empty list', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 
 			// Act
 			await testNftDriverClient.setSplits(tokenId, []);
@@ -804,7 +797,7 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the splits receivers', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 1, weight: 1 },
@@ -822,7 +815,7 @@ describe('NFTDriverClient', () => {
 
 		it('should call the setSplits() method of the NFTDriver contract', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 2, weight: 100 },
@@ -854,7 +847,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.emitUserMetadata(undefined as unknown as BigNumberish, 'key', 'value');
+				await testNftDriverClient.emitUserMetadata(undefined as unknown as string, 'key', 'value');
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -871,7 +864,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.emitUserMetadata(1, undefined as unknown as BigNumberish, 'value');
+				await testNftDriverClient.emitUserMetadata('1', undefined as unknown as BigNumberish, 'value');
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -888,7 +881,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.emitUserMetadata(1, 'key', undefined as unknown as BytesLike);
+				await testNftDriverClient.emitUserMetadata('1', 'key', undefined as unknown as BytesLike);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -901,7 +894,7 @@ describe('NFTDriverClient', () => {
 
 		it('should call the emitUserMetadata() method of the NFTDriver contract', async () => {
 			// Arrange
-			const tokenId = 1;
+			const tokenId = '1';
 			const key = '1';
 			const value = 'value';
 
