@@ -1,8 +1,8 @@
 import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import { validateAddress, validateDripsReceiverConfig } from './common/internals';
 import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
+import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
 	export namespace Network {
@@ -80,7 +80,7 @@ namespace Utils {
 		 * Returns the asset ID for the given ERC20 token.
 		 * @param  {string} tokenAddress The ERC20 token address.
 		 * @returns The asset ID.
-		 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
+		 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 		 */
 		export const getIdFromAddress = (tokenAddress: string): bigint => {
 			validateAddress(tokenAddress);
@@ -94,8 +94,8 @@ namespace Utils {
 		 * Converts a drips receiver configuration object to a `uint256`.
 		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration object.
 		 * @returns The drips receiver configuration as a `uint256`.
-		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {DripsErrors.dripsReceiverConfigError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
+		 * @throws {@link DripsErrors.dripsReceiverConfigError} if the `dripsReceiverConfig` is not valid.
 		 */
 		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): bigint => {
 			validateDripsReceiverConfig(dripsReceiverConfig);
@@ -117,8 +117,8 @@ namespace Utils {
 		 * Converts a `uint256` that represent a drips receiver configuration to an object.
 		 * @param  {BigNumberish} dripsReceiverConfig The drips receiver configuration as`uint256`.
 		 * @returns The drips receiver configuration object.
-		 * @throws {DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
+		 * @throws {@link DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
 		 */
 		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
 			const configAsBn = BigNumber.from(dripsReceiverConfig);

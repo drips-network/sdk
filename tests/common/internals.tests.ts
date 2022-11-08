@@ -1,12 +1,8 @@
 import { assert } from 'chai';
-import type { BigNumberish } from 'ethers';
 import sinon from 'ts-sinon';
 import * as internals from '../../src/common/internals';
-import { DripsErrorCode } from '../../src/common/DripsError';
-import type { DripsReceiver, DripsReceiverConfig } from '../../src/common/types';
-import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
-import type { DripsReceiverStruct } from '../../contracts/DripsHub';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
 
 describe('internals', () => {
 	afterEach(() => {
@@ -66,385 +62,48 @@ describe('internals', () => {
 		});
 	});
 
-	describe('validateAddress()', () => {
-		it('should throw addressError error when the input is missing', () => {
+	describe('formatSplitReceivers()', () => {
+		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				// Act
-				internals.validateAddress(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw addressError error when the address is not valid', () => {
-			// Arrange
-			let threw = false;
-			const address = 'invalid address';
-
-			// Act
-			try {
-				// Act
-				internals.validateAddress(address);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ADDRESS);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-	});
-
-	describe('validateDripsReceiverConfig()', () => {
-		it('should throw argumentMissingError when config is missing', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfig(undefined as unknown as DripsReceiverConfig);
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when drips receiver configuration dripId is less than 0', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfig({ dripId: -1n, start: 1n, duration: 1n, amountPerSec: 1n });
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when drips receiver configuration start is less than 0', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfig({ dripId: 1n, start: -1n, duration: 1n, amountPerSec: 1n });
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when drips receiver configuration duration is less than 0', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: -1n, amountPerSec: 1n });
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when drips receiver configuration amountPerSec is equal to 0', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: 0n });
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when drips receiver configuration amountPerSec is less than 0', () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				internals.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: -1n });
-			} catch (error: any) {
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-	});
-
-	describe('validateDripsReceivers()', () => {
-		it('should throw argumentMissingError when receivers are missing', () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				internals.validateDripsReceivers(undefined as unknown as DripsReceiver[]);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw argumentError error when receivers are more than the max allowed', async () => {
-			// Arrange
-			let threw = false;
-			const receivers = Array(101).fill({
-				userId: undefined as unknown as number,
-				config: { amountPerSec: 1n, duration: 1n, start: 1n }
-			});
-
-			try {
-				// Act
-				internals.validateDripsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when receiver userId is missing', () => {
-			// Arrange
-			let threw = false;
-			const receivers = [
-				{
-					userId: undefined as unknown as string,
-					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
-				}
-			];
-
-			try {
-				// Act
-				internals.validateDripsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw dripsReceiverError when receiver config is missing', () => {
-			// Arrange
-			let threw = false;
-			const receivers: DripsReceiver[] = [
-				{
-					userId: '123',
-					config: undefined as unknown as DripsReceiverConfig
-				}
-			];
-
-			try {
-				// Act
-				internals.validateDripsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should validate receivers' configs", () => {
-			// Arrange
-			const receivers: DripsReceiver[] = [
-				{
-					userId: '123',
-					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
-				}
-			];
-
-			const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfig');
-
-			// Act
-			internals.validateDripsReceivers(receivers);
-
-			// Assert
-			assert(
-				validateDripsReceiverConfigObjStub.calledWithExactly(
-					sinon.match(
-						(config: DripsReceiverConfig) =>
-							Utils.DripsReceiverConfiguration.toUint256(config) ===
-							Utils.DripsReceiverConfiguration.toUint256(receivers[0].config)
-					)
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('validateSplitsReceivers()', () => {
-		it('should throw argumentMissingError when receivers are missing', () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				internals.validateSplitsReceivers(undefined as unknown as SplitsReceiverStruct[]);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw argumentError error when receivers are more than the max allowed', async () => {
-			// Arrange
-			let threw = false;
-			const receivers: SplitsReceiverStruct[] = Array(201).fill({
-				userId: undefined as unknown as number,
-				weight: 1
-			});
-
-			try {
-				// Act
-				internals.validateSplitsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw splitsReceiverError when receiver userId is missing', () => {
-			// Arrange
-			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
-				{
-					weight: 123,
-					userId: undefined as unknown as string
-				}
+				{ userId: 100, weight: 1 },
+				{ userId: 1, weight: 100 }
 			];
 
-			try {
-				// Act
-				internals.validateSplitsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
-				threw = true;
-			}
+			// Act
+			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
 		});
 
-		it('should throw splitsReceiverError when receiver weight is missing', () => {
+		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange
-			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
-				{
-					userId: 123,
-					weight: undefined as unknown as BigNumberish
-				}
+				{ userId: 1, weight: 100 },
+				{ userId: 100, weight: 1 }
 			];
 
-			try {
-				// Act
-				internals.validateSplitsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
-				threw = true;
-			}
+			// Act
+			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
 		});
 
-		it('should throw splitsReceiverError when receiver weight is equal to 0', () => {
+		it('should remove duplicates', async () => {
 			// Arrange
-			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
-				{
-					userId: 123n,
-					weight: 0
-				}
+				{ userId: 1, weight: 100 },
+				{ userId: 1, weight: 100 },
+				{ userId: 100, weight: 1 }
 			];
 
-			try {
-				// Act
-				internals.validateSplitsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
-				threw = true;
-			}
+			// Act
+			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw splitsReceiverError when receiver weight is less than 0', () => {
-			// Arrange
-			let threw = false;
-			const receivers: SplitsReceiverStruct[] = [
-				{
-					userId: 123n,
-					weight: -1
-				}
-			];
-
-			try {
-				// Act
-				internals.validateSplitsReceivers(receivers);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_SPLITS_RECEIVER);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert.equal(formattedReceivers.length, 2);
 		});
 	});
 

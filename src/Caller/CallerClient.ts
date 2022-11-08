@@ -1,7 +1,8 @@
 import type { JsonRpcProvider } from '@ethersproject/providers';
 import type { CallStruct } from 'contracts/Caller';
 import type { ContractTransaction } from 'ethers';
-import { nameOf, validateAddress } from '../common/internals';
+import { validateAddress } from '../common/validators';
+import { nameOf } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import Utils from '../utils';
 import type { Caller as CallerContract } from '../../contracts/Caller';
