@@ -1,8 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish } from 'ethers';
 import { BigNumber } from 'ethers';
+import { nameOf } from '../common/internals';
 import Utils from '../utils';
-import { nameOf, validateAddress } from '../common/internals';
+import { validateAddress } from '../common/validators';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
 import type * as SubgraphTypes from './generated/graphql-types';
@@ -44,13 +45,13 @@ export default class DripsSubgraphClient {
 	 * Creates a new immutable `DripsSubgraphClient` instance.
 	 *
 	 * @param  {string} chainId The chain ID.
-	 * @param  {string} customApiUrl Override subgraph's `apiUrl`.
-	 * If it's `undefined` (default value) and the `chainId` is officially supported by the client, the subgraph's `apiUrl` will be automatically selected based on the `chainId`.
-	 * @throws {DripsErrors.argumentMissingError} if the `chainId` is missing.
-	 * @throws {DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
+	 * @param  {string|undefined} customApiUrl Overrides the subgraph's `apiUrl`.
+	 * If it's `undefined` (default value), the `apiUrl` will be automatically selected based on the `chainId`.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `chainId` is missing.
+	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
-	public static create(chainId: number, customApiUrl?: string): DripsSubgraphClient {
+	public static create(chainId: number, customApiUrl: string | undefined = undefined): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not create a new 'DripsSubgraphClient' instance: ${nameOf({ chainId })} is missing.`,
@@ -78,8 +79,8 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The user ID.
 	 * @param  {BigNumberish} assetId The asset ID.
 	 * @returns A `Promise` which resolves to the user's drips configuration, or `null` if the configuration is not found.
-	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getUserAssetConfigById(userId: string, assetId: BigNumberish): Promise<UserAssetConfig | null> {
 		if (!userId) {
@@ -113,8 +114,8 @@ export default class DripsSubgraphClient {
 	 * Returns all drips configurations for the given user.
 	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
-	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
 		if (!userId) {
@@ -139,8 +140,8 @@ export default class DripsSubgraphClient {
 	 * Returns the user's splits configuration.
 	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
-	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getSplitsConfigByUserId(userId: string): Promise<SplitsEntry[]> {
 		if (!userId) {
@@ -165,8 +166,8 @@ export default class DripsSubgraphClient {
 	 * Returns the user's `DripsSetEvent`s.
 	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's `DripsSetEvent`s.
-	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getDripsSetEventsByUserId(userId: string): Promise<DripsSetEvent[]> {
 		if (!userId) {
@@ -189,8 +190,8 @@ export default class DripsSubgraphClient {
 	 * Returns all `DripsReceiverSeen` events for a given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeenEvent`s.
-	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getDripsReceiverSeenEventsByReceiverId(receiverUserId: string): Promise<DripsReceiverSeenEvent[]> {
 		if (!receiverUserId) {
@@ -218,8 +219,8 @@ export default class DripsSubgraphClient {
 	 * Returns the users that stream funds to a given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @returns A `Promise` which resolves to the users that stream funds to the given receiver.
-	 * @throws {DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getUsersStreamingToUser(receiverUserId: string): Promise<bigint[]> {
 		if (!receiverUserId) {
@@ -246,8 +247,8 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The user ID.
 	 * @param  {BigNumberish} key The metadata key.
 	 * @returns A `Promise` which resolves to the user's metadata.
-	 * @throws {DripsErrors.argumentMissingError} if the `userId` is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getMetadataHistory(userId: string, key?: BigNumberish): Promise<UserMetadata[]> {
 		if (!userId) {
@@ -282,8 +283,8 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The user ID.
 	 * @param  {string} key The metadata key.
 	 * @returns A `Promise` which resolves to the user's metadata, or `null` if not found.
-	 * @throws {DripsErrors.argumentMissingError} if any of the required parameter is missing.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameter is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getLatestUserMetadata(userId: string, key: BigNumberish): Promise<UserMetadata | null> {
 		if (!userId || !key) {
@@ -310,8 +311,8 @@ export default class DripsSubgraphClient {
 	 * Returns all NFT sub accounts for a given owner.
 	 * @param  {string} ownerAddress The owner's address.
 	 * @returns A `Promise` which resolves to the owner's NFT sub accounts.
-	 * @throws {DripsErrors.addressError} if the `ownerAddress` is not valid.
-	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 * @throws {@link DripsErrors.addressError} if the `ownerAddress` is not valid.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getNftSubAccountsByOwner(ownerAddress: string): Promise<NftSubAccount[]> {
 		validateAddress(ownerAddress);

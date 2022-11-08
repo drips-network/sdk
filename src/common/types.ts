@@ -10,7 +10,7 @@ export type DripsReceiverConfig = {
 	/** The duration (in seconds) of dripping. When setting a config, it must be greater than or equal to `0`. If set to `0`, the smart contract will drip until the balance runs out. */
 	duration: bigint;
 
-	/** The amount per second being dripped. When setting a config, it must be in the smallest unit (e.g. Wei), greater than `0` **and be multiplied by `10 ^ 9`** (`constants.AMT_PER_SEC_MULTIPLIER`). */
+	/** The amount per second being dripped. When setting a config, it must be in the smallest unit (e.g., Wei), greater than `0` **and be multiplied by `10 ^ 9`** (`constants.AMT_PER_SEC_MULTIPLIER`). */
 	amountPerSec: bigint;
 };
 

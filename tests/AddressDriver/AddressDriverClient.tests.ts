@@ -11,9 +11,9 @@ import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import * as internals from '../../src/common/internals';
+import * as validators from '../../src/common/validators';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import type { DripsReceiver, NetworkConfig } from '../../src/common/types';
+import type { DripsReceiver } from '../../src/common/types';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -55,100 +55,43 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should throw argumentMissingError error when the provider is missing', async () => {
+		it('should validate the provider', async () => {
 			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await AddressDriverClient.create(undefined as unknown as JsonRpcProvider);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should throw argumentMissingError error when the provider's signer is missing", async () => {
-			// Arrange
-			let threw = false;
-			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
-
-			try {
-				// Act
-				await AddressDriverClient.create(providerStub);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should validate the provider's signer address", async () => {
-			// Arrange
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
 			AddressDriverClient.create(providerStub);
 
 			// Assert
 			assert(
-				validateAddressStub.calledOnceWithExactly(await signerStub.getAddress()),
+				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should throw unsupportedNetworkError error when the provider is connected to an unsupported network', async () => {
+		it('should set the custom driver address when provided', async () => {
 			// Arrange
-			let threw = false;
-			providerStub.getNetwork.resolves({ chainId: TEST_CHAIN_ID + 1 } as Network);
-
-			try {
-				// Act
-				await AddressDriverClient.create(providerStub);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should set the custom network config when provided', async () => {
-			// Arrange
-			const customAddress = Wallet.createRandom().address;
-			const customNetworkConfig = { CONTRACT_ADDRESS_DRIVER: customAddress } as NetworkConfig;
+			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await AddressDriverClient.create(providerStub, customNetworkConfig);
+			const client = await AddressDriverClient.create(providerStub, customDriverAddress);
 
 			// Assert
-			assert.equal(client.networkConfig.CONTRACT_ADDRESS_DRIVER, customAddress);
+			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(await testAddressDriverClient.signer.getAddress(), await signerStub.getAddress());
-			assert.equal(testAddressDriverClient.network.chainId, networkStub.chainId);
+			assert.equal(testAddressDriverClient.provider, providerStub);
+			assert.equal(testAddressDriverClient.provider.getSigner(), providerStub.getSigner());
 			assert.equal(
 				await testAddressDriverClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
 			);
 			assert.equal(
-				testAddressDriverClient.networkConfig,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId]
+				testAddressDriverClient.driverAddress,
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
 			);
-			assert.equal(testAddressDriverClient.signerAddress, await signerStub.getAddress());
-			assert.equal(testAddressDriverClient.dripsHub.network.chainId, dripsHubClientStub.network.chainId);
-			assert.equal(testAddressDriverClient.subgraph.apiUrl, Utils.Network.configs[TEST_CHAIN_ID].SUBGRAPH_URL);
 		});
 	});
 
@@ -156,17 +99,17 @@ describe('AddressDriverClient', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER)
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -183,12 +126,12 @@ describe('AddressDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER)
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -198,8 +141,8 @@ describe('AddressDriverClient', () => {
 			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					testAddressDriverClient.signerAddress,
-					testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER
+					await testAddressDriverClient.provider.getSigner().getAddress(),
+					testAddressDriverClient.driverAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -210,13 +153,13 @@ describe('AddressDriverClient', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = 'invalid address';
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -234,7 +177,7 @@ describe('AddressDriverClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -242,10 +185,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				erc20ContractStub.approve.calledOnceWithExactly(
-					testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER,
-					constants.MaxUint256
-				),
+				erc20ContractStub.approve.calledOnceWithExactly(testAddressDriverClient.driverAddress, constants.MaxUint256),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -255,7 +195,7 @@ describe('AddressDriverClient', () => {
 		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
 			addressDriverContractStub.calcUserId
-				.withArgs(testAddressDriverClient.signerAddress)
+				.withArgs(await testAddressDriverClient.provider.getSigner().getAddress())
 				.resolves(BigNumber.from(111));
 
 			// Act
@@ -263,7 +203,9 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				addressDriverContractStub.calcUserId.calledOnceWithExactly(testAddressDriverClient.signerAddress),
+				addressDriverContractStub.calcUserId.calledOnceWithExactly(
+					await testAddressDriverClient.provider.getSigner().getAddress()
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -273,7 +215,7 @@ describe('AddressDriverClient', () => {
 		it('should validate the user address', async () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 			addressDriverContractStub.calcUserId.resolves(BigNumber.from(1));
 
 			// Act
@@ -304,7 +246,7 @@ describe('AddressDriverClient', () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
 			await testAddressDriverClient.collect(tokenAddress, transferToAddress);
@@ -376,7 +318,7 @@ describe('AddressDriverClient', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
 			await testAddressDriverClient.give('1', tokenAddress, 1n);
@@ -438,7 +380,7 @@ describe('AddressDriverClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const validateSplitsReceiversStub = sinon.stub(internals, 'validateSplitsReceivers');
+			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
 			await testAddressDriverClient.setSplits(receivers);
@@ -555,7 +497,7 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
@@ -590,7 +532,7 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			const validateDripsReceiversStub = sinon.stub(internals, 'validateDripsReceivers');
+			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
 
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);

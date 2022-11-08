@@ -3,6 +3,7 @@ import { BigNumber, ethers } from 'ethers';
 import sinon from 'ts-sinon';
 import { DripsErrorCode } from '../src/common/DripsError';
 import * as internals from '../src/common/internals';
+import * as validators from '../src/common/validators';
 import type { DripsReceiverConfig } from '../src/common/types';
 import Utils from '../src/utils';
 
@@ -68,7 +69,7 @@ describe('Utils', () => {
 			it('should validate ERC20 address', () => {
 				// Arrange
 				const tokenAddress = '-1';
-				const validateAddressStub = sinon.stub(internals, 'validateAddress');
+				const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 				// Act
 				Utils.Asset.getIdFromAddress(tokenAddress);
@@ -99,7 +100,7 @@ describe('Utils', () => {
 				// Arrange
 				const config: DripsReceiverConfig = { dripId: 1n, start: 1n, duration: 1n, amountPerSec: 1n };
 
-				const validateDripsReceiverConfigObjStub = sinon.stub(internals, 'validateDripsReceiverConfig');
+				const validateDripsReceiverConfigObjStub = sinon.stub(validators, 'validateDripsReceiverConfig');
 
 				// Act
 				Utils.DripsReceiverConfiguration.toUint256(config);
@@ -136,7 +137,7 @@ describe('Utils', () => {
 
 				const configObj = Utils.DripsReceiverConfiguration.fromUint256(config);
 
-				const validateDripsReceiverConfigBNStub = sinon.stub(internals, 'validateDripsReceiverConfig');
+				const validateDripsReceiverConfigBNStub = sinon.stub(validators, 'validateDripsReceiverConfig');
 
 				// Act
 				Utils.DripsReceiverConfiguration.fromUint256(config);
