@@ -8,8 +8,9 @@ namespace Utils {
 	export namespace Network {
 		export const configs: Record<number, NetworkConfig> = {
 			5: {
-				NAME: 'goerli',
 				CYCLE_SECS: '604800', // 1 week.
+				NETWORK_NAME: 'goerli',
+				CONTRACT_CALLER: '0xbF1f08290a30a0833f81a96EF6d605EcD2591494',
 				CONTRACT_DRIPS_HUB: '0x4Cf1B4B46840CdCE2198D5404f17A3b967dcDca8',
 				CONTRACT_DRIPS_HUB_LOGIC: '0xc904A8De767dddC27026391f853092ACB7DD8291',
 				CONTRACT_ADDRESS_DRIVER_ID: '0',

@@ -3,7 +3,8 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { NetworkConfig } from 'src/common/types';
+import type { CallStruct, NetworkConfig } from 'src/common/types';
+import CallerClient from '../Caller/CallerClient';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import Utils from '../utils';
@@ -22,11 +23,14 @@ import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 
 /**
  * A client for managing Drips for a user identified by an Ethereum address.
- * Each address can use `AddressDriver` to control a user ID equal to that address.
- * No registration is required, an `AddressDriver`-based user ID for each address is know upfront.
+ *
+ * Each address can use an `AddressDriverClient` to control a `userId` equal to that address.
+ *
+ * No registration is required, an `AddressDriver`-based `userId` for each address is know upfront.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} smart contract.
  */
 export default class AddressDriverClient {
+	#callerClient!: CallerClient;
 	#addressDriverContract!: AddressDriverContract;
 
 	#signer!: JsonRpcSigner;
@@ -66,7 +70,7 @@ export default class AddressDriverClient {
 	 *
 	 * The `network` is the `provider`'s network.
 	 */
-	public get network() {
+	public get network(): Network {
 		return this.#network;
 	}
 
@@ -87,12 +91,16 @@ export default class AddressDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `AddressDriverClient` instance.
-	 * @param  {JsonRpcProvider} provider The `provider` must have a `signer` associated with it.
-	 * **This signer will be the user the new `AddressDriverClient` will manage and cannot be changed after creation**.
+	 * @param  {JsonRpcProvider} provider The provider.
+	 *
+	 * The `provider` must have a `signer` associated with it.
+	 *
+	 * **The `signer` will be the user the new `AddressDriverClient` will manage Drips for and cannot be changed after creation**.
+	 * (i.e., the new instance will control a `userId` equal to that address).
 	 *
 	 * The `provider` can connect to the following supported networks:
-	 * - 'goerli': chain ID 5
-	 * @param  {NetworkConfig} customNetworkConfig Override network configuration.
+	 * - `goerli`: chain ID 5
+	 * @param  {NetworkConfig} customNetworkConfig Overrides the network configuration.
 	 * If it's `undefined` (default value) and the`provider` is officially supported by the client, the configuration will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
@@ -141,6 +149,7 @@ export default class AddressDriverClient {
 		addressDriverClient.#networkConfig = networkConfig;
 		addressDriverClient.#signerAddress = await signer.getAddress();
 		addressDriverClient.#dripsHub = await DripsHubClient.create(provider);
+		addressDriverClient.#callerClient = await CallerClient.create(provider);
 		addressDriverClient.#subgraph = DripsSubgraphClient.create(network.chainId);
 		addressDriverClient.#addressDriverContract = AddressDriver__factory.connect(
 			networkConfig.CONTRACT_ADDRESS_DRIVER,
@@ -220,7 +229,13 @@ export default class AddressDriverClient {
 		validateAddress(tokenAddress);
 		validateAddress(transferToAddress);
 
-		return this.#addressDriverContract.collect(tokenAddress, transferToAddress);
+		const collect: CallStruct = {
+			value: 0,
+			to: Utils.Network.configs[this.#network.chainId].CONTRACT_ADDRESS_DRIVER,
+			data: this.#addressDriverContract.interface.encodeFunctionData('collect', [tokenAddress, transferToAddress])
+		};
+
+		return this.#callerClient.callBatched([collect]);
 	}
 
 	/**
@@ -253,7 +268,13 @@ export default class AddressDriverClient {
 			);
 		}
 
-		return this.#addressDriverContract.give(receiverUserId, tokenAddress, amount);
+		const give: CallStruct = {
+			value: 0,
+			to: Utils.Network.configs[this.#network.chainId].CONTRACT_ADDRESS_DRIVER,
+			data: this.#addressDriverContract.interface.encodeFunctionData('give', [receiverUserId, tokenAddress, amount])
+		};
+
+		return this.#callerClient.callBatched([give]);
 	}
 
 	/**
@@ -270,7 +291,13 @@ export default class AddressDriverClient {
 	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
 		validateSplitsReceivers(receivers);
 
-		return this.#addressDriverContract.setSplits(formatSplitReceivers(receivers));
+		const setSplits: CallStruct = {
+			value: 0,
+			to: Utils.Network.configs[this.#network.chainId].CONTRACT_ADDRESS_DRIVER,
+			data: this.#addressDriverContract.interface.encodeFunctionData('setSplits', [formatSplitReceivers(receivers)])
+		};
+
+		return this.#callerClient.callBatched([setSplits]);
 	}
 
 	/**
@@ -322,28 +349,20 @@ export default class AddressDriverClient {
 			);
 		}
 
-		return this.#addressDriverContract.setDrips(
-			tokenAddress,
-			formatDripsReceivers(currentReceivers),
-			balanceDelta,
-			formatDripsReceivers(newReceivers),
-			transferToAddress
-		);
+		const setDrips: CallStruct = {
+			value: 0,
+			to: Utils.Network.configs[this.#network.chainId].CONTRACT_ADDRESS_DRIVER,
+			data: this.#addressDriverContract.interface.encodeFunctionData('setDrips', [
+				tokenAddress,
+				formatDripsReceivers(currentReceivers),
+				balanceDelta,
+				formatDripsReceivers(newReceivers),
+				transferToAddress
+			])
+		};
+
+		return this.#callerClient.callBatched([setDrips]);
 	}
-
-	/**
-	 * Returns a user's address given a user ID.
-	 * @param  {string} userId The user ID.
-	 * @returns The user's address.
-	 */
-	public static getUserAddress = (userId: string): string => {
-		const userIdAsBN = BigNumber.from(userId);
-
-		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
-		const userAddress = userIdAsBN.and(mask);
-
-		return ethers.utils.getAddress(userAddress.toHexString());
-	};
 
 	/**
 	 * Emits the user's metadata.
@@ -368,6 +387,26 @@ export default class AddressDriverClient {
 			);
 		}
 
-		return this.#addressDriverContract.emitUserMetadata(key, value);
+		const emitUserMetadata: CallStruct = {
+			value: 0,
+			to: Utils.Network.configs[this.#network.chainId].CONTRACT_ADDRESS_DRIVER,
+			data: this.#addressDriverContract.interface.encodeFunctionData('emitUserMetadata', [key, value])
+		};
+
+		return this.#callerClient.callBatched([emitUserMetadata]);
 	}
+
+	/**
+	 * Returns a user's address given a user ID.
+	 * @param  {string} userId The user ID.
+	 * @returns The user's address.
+	 */
+	public static getUserAddress = (userId: string): string => {
+		const userIdAsBN = BigNumber.from(userId);
+
+		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
+		const userAddress = userIdAsBN.and(mask);
+
+		return ethers.utils.getAddress(userAddress.toHexString());
+	};
 }

@@ -14,6 +14,7 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import type { DripsReceiver, NetworkConfig } from '../../src/common/types';
+import CallerClient from '../../src/Caller/CallerClient';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -21,6 +22,7 @@ describe('AddressDriverClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: StubbedInstance<JsonRpcProvider>;
+	let callerClientStub: StubbedInstance<CallerClient>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 
@@ -46,6 +48,9 @@ describe('AddressDriverClient', () => {
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
 		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
+
+		callerClientStub = stubInterface<CallerClient>();
+		sinon.stub(CallerClient, 'create').resolves(callerClientStub);
 
 		testAddressDriverClient = await AddressDriverClient.create(providerStub);
 	});

@@ -59,7 +59,7 @@ export default class NFTDriverClient {
 	 *
 	 * The `network` is the `provider`'s network.
 	 */
-	public get network() {
+	public get network(): Network {
 		return this.#network;
 	}
 

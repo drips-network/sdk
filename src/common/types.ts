@@ -1,4 +1,7 @@
+import type { CallStruct } from '../../contracts/Caller';
+
 export { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
+export { CallStruct } from '../../contracts/Caller';
 
 export type DripsReceiverConfig = {
 	/** An arbitrary number used to identify a drip. When setting a config, it must be greater than or equal to `0`. It's a part of the configuration but the protocol doesn't use it. */
@@ -15,9 +18,10 @@ export type DripsReceiverConfig = {
 };
 
 export type NetworkConfig = {
-	readonly NAME: string;
 	readonly CYCLE_SECS: string;
+	readonly NETWORK_NAME: string;
 	readonly SUBGRAPH_URL: string;
+	readonly CONTRACT_CALLER: string;
 	readonly CONTRACT_DRIPS_HUB: string;
 	readonly CONTRACT_NFT_DRIVER: string;
 	readonly CONTRACT_NFT_DRIVER_ID: string;
@@ -39,3 +43,5 @@ export type CycleInfo = {
 };
 
 export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
+
+export type Preset = CallStruct[];
