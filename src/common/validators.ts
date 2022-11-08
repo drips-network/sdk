@@ -150,13 +150,13 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 /** @internal */
 export const validateClientProvider = async (provider: JsonRpcProvider, supportedChains: readonly number[]) => {
 	if (!provider) {
-		throw DripsErrors.validationError(`'${nameOf({ provider })}' is missing.`, nameOf({ provider }), provider);
+		throw DripsErrors.argumentMissingError(`'${nameOf({ provider })}' is missing.`, nameOf({ provider }));
 	}
 
 	const signer = provider.getSigner();
 	const signerAddress = await signer?.getAddress();
 	if (!signerAddress) {
-		throw DripsErrors.validationError(
+		throw DripsErrors.argumentError(
 			`'${nameOf({ signerAddress })}' is missing.`,
 			nameOf({ signerAddress }),
 			signerAddress

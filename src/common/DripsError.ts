@@ -3,7 +3,6 @@
 export enum DripsErrorCode {
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
-	VALIDATION_ERROR = 'VALIDATION_ERROR',
 	MISSING_ARGUMENT = 'MISSING_ARGUMENT',
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
 	SUBGRAPH_QUERY_ERROR = 'SUBGRAPH_QUERY_ERROR',
@@ -28,11 +27,6 @@ export class DripsErrors {
 	static addressError = (message: string, address: string) =>
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, message, {
 			invalidAddress: address
-		});
-
-	static validationError = (message: string, argName: string, argValue: unknown) =>
-		new DripsError(DripsErrorCode.VALIDATION_ERROR, message, {
-			invalidArgument: { name: argName, value: argValue }
 		});
 
 	static argumentMissingError = (message: string, argName: string) =>

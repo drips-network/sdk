@@ -13,7 +13,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import type { DripsReceiver, NetworkConfig } from '../../src/common/types';
+import type { DripsReceiver } from '../../src/common/types';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -69,33 +69,29 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
-		it('should set the custom network config when provided', async () => {
+		it('should set the custom driver address when provided', async () => {
 			// Arrange
-			const customAddress = Wallet.createRandom().address;
-			const customNetworkConfig = { CONTRACT_ADDRESS_DRIVER: customAddress } as NetworkConfig;
+			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await AddressDriverClient.create(providerStub, customNetworkConfig);
+			const client = await AddressDriverClient.create(providerStub, customDriverAddress);
 
 			// Assert
-			assert.equal(client.networkConfig.CONTRACT_ADDRESS_DRIVER, customAddress);
+			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(await testAddressDriverClient.signer.getAddress(), await signerStub.getAddress());
-			assert.equal(testAddressDriverClient.network.chainId, networkStub.chainId);
+			assert.equal(testAddressDriverClient.provider, providerStub);
+			assert.equal(testAddressDriverClient.provider.getSigner(), providerStub.getSigner());
 			assert.equal(
 				await testAddressDriverClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
 			);
 			assert.equal(
-				testAddressDriverClient.networkConfig,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId]
+				testAddressDriverClient.driverAddress,
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
 			);
-			assert.equal(testAddressDriverClient.signerAddress, await signerStub.getAddress());
-			assert.equal(testAddressDriverClient.dripsHub.network.chainId, dripsHubClientStub.network.chainId);
-			assert.equal(testAddressDriverClient.subgraph.apiUrl, Utils.Network.configs[TEST_CHAIN_ID].SUBGRAPH_URL);
 		});
 	});
 
@@ -108,12 +104,12 @@ describe('AddressDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER)
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -130,12 +126,12 @@ describe('AddressDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER)
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -145,8 +141,8 @@ describe('AddressDriverClient', () => {
 			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					testAddressDriverClient.signerAddress,
-					testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER
+					await testAddressDriverClient.provider.getSigner().getAddress(),
+					testAddressDriverClient.driverAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -163,7 +159,7 @@ describe('AddressDriverClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -181,7 +177,7 @@ describe('AddressDriverClient', () => {
 
 			sinon
 				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.signer)
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
 				.returns(erc20ContractStub);
 
 			// Act
@@ -189,10 +185,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				erc20ContractStub.approve.calledOnceWithExactly(
-					testAddressDriverClient.networkConfig.CONTRACT_ADDRESS_DRIVER,
-					constants.MaxUint256
-				),
+				erc20ContractStub.approve.calledOnceWithExactly(testAddressDriverClient.driverAddress, constants.MaxUint256),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -202,7 +195,7 @@ describe('AddressDriverClient', () => {
 		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
 			addressDriverContractStub.calcUserId
-				.withArgs(testAddressDriverClient.signerAddress)
+				.withArgs(await testAddressDriverClient.provider.getSigner().getAddress())
 				.resolves(BigNumber.from(111));
 
 			// Act
@@ -210,7 +203,9 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				addressDriverContractStub.calcUserId.calledOnceWithExactly(testAddressDriverClient.signerAddress),
+				addressDriverContractStub.calcUserId.calledOnceWithExactly(
+					await testAddressDriverClient.provider.getSigner().getAddress()
+				),
 				'Expected method to be called with different arguments'
 			);
 		});

@@ -15,7 +15,6 @@ import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriver';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
-import type { NetworkConfig } from '../../src/common/types';
 
 describe('ImmutableSplitsDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -71,31 +70,29 @@ describe('ImmutableSplitsDriverClient', () => {
 			);
 		});
 
-		it('should set the custom network config when provided', async () => {
+		it('should set the custom driver address when provided', async () => {
 			// Arrange
-			const customAddress = Wallet.createRandom().address;
-			const customNetworkConfig = { CONTRACT_ADDRESS_DRIVER: customAddress } as NetworkConfig;
+			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await ImmutableSplitsDriverClient.create(providerStub, customNetworkConfig);
+			const client = await ImmutableSplitsDriverClient.create(providerStub, customDriverAddress);
 
 			// Assert
-			assert.equal(client.networkConfig.CONTRACT_ADDRESS_DRIVER, customAddress);
+			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(await testImmutableSplitsDriverClient.signer.getAddress(), await signerStub.getAddress());
-			assert.equal(testImmutableSplitsDriverClient.network.chainId, networkStub.chainId);
+			assert.equal(testImmutableSplitsDriverClient.provider, providerStub);
+			assert.equal(testImmutableSplitsDriverClient.provider.getSigner(), providerStub.getSigner());
 			assert.equal(
 				await testImmutableSplitsDriverClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
 			);
 			assert.equal(
-				testImmutableSplitsDriverClient.networkConfig,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId]
+				testImmutableSplitsDriverClient.driverAddress,
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_IMMUTABLE_SPLITS_DRIVER
 			);
-			assert.equal(testImmutableSplitsDriverClient.signerAddress, await signerStub.getAddress());
 		});
 	});
 

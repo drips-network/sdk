@@ -12,7 +12,7 @@ import type {
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
-import * as internals from '../../src/common/validators';
+import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 
 describe('DripsSubgraphClient', () => {
@@ -798,7 +798,7 @@ describe('DripsSubgraphClient', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const ownerAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			sinon.stub(testSubgraphClient, 'query').withArgs(gql.getNftSubAccountsByOwner, { ownerAddress });
 

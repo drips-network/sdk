@@ -12,7 +12,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
-import type { DripsReceiverConfig, NetworkConfig } from '../../src/common/types';
+import type { DripsReceiverConfig } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance, ReceivableBalance, SplittableBalance } from '../../src/DripsHub/types';
@@ -71,28 +71,29 @@ describe('DripsHubClient', () => {
 			);
 		});
 
-		it('should set the custom network config when provided', async () => {
+		it('should set the custom driver address when provided', async () => {
 			// Arrange
-			const customAddress = Wallet.createRandom().address;
-			const customNetworkConfig = { CONTRACT_DRIPS_HUB: customAddress } as NetworkConfig;
+			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await DripsHubClient.create(providerStub, customNetworkConfig);
+			const client = await DripsHubClient.create(providerStub, customDriverAddress);
 
 			// Assert
-			assert.equal(client.networkConfig.CONTRACT_DRIPS_HUB, customAddress);
+			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(await testDripsHubClient.signer.getAddress(), await signerStub.getAddress());
-			assert.equal(testDripsHubClient.network.chainId, networkStub.chainId);
+			assert.equal(testDripsHubClient.provider, providerStub);
+			assert.equal(testDripsHubClient.provider.getSigner(), providerStub.getSigner());
 			assert.equal(
 				await testDripsHubClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
 			);
-			assert.equal(testDripsHubClient.networkConfig, Utils.Network.configs[(await providerStub.getNetwork()).chainId]);
-			assert.equal(testDripsHubClient.signerAddress, await signerStub.getAddress());
+			assert.equal(
+				testDripsHubClient.driverAddress,
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB
+			);
 		});
 	});
 
