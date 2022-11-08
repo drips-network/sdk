@@ -3,8 +3,8 @@ import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
-import type { BigNumberish, BytesLike } from 'ethers';
-import { BigNumber, Wallet } from 'ethers';
+import type { BigNumberish } from 'ethers';
+import { ethers, BigNumber, Wallet } from 'ethers';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
@@ -508,7 +508,13 @@ describe('DripsHubClient', () => {
 			const validateAddressStub = sinon.stub(internals, 'validateAddress');
 
 			dripsHubContractStub.squeezeDripsResult
-				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
+				.withArgs(
+					userId,
+					tokenAddress,
+					senderId,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
+					dripsHistory
+				)
 				.resolves(BigNumber.from(1));
 
 			// Act
@@ -561,7 +567,7 @@ describe('DripsHubClient', () => {
 
 			try {
 				// Act
-				await testDripsHubClient.getSqueezableBalance('1', tokenAddress, '1', undefined as unknown as BytesLike, []);
+				await testDripsHubClient.getSqueezableBalance('1', tokenAddress, '1', undefined as unknown as string, []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -606,7 +612,13 @@ describe('DripsHubClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 
 			dripsHubContractStub.squeezeDripsResult
-				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
+				.withArgs(
+					userId,
+					tokenAddress,
+					senderId,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
+					dripsHistory
+				)
 				.resolves(expectedBalance);
 
 			// Act
@@ -625,7 +637,7 @@ describe('DripsHubClient', () => {
 					userId,
 					tokenAddress,
 					senderId,
-					historyHash,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
 					dripsHistory
 				)
 			);

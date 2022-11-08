@@ -3,8 +3,8 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import type { BigNumberish, BytesLike } from 'ethers';
-import { BigNumber, constants, Wallet } from 'ethers';
+import type { BigNumberish } from 'ethers';
+import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct } from '../../contracts/AddressDriver';
@@ -762,7 +762,7 @@ describe('AddressDriverClient', () => {
 
 			// Act
 			try {
-				await testAddressDriverClient.emitUserMetadata('key', undefined as unknown as BytesLike);
+				await testAddressDriverClient.emitUserMetadata('key', undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -783,7 +783,10 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(key, value),
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(
+					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+				),
 				'Expected method to be called with different arguments'
 			);
 		});

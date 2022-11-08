@@ -1,6 +1,6 @@
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
+import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { NetworkConfig } from 'src/common/types';
@@ -349,11 +349,11 @@ export default class AddressDriverClient {
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
 	 * @param  {BigNumberish} key The metadata key.
-	 * @param  {BytesLike} value The metadata value.
+	 * @param  {string} value The metadata value.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
-	public emitUserMetadata(key: BigNumberish, value: BytesLike): Promise<ContractTransaction> {
+	public emitUserMetadata(key: BigNumberish, value: string): Promise<ContractTransaction> {
 		if (isNullOrUndefined(key)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not set emit user metadata: '${nameOf({ key })}' is missing.`,
@@ -368,6 +368,6 @@ export default class AddressDriverClient {
 			);
 		}
 
-		return this.#addressDriverContract.emitUserMetadata(key, value);
+		return this.#addressDriverContract.emitUserMetadata(key, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value)));
 	}
 }

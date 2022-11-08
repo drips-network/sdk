@@ -2,8 +2,8 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import type { BigNumberish, BytesLike, ContractReceipt, ContractTransaction, Event } from 'ethers';
-import { BigNumber, constants, Wallet } from 'ethers';
+import type { BigNumberish, ContractReceipt, ContractTransaction, Event } from 'ethers';
+import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
 import type { IERC20, NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
@@ -881,7 +881,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.emitUserMetadata('1', 'key', undefined as unknown as BytesLike);
+				await testNftDriverClient.emitUserMetadata('1', 'key', undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -903,7 +903,11 @@ describe('NFTDriverClient', () => {
 
 			// Assert
 			assert(
-				nftDriverContractStub.emitUserMetadata.calledOnceWithExactly(tokenId, key, value),
+				nftDriverContractStub.emitUserMetadata.calledOnceWithExactly(
+					tokenId,
+					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+				),
 				'Expected method to be called with different arguments'
 			);
 		});

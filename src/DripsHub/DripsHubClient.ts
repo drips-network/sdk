@@ -1,8 +1,8 @@
 import type { Network } from '@ethersproject/networks';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { NetworkConfig } from 'src/common/types';
-import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import { BigNumber } from 'ethers';
+import type { BigNumberish, ContractTransaction } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DripsHub';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
@@ -297,7 +297,7 @@ export default class DripsHubClient {
 	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {string} senderId The ID of the user sending drips to squeeze funds from.
-	 * @param  {BytesLike} historyHash The sender's history hash which was valid right before
+	 * @param  {string} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
 	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
 	 * @returns A `Promise` which resolves to the the squeezable balance.
@@ -308,7 +308,7 @@ export default class DripsHubClient {
 		userId: string,
 		tokenAddress: string,
 		senderId: string,
-		historyHash: BytesLike,
+		historyHash: string,
 		dripsHistory: DripsHistoryStruct[]
 	): Promise<bigint> {
 		validateAddress(tokenAddress);
@@ -345,7 +345,7 @@ export default class DripsHubClient {
 			userId,
 			tokenAddress,
 			senderId,
-			historyHash,
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
 			dripsHistory
 		);
 

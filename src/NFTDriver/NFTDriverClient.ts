@@ -1,8 +1,8 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import type { NetworkConfig } from 'src/common/types';
-import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import { constants, BigNumber } from 'ethers';
+import type { BigNumberish, ContractTransaction } from 'ethers';
+import { ethers, constants, BigNumber } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/NFTDriver';
 import type { NFTDriver as NFTDriverContract } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
@@ -398,11 +398,11 @@ export default class NFTDriverClient {
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
 	 * @param  {string} tokenId The ID of the token representing the collecting user ID. The token ID is equal to the user ID controlled by it.
 	 * @param  {BigNumberish} key The metadata key.
-	 * @param  {BytesLike} value The metadata value.
+	 * @param  {string} value The metadata value.
 	 * @returns A `Promise` which resolves to the `ContractTransaction`.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
-	public emitUserMetadata(tokenId: string, key: BigNumberish, value: BytesLike): Promise<ContractTransaction> {
+	public emitUserMetadata(tokenId: string, key: BigNumberish, value: string): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not set emit user metadata: '${nameOf({ tokenId })}' is missing.`,
@@ -424,6 +424,10 @@ export default class NFTDriverClient {
 			);
 		}
 
-		return this.#nftDriverContract.emitUserMetadata(tokenId, key, value);
+		return this.#nftDriverContract.emitUserMetadata(
+			tokenId,
+			key,
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+		);
 	}
 }
