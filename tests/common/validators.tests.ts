@@ -397,7 +397,7 @@ describe('validators', () => {
 		});
 
 		describe('validateClientProvider', () => {
-			it('should throw an error when the provider is missing', async () => {
+			it('should throw the expected error when the provider is missing', async () => {
 				// Arrange
 				let threw = false;
 
@@ -414,7 +414,7 @@ describe('validators', () => {
 				assert.isTrue(threw, 'Expected type of exception was not thrown');
 			});
 
-			it("should throw a error when the provider's signer is missing", async () => {
+			it("should throw the expected error when the provider's signer is missing", async () => {
 				// Arrange
 				let threw = false;
 				const providerStub = sinon.createStubInstance(JsonRpcProvider);
