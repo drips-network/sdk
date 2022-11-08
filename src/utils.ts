@@ -1,8 +1,8 @@
 import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import { validateAddress, validateDripsReceiverConfig } from './common/internals';
 import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
+import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
 	export namespace Network {

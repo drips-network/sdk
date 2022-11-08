@@ -3,10 +3,11 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { ImmutableSplitsDriver, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/ImmutableSplitsDriver';
 import type { ContractTransaction } from 'ethers';
 import type { NetworkConfig } from 'src/common/types';
+import { nameOf } from '../common/internals';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
-import { nameOf, validateAddress, validateSplitsReceivers } from '../common/internals';
+import { validateClientProvider, validateSplitsReceivers } from '../common/validators';
 
 /**
  * A client for creating immutable splits configurations.
@@ -64,41 +65,23 @@ export default class ImmutableSplitsDriverClient {
 	 * Creates a new immutable instance of an `ImmutableSplitsDriverClient`.
 	 * @param  {JsonRpcProvider} provider The `provider` must have a `signer` associated with it and can connect to the following supported networks:
 	 * - 'goerli': chain ID 5
+	 * @param  {NetworkConfig} customNetworkConfig Override network configuration.
+	 * If it's `undefined` (default value) and the`provider` is officially supported by the client, the configuration will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `ImmutableSplitsDriverClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {DripsErrors.argumentError} if the `provider`'s singer is missing.
 	 * @throws {DripsErrors.addressError} if the `provider`'s signer address is not valid.
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(provider: JsonRpcProvider): Promise<ImmutableSplitsDriverClient> {
-		if (!provider) {
-			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'ImmutableSplitsDriverClient': the provider is missing.",
-				nameOf({ provider })
-			);
-		}
+	public static async create(
+		provider: JsonRpcProvider,
+		customNetworkConfig?: NetworkConfig
+	): Promise<ImmutableSplitsDriverClient> {
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();
-		const signerAddress = await signer?.getAddress();
-		if (!signerAddress) {
-			throw DripsErrors.argumentError(
-				"Could not create a new 'ImmutableSplitsDriverClient': the provider's signer address is missing.",
-				nameOf({ provider }),
-				provider
-			);
-		}
-		validateAddress(signerAddress);
-
 		const network = await provider.getNetwork();
-		if (!Utils.Network.isSupportedChain(network?.chainId)) {
-			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'ImmutableSplitsDriverClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
-				network?.chainId
-			);
-		}
-		const networkConfig = Utils.Network.configs[network.chainId];
+		const networkConfig = customNetworkConfig ?? Utils.Network.configs[network.chainId];
 
 		const immutableSplitsDriverClient = new ImmutableSplitsDriverClient();
 

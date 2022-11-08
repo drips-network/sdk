@@ -12,7 +12,7 @@ import type {
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
-import * as internals from '../../src/common/internals';
+import * as internals from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 
 describe('DripsSubgraphClient', () => {

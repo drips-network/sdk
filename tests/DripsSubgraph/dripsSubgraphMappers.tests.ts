@@ -2,7 +2,7 @@
 // import { Wallet } from 'ethers';
 // import sinon from 'ts-sinon';
 // import { DripsErrorCode } from '../../src/common/DripsError';
-// import { toBN } from '../../src/common/internals';
+// import { toBN } from '../../src/common/validators';
 // import type { DripsReceiverConfig } from '../../src/common/types';
 // import { toDto, toDtos } from '../../src/DripsSubgraph/dripsSubgraphMappers';
 // import type { ApiUserAssetConfig, DripsConfiguration } from '../../src/DripsSubgraph/types';

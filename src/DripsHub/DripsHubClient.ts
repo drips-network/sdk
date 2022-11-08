@@ -5,14 +5,14 @@ import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DripsHub';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
+import { isNullOrUndefined, nameOf } from '../common/internals';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import {
-	isNullOrUndefined,
-	nameOf,
 	validateAddress,
+	validateClientProvider,
 	validateDripsReceivers,
 	validateSplitsReceivers
-} from '../common/internals';
+} from '../common/validators';
 import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
@@ -82,33 +82,10 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
 	public static async create(provider: JsonRpcProvider, customNetworkConfig?: NetworkConfig): Promise<DripsHubClient> {
-		if (!provider) {
-			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'DripsHubClient': the provider is missing.",
-				nameOf({ provider })
-			);
-		}
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();
-		const signerAddress = await signer?.getAddress();
-		if (!signerAddress) {
-			throw DripsErrors.argumentError(
-				"Could not create a new 'DripsHubClient': the provider's signer address is missing.",
-				nameOf({ provider }),
-				provider
-			);
-		}
-		validateAddress(signerAddress);
-
 		const network = await provider.getNetwork();
-		if (!Utils.Network.isSupportedChain(network?.chainId)) {
-			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'DripsHubClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
-				network?.chainId
-			);
-		}
 		const networkConfig = customNetworkConfig ?? Utils.Network.configs[network.chainId];
 
 		const dripsHubClient = new DripsHubClient();

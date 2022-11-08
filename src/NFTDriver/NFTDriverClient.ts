@@ -8,17 +8,14 @@ import type { NFTDriver as NFTDriverContract } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 import {
-	formatDripsReceivers,
-	formatSplitReceivers,
-	isNullOrUndefined,
-	nameOf,
 	validateAddress,
+	validateClientProvider,
 	validateDripsReceivers,
 	validateSplitsReceivers
-} from '../common/internals';
+} from '../common/validators';
 import Utils from '../utils';
 import DripsHubClient from '../DripsHub/DripsHubClient';
-
+import { formatDripsReceivers, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 /**
  * A client for managing Drips for a user identified by an NFT.
  * Anybody can mint a new token and create a new identity.
@@ -94,33 +91,10 @@ export default class NFTDriverClient {
 	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
 	public static async create(provider: JsonRpcProvider, customNetworkConfig?: NetworkConfig): Promise<NFTDriverClient> {
-		if (!provider) {
-			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'NFTDriverClient': the provider is missing.",
-				nameOf({ provider })
-			);
-		}
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();
-		const signerAddress = await signer?.getAddress();
-		if (!signerAddress) {
-			throw DripsErrors.argumentError(
-				"Could not create a new 'NFTDriverClient': the provider's signer address is missing.",
-				nameOf({ provider }),
-				provider
-			);
-		}
-		validateAddress(signerAddress);
-
 		const network = await provider.getNetwork();
-		if (!Utils.Network.isSupportedChain(network?.chainId)) {
-			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'NFTDriverClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
-				network?.chainId
-			);
-		}
 		const networkConfig = customNetworkConfig ?? Utils.Network.configs[network.chainId];
 
 		const nftDriverClient = new NFTDriverClient();

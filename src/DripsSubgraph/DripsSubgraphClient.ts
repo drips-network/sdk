@@ -1,8 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish } from 'ethers';
 import { BigNumber } from 'ethers';
+import { nameOf } from '../common/internals';
 import Utils from '../utils';
-import { nameOf, validateAddress } from '../common/internals';
+import { validateAddress } from '../common/validators';
 import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
 import type * as SubgraphTypes from './generated/graphql-types';

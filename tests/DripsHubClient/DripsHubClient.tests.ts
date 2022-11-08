@@ -10,7 +10,7 @@ import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import * as internals from '../../src/common/internals';
+import * as validators from '../../src/common/validators';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
 import type { DripsReceiverConfig, NetworkConfig } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
@@ -57,71 +57,18 @@ describe('DripsHubClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should throw argumentMissingError error when the provider is missing', async () => {
+		it('should validate the provider', async () => {
 			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await DripsHubClient.create(undefined as unknown as JsonRpcProvider);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should throw argumentMissingError error when the provider's signer is missing", async () => {
-			// Arrange
-			let threw = false;
-			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
-
-			try {
-				// Act
-				await DripsHubClient.create(providerStub);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should validate the provider's signer address", async () => {
-			// Arrange
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
 			DripsHubClient.create(providerStub);
 
 			// Assert
 			assert(
-				validateAddressStub.calledOnceWithExactly(await signerStub.getAddress()),
+				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
-		});
-
-		it('should throw unsupportedNetworkError error when the provider is connected to an unsupported network', async () => {
-			// Arrange
-			let threw = false;
-			providerStub.getNetwork.resolves({ chainId: TEST_CHAIN_ID + 1 } as Network);
-
-			try {
-				// Act
-				await DripsHubClient.create(providerStub);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
 		it('should set the custom network config when provided', async () => {
@@ -178,7 +125,7 @@ describe('DripsHubClient', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.totalBalance.withArgs(tokenAddress).resolves(BigNumber.from(1));
 
@@ -210,7 +157,7 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
 			await testDripsHubClient.receivableCyclesCount(userId, tokenAddress);
@@ -260,7 +207,7 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.receiveDripsResult.withArgs(userId, tokenAddress, maxCycles).resolves({
 				receivableAmt: BigNumber.from(1),
@@ -438,7 +385,7 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
 			await testDripsHubClient.receiveDrips(userId, tokenAddress, maxCycles);
@@ -505,7 +452,7 @@ describe('DripsHubClient', () => {
 			const historyHash = '0x';
 			const dripsHistory: DripsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.squeezeDripsResult
 				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
@@ -637,7 +584,7 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.splittable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
 
@@ -769,7 +716,7 @@ describe('DripsHubClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const validateSplitsReceiversStub = sinon.stub(internals, 'validateSplitsReceivers');
+			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			dripsHubContractStub.splitResult.withArgs('1', receivers, 1).resolves(BigNumber.from(0));
 
@@ -876,7 +823,7 @@ describe('DripsHubClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const validateSplitsReceiversStub = sinon.stub(internals, 'validateSplitsReceivers');
+			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
 			await testDripsHubClient.split(userId, tokenAddress, receivers);
@@ -894,7 +841,7 @@ describe('DripsHubClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const validateSplitsReceiversStub = sinon.stub(internals, 'validateSplitsReceivers');
+			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
 			await testDripsHubClient.split(userId, tokenAddress, receivers);
@@ -928,7 +875,7 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.collectable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
 
@@ -1057,7 +1004,7 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.dripsState.withArgs(userId, tokenAddress).resolves({} as any);
 
@@ -1120,7 +1067,7 @@ describe('DripsHubClient', () => {
 			const timestamp = 11111n;
 			const receivers: DripsReceiverStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.balanceAt.withArgs(userId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
 
@@ -1142,7 +1089,7 @@ describe('DripsHubClient', () => {
 				}
 			];
 			const tokenAddress = Wallet.createRandom().address;
-			const validateDripsReceiversStub = sinon.stub(internals, 'validateDripsReceivers');
+			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
 
 			dripsHubContractStub.balanceAt.withArgs(userId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
 

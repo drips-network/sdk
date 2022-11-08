@@ -14,7 +14,8 @@ import { DripsErrorCode } from '../../dist';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriver';
 import Utils from '../../src/utils';
-import * as internals from '../../src/common/internals';
+import * as validators from '../../src/common/validators';
+import type { NetworkConfig } from '../../src/common/types';
 
 describe('ImmutableSplitsDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -56,71 +57,30 @@ describe('ImmutableSplitsDriverClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should throw argumentMissingError error when the provider is missing', async () => {
+		it('should validate the provider', async () => {
 			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await ImmutableSplitsDriverClient.create(undefined as unknown as JsonRpcProvider);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should throw argumentMissingError error when the provider's signer is missing", async () => {
-			// Arrange
-			let threw = false;
-			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
-
-			try {
-				// Act
-				await ImmutableSplitsDriverClient.create(providerStub);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should validate the provider's signer address", async () => {
-			// Arrange
-			const validateAddressStub = sinon.stub(internals, 'validateAddress');
+			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
 			ImmutableSplitsDriverClient.create(providerStub);
 
 			// Assert
 			assert(
-				validateAddressStub.calledOnceWithExactly(await signerStub.getAddress()),
+				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should throw unsupportedNetworkError error when the provider is connected to an unsupported network', async () => {
+		it('should set the custom network config when provided', async () => {
 			// Arrange
-			let threw = false;
-			providerStub.getNetwork.resolves({ chainId: TEST_CHAIN_ID + 1 } as Network);
+			const customAddress = Wallet.createRandom().address;
+			const customNetworkConfig = { CONTRACT_ADDRESS_DRIVER: customAddress } as NetworkConfig;
 
-			try {
-				// Act
-				await ImmutableSplitsDriverClient.create(providerStub);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
-				threw = true;
-			}
+			// Act
+			const client = await ImmutableSplitsDriverClient.create(providerStub, customNetworkConfig);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert.equal(client.networkConfig.CONTRACT_ADDRESS_DRIVER, customAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
@@ -162,7 +122,7 @@ describe('ImmutableSplitsDriverClient', () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [];
 
-			const validateSplitsReceiversStub = sinon.stub(internals, 'validateSplitsReceivers');
+			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
 			await testImmutableSplitsDriverClient.createSplits(receivers, []);

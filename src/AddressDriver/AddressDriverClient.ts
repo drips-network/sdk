@@ -4,21 +4,19 @@ import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
 import type { NetworkConfig } from 'src/common/types';
+import {
+	validateAddress,
+	validateClientProvider,
+	validateDripsReceivers,
+	validateSplitsReceivers
+} from '../common/validators';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import DripsHubClient from '../DripsHub/DripsHubClient';
 import Utils from '../utils';
-import {
-	validateAddress,
-	nameOf,
-	isNullOrUndefined,
-	validateDripsReceivers,
-	validateSplitsReceivers,
-	formatDripsReceivers,
-	formatSplitReceivers
-} from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import type { AddressDriver as AddressDriverContract } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
+import { nameOf, isNullOrUndefined, formatDripsReceivers, formatSplitReceivers } from '../common/internals';
 
 /**
  * A client for managing Drips for a user identified by an Ethereum address.
@@ -104,33 +102,10 @@ export default class AddressDriverClient {
 		provider: JsonRpcProvider,
 		customNetworkConfig?: NetworkConfig
 	): Promise<AddressDriverClient> {
-		if (!provider) {
-			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'AddressDriverClient': the provider is missing.",
-				nameOf({ provider })
-			);
-		}
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();
-		const signerAddress = await signer?.getAddress();
-		if (!signerAddress) {
-			throw DripsErrors.argumentError(
-				"Could not create a new 'AddressDriverClient': the provider's signer address is missing.",
-				nameOf({ provider }),
-				provider
-			);
-		}
-		validateAddress(signerAddress);
-
 		const network = await provider.getNetwork();
-		if (!Utils.Network.isSupportedChain(network?.chainId)) {
-			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'AddressDriverClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
-				network?.chainId
-			);
-		}
 		const networkConfig = customNetworkConfig ?? Utils.Network.configs[network.chainId];
 
 		const addressDriverClient = new AddressDriverClient();
