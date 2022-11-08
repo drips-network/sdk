@@ -45,7 +45,7 @@ export namespace AddressDriverPresets {
  * // Create a new `Caller`.
  * const caller = await CallerClient.create(provider);
  *
- * // Populate the flow's
+ * // Populate the flow's payload.
 	const flowPayload: AddressDriverPresets.CollectFlowPayload = {
 		driverAddress,
 		dripsHubAddress,
@@ -65,17 +65,18 @@ export namespace AddressDriverPresets {
 	*/
 	export class Presets {
 		/**
-		 * Creates a new batch with the following operations:
+		 * Creates a new batch with the following sequence of calls:
 		 * 1. `setDrips`
 		 * 2. `emitUserMetadata`
 		 *
-		 * @param  {CreateStreamFlowPayload} payload the flow's
-		 * @returns The preset batch.
+		 * @see `AddressDriverClient`'s API for more details.
+		 * @param  {CreateStreamFlowPayload} payload the flow's payload.
+		 * @returns The preset.
 		 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
-		 * @throws {DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
-		 * @throws {DripsErrors.argumentError} if `currentReceivers`' or `newReceivers`' count exceeds the max allowed drips receivers.
-		 * @throws {DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` is not valid.
-		 * @throws {DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
+		 * @throws {DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
+		 * @throws {DripsErrors.argumentError} if `payload.currentReceivers`' or `payload.newReceivers`' count exceeds the max allowed drips receivers.
+		 * @throws {DripsErrors.dripsReceiverError} if any of the `payload.currentReceivers` or the `newReceivers` is not valid.
+		 * @throws {DripsErrors.dripsReceiverConfigError} if any of the `payload.receivers`' configuration is not valid.
 		 */
 		public static createStreamFlow(payload: CreateStreamFlowPayload): Preset {
 			if (isNullOrUndefined(payload)) {
@@ -150,12 +151,18 @@ export namespace AddressDriverPresets {
 		}
 
 		/**
-		 * Creates a new batch with the following operations:
+		 * Creates a new batch with the following sequence of calls:
 		 * 1. `receiveDrips`
 		 * 2. `split`
 		 * 3. `collect`
-		 * @param  {CollectFlowPayload} payload the flow's
-		 * @returns The preset batch.
+		 *
+		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
+		 * @param  {CollectFlowPayload} payload the flow's payload.
+		 * @returns The preset.
+		 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
+		 * @throws {DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
+		 * @throws {DripsErrors.argumentError} if `payload.currentReceivers`' count exceeds the max allowed splits receivers.
+		 * @throws {DripsErrors.splitsReceiverError} if any of the `payload.currentReceivers` is not valid.
 		 */
 		public static collectFlow(payload: CollectFlowPayload): Preset {
 			if (isNullOrUndefined(payload)) {

@@ -114,7 +114,7 @@ export default class AddressDriverClient {
 	): Promise<AddressDriverClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'AddressDriverClient': the provider is missing.",
+				`Could not create a new 'AddressDriverClient': '${nameOf({ provider })}' is missing.`,
 				nameOf({ provider })
 			);
 		}
@@ -123,8 +123,8 @@ export default class AddressDriverClient {
 		const signerAddress = await signer?.getAddress();
 		if (!signerAddress) {
 			throw DripsErrors.argumentError(
-				"Could not create a new 'AddressDriverClient': the provider's signer address is missing.",
-				nameOf({ provider }),
+				`Could not create a new 'AddressDriverClient': '${nameOf({ signerAddress })}' is missing.`,
+				nameOf({ signerAddress }),
 				provider
 			);
 		}
@@ -133,9 +133,7 @@ export default class AddressDriverClient {
 		const network = await provider.getNetwork();
 		if (!Utils.Network.isSupportedChain(network?.chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'AddressDriverClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
+				`Could not create a new 'AddressDriverClient': the provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS}.`,
 				network?.chainId
 			);
 		}

@@ -53,14 +53,14 @@ export default class DripsSubgraphClient {
 	public static create(chainId: number, customApiUrl?: string): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
-				`Could not create a new 'DripsSubgraphClient' instance: ${nameOf({ chainId })} is missing.`,
+				`Could not create a new 'DripsSubgraphClient': ${nameOf({ chainId })} is missing.`,
 				nameOf({ chainId })
 			);
 		}
 
 		if (!Utils.Network.isSupportedChain(chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'DripsSubgraphClient' instance: chain ID '${chainId}' is not supported.`,
+				`Could not create a new 'DripsSubgraphClient': chain ID '${chainId}' is not supported.`,
 				chainId
 			);
 		}

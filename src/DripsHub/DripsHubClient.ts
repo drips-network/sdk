@@ -84,7 +84,7 @@ export default class DripsHubClient {
 	public static async create(provider: JsonRpcProvider, customNetworkConfig?: NetworkConfig): Promise<DripsHubClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'DripsHubClient': the provider is missing.",
+				`Could not create a new 'DripsHubClient': '${nameOf({ provider })}' is missing.`,
 				nameOf({ provider })
 			);
 		}
@@ -93,8 +93,8 @@ export default class DripsHubClient {
 		const signerAddress = await signer?.getAddress();
 		if (!signerAddress) {
 			throw DripsErrors.argumentError(
-				"Could not create a new 'DripsHubClient': the provider's signer address is missing.",
-				nameOf({ provider }),
+				`Could not create a new 'DripsHubClient': '${nameOf({ signerAddress })}' is missing.`,
+				nameOf({ signerAddress }),
 				provider
 			);
 		}
@@ -103,9 +103,7 @@ export default class DripsHubClient {
 		const network = await provider.getNetwork();
 		if (!Utils.Network.isSupportedChain(network?.chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'DripsHubClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
+				`Could not create a new 'DripsHubClient': the provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS}.`,
 				network?.chainId
 			);
 		}

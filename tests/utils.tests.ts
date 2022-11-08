@@ -228,40 +228,4 @@ describe('Utils', () => {
 			});
 		});
 	});
-
-	// describe('mapDripsReceiverDtosToStructs()', () => {
-	// 	it('should return the expected result', () => {
-	// 		// Arrange
-	// 		const Drip: DripsReceiver = {
-	// 			config: new DripsReceiverConfig(1, 1, 1),
-	// 			receiverUserId: '2'
-	// 		};
-
-	// 		// Act
-	// 		const dripStructs: DripsReceiverStruct[] = utils.mappers.mapDripsReceiverDtosToStructs([Drip]);
-
-	// 		// Assert
-	// 		assert.equal(dripStructs.length, 1);
-	// 		assert.isTrue(toBN(dripStructs[0].config).eq(Drip.config.asUint256));
-	// 		assert.isTrue(toBN(dripStructs[0].userId).eq(Drip.receiverUserId));
-	// 	});
-	// });
-
-	// describe('mapSplitsDtosToStructs()', () => {
-	// 	it('should return the expected result', () => {
-	// 		// Arrange
-	// 		const splitsEntry: Split = {
-	// 			weight: '1234',
-	// 			receiverUserId: '2'
-	// 		};
-
-	// 		// Act
-	// 		const dripStructs: SplitsReceiverStruct[] = utils.mappers.mapSplitsDtosToStructs([splitsEntry]);
-
-	// 		// Assert
-	// 		assert.equal(dripStructs.length, 1);
-	// 		assert.equal(dripStructs[0].weight, splitsEntry.weight);
-	// 		assert.equal(dripStructs[0].userId, splitsEntry.receiverUserId);
-	// 	});
-	// });
 });

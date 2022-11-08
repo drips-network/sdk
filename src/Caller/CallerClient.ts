@@ -25,9 +25,13 @@ export default class CallerClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `CallerClient` instance.
-	 * @param  {JsonRpcProvider} provider The `provider` must have a `signer` associated with it and can connect to the following supported networks:
-	 * - `goerli`: chain ID 5
-	 * @param  {NetworkConfig} contractAddress Overrides the `Caller`'s address.
+	 * @param  {JsonRpcProvider} provider The network provider.
+	 *
+	 * The `provider` must have a `signer` associated with it.
+	 *
+	 * The supported networks are:
+	 * - `goerli`: chain ID `5`
+	 * @param  {NetworkConfig} contractAddress Overrides the `Caller` smart contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `CallerClient` instance.
 	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
@@ -38,7 +42,7 @@ export default class CallerClient {
 	public static async create(provider: JsonRpcProvider, contractAddress?: string): Promise<CallerClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'CallerClient': the provider is missing.",
+				`Could not create a new 'CallerClient': '${nameOf({ provider })}' is missing.`,
 				nameOf({ provider })
 			);
 		}
@@ -47,8 +51,8 @@ export default class CallerClient {
 		const signerAddress = await signer?.getAddress();
 		if (!signerAddress) {
 			throw DripsErrors.argumentError(
-				"Could not create a new 'CallerClient': the provider's signer address is missing.",
-				nameOf({ provider }),
+				`Could not create a new 'CallerClient': '${nameOf({ signerAddress })}' is missing.`,
+				nameOf({ signerAddress }),
 				provider
 			);
 		}
@@ -57,9 +61,7 @@ export default class CallerClient {
 		const network = await provider.getNetwork();
 		if (!Utils.Network.isSupportedChain(network?.chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'CallerClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
+				`Could not create a new 'CallerClient': the provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS}.`,
 				network?.chainId
 			);
 		}

@@ -96,7 +96,7 @@ export default class NFTDriverClient {
 	public static async create(provider: JsonRpcProvider, customNetworkConfig?: NetworkConfig): Promise<NFTDriverClient> {
 		if (!provider) {
 			throw DripsErrors.argumentMissingError(
-				"Could not create a new 'NFTDriverClient': the provider is missing.",
+				`Could not create a new 'NFTDriverClient': '${nameOf({ provider })}' is missing.`,
 				nameOf({ provider })
 			);
 		}
@@ -105,8 +105,8 @@ export default class NFTDriverClient {
 		const signerAddress = await signer?.getAddress();
 		if (!signerAddress) {
 			throw DripsErrors.argumentError(
-				"Could not create a new 'NFTDriverClient': the provider's signer address is missing.",
-				nameOf({ provider }),
+				`Could not create a new 'NFTDriverClient': '${nameOf({ signerAddress })}' is missing.`,
+				nameOf({ signerAddress }),
 				provider
 			);
 		}
@@ -115,9 +115,7 @@ export default class NFTDriverClient {
 		const network = await provider.getNetwork();
 		if (!Utils.Network.isSupportedChain(network?.chainId)) {
 			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'NFTDriverClient': the provider is connected to an unsupported network (name: '${
-					network?.name
-				}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS.toString()}.`,
+				`Could not create a new 'NFTDriverClient': the provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS}.`,
 				network?.chainId
 			);
 		}
