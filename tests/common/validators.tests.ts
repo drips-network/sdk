@@ -397,7 +397,7 @@ describe('validators', () => {
 		});
 
 		describe('validateClientProvider', () => {
-			it('should throw a validation error when the provider is missing', async () => {
+			it('should throw an error when the provider is missing', async () => {
 				// Arrange
 				let threw = false;
 
@@ -406,7 +406,7 @@ describe('validators', () => {
 					await validators.validateClientProvider(undefined as unknown as JsonRpcProvider, []);
 				} catch (error: any) {
 					// Assert
-					assert.equal(error.code, DripsErrorCode.VALIDATION_ERROR);
+					assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 					threw = true;
 				}
 
@@ -414,7 +414,7 @@ describe('validators', () => {
 				assert.isTrue(threw, 'Expected type of exception was not thrown');
 			});
 
-			it("should throw a validation error when the provider's signer is missing", async () => {
+			it("should throw a error when the provider's signer is missing", async () => {
 				// Arrange
 				let threw = false;
 				const providerStub = sinon.createStubInstance(JsonRpcProvider);
@@ -426,7 +426,7 @@ describe('validators', () => {
 					await validators.validateClientProvider(providerStub, []);
 				} catch (error: any) {
 					// Assert
-					assert.equal(error.code, DripsErrorCode.VALIDATION_ERROR);
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 					threw = true;
 				}
 
