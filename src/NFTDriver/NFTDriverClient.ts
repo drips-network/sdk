@@ -59,7 +59,10 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(provider: JsonRpcProvider, customDriverAddress?: string): Promise<NFTDriverClient> {
+	public static async create(
+		provider: JsonRpcProvider,
+		customDriverAddress: string | undefined = undefined
+	): Promise<NFTDriverClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();

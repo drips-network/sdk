@@ -54,7 +54,10 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(provider: JsonRpcProvider, customDriverAddress?: string): Promise<DripsHubClient> {
+	public static async create(
+		provider: JsonRpcProvider,
+		customDriverAddress: string | undefined = undefined
+	): Promise<DripsHubClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();

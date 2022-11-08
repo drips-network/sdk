@@ -51,7 +51,7 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
-	public static create(chainId: number, customApiUrl?: string): DripsSubgraphClient {
+	public static create(chainId: number, customApiUrl: string | undefined = undefined): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not create a new 'DripsSubgraphClient' instance: ${nameOf({ chainId })} is missing.`,

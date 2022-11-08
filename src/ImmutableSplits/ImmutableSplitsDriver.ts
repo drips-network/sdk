@@ -46,7 +46,7 @@ export default class ImmutableSplitsDriverClient {
 	 */
 	public static async create(
 		provider: JsonRpcProvider,
-		customDriverAddress?: string
+		customDriverAddress: string | undefined = undefined
 	): Promise<ImmutableSplitsDriverClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
