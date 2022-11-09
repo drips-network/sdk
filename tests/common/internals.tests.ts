@@ -62,6 +62,51 @@ describe('internals', () => {
 		});
 	});
 
+	describe('formatSplitReceivers', () => {
+		it('should sort by the expected order when userID1>userID2', async () => {
+			// Arrange
+			const receivers: SplitsReceiverStruct[] = [
+				{ userId: 100, weight: 1 },
+				{ userId: 1, weight: 100 }
+			];
+
+			// Act
+			const formattedReceivers = internals.formatSplitReceivers(receivers);
+
+			// Assert
+			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+		});
+
+		it('should sort by the expected order when userID1<userID2', async () => {
+			// Arrange
+			const receivers: SplitsReceiverStruct[] = [
+				{ userId: 1, weight: 100 },
+				{ userId: 100, weight: 1 }
+			];
+
+			// Act
+			const formattedReceivers = internals.formatSplitReceivers(receivers);
+
+			// Assert
+			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+		});
+
+		it('should remove duplicates', async () => {
+			// Arrange
+			const receivers: SplitsReceiverStruct[] = [
+				{ userId: 1, weight: 100 },
+				{ userId: 1, weight: 100 },
+				{ userId: 100, weight: 1 }
+			];
+
+			// Act
+			const formattedReceivers = internals.formatSplitReceivers(receivers);
+
+			// Assert
+			assert.equal(formattedReceivers.length, 2);
+		});
+	});
+
 	describe('formatSplitReceivers()', () => {
 		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange

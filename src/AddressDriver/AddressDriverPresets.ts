@@ -1,14 +1,8 @@
 import type { CallStruct } from 'contracts/Caller';
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber } from 'ethers';
-import {
-	formatDripsReceivers,
-	isNullOrUndefined,
-	nameOf,
-	validateAddress,
-	validateDripsReceivers,
-	validateSplitsReceivers
-} from '../common/internals';
+import { validateAddress, validateDripsReceivers, validateSplitsReceivers } from '../common/validators';
+import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
