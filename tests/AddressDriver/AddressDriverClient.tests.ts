@@ -13,7 +13,6 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import CallerClient from '../../src/Caller/CallerClient';
-import { formatDripsReceivers, formatSplitReceivers } from '../../src/common/internals';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -266,39 +265,17 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
-		it('should delegate the expected call to the caller', async () => {
+		it('should call the collect() method of the AddressDriver contract', async () => {
 			// Arrange
-			const expectedEncodedCallData = '0x11';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'collect'),
-					sinon.match.array.deepEquals([tokenAddress, transferToAddress])
-				)
-				.returns(expectedEncodedCallData);
 
 			// Act
 			await testAddressDriverClient.collect(tokenAddress, transferToAddress);
 
 			// Assert
-			assert(addressDriverContractStub.collect.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'collect'),
-					sinon.match.array.deepEquals([tokenAddress, transferToAddress])
-				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				callerClientStub.callBatched.calledOnceWithExactly([
-					{
-						value: 0,
-						to: testAddressDriverClient.driverAddress,
-						data: expectedEncodedCallData
-					}
-				]),
+				addressDriverContractStub.collect.calledOnceWithExactly(tokenAddress, transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -353,40 +330,18 @@ describe('AddressDriverClient', () => {
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should delegate the expected call to the caller', async () => {
+		it('should call the give() method of the AddressDriver contract', async () => {
 			// Arrange
 			const amount = 100n;
 			const receiverUserId = '1';
-			const expectedEncodedCallData = '0x11';
 			const tokenAddress = Wallet.createRandom().address;
-
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'give'),
-					sinon.match.array.deepEquals([receiverUserId, tokenAddress, amount])
-				)
-				.returns(expectedEncodedCallData);
 
 			// Act
 			await testAddressDriverClient.give(receiverUserId, tokenAddress, amount);
 
 			// Assert
-			assert(addressDriverContractStub.give.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'give'),
-					sinon.match.array.deepEquals([receiverUserId, tokenAddress, amount])
-				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				callerClientStub.callBatched.calledOnceWithExactly([
-					{
-						value: 0,
-						to: testAddressDriverClient.driverAddress,
-						data: expectedEncodedCallData
-					}
-				]),
+				addressDriverContractStub.give.calledOnceWithExactly(receiverUserId, tokenAddress, amount),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -410,17 +365,13 @@ describe('AddressDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('clears splits when new receivers is an empty list', async () => {
+		it('should clear splits when new receivers is an empty list', async () => {
 			// Act
 			await testAddressDriverClient.setSplits([]);
 
 			// Assert
-			assert(addressDriverContractStub.setSplits.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'setSplits'),
-					sinon.match.array.deepEquals([[]])
-				),
+				addressDriverContractStub.setSplits.calledOnceWithExactly([]),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -441,43 +392,25 @@ describe('AddressDriverClient', () => {
 			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
 		});
 
-		it('should delegate the expected call to the caller', async () => {
+		it('should call the setSplits() method of the AddressDriver contract', async () => {
 			// Arrange
-			const expectedEncodedCallData = '0x11';
-
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 2, weight: 100 },
 				{ userId: 1, weight: 1 },
 				{ userId: 1, weight: 1 }
 			];
 
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'setSplits'),
-					sinon.match.array.deepEquals([formatSplitReceivers(receivers)])
-				)
-				.returns(expectedEncodedCallData);
-
 			// Act
 			await testAddressDriverClient.setSplits(receivers);
 
 			// Assert
-			assert(addressDriverContractStub.setSplits.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'setSplits'),
-					sinon.match.array.deepEquals([formatSplitReceivers(receivers)])
+				addressDriverContractStub.setSplits.calledOnceWithExactly(
+					sinon
+						.match((r: SplitsReceiverStruct[]) => r.length === 2)
+						.and(sinon.match((r: SplitsReceiverStruct[]) => r[0].userId === 1))
+						.and(sinon.match((r: SplitsReceiverStruct[]) => r[1].userId === 2))
 				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				callerClientStub.callBatched.calledOnceWithExactly([
-					{
-						value: 0,
-						to: testAddressDriverClient.driverAddress,
-						data: expectedEncodedCallData
-					}
-				]),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -540,8 +473,6 @@ describe('AddressDriverClient', () => {
 
 		it('should clear drips when new receivers is an empty list', async () => {
 			// Arrange
-			const balanceDelta = 1;
-			const expectedEncodedCallData = '0x11';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
@@ -551,56 +482,26 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'setDrips'),
-					sinon.match.array.deepEquals([
-						tokenAddress,
-						formatDripsReceivers(currentReceivers),
-						balanceDelta,
-						[],
-						transferToAddress
-					])
-				)
-				.returns(expectedEncodedCallData);
-
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, [], transferToAddress, balanceDelta);
+			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, [], transferToAddress, 1n);
 
 			// Assert
-			assert(addressDriverContractStub.setDrips.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'setDrips'),
-					sinon.match.array.deepEquals([
-						tokenAddress,
-						formatDripsReceivers(currentReceivers),
-						balanceDelta,
-						[],
-						transferToAddress
-					])
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
+					tokenAddress,
+					currentReceivers,
+					1n,
+					[],
+					transferToAddress
 				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				callerClientStub.callBatched.calledOnceWithExactly([
-					{
-						value: 0,
-						to: testAddressDriverClient.driverAddress,
-						data: expectedEncodedCallData
-					}
-				]),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should delegate the expected call to the caller', async () => {
+		it('should call the setDrips() method of the AddressDriver contract', async () => {
 			// Arrange
-			const balanceDelta = 1;
-			const expectedEncodedCallData = '0x11';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-
 			const currentReceivers: DripsReceiverStruct[] = [
 				{
 					userId: 3n,
@@ -622,51 +523,21 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'setDrips'),
-					sinon.match.array.deepEquals([
-						tokenAddress,
-						formatDripsReceivers(currentReceivers),
-						balanceDelta,
-						formatDripsReceivers(receivers),
-						transferToAddress
-					])
-				)
-				.returns(expectedEncodedCallData);
-
 			// Act
-			await testAddressDriverClient.setDrips(
-				tokenAddress,
-				currentReceivers,
-				receivers,
-				transferToAddress,
-				balanceDelta
-			);
+			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
-			assert(addressDriverContractStub.setDrips.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'setDrips'),
-					sinon.match.array.deepEquals([
-						tokenAddress,
-						formatDripsReceivers(currentReceivers),
-						balanceDelta,
-						formatDripsReceivers(receivers),
-						transferToAddress
-					])
+				addressDriverContractStub.setDrips.calledOnceWithExactly(
+					tokenAddress,
+					currentReceivers,
+					1n,
+					sinon
+						.match((r: DripsReceiverStruct[]) => r[0].userId === 1n)
+						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2n))
+						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2)),
+					transferToAddress
 				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				callerClientStub.callBatched.calledOnceWithExactly([
-					{
-						value: 0,
-						to: testAddressDriverClient.driverAddress,
-						data: expectedEncodedCallData
-					}
-				]),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -680,12 +551,8 @@ describe('AddressDriverClient', () => {
 			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
 
 			// Assert
-			assert(addressDriverContractStub.setDrips.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'setDrips'),
-					sinon.match((values: any[]) => values.includes(0))
-				),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -727,39 +594,20 @@ describe('AddressDriverClient', () => {
 			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(expectedKey, expectedValue));
 		});
 
-		it('should delegate the expected call to the caller', async () => {
+		it('should call the emitUserMetadata() method of the AddressDriver contract', async () => {
 			// Arrange
-			const expectedKey = '1';
-			const expectedValue = 'value';
-			const expectedEncodedCallData = '0x11';
-
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'emitUserMetadata'),
-					[expectedKey, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(expectedValue))]
-				)
-				.returns(expectedEncodedCallData);
+			const key = '1';
+			const value = 'value';
 
 			// Act
-			await testAddressDriverClient.emitUserMetadata(expectedKey, expectedValue);
+			await testAddressDriverClient.emitUserMetadata(key, value);
 
 			// Assert
-			assert(addressDriverContractStub.emitUserMetadata.notCalled);
 			assert(
-				addressDriverInterfaceStub.encodeFunctionData.calledOnceWithExactly(
-					sinon.match((s: string) => s === 'emitUserMetadata'),
-					[expectedKey, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(expectedValue))]
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(
+					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
 				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				callerClientStub.callBatched.calledOnceWithExactly([
-					{
-						value: 0,
-						to: testAddressDriverClient.driverAddress,
-						data: expectedEncodedCallData
-					}
-				]),
 				'Expected method to be called with different arguments'
 			);
 		});

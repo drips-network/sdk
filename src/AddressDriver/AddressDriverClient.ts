@@ -2,8 +2,6 @@ import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/AddressDriver';
-import type { CallStruct } from 'contracts/Caller';
-import CallerClient from '../Caller/CallerClient';
 import {
 	validateAddress,
 	validateClientProvider,
@@ -32,7 +30,6 @@ export default class AddressDriverClient {
 	#signerAddress!: string;
 	#driverAddress!: string;
 	#provider!: JsonRpcProvider;
-	#callerClient!: CallerClient;
 
 	/** Returns the `AddressDriverClient`'s `provider`. */
 	public get provider(): JsonRpcProvider {
@@ -82,7 +79,6 @@ export default class AddressDriverClient {
 		client.#provider = provider;
 		client.#driverAddress = driverAddress;
 		client.#signerAddress = await signer.getAddress();
-		client.#callerClient = await CallerClient.create(provider);
 		client.#driver = AddressDriver__factory.connect(driverAddress, signer);
 
 		return client;
@@ -154,13 +150,7 @@ export default class AddressDriverClient {
 	public async collect(tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
 		validateCollectInput(tokenAddress, transferToAddress);
 
-		const collect: CallStruct = {
-			value: 0,
-			to: this.#driverAddress,
-			data: this.#driver.interface.encodeFunctionData('collect', [tokenAddress, transferToAddress])
-		};
-
-		return this.#callerClient.callBatched([collect]);
+		return this.#driver.collect(tokenAddress, transferToAddress);
 	}
 
 	/**
@@ -193,13 +183,7 @@ export default class AddressDriverClient {
 			);
 		}
 
-		const give: CallStruct = {
-			value: 0,
-			to: this.#driverAddress,
-			data: this.#driver.interface.encodeFunctionData('give', [receiverUserId, tokenAddress, amount])
-		};
-
-		return this.#callerClient.callBatched([give]);
+		return this.#driver.give(receiverUserId, tokenAddress, amount);
 	}
 
 	/**
@@ -216,13 +200,7 @@ export default class AddressDriverClient {
 	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
 		validateSplitsReceivers(receivers);
 
-		const setSplits: CallStruct = {
-			value: 0,
-			to: this.#driverAddress,
-			data: this.#driver.interface.encodeFunctionData('setSplits', [formatSplitReceivers(receivers)])
-		};
-
-		return this.#callerClient.callBatched([setSplits]);
+		return this.#driver.setSplits(formatSplitReceivers(receivers));
 	}
 
 	/**
@@ -267,19 +245,13 @@ export default class AddressDriverClient {
 			balanceDelta
 		);
 
-		const setDrips: CallStruct = {
-			value: 0,
-			to: this.#driverAddress,
-			data: this.#driver.interface.encodeFunctionData('setDrips', [
-				tokenAddress,
-				formatDripsReceivers(currentReceivers),
-				balanceDelta,
-				formatDripsReceivers(newReceivers),
-				transferToAddress
-			])
-		};
-
-		return this.#callerClient.callBatched([setDrips]);
+		return this.#driver.setDrips(
+			tokenAddress,
+			formatDripsReceivers(currentReceivers),
+			balanceDelta,
+			formatDripsReceivers(newReceivers),
+			transferToAddress
+		);
 	}
 
 	/**
@@ -293,16 +265,7 @@ export default class AddressDriverClient {
 	public emitUserMetadata(key: BigNumberish, value: string): Promise<ContractTransaction> {
 		validateEmitUserMetadataInput(key, value);
 
-		const emitUserMetadata: CallStruct = {
-			value: 0,
-			to: this.#driverAddress,
-			data: this.#driver.interface.encodeFunctionData('emitUserMetadata', [
-				key,
-				ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-			])
-		};
-
-		return this.#callerClient.callBatched([emitUserMetadata]);
+		return this.#driver.emitUserMetadata(key, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value)));
 	}
 
 	/**
