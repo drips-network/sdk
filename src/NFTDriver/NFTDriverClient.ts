@@ -120,13 +120,6 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
 	public async mint(transferToAddress: string): Promise<string> {
-		if (!transferToAddress) {
-			throw DripsErrors.argumentMissingError(
-				`Could not mint: '${nameOf({ transferToAddress })}' is missing.`,
-				nameOf({ transferToAddress })
-			);
-		}
-
 		validateAddress(transferToAddress);
 
 		const txResponse = await this.#driver.mint(transferToAddress);
@@ -146,13 +139,6 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
 	public async safeMint(transferToAddress: string): Promise<string> {
-		if (!transferToAddress) {
-			throw DripsErrors.argumentMissingError(
-				`Could not (safely) mint: '${nameOf({ transferToAddress })}' is missing.`,
-				nameOf({ transferToAddress })
-			);
-		}
-
 		validateAddress(transferToAddress);
 
 		const txResponse = await this.#driver.safeMint(transferToAddress);

@@ -193,23 +193,6 @@ describe('NFTDriverClient', () => {
 	});
 
 	describe('mint()', () => {
-		it('should throw argumentMissingError when transferToAddress is missing', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await testNftDriverClient.mint(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const transferToAddress = Wallet.createRandom().address;
@@ -254,23 +237,6 @@ describe('NFTDriverClient', () => {
 	});
 
 	describe('safeMint()', () => {
-		it('should throw argumentMissingError when transferToAddress is missing', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await testNftDriverClient.safeMint(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const transferToAddress = Wallet.createRandom().address;
