@@ -1,7 +1,15 @@
 import type { CallStruct } from '../../contracts/Caller';
 
-export { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
-export { CallStruct } from '../../contracts/Caller';
+export {
+	DripsReceiverStruct,
+	SplitsReceiverStruct,
+	DripsHistoryStruct,
+	DripsHubInterface
+} from '../../contracts/DripsHub';
+export { NFTDriverInterface } from '../../contracts/NFTDriver';
+export { CallStruct, CallerInterface } from '../../contracts/Caller';
+export { AddressDriverInterface } from '../../contracts/AddressDriver';
+export { ImmutableSplitsDriverInterface } from '../../contracts/ImmutableSplitsDriver';
 
 export type DripsReceiverConfig = {
 	/** An arbitrary number used to identify a drip. When setting a config, it must be greater than or equal to `0`. It's a part of the configuration but the protocol doesn't use it. */

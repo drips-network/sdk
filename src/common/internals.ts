@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 
-import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DripsHub';
 import { BigNumber } from 'ethers';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from './types';
 
 /** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];

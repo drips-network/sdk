@@ -11,8 +11,12 @@ import { DripsHub__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
-import type { DripsReceiverConfig } from '../../src/common/types';
+import type {
+	DripsHistoryStruct,
+	DripsReceiverStruct,
+	SplitsReceiverStruct,
+	DripsReceiverConfig
+} from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance, ReceivableBalance, SplittableBalance } from '../../src/DripsHub/types';

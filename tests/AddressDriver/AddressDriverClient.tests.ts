@@ -6,7 +6,7 @@ import type { Network } from '@ethersproject/networks';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import type { SplitsReceiverStruct, DripsReceiverStruct, AddressDriverInterface } from '../../contracts/AddressDriver';
+import type { SplitsReceiverStruct, DripsReceiverStruct, AddressDriverInterface } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';

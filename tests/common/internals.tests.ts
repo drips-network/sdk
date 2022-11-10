@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import sinon from 'ts-sinon';
 import * as internals from '../../src/common/internals';
 import Utils from '../../src/utils';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/DripsHub';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
 
 describe('internals', () => {
 	afterEach(() => {

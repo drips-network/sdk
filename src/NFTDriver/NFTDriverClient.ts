@@ -1,7 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, constants, BigNumber } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/NFTDriver';
+import type { DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import type { NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';

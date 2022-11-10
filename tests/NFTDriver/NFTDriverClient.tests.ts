@@ -13,8 +13,7 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../contracts/NFTDriver';
-import type { DripsReceiver } from '../../src/common/types';
+import type { DripsReceiverStruct, SplitsReceiverStruct, DripsReceiver } from '../../src/common/types';
 
 describe('NFTDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.

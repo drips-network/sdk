@@ -1,8 +1,8 @@
 import type { JsonRpcProvider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber } from 'ethers';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from 'contracts/DripsHub';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
+import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import { isNullOrUndefined, nameOf } from '../common/internals';
 import {

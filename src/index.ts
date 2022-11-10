@@ -4,9 +4,15 @@ import {
 	CallStruct,
 	NetworkConfig,
 	DripsReceiver,
+	CallerInterface,
+	DripsHubInterface,
+	NFTDriverInterface,
+	DripsHistoryStruct,
 	DripsReceiverConfig,
 	DripsReceiverStruct,
-	SplitsReceiverStruct
+	SplitsReceiverStruct,
+	AddressDriverInterface,
+	ImmutableSplitsDriverInterface
 } from './common/types';
 import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance } from './DripsHub/types';
 import {
@@ -18,14 +24,6 @@ import {
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
-
-// TODO: Contract typings. We can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079).
-// Contracts
-export * as DripsHub from '../contracts/DripsHub';
-export * as NFTDriver from '../contracts/NFTDriver';
-export * as CallerDriver from '../contracts/Caller';
-export * as AddressDriver from '../contracts/AddressDriver';
-export * as ImmutableSplitsDriver from '../contracts/ImmutableSplitsDriver';
 
 // AddressDriver
 export { default as AddressDriverClient } from './AddressDriver/AddressDriverClient';
@@ -67,12 +65,18 @@ export {
 	NetworkConfig,
 	DripsReceiver,
 	UserAssetConfig,
+	CallerInterface,
 	ReceivableBalance,
+	DripsHubInterface,
+	NFTDriverInterface,
 	SplittableBalance,
+	DripsHistoryStruct,
 	CollectableBalance,
 	DripsReceiverStruct,
 	DripsReceiverConfig,
 	AddressDriverPresets,
 	SplitsReceiverStruct,
-	DripsReceiverSeenEvent
+	DripsReceiverSeenEvent,
+	AddressDriverInterface,
+	ImmutableSplitsDriverInterface
 };
