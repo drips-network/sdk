@@ -17,6 +17,7 @@ import {
 	UserAssetConfig,
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
+import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 
 // TODO: Contract typings. We can move these to separate package exports in TS 4.7 (https://github.com/microsoft/TypeScript/issues/33079).
 // Contracts
@@ -71,6 +72,7 @@ export {
 	CollectableBalance,
 	DripsReceiverStruct,
 	DripsReceiverConfig,
+	AddressDriverPresets,
 	SplitsReceiverStruct,
 	DripsReceiverSeenEvent
 };

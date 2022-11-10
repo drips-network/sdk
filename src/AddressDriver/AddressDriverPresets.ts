@@ -1,7 +1,13 @@
 import type { CallStruct } from 'contracts/Caller';
-import type { BigNumberish, BytesLike } from 'ethers';
-import { BigNumber } from 'ethers';
-import { validateAddress, validateDripsReceivers, validateSplitsReceivers } from '../common/validators';
+import type { BigNumberish } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
+import {
+	validateCollectInput,
+	validateEmitUserMetadataInput,
+	validateReceiveDripsInput,
+	validateSetDripsInput,
+	validateSplitInput
+} from '../common/validators';
 import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct } from '../common/types';
@@ -9,7 +15,7 @@ import { DripsErrors } from '../common/DripsError';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
 export namespace AddressDriverPresets {
-	export type CreateStreamFlowPayload = {
+	export type NewStreamFlowPayload = {
 		driverAddress: string;
 		tokenAddress: string;
 		currentReceivers: DripsReceiverStruct[];
@@ -17,7 +23,7 @@ export namespace AddressDriverPresets {
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
 		key: BigNumberish;
-		value: BytesLike;
+		value: string;
 	};
 
 	export type CollectFlowPayload = {
@@ -66,13 +72,13 @@ export namespace AddressDriverPresets {
 		 * @see `AddressDriverClient`'s API for more details.
 		 * @param  {CreateStreamFlowPayload} payload the flow's payload.
 		 * @returns The preset.
-		 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
-		 * @throws {DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
-		 * @throws {DripsErrors.argumentError} if `payload.currentReceivers`' or `payload.newReceivers`' count exceeds the max allowed drips receivers.
-		 * @throws {DripsErrors.dripsReceiverError} if any of the `payload.currentReceivers` or the `newReceivers` is not valid.
-		 * @throws {DripsErrors.dripsReceiverConfigError} if any of the `payload.receivers`' configuration is not valid.
+		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
+		 * @throws {@link DripsErrors.argumentError} if `payload.currentReceivers`' or `payload.newReceivers`' count exceeds the max allowed drips receivers.
+		 * @throws {@link DripsErrors.dripsReceiverError} if any of the `payload.currentReceivers` or the `payload.newReceivers` is not valid.
+		 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 		 */
-		public static createStreamFlow(payload: CreateStreamFlowPayload): Preset {
+		public static createNewStreamFlow(payload: NewStreamFlowPayload): Preset {
 			if (isNullOrUndefined(payload)) {
 				throw DripsErrors.argumentMissingError(
 					`Could not create stream flow: '${nameOf({ payload })}' is missing.`,
@@ -91,37 +97,20 @@ export namespace AddressDriverPresets {
 				transferToAddress
 			} = payload;
 
-			validateAddress(tokenAddress);
-			validateDripsReceivers(
-				newReceivers.map((r) => ({
+			validateSetDripsInput(
+				tokenAddress,
+				currentReceivers?.map((r) => ({
 					userId: r.userId.toString(),
 					config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
-				}))
-			);
-			validateDripsReceivers(
-				currentReceivers.map((r) => ({
+				})),
+				newReceivers?.map((r) => ({
 					userId: r.userId.toString(),
 					config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
-				}))
+				})),
+				transferToAddress,
+				balanceDelta
 			);
-			if (isNullOrUndefined(transferToAddress)) {
-				throw DripsErrors.argumentMissingError(
-					`Could not create stream flow: '${nameOf({ transferToAddress })}' is missing.`,
-					nameOf({ transferToAddress })
-				);
-			}
-			if (isNullOrUndefined(key)) {
-				throw DripsErrors.argumentMissingError(
-					`Could not create stream flow: '${nameOf({ key })}' is missing.`,
-					nameOf({ key })
-				);
-			}
-			if (!value) {
-				throw DripsErrors.argumentMissingError(
-					`Could not create stream flow: '${nameOf({ value })}' is missing.`,
-					nameOf({ value })
-				);
-			}
+			validateEmitUserMetadataInput(key, value);
 
 			const setDrips: CallStruct = {
 				value: 0,
@@ -138,7 +127,10 @@ export namespace AddressDriverPresets {
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [key, value])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
+					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+				])
 			};
 
 			return [setDrips, emitUserMetadata];
@@ -153,12 +145,12 @@ export namespace AddressDriverPresets {
 		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
 		 * @param  {CollectFlowPayload} payload the flow's payload.
 		 * @returns The preset.
-		 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
-		 * @throws {DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
-		 * @throws {DripsErrors.argumentError} if `payload.currentReceivers`' count exceeds the max allowed splits receivers.
-		 * @throws {DripsErrors.splitsReceiverError} if any of the `payload.currentReceivers` is not valid.
+		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or the `payload.transferToAddress` address is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
+		 * @throws {@link DripsErrors.argumentError} if `payload.maxCycles` or `payload.currentReceivers` is not valid.
+		 * @throws {@link DripsErrors.splitsReceiverError} if any of the `payload.currentReceivers` is not valid.
 		 */
-		public static collectFlow(payload: CollectFlowPayload): Preset {
+		public static createCollectFlow(payload: CollectFlowPayload): Preset {
 			if (isNullOrUndefined(payload)) {
 				throw DripsErrors.argumentMissingError(
 					`Could not create collect flow: '${nameOf({ payload })}' is missing.`,
@@ -169,28 +161,15 @@ export namespace AddressDriverPresets {
 			const { driverAddress, dripsHubAddress, userId, tokenAddress, maxCycles, currentReceivers, transferToAddress } =
 				payload;
 
-			validateAddress(tokenAddress);
-			validateAddress(transferToAddress);
-			validateSplitsReceivers(currentReceivers);
-			if (isNullOrUndefined(userId)) {
-				throw DripsErrors.argumentMissingError(
-					`Could not get receivable cycles count: '${nameOf({ userId })}' is missing.`,
-					nameOf({ userId })
-				);
-			}
+			validateCollectInput(tokenAddress, transferToAddress);
+			validateSplitInput(userId, tokenAddress, currentReceivers);
+			validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 
 			const receive: CallStruct = {
 				value: 0,
 				to: dripsHubAddress,
 				data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [userId, tokenAddress, maxCycles])
 			};
-
-			if (isNullOrUndefined(userId)) {
-				throw DripsErrors.argumentMissingError(
-					`Could not split: '${nameOf({ userId })}' is missing.`,
-					nameOf({ userId })
-				);
-			}
 
 			const split: CallStruct = {
 				value: 0,
@@ -201,7 +180,7 @@ export namespace AddressDriverPresets {
 			const collect: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: DripsHub__factory.createInterface().encodeFunctionData('collect', [tokenAddress, transferToAddress])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('collect', [tokenAddress, transferToAddress])
 			};
 
 			return [receive, split, collect];

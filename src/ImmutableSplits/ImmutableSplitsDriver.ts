@@ -35,12 +35,17 @@ export default class ImmutableSplitsDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable instance of an `ImmutableSplitsDriverClient`.
-	 * @param  {JsonRpcProvider} provider The `provider` must have a `signer` associated with it and can connect to the following supported networks:
+	 * @param  {JsonRpcProvider} provider The network provider.
+	 *
+	 * The `provider` must have a `signer` associated with it.
+	 *
+	 * The supported networks are:
 	 * - 'goerli': chain ID `5`
 	 * @param  {string|undefined} customDriverAddress Overrides the `ImmutableSplitsDriver`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `ImmutableSplitsDriverClient` instance.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
+	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */

@@ -3,7 +3,6 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import type { BigNumberish } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
@@ -13,7 +12,6 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import type { DripsReceiver } from '../../src/common/types';
 import CallerClient from '../../src/Caller/CallerClient';
 import { formatDripsReceivers, formatSplitReceivers } from '../../src/common/internals';
 
@@ -252,22 +250,18 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('collect()', () => {
-		it('should validate the ERC20 and transferTo addresses', async () => {
+		it('should the input', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const validateCollectInputStub = sinon.stub(validators, 'validateCollectInput');
 
 			// Act
 			await testAddressDriverClient.collect(tokenAddress, transferToAddress);
 
 			// Assert
 			assert(
-				validateAddressStub.calledWithExactly(tokenAddress),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				validateAddressStub.calledWithExactly(transferToAddress),
+				validateCollectInputStub.calledOnceWithExactly(tokenAddress, transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -490,41 +484,7 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('setDrips()', () => {
-		it('should validate the ERC20 address', async () => {
-			// Arrange
-			const tokenAddress = Wallet.createRandom().address;
-			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
-				{
-					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
-				}
-			];
-			const receivers: DripsReceiverStruct[] = [
-				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
-				},
-				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
-				},
-				{
-					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
-				}
-			];
-
-			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-
-			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
-
-			// Assert
-			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
-		});
-
-		it('should validate the drips receivers', async () => {
+		it('should validate the input', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
@@ -550,52 +510,32 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
-				validateDripsReceiversStub.calledWithExactly(
-					sinon.match(
-						(r: DripsReceiver[]) =>
-							r[0].userId === receivers[0].userId &&
-							r[1].userId === receivers[1].userId &&
-							r[2].userId === receivers[2].userId
-					)
+				validateSetDripsInputStub.calledOnceWithExactly(
+					tokenAddress,
+					sinon.match.array.deepEquals(
+						currentReceivers?.map((r) => ({
+							userId: r.userId.toString(),
+							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+						}))
+					),
+					sinon.match.array.deepEquals(
+						receivers?.map((r) => ({
+							userId: r.userId.toString(),
+							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+						}))
+					),
+					transferToAddress,
+					1n
 				),
 				'Expected method to be called with different arguments'
 			);
-			assert(
-				validateDripsReceiversStub.calledWithExactly(
-					sinon.match((r: DripsReceiver[]) => r[0].userId === currentReceivers[0].userId)
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should throw argumentMissingError when current drips transferToAddress are missing', async () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				await testAddressDriverClient.setDrips(
-					Wallet.createRandom().address,
-					[],
-					[],
-					undefined as unknown as string,
-					0n
-				);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
 		it('should clear drips when new receivers is an empty list', async () => {
@@ -765,38 +705,26 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('emitUserMetadata()', () => {
-		it('should throw argumentMissingError when key missing', async () => {
+		it('should validate the input', async () => {
 			// Arrange
-			let threw = false;
+			const expectedKey = '1';
+			const expectedValue = 'value';
+			const expectedEncodedCallData = '0x11';
+
+			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+
+			addressDriverInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'emitUserMetadata'),
+					[expectedKey, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(expectedValue))]
+				)
+				.returns(expectedEncodedCallData);
 
 			// Act
-			try {
-				await testAddressDriverClient.emitUserMetadata(undefined as unknown as BigNumberish, 'value');
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
+			await testAddressDriverClient.emitUserMetadata(expectedKey, expectedValue);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw argumentMissingError when value missing', async () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				await testAddressDriverClient.emitUserMetadata('key', undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(expectedKey, expectedValue));
 		});
 
 		it('should delegate the expected call to the caller', async () => {

@@ -15,6 +15,276 @@ describe('validators', () => {
 		sinon.restore();
 	});
 
+	describe('validateSetDripsInput', () => {
+		it('should validate all inputs', () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
+			const currentReceivers: {
+				userId: string;
+				config: DripsReceiverConfig;
+			}[] = [];
+			const newReceivers: {
+				userId: string;
+				config: DripsReceiverConfig;
+			}[] = [];
+			const balanceDelta = 1;
+
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
+
+			// Act
+			validators.validateSetDripsInput(tokenAddress, currentReceivers, newReceivers, transferToAddress, balanceDelta);
+
+			// Assert
+			assert(validateAddressStub.calledTwice);
+			assert(
+				validateAddressStub.calledWithExactly(tokenAddress),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				validateAddressStub.calledWithExactly(transferToAddress),
+				'Expected method to be called with different arguments'
+			);
+
+			assert(validateDripsReceiversStub.calledTwice);
+			assert(
+				validateDripsReceiversStub.calledWithExactly(newReceivers),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				validateDripsReceiversStub.calledWithExactly(currentReceivers),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw an argumentMissingError when balanceDelta is missing', () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
+			const currentReceivers: {
+				userId: string;
+				config: DripsReceiverConfig;
+			}[] = [];
+			const newReceivers: {
+				userId: string;
+				config: DripsReceiverConfig;
+			}[] = [];
+
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateSetDripsInput(
+					tokenAddress,
+					currentReceivers,
+					newReceivers,
+					transferToAddress,
+					undefined as unknown as BigNumberish
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('validateSplitInput', () => {
+		it('should validate all inputs', () => {
+			// Arrange
+			const userId = '1';
+			const tokenAddress = Wallet.createRandom().address;
+			const currentReceivers: SplitsReceiverStruct[] = [];
+
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
+
+			// Act
+			validators.validateSplitInput(userId, tokenAddress, currentReceivers);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(tokenAddress),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				validateSplitsReceiversStub.calledOnceWithExactly(currentReceivers),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw an argumentMissingError when userId is missing', () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const currentReceivers: SplitsReceiverStruct[] = [];
+
+			let threw = false;
+
+			try {
+				// Act
+				validators.validateSplitInput(undefined as unknown as string, tokenAddress, currentReceivers);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('validateEmitUserMetadataInput', () => {
+		it('should throw an argumentMissingError when key is missing', () => {
+			// Arrange
+			const value = 'value';
+
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateEmitUserMetadataInput(undefined as unknown as BigNumberish, value);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw an argumentMissingError when value is missing', () => {
+			// Arrange
+			const key = 1;
+
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateEmitUserMetadataInput(key, undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('validateReceiveDripsInput', () => {
+		it('should validate the tokenAddress', () => {
+			// Arrange
+			const userId = '1';
+			const maxCycles = 1;
+			const tokenAddress = Wallet.createRandom().address;
+
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+
+			// Act
+			validators.validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(tokenAddress),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw an argumentMissingError when userId is missing', () => {
+			// Arrange
+			const maxCycles = 1;
+			const tokenAddress = Wallet.createRandom().address;
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateReceiveDripsInput(undefined as unknown as string, tokenAddress, maxCycles);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw an argumentError when maxCycles is missing', () => {
+			// Arrange
+			const userId = '1';
+			const tokenAddress = Wallet.createRandom().address;
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateReceiveDripsInput(userId, tokenAddress, undefined as unknown as BigNumberish);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw an argumentError when maxCycles is less than 0', () => {
+			// Arrange
+			const userId = '1';
+			const maxCycles = -1;
+			const tokenAddress = Wallet.createRandom().address;
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('validateCollectInput', () => {
+		it('should validate all inputs', () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
+
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+
+			// Act
+			validators.validateCollectInput(tokenAddress, transferToAddress);
+
+			// Assert
+			assert(
+				validateAddressStub.calledWithExactly(tokenAddress),
+				'Expected method to be called with different arguments'
+			);
+			assert(
+				validateAddressStub.calledWithExactly(transferToAddress),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
 	describe('validateAddress()', () => {
 		it('should throw addressError error when the input is missing', () => {
 			// Arrange
@@ -395,87 +665,87 @@ describe('validators', () => {
 			// Assert
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
+	});
 
-		describe('validateClientProvider', () => {
-			it('should throw the expected error when the provider is missing', async () => {
-				// Arrange
-				let threw = false;
+	describe('validateClientProvider', () => {
+		it('should throw the expected error when the provider is missing', async () => {
+			// Arrange
+			let threw = false;
 
-				try {
-					// Act
-					await validators.validateClientProvider(undefined as unknown as JsonRpcProvider, []);
-				} catch (error: any) {
-					// Assert
-					assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-					threw = true;
-				}
-
+			try {
+				// Act
+				await validators.validateClientProvider(undefined as unknown as JsonRpcProvider, []);
+			} catch (error: any) {
 				// Assert
-				assert.isTrue(threw, 'Expected type of exception was not thrown');
-			});
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
 
-			it("should throw the expected error when the provider's signer is missing", async () => {
-				// Arrange
-				let threw = false;
-				const providerStub = sinon.createStubInstance(JsonRpcProvider);
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
 
-				providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
+		it("should throw the expected error when the provider's signer is missing", async () => {
+			// Arrange
+			let threw = false;
+			const providerStub = sinon.createStubInstance(JsonRpcProvider);
 
-				try {
-					// Act
-					await validators.validateClientProvider(providerStub, []);
-				} catch (error: any) {
-					// Assert
-					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-					threw = true;
-				}
+			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
 
+			try {
+				// Act
+				await validators.validateClientProvider(providerStub, []);
+			} catch (error: any) {
 				// Assert
-				assert.isTrue(threw, 'Expected type of exception was not thrown');
-			});
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
 
-			it("should validate the provider's signer address", async () => {
-				// Arrange
-				const validateAddressStub = sinon.stub(validators, 'validateAddress');
-				const providerStub = sinon.createStubInstance(JsonRpcProvider);
-				const signerStub = sinon.createStubInstance(JsonRpcSigner);
-				signerStub.getAddress.resolves(Wallet.createRandom().address);
-				const networkStub = stubObject<Network>({ chainId: 5 } as Network);
-				providerStub.getSigner.returns(signerStub);
-				providerStub.getNetwork.resolves(networkStub);
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
 
+		it("should validate the provider's signer address", async () => {
+			// Arrange
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const providerStub = sinon.createStubInstance(JsonRpcProvider);
+			const signerStub = sinon.createStubInstance(JsonRpcSigner);
+			signerStub.getAddress.resolves(Wallet.createRandom().address);
+			const networkStub = stubObject<Network>({ chainId: 5 } as Network);
+			providerStub.getSigner.returns(signerStub);
+			providerStub.getNetwork.resolves(networkStub);
+
+			// Act
+			await validators.validateClientProvider(providerStub, [5]);
+
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(await signerStub.getAddress()),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw unsupportedNetworkError error when the provider is connected to an unsupported network', async () => {
+			// Arrange
+			let threw = false;
+			const providerStub = sinon.createStubInstance(JsonRpcProvider);
+			const signerStub = sinon.createStubInstance(JsonRpcSigner);
+			signerStub.getAddress.resolves(Wallet.createRandom().address);
+			const networkStub = stubObject<Network>({ chainId: -1 } as Network);
+			providerStub.getSigner.returns(signerStub);
+			providerStub.getNetwork.resolves(networkStub);
+
+			try {
 				// Act
 				await validators.validateClientProvider(providerStub, [5]);
-
+			} catch (error: any) {
 				// Assert
-				assert(
-					validateAddressStub.calledOnceWithExactly(await signerStub.getAddress()),
-					'Expected method to be called with different arguments'
-				);
-			});
+				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
+				threw = true;
+			}
 
-			it('should throw unsupportedNetworkError error when the provider is connected to an unsupported network', async () => {
-				// Arrange
-				let threw = false;
-				const providerStub = sinon.createStubInstance(JsonRpcProvider);
-				const signerStub = sinon.createStubInstance(JsonRpcSigner);
-				signerStub.getAddress.resolves(Wallet.createRandom().address);
-				const networkStub = stubObject<Network>({ chainId: -1 } as Network);
-				providerStub.getSigner.returns(signerStub);
-				providerStub.getNetwork.resolves(networkStub);
-
-				try {
-					// Act
-					await validators.validateClientProvider(providerStub, [5]);
-				} catch (error: any) {
-					// Assert
-					assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
-					threw = true;
-				}
-
-				// Assert
-				assert.isTrue(threw, 'Expected type of exception was not thrown');
-			});
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 	});
 });

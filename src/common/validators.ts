@@ -1,4 +1,5 @@
 import type { JsonRpcProvider } from '@ethersproject/providers';
+import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
@@ -172,4 +173,87 @@ export const validateClientProvider = async (provider: JsonRpcProvider, supporte
 			network?.chainId
 		);
 	}
+};
+
+/** @internal */
+export const validateSetDripsInput = (
+	tokenAddress: string,
+	currentReceivers: {
+		userId: string;
+		config: DripsReceiverConfig;
+	}[],
+	newReceivers: {
+		userId: string;
+		config: DripsReceiverConfig;
+	}[],
+	transferToAddress: string,
+	balanceDelta: BigNumberish
+) => {
+	validateAddress(tokenAddress);
+	validateAddress(transferToAddress);
+	validateDripsReceivers(newReceivers);
+	validateDripsReceivers(currentReceivers);
+	if (isNullOrUndefined(balanceDelta)) {
+		throw DripsErrors.argumentMissingError(
+			`Could not set drips: '${nameOf({ balanceDelta })}' is missing.`,
+			nameOf({ balanceDelta })
+		);
+	}
+};
+
+/** @internal */
+export const validateEmitUserMetadataInput = (key: BigNumberish, value: string) => {
+	if (isNullOrUndefined(key)) {
+		throw DripsErrors.argumentMissingError(
+			`Could not set emit user metadata: '${nameOf({ key })}' is missing.`,
+			nameOf({ key })
+		);
+	}
+
+	if (!value) {
+		throw DripsErrors.argumentMissingError(
+			`Could not set emit user metadata: '${nameOf({ value })}' is missing.`,
+			nameOf({ value })
+		);
+	}
+};
+
+/** @internal */
+export const validateReceiveDripsInput = (userId: string, tokenAddress: string, maxCycles: BigNumberish) => {
+	validateAddress(tokenAddress);
+
+	if (isNullOrUndefined(userId)) {
+		throw DripsErrors.argumentMissingError(
+			`Could not receive drips: '${nameOf({ userId })}' is missing.`,
+			nameOf({ userId })
+		);
+	}
+
+	if (!maxCycles || maxCycles < 0) {
+		throw DripsErrors.argumentError(
+			`Could not receive drips: '${nameOf({ maxCycles })}' must be greater than 0.`,
+			nameOf({ maxCycles }),
+			maxCycles
+		);
+	}
+};
+
+/** @internal */
+export const validateSplitInput = (
+	userId: BigNumberish,
+	tokenAddress: string,
+	currentReceivers: SplitsReceiverStruct[]
+) => {
+	validateAddress(tokenAddress);
+	validateSplitsReceivers(currentReceivers);
+
+	if (isNullOrUndefined(userId)) {
+		throw DripsErrors.argumentMissingError(`Could not split: '${nameOf({ userId })}' is missing.`, nameOf({ userId }));
+	}
+};
+
+/** @internal */
+export const validateCollectInput = (tokenAddress: string, transferToAddress: string) => {
+	validateAddress(tokenAddress);
+	validateAddress(transferToAddress);
 };

@@ -7,7 +7,9 @@ import CallerClient from '../Caller/CallerClient';
 import {
 	validateAddress,
 	validateClientProvider,
-	validateDripsReceivers,
+	validateCollectInput,
+	validateEmitUserMetadataInput,
+	validateSetDripsInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
@@ -60,6 +62,7 @@ export default class AddressDriverClient {
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
+	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
@@ -149,8 +152,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
 	 */
 	public async collect(tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
-		validateAddress(tokenAddress);
-		validateAddress(transferToAddress);
+		validateCollectInput(tokenAddress, transferToAddress);
 
 		const collect: CallStruct = {
 			value: 0,
@@ -238,8 +240,8 @@ export default class AddressDriverClient {
 	 * - Negative to remove funds from the drips balance.
 	 * - `0` to leave drips balance as is (default value).
 	 * @returns A `Promise` which resolves to the contract transaction.
-	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {@link DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
+	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {@link DripsErrors.argumentError} if `currentReceivers`' or `newReceivers`' count exceeds the max allowed drips receivers.
 	 * @throws {@link DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` is not valid.
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
@@ -251,26 +253,19 @@ export default class AddressDriverClient {
 		transferToAddress: string,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
-		validateAddress(tokenAddress);
-		validateDripsReceivers(
-			newReceivers.map((r) => ({
+		validateSetDripsInput(
+			tokenAddress,
+			currentReceivers?.map((r) => ({
 				userId: r.userId.toString(),
 				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
-			}))
-		);
-		validateDripsReceivers(
-			currentReceivers.map((r) => ({
+			})),
+			newReceivers?.map((r) => ({
 				userId: r.userId.toString(),
 				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
-			}))
+			})),
+			transferToAddress,
+			balanceDelta
 		);
-
-		if (isNullOrUndefined(transferToAddress)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not set drips: '${nameOf({ transferToAddress })}' is missing.`,
-				nameOf({ transferToAddress })
-			);
-		}
 
 		const setDrips: CallStruct = {
 			value: 0,
@@ -296,19 +291,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
 	public emitUserMetadata(key: BigNumberish, value: string): Promise<ContractTransaction> {
-		if (isNullOrUndefined(key)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not set emit user metadata: '${nameOf({ key })}' is missing.`,
-				nameOf({ key })
-			);
-		}
-
-		if (!value) {
-			throw DripsErrors.argumentMissingError(
-				`Could not set emit user metadata: '${nameOf({ value })}' is missing.`,
-				nameOf({ value })
-			);
-		}
+		validateEmitUserMetadataInput(key, value);
 
 		const emitUserMetadata: CallStruct = {
 			value: 0,

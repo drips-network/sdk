@@ -386,49 +386,13 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
-			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const validateReceiveDripsInputStub = sinon.stub(validators, 'validateReceiveDripsInput');
 
 			// Act
 			await testDripsHubClient.receiveDrips(userId, tokenAddress, maxCycles);
 
 			// Assert
-			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
-		});
-
-		it('should throw argumentMissingError when userId is missing', async () => {
-			// Arrange
-			let threw = false;
-			const tokenAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testDripsHubClient.receiveDrips(undefined as unknown as string, tokenAddress, 1n);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw argumentError when maxCycles is missing', async () => {
-			// Arrange
-			let threw = false;
-			const tokenAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testDripsHubClient.receiveDrips('1', tokenAddress, undefined as unknown as bigint);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert(validateReceiveDripsInputStub.calledOnceWithExactly(userId, tokenAddress, maxCycles));
 		});
 
 		it('should call the receiveDrips() method of the AddressDriver contract', async () => {
@@ -809,25 +773,8 @@ describe('DripsHubClient', () => {
 		});
 	});
 
-	describe('split', () => {
-		it('should throw argumentMissingError when splits receivers are missing', async () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				await testDripsHubClient.split(undefined as unknown as BigNumberish, Wallet.createRandom().address, []);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should validate the splits receivers', async () => {
+	describe('split()', () => {
+		it('should validate the input', async () => {
 			// Arrange
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
@@ -836,31 +783,13 @@ describe('DripsHubClient', () => {
 				{ userId: 2, weight: 2 }
 			];
 
-			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
+			const validateSplitInputStub = sinon.stub(validators, 'validateSplitInput');
 
 			// Act
 			await testDripsHubClient.split(userId, tokenAddress, receivers);
 
 			// Assert
-			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
-		});
-
-		it('should validate the ERC20 address', async () => {
-			// Arrange
-			const userId = '1';
-			const tokenAddress = Wallet.createRandom().address;
-			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 1 },
-				{ userId: 2, weight: 2 }
-			];
-
-			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
-
-			// Act
-			await testDripsHubClient.split(userId, tokenAddress, receivers);
-
-			// Assert
-			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
+			assert(validateSplitInputStub.calledOnceWithExactly(userId, tokenAddress, receivers));
 		});
 
 		it('should call the setDrips() method of the AddressDriver contract', async () => {

@@ -9,6 +9,8 @@ import {
 	validateAddress,
 	validateClientProvider,
 	validateDripsReceivers,
+	validateReceiveDripsInput,
+	validateSplitInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
@@ -51,6 +53,7 @@ export default class DripsHubClient {
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
+	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
@@ -166,7 +169,9 @@ export default class DripsHubClient {
 	 * Calculates the receivable balance for each user token.
 	 * Receivable balance contains the funds other users drip to and is updated once every cycle.
 	 * @param  {string} userId The user ID.
-	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. When set, it must be greater than `0`.
+	 * @param  {BigNumberish|undefined} maxCycles The maximum number of received drips cycles.
+	 * If it's `undefined` (default value), `maxCycles` will be automatically set to the maximum value.
+	 * When set, it must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
 	 * If too high, receiving may become too expensive to fit in a single transaction.
 	 * @returns A `Promise` which resolves to the receivable balances.
@@ -175,7 +180,7 @@ export default class DripsHubClient {
 	 */
 	public async getAllReceivableBalancesForUser(
 		userId: string,
-		maxCycles: number = 2 ** 32 - 1
+		maxCycles: number | undefined = 2 ** 32 - 1
 	): Promise<ReceivableBalance[]> {
 		if (isNullOrUndefined(userId)) {
 			throw DripsErrors.argumentMissingError(
@@ -221,22 +226,7 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.argumentError} if `maxCycles` is not valid.
 	 */
 	public receiveDrips(userId: string, tokenAddress: string, maxCycles: BigNumberish): Promise<ContractTransaction> {
-		validateAddress(tokenAddress);
-
-		if (isNullOrUndefined(userId)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not receive drips: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
-			);
-		}
-
-		if (!maxCycles || maxCycles < 0) {
-			throw DripsErrors.argumentError(
-				`Could not receive drips: '${nameOf({ maxCycles })}' is missing.`,
-				nameOf({ maxCycles }),
-				maxCycles
-			);
-		}
+		validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 
 		return this.#driver.receiveDrips(userId, tokenAddress, maxCycles);
 	}
@@ -414,15 +404,7 @@ export default class DripsHubClient {
 		tokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
-		validateAddress(tokenAddress);
-		validateSplitsReceivers(currentReceivers);
-
-		if (isNullOrUndefined(userId)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not split: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
-			);
-		}
+		validateSplitInput(userId, tokenAddress, currentReceivers);
 
 		return this.#driver.split(userId, tokenAddress, currentReceivers);
 	}

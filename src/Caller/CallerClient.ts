@@ -1,11 +1,9 @@
 import type { JsonRpcProvider } from '@ethersproject/providers';
 import type { CallStruct } from 'contracts/Caller';
 import type { ContractTransaction } from 'ethers';
-import { validateAddress } from '../common/validators';
-import { nameOf } from '../common/internals';
-import { DripsErrors } from '../common/DripsError';
+import { validateClientProvider } from '../common/validators';
 import Utils from '../utils';
-import type { Caller as CallerContract } from '../../contracts/Caller';
+import type { Caller } from '../../contracts/Caller';
 import { Caller__factory } from '../../contracts/factories';
 
 /**
@@ -13,12 +11,18 @@ import { Caller__factory } from '../../contracts/factories';
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/Caller.sol Caller} smart contract.
  */
 export default class CallerClient {
-	#callerContract!: CallerContract;
+	#caller!: Caller;
+	#callerAddress!: string;
 
 	#provider!: JsonRpcProvider;
 	/** Returns the `CallerClient`'s `provider`. */
 	public get provider(): JsonRpcProvider {
 		return this.#provider;
+	}
+
+	/** Returns the `Caller`'s address to which the `CallerClient` is connected. */
+	public get callerAddress(): string {
+		return this.#callerAddress;
 	}
 
 	private constructor() {}
@@ -32,50 +36,31 @@ export default class CallerClient {
 	 *
 	 * The supported networks are:
 	 * - `goerli`: chain ID `5`
-	 * @param  {NetworkConfig} contractAddress Overrides the `Caller` smart contract address.
+	 * @param  {string|undefined} customCallerAddress Overrides the `Caller`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `CallerClient` instance.
-	 * @throws {DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {DripsErrors.argumentError} if the `provider`'s singer is missing.
-	 * @throws {DripsErrors.addressError} if the `provider`'s signer address is not valid.
-	 * @throws {DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
+	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
+	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
+	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(provider: JsonRpcProvider, contractAddress?: string): Promise<CallerClient> {
-		if (!provider) {
-			throw DripsErrors.argumentMissingError(
-				`Could not create a new 'CallerClient': '${nameOf({ provider })}' is missing.`,
-				nameOf({ provider })
-			);
-		}
+	public static async create(
+		provider: JsonRpcProvider,
+		customCallerAddress: string | undefined = undefined
+	): Promise<CallerClient> {
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();
-		const signerAddress = await signer?.getAddress();
-		if (!signerAddress) {
-			throw DripsErrors.argumentError(
-				`Could not create a new 'CallerClient': '${nameOf({ signerAddress })}' is missing.`,
-				nameOf({ signerAddress }),
-				provider
-			);
-		}
-		validateAddress(signerAddress);
-
 		const network = await provider.getNetwork();
-		if (!Utils.Network.isSupportedChain(network?.chainId)) {
-			throw DripsErrors.unsupportedNetworkError(
-				`Could not create a new 'CallerClient': the provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains are: ${Utils.Network.SUPPORTED_CHAINS}.`,
-				network?.chainId
-			);
-		}
+		const callerAddress = customCallerAddress ?? Utils.Network.configs[network.chainId].CONTRACT_CALLER;
 
-		const callerClient = new CallerClient();
+		const client = new CallerClient();
 
-		callerClient.#provider = provider;
-		callerClient.#callerContract = Caller__factory.connect(
-			contractAddress ?? Utils.Network.configs[network.chainId].CONTRACT_CALLER,
-			signer
-		);
+		client.#provider = provider;
+		client.#callerAddress = callerAddress;
+		client.#caller = Caller__factory.connect(callerAddress, signer);
 
-		return callerClient;
+		return client;
 	}
 
 	/**
@@ -91,6 +76,6 @@ export default class CallerClient {
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 */
 	public callBatched(calls: CallStruct[]): Promise<ContractTransaction> {
-		return this.#callerContract.callBatched(calls);
+		return this.#caller.callBatched(calls);
 	}
 }
