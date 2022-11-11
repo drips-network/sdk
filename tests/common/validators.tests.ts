@@ -685,46 +685,6 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it("should throw the expected error when the provider's signer is missing", async () => {
-			// Arrange
-			let threw = false;
-			const providerStub = sinon.createStubInstance(JsonRpcProvider);
-
-			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
-
-			try {
-				// Act
-				await validators.validateClientProvider(providerStub, []);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it("should validate the provider's signer address", async () => {
-			// Arrange
-			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-			const providerStub = sinon.createStubInstance(JsonRpcProvider);
-			const signerStub = sinon.createStubInstance(JsonRpcSigner);
-			signerStub.getAddress.resolves(Wallet.createRandom().address);
-			const networkStub = stubObject<Network>({ chainId: 5 } as Network);
-			providerStub.getSigner.returns(signerStub);
-			providerStub.getNetwork.resolves(networkStub);
-
-			// Act
-			await validators.validateClientProvider(providerStub, [5]);
-
-			// Assert
-			assert(
-				validateAddressStub.calledOnceWithExactly(await signerStub.getAddress()),
-				'Expected method to be called with different arguments'
-			);
-		});
-
 		it('should throw unsupportedNetworkError error when the provider is connected to an unsupported network', async () => {
 			// Arrange
 			let threw = false;

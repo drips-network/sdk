@@ -13,6 +13,7 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import CallerClient from '../../src/Caller/CallerClient';
+import * as internals from '../../src/common/internals';
 
 describe('AddressDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -103,6 +104,32 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('getAllowance()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			const erc20ContractStub = stubInterface<IERC20>();
+
+			erc20ContractStub.allowance
+				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
+				.resolves(BigNumber.from(1));
+
+			sinon
+				.stub(IERC20__factory, 'connect')
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
+				.returns(erc20ContractStub);
+
+			// Act
+			await testAddressDriverClient.getAllowance(tokenAddress);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
@@ -157,6 +184,28 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('approve()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			const erc20ContractStub = stubInterface<IERC20>();
+
+			sinon
+				.stub(IERC20__factory, 'connect')
+				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
+				.returns(erc20ContractStub);
+
+			// Act
+			await testAddressDriverClient.approve(tokenAddress);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const tokenAddress = 'invalid address';
@@ -199,6 +248,24 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('getUserId()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			addressDriverContractStub.calcUserId
+				.withArgs(await testAddressDriverClient.provider.getSigner().getAddress())
+				.resolves(BigNumber.from(111));
+
+			// Act
+			await testAddressDriverClient.getUserId();
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
 			addressDriverContractStub.calcUserId
@@ -249,7 +316,24 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('collect()', () => {
-		it('should the input', async () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			const tokenAddress = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
+
+			// Act
+			await testAddressDriverClient.collect(tokenAddress, transferToAddress);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should validate the input', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
@@ -282,6 +366,21 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('give()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+			const tokenAddress = Wallet.createRandom().address;
+
+			// Act
+			await testAddressDriverClient.give('1', tokenAddress, 1n);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should throw argumentMissingError when receiverUserId is missing', async () => {
 			// Arrange
 			let threw = false;
@@ -348,6 +447,20 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('setSplits()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			// Act
+			await testAddressDriverClient.setSplits([]);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should throw argumentMissingError when splits receivers are missing', async () => {
 			// Arrange
 			let threw = false;
@@ -417,6 +530,22 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('setDrips()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+			const transferToAddress = Wallet.createRandom().address;
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			// Act
+			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the input', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
@@ -572,6 +701,24 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('emitUserMetadata()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const key = '1';
+			const value = 'value';
+
+			// Act
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			// Act
+			await testAddressDriverClient.emitUserMetadata(key, value);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the input', async () => {
 			// Arrange
 			const expectedKey = '1';

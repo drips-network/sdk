@@ -1,12 +1,33 @@
 import { assert } from 'chai';
 import sinon from 'ts-sinon';
+import type { JsonRpcProvider } from '@ethersproject/providers';
 import * as internals from '../../src/common/internals';
 import Utils from '../../src/utils';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
+import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('internals', () => {
 	afterEach(() => {
 		sinon.restore();
+	});
+
+	describe('ensureSignerExists()', () => {
+		it("throw a signerMissingError when the provider's signer is missing", () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				internals.ensureSignerExists({ getSigner: () => undefined } as unknown as JsonRpcProvider);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_SIGNER);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
 	});
 
 	describe('nameOf()', () => {

@@ -154,18 +154,6 @@ export const validateClientProvider = async (provider: JsonRpcProvider, supporte
 		throw DripsErrors.argumentMissingError(`'${nameOf({ provider })}' is missing.`, nameOf({ provider }));
 	}
 
-	const signer = provider.getSigner();
-	const signerAddress = await signer?.getAddress();
-	if (!signerAddress) {
-		throw DripsErrors.argumentError(
-			`'${nameOf({ signerAddress })}' is missing.`,
-			nameOf({ signerAddress }),
-			signerAddress
-		);
-	}
-
-	validateAddress(signerAddress);
-
 	const network = await provider.getNetwork();
 	if (!supportedChains.includes(network?.chainId)) {
 		throw DripsErrors.unsupportedNetworkError(

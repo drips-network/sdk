@@ -31,6 +31,20 @@ describe('DripsErrors', () => {
 		});
 	});
 
+	describe('signerMissingError()', () => {
+		it('should return expected error details', () => {
+			// Arrange
+			const expectedMessage = 'Error';
+
+			// Act
+			const { code, message } = DripsErrors.signerMissingError(expectedMessage);
+
+			// Assert
+			assert.equal(message, expectedMessage);
+			assert.equal(code, DripsErrorCode.MISSING_SIGNER);
+		});
+	});
+
 	describe('argumentMissingError()', () => {
 		it('should return expected error details', () => {
 			// Arrange

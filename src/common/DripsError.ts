@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 
 export enum DripsErrorCode {
+	MISSING_SIGNER = 'MISSING_SIGNER',
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	MISSING_ARGUMENT = 'MISSING_ARGUMENT',
@@ -28,6 +29,10 @@ export class DripsErrors {
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, message, {
 			invalidAddress: address
 		});
+
+	static signerMissingError = (
+		message: string = "Tried to perform an operation that requires a signer, but the client's provider does not have a signer associated with it."
+	) => new DripsError(DripsErrorCode.MISSING_SIGNER, message);
 
 	static argumentMissingError = (message: string, argName: string) =>
 		new DripsError(DripsErrorCode.MISSING_ARGUMENT, message, {
