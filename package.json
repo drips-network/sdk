@@ -14,9 +14,20 @@
 	"files": [
 		"dist/"
 	],
+	"tsup": {
+		"clean": true,
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"bundle": true,
+		"entry": [
+			"./src/index.ts"
+		]
+	},
 	"scripts": {
-		"lint": "eslint . --ext .ts",
-		"lint-and-fix": "eslint . --ext .ts --fix",
+		"lint": "prettier . --check . && eslint .",
+		"format": "prettier . --write .",
 		"build": "npm run generate-graphql-types && npm run build:contracts && npm run build:lib && npx typedoc --excludeInternal src/index.ts",
 		"build:lib": "tsup --dts",
 		"build:contracts": "typechain --target=ethers-v5 --out-dir contracts ./src/abi/**.json",
@@ -42,6 +53,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.23.0",
 		"@typescript-eslint/parser": "^5.23.0",
 		"chai": "^4.3.6",
+		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^8.17.0",
 		"eslint-config-airbnb-base": "^15.0.0",
 		"eslint-config-prettier": "^8.5.0",
@@ -64,5 +76,10 @@
 	},
 	"peerDependencies": {
 		"ethers": "^5.6.2"
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
 	}
 }

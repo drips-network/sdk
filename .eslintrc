@@ -4,12 +4,12 @@
 		"es2021": true,
 		"mocha": true
 	},
-	"extends": ["airbnb-base", "prettier", "plugin:import/typescript"],
+	"extends": ["airbnb-base", "plugin:import/typescript", "prettier"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"ecmaVersion": "latest"
 	},
-	"plugins": ["@typescript-eslint", "prettier"],
+	"plugins": ["@typescript-eslint"],
 	"rules": {
 		"camelcase": "off",
 		"import/extensions": "off",
