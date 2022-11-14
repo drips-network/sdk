@@ -1,6 +1,7 @@
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
+import type { Provider } from '@ethersproject/providers';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
@@ -25,6 +26,10 @@ describe('AddressDriverClient', () => {
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 	let addressDriverInterfaceStub: StubbedInstance<AddressDriverInterface>;
+	let addressDriverContractFactoryStub: sinon.SinonStub<
+		[address: string, signerOrProvider: Provider | ethers.Signer],
+		AddressDriver
+	>;
 
 	let testAddressDriverClient: AddressDriverClient;
 
@@ -44,8 +49,8 @@ describe('AddressDriverClient', () => {
 		addressDriverInterfaceStub = stubInterface<AddressDriverInterface>();
 		addressDriverContractStub.interface = addressDriverInterfaceStub;
 
-		sinon
-			.stub(AddressDriver__factory, 'connect')
+		addressDriverContractFactoryStub = sinon.stub(AddressDriver__factory, 'connect');
+		addressDriverContractFactoryStub
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerStub)
 			.returns(addressDriverContractStub);
 
@@ -63,12 +68,44 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('create()', () => {
+		it("should create a driver connected to the provider when the provider hasn't a signer", async () => {
+			// Arrange
+			const providerWithoutSigner = sinon.createStubInstance(JsonRpcProvider);
+			providerWithoutSigner.getNetwork.resolves(networkStub);
+			providerWithoutSigner.getSigner.returns(undefined as unknown as JsonRpcSigner);
+
+			// Act
+			await AddressDriverClient.create(providerWithoutSigner);
+
+			// Assert
+			assert(
+				addressDriverContractFactoryStub.calledWith(
+					Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER,
+					providerWithoutSigner
+				)
+			);
+		});
+
+		it('should create a driver connected to the singer when the provider has a signer', async () => {
+			// Arrange
+			// Act
+			await AddressDriverClient.create(providerStub);
+
+			// Assert
+			assert(
+				addressDriverContractFactoryStub.calledWith(
+					Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER,
+					signerStub
+				)
+			);
+		});
+
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			AddressDriverClient.create(providerStub);
+			await AddressDriverClient.create(providerStub);
 
 			// Assert
 			assert(
