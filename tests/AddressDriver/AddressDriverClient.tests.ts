@@ -2,7 +2,7 @@ import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import type { Provider } from '@ethersproject/providers';
-import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
@@ -35,15 +35,16 @@ describe('AddressDriverClient', () => {
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
-		providerStub = sinon.createStubInstance(JsonRpcProvider);
-
 		signerStub = sinon.createStubInstance(JsonRpcSigner);
 		signerStub.getAddress.resolves(Wallet.createRandom().address);
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
 		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
+
+		(signerStub as any).provider = providerStub;
 
 		addressDriverContractStub = stubInterface<AddressDriver>();
 		addressDriverInterfaceStub = stubInterface<AddressDriverInterface>();
@@ -60,7 +61,7 @@ describe('AddressDriverClient', () => {
 		callerClientStub = stubInterface<CallerClient>();
 		sinon.stub(CallerClient, 'create').resolves(callerClientStub);
 
-		testAddressDriverClient = await AddressDriverClient.create(providerStub);
+		testAddressDriverClient = await AddressDriverClient.create(signerStub);
 	});
 
 	afterEach(() => {
@@ -68,44 +69,56 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('create()', () => {
-		it("should create a driver connected to the provider when the provider hasn't a signer", async () => {
+		it('should validate the signer', async () => {
 			// Arrange
-			const providerWithoutSigner = sinon.createStubInstance(JsonRpcProvider);
-			providerWithoutSigner.getNetwork.resolves(networkStub);
-			providerWithoutSigner.getSigner.returns(undefined as unknown as JsonRpcSigner);
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
 			// Act
-			await AddressDriverClient.create(providerWithoutSigner);
+			await AddressDriverClient.create(signerStub);
 
 			// Assert
 			assert(
-				addressDriverContractFactoryStub.calledWith(
-					Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER,
-					providerWithoutSigner
-				)
+				validateClientSignerStub.calledOnceWithExactly(signerStub, Utils.Network.SUPPORTED_CHAINS),
+				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should create a driver connected to the singer when the provider has a signer', async () => {
+		it('should set the custom driver address when provided', async () => {
 			// Arrange
+			const customDriverAddress = Wallet.createRandom().address;
+
 			// Act
-			await AddressDriverClient.create(providerStub);
+			const client = await AddressDriverClient.create(signerStub, customDriverAddress);
 
 			// Assert
+			assert.equal(client.driverAddress, customDriverAddress);
+		});
+
+		it('should create a fully initialized client instance', async () => {
+			// Assert
+			assert.equal(testAddressDriverClient.signer, signerStub);
+			assert.equal(testAddressDriverClient.provider, signerStub.provider);
+			assert.equal(
+				testAddressDriverClient.driverAddress,
+				Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
+			);
 			assert(
-				addressDriverContractFactoryStub.calledWith(
-					Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER,
+				addressDriverContractFactoryStub.calledOnceWithExactly(
+					Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER,
 					signerStub
-				)
+				),
+				'Expected method to be called with different arguments'
 			);
 		});
+	});
 
+	describe('createReadonly()', () => {
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			await AddressDriverClient.create(providerStub);
+			await AddressDriverClient.createReadonly(providerStub);
 
 			// Assert
 			assert(
@@ -119,23 +132,29 @@ describe('AddressDriverClient', () => {
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await AddressDriverClient.create(providerStub, customDriverAddress);
+			const client = await AddressDriverClient.createReadonly(providerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
+			// Act
+			const client = await AddressDriverClient.createReadonly(providerStub);
+
 			// Assert
-			assert.equal(testAddressDriverClient.provider, providerStub);
-			assert.equal(testAddressDriverClient.provider.getSigner(), providerStub.getSigner());
+			assert.isUndefined(client.signer);
+			assert.equal(client.provider, providerStub);
 			assert.equal(
-				await testAddressDriverClient.provider.getSigner().getAddress(),
-				await providerStub.getSigner().getAddress()
-			);
-			assert.equal(
-				testAddressDriverClient.driverAddress,
+				client.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
+			);
+			assert(
+				addressDriverContractFactoryStub.calledWithExactly(
+					Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER,
+					providerStub
+				),
+				'Expected method to be called with different arguments'
 			);
 		});
 	});
@@ -162,7 +181,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -238,7 +257,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -298,7 +317,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -365,7 +384,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -413,7 +432,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -493,7 +512,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -578,7 +597,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -751,7 +770,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.provider),
+				ensureSignerExistsStub.calledOnceWithExactly(testAddressDriverClient.signer),
 				'Expected method to be called with different arguments'
 			);
 		});

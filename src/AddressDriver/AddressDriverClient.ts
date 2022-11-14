@@ -1,10 +1,11 @@
-import type { JsonRpcProvider } from '@ethersproject/providers';
+import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
+	validateClientSigner,
 	validateCollectInput,
 	validateEmitUserMetadataInput,
 	validateSetDripsInput,
@@ -34,10 +35,23 @@ export default class AddressDriverClient {
 	#driver!: AddressDriver;
 	#driverAddress!: string;
 	#provider!: JsonRpcProvider;
+	#signer: JsonRpcSigner | undefined;
 
 	/** Returns the `AddressDriverClient`'s `provider`. */
 	public get provider(): JsonRpcProvider {
 		return this.#provider;
+	}
+
+	/**
+	 * Returns the `AddressDriverClient`'s `signer`.
+	 *
+	 * This is the user to which the `AddressDriverClient` is linked and manages Drips.
+	 *
+	 * Note that for read-only client instances created with the {@link createReadonly} method it returns `undefined`.
+	 *
+	 */
+	public get signer(): JsonRpcSigner | undefined {
+		return this.#signer;
 	}
 
 	/** Returns the `AddressDriver`'s address to which the `AddressDriverClient` is connected. */
@@ -50,15 +64,12 @@ export default class AddressDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `AddressDriverClient` instance.
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * @param  {JsonRpcProvider} signer The signer.
 	 *
-	 * For _readonly_ operations, the provider does not need a `signer.`
-	 *
-	 * For _state-changing_ operations, the `provider` must have a `signer`.
-	 * **This `signer` will be the user the new `AddressDriverClient` will manage Drips for and cannot be changed after creation**
+	 * **The `signer` will be the user the new `AddressDriverClient` will manage Drips for and cannot be changed after creation**
 	 * (i.e., the new instance will control a `userId` equal to that address).
 	 *
-	 * The supported networks are:
+	 * The `provider` this signer was established from can be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
@@ -69,6 +80,42 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
 	public static async create(
+		signer: JsonRpcSigner,
+		customDriverAddress: string | undefined = undefined
+	): Promise<AddressDriverClient> {
+		await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
+
+		const { provider } = signer;
+		const network = await provider.getNetwork();
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
+
+		const client = new AddressDriverClient();
+
+		client.#signer = signer;
+		client.#provider = provider;
+		client.#driverAddress = driverAddress;
+		client.#driver = AddressDriver__factory.connect(driverAddress, signer);
+
+		return client;
+	}
+
+	// TODO: Update the supported chains documentation comments.
+	/**
+	 * Creates a new immutable `AddressDriverClient` instance that allows only **read-only operations** (i.e., any operation that does _not_ require signing).
+	 * @param  {JsonRpcProvider} provider The network provider.
+	 *
+	 * Note that even if the `provider` has a `singer` associated with it, the client will ignore it.
+	 * If you want to _sign_ transactions use the {@link create} method instead.
+	 *
+	 * Supported networks are:
+	 * - 'goerli': chain ID `5`
+	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver`'s address.
+	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
+	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
+	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 */
+	public static async createReadonly(
 		provider: JsonRpcProvider,
 		customDriverAddress: string | undefined = undefined
 	): Promise<AddressDriverClient> {
@@ -79,9 +126,10 @@ export default class AddressDriverClient {
 
 		const client = new AddressDriverClient();
 
+		client.#signer = undefined;
 		client.#provider = provider;
 		client.#driverAddress = driverAddress;
-		client.#driver = AddressDriver__factory.connect(driverAddress, provider.getSigner() ?? provider);
+		client.#driver = AddressDriver__factory.connect(driverAddress, provider);
 
 		return client;
 	}
@@ -94,13 +142,12 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async getAllowance(tokenAddress: string): Promise<bigint> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 		validateAddress(tokenAddress);
 
-		const signer = this.#provider.getSigner();
-		const signerAddress = await signer.getAddress();
+		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
-		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, signer);
+		const signerAddress = await this.#signer.getAddress();
 
 		const allowance = await signerAsErc20Contract.allowance(signerAddress, this.#driverAddress);
 
@@ -115,12 +162,10 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public approve(tokenAddress: string): Promise<ContractTransaction> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 		validateAddress(tokenAddress);
 
-		const signer = this.#provider.getSigner();
-
-		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, signer);
+		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
 		return signerAsErc20Contract.approve(this.#driverAddress, constants.MaxUint256);
 	}
@@ -133,9 +178,9 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async getUserId(): Promise<string> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 
-		const signerAddress = await this.#provider.getSigner().getAddress();
+		const signerAddress = await this.#signer.getAddress();
 
 		const userId = await this.#driver.calcUserId(signerAddress);
 
@@ -165,7 +210,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async collect(tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 		validateCollectInput(tokenAddress, transferToAddress);
 
 		return this.#driver.collect(tokenAddress, transferToAddress);
@@ -185,7 +230,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public give(receiverUserId: string, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 
 		if (isNullOrUndefined(receiverUserId)) {
 			throw DripsErrors.argumentMissingError(
@@ -220,7 +265,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 		validateSplitsReceivers(receivers);
 
 		return this.#driver.setSplits(formatSplitReceivers(receivers));
@@ -255,7 +300,7 @@ export default class AddressDriverClient {
 		transferToAddress: string,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 		validateSetDripsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
@@ -289,7 +334,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public emitUserMetadata(key: BigNumberish, value: string): Promise<ContractTransaction> {
-		ensureSignerExists(this.#provider);
+		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(key, value);
 
 		return this.#driver.emitUserMetadata(key, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value)));

@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 
-import type { JsonRpcProvider } from '@ethersproject/providers';
+import type { JsonRpcSigner } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from './types';
@@ -67,8 +67,8 @@ export const formatSplitReceivers = (receivers: SplitsReceiverStruct[]): SplitsR
 };
 
 /** @internal */
-export const ensureSignerExists = (provider: JsonRpcProvider) => {
-	if (isNullOrUndefined(provider.getSigner())) {
+export function ensureSignerExists(signer: JsonRpcSigner | undefined): asserts signer is NonNullable<JsonRpcSigner> {
+	if (isNullOrUndefined(signer)) {
 		throw DripsErrors.signerMissingError();
 	}
-};
+}

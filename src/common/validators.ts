@@ -1,4 +1,4 @@
-import type { JsonRpcProvider } from '@ethersproject/providers';
+import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
@@ -161,6 +161,17 @@ export const validateClientProvider = async (provider: JsonRpcProvider, supporte
 			network?.chainId
 		);
 	}
+};
+
+/** @internal */
+export const validateClientSigner = async (signer: JsonRpcSigner, supportedChains: readonly number[]) => {
+	if (!signer) {
+		throw DripsErrors.argumentMissingError(`'${nameOf({ signer })}' is missing.`, nameOf({ signer }));
+	}
+
+	const { provider } = signer;
+
+	await validateClientProvider(provider, supportedChains);
 };
 
 /** @internal */
