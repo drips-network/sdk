@@ -94,6 +94,9 @@ export default class DripsHubClient {
 	 * Creates a new immutable `DripsHubClient` instance that allows only **read-only operations** (i.e., any operation that does _not_ require signing).
 	 * @param  {JsonRpcProvider} provider The network provider.
 	 *
+	 * Note that even if the `provider` has a `singer` associated with it, the client will ignore it.
+	 * If you want to _sign_ transactions use the {@link create} method instead.
+	 *
 	 * Supported networks are:
 	 * - 'goerli': chain ID `5`
 	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
