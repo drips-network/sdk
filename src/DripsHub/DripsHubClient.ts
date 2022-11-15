@@ -1,13 +1,14 @@
-import type { JsonRpcProvider } from '@ethersproject/providers';
+import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber } from 'ethers';
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
-import { isNullOrUndefined, nameOf } from '../common/internals';
+import { ensureSignerExists, isNullOrUndefined, nameOf } from '../common/internals';
 import {
 	validateAddress,
 	validateClientProvider,
+	validateClientSigner,
 	validateDripsReceivers,
 	validateReceiveDripsInput,
 	validateSplitInput,
@@ -26,11 +27,23 @@ export default class DripsHubClient {
 	#driver!: DripsHub;
 	#driverAddress!: string;
 	#provider!: JsonRpcProvider;
+	#signer: JsonRpcSigner | undefined;
 	#subgraphClient!: DripsSubgraphClient;
 
 	/** Returns the `DripsHubClient`'s `provider`. */
 	public get provider(): JsonRpcProvider {
 		return this.#provider;
+	}
+
+	/**
+	 * Returns the `DripsHubClient`'s `signer`.
+	 *
+	 * This is the user to which the `DripsHubClient` is linked and manages Drips.
+	 *
+	 * Note that for read-only client instances created with the {@link createReadonly} method it returns `undefined`.
+	 */
+	public get signer(): JsonRpcSigner | undefined {
+		return this.#signer;
 	}
 
 	/** Returns the `DripsHub`'s address to which the `DripsHubClient` is connected. */
@@ -43,11 +56,9 @@ export default class DripsHubClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `DripsHubClient` instance.
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * @param  {JsonRpcProvider} signer The signer.
 	 *
-	 * The `provider` must have a `signer` associated with it.
-	 *
-	 * The supported networks are:
+	 * The `provider` this signer was established from can be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
@@ -58,20 +69,54 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
 	public static async create(
-		provider: JsonRpcProvider,
+		signer: JsonRpcSigner,
 		customDriverAddress: string | undefined = undefined
 	): Promise<DripsHubClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
-		const signer = provider.getSigner();
+		const { provider } = signer;
 		const network = await provider.getNetwork();
 		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
 
 		const client = new DripsHubClient();
 
+		client.#signer = signer;
 		client.#provider = provider;
 		client.#driverAddress = driverAddress;
 		client.#driver = DripsHub__factory.connect(driverAddress, signer);
+		client.#subgraphClient = DripsSubgraphClient.create(network.chainId);
+
+		return client;
+	}
+
+	// TODO: Update the supported chains documentation comments.
+	/**
+	 * Creates a new immutable `DripsHubClient` instance that allows only **read-only operations** (i.e., any operation that does _not_ require signing).
+	 * @param  {JsonRpcProvider} provider The network provider.
+	 *
+	 * Supported networks are:
+	 * - 'goerli': chain ID `5`
+	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
+	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
+	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
+	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 */
+	public static async createReadonly(
+		provider: JsonRpcProvider,
+		customDriverAddress: string | undefined = undefined
+	): Promise<DripsHubClient> {
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+
+		const network = await provider.getNetwork();
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
+
+		const client = new DripsHubClient();
+
+		client.#signer = undefined;
+		client.#provider = provider;
+		client.#driverAddress = driverAddress;
+		client.#driver = DripsHub__factory.connect(driverAddress, provider);
 		client.#subgraphClient = DripsSubgraphClient.create(network.chainId);
 
 		return client;
@@ -226,6 +271,7 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.argumentError} if `maxCycles` is not valid.
 	 */
 	public receiveDrips(userId: string, tokenAddress: string, maxCycles: BigNumberish): Promise<ContractTransaction> {
+		ensureSignerExists(this.#signer);
 		validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 
 		return this.#driver.receiveDrips(userId, tokenAddress, maxCycles);
@@ -404,6 +450,7 @@ export default class DripsHubClient {
 		tokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
+		ensureSignerExists(this.#signer);
 		validateSplitInput(userId, tokenAddress, currentReceivers);
 
 		return this.#driver.split(userId, tokenAddress, currentReceivers);

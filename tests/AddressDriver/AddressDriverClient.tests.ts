@@ -13,7 +13,6 @@ import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import CallerClient from '../../src/Caller/CallerClient';
 import * as internals from '../../src/common/internals';
 
 describe('AddressDriverClient', () => {
@@ -22,7 +21,6 @@ describe('AddressDriverClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: StubbedInstance<JsonRpcProvider>;
-	let callerClientStub: StubbedInstance<CallerClient>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 	let addressDriverInterfaceStub: StubbedInstance<AddressDriverInterface>;
@@ -57,9 +55,6 @@ describe('AddressDriverClient', () => {
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
 		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
-
-		callerClientStub = stubInterface<CallerClient>();
-		sinon.stub(CallerClient, 'create').resolves(callerClientStub);
 
 		testAddressDriverClient = await AddressDriverClient.create(signerStub);
 	});

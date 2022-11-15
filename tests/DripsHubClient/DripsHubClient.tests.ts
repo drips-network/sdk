@@ -1,4 +1,5 @@
 import type { Network } from '@ethersproject/networks';
+import type { Provider } from '@ethersproject/providers';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
@@ -20,6 +21,7 @@ import type {
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance, ReceivableBalance, SplittableBalance } from '../../src/DripsHub/types';
+import * as internals from '../../src/common/internals';
 
 describe('DripsHubClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -29,31 +31,36 @@ describe('DripsHubClient', () => {
 	let providerStub: StubbedInstance<JsonRpcProvider>;
 	let dripsHubContractStub: StubbedInstance<DripsHub>;
 	let dripsSubgraphClientStub: StubbedInstance<DripsSubgraphClient>;
+	let dripsHubContractFactoryStub: sinon.SinonStub<
+		[address: string, signerOrProvider: Provider | ethers.Signer],
+		DripsHub
+	>;
 
 	let testDripsHubClient: DripsHubClient;
 
 	beforeEach(async () => {
-		providerStub = sinon.createStubInstance(JsonRpcProvider);
-
 		signerStub = sinon.createStubInstance(JsonRpcSigner);
 		signerStub.getAddress.resolves(Wallet.createRandom().address);
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
 		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
 
+		(signerStub as any).provider = providerStub;
+
 		dripsHubContractStub = stubInterface<DripsHub>();
 
-		sinon
-			.stub(DripsHub__factory, 'connect')
+		dripsHubContractFactoryStub = sinon.stub(DripsHub__factory, 'connect');
+		dripsHubContractFactoryStub
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, signerStub)
 			.returns(dripsHubContractStub);
 
 		dripsSubgraphClientStub = stubInterface<DripsSubgraphClient>();
 		sinon.stub(DripsSubgraphClient, 'create').returns(dripsSubgraphClientStub);
 
-		testDripsHubClient = await DripsHubClient.create(providerStub);
+		testDripsHubClient = await DripsHubClient.create(signerStub);
 	});
 
 	afterEach(() => {
@@ -61,12 +68,56 @@ describe('DripsHubClient', () => {
 	});
 
 	describe('create()', () => {
+		it('should validate the signer', async () => {
+			// Arrange
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
+
+			// Act
+			DripsHubClient.create(signerStub);
+
+			// Assert
+			assert(
+				validateClientSignerStub.calledOnceWithExactly(signerStub, Utils.Network.SUPPORTED_CHAINS),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should set the custom driver address when provided', async () => {
+			// Arrange
+			const customDriverAddress = Wallet.createRandom().address;
+
+			// Act
+			const client = await DripsHubClient.create(signerStub, customDriverAddress);
+
+			// Assert
+			assert.equal(client.driverAddress, customDriverAddress);
+		});
+
+		it('should create a fully initialized client instance', async () => {
+			// Assert
+			assert.equal(testDripsHubClient.signer, signerStub);
+			assert.equal(testDripsHubClient.provider, signerStub.provider);
+			assert.equal(
+				testDripsHubClient.driverAddress,
+				Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_DRIPS_HUB
+			);
+			assert(
+				dripsHubContractFactoryStub.calledOnceWithExactly(
+					Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_DRIPS_HUB,
+					signerStub
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('createReadonly()', () => {
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			DripsHubClient.create(providerStub);
+			await DripsHubClient.createReadonly(providerStub);
 
 			// Assert
 			assert(
@@ -80,23 +131,29 @@ describe('DripsHubClient', () => {
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await DripsHubClient.create(providerStub, customDriverAddress);
+			const client = await DripsHubClient.createReadonly(providerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
+			// Act
+			const client = await DripsHubClient.createReadonly(providerStub);
+
 			// Assert
-			assert.equal(testDripsHubClient.provider, providerStub);
-			assert.equal(testDripsHubClient.provider.getSigner(), providerStub.getSigner());
+			assert.isUndefined(client.signer);
+			assert.equal(client.provider, providerStub);
 			assert.equal(
-				await testDripsHubClient.provider.getSigner().getAddress(),
-				await providerStub.getSigner().getAddress()
-			);
-			assert.equal(
-				testDripsHubClient.driverAddress,
+				client.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB
+			);
+			assert(
+				dripsHubContractFactoryStub.calledWithExactly(
+					Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB,
+					providerStub
+				),
+				'Expected method to be called with different arguments'
 			);
 		});
 	});
@@ -385,6 +442,23 @@ describe('DripsHubClient', () => {
 	});
 
 	describe('receiveDrips()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const userId = '1';
+			const maxCycles = 1n;
+			const tokenAddress = Wallet.createRandom().address;
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			// Act
+			await testDripsHubClient.receiveDrips(userId, tokenAddress, maxCycles);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testDripsHubClient.signer),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const userId = '1';
@@ -778,6 +852,27 @@ describe('DripsHubClient', () => {
 	});
 
 	describe('split()', () => {
+		it('should ensure the signer exists', async () => {
+			// Arrange
+			const userId = '1';
+			const tokenAddress = Wallet.createRandom().address;
+			const receivers: SplitsReceiverStruct[] = [
+				{ userId: 1, weight: 1 },
+				{ userId: 2, weight: 2 }
+			];
+
+			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
+
+			// Act
+			await testDripsHubClient.split(userId, tokenAddress, receivers);
+
+			// Assert
+			assert(
+				ensureSignerExistsStub.calledOnceWithExactly(testDripsHubClient.signer),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the input', async () => {
 			// Arrange
 			const userId = '1';

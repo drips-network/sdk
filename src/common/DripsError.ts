@@ -31,7 +31,7 @@ export class DripsErrors {
 		});
 
 	static signerMissingError = (
-		message: string = "Tried to perform an operation that requires a signer, but the client's provider does not have a signer associated with it."
+		message: string = 'Tried to perform an operation that requires a signer, but a signer was not found. Did you create a read-only client instance?'
 	) => new DripsError(DripsErrorCode.MISSING_SIGNER, message);
 
 	static argumentMissingError = (message: string, argName: string) =>
