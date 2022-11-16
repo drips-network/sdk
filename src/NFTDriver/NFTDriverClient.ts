@@ -14,12 +14,7 @@ import {
 import Utils from '../utils';
 import { formatDripsReceivers, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 /**
- * A client for managing Drips for a user identified by an NFT.
- *
- * Anybody can mint a new token and create a new identity.
- * Only the current holder of the token can control its `userId`.
- *
- * The `tokenId` and the `userId` controlled by it are always equal.
+ * Manages Drips accounts identified by NFTs.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/NFTDriver.sol NFTDriver} smart contract.
  */
 export default class NFTDriverClient {
@@ -34,7 +29,16 @@ export default class NFTDriverClient {
 		return this.#provider;
 	}
 
-	/** Returns the `NFTDriver`'s address to which the `NFTDriverClient` is connected. */
+	/**
+	 * Returns the owner of the NFTs that control the drips accounts the `NFTDriverClient` manages.
+	 *
+	 * The `owner` is the `provider`'s signer.
+	 */
+	public get owner(): JsonRpcSigner {
+		return this.#signer;
+	}
+
+	/** Returns the `NFTDriver` contract address to which the `NFTDriverClient` is connected. */
 	public get driverAddress(): string {
 		return this.#driverAddress;
 	}
@@ -48,11 +52,11 @@ export default class NFTDriverClient {
 	 *
 	 * The `provider` must have a `signer` associated with it.
 	 *
-	 * **This signer must be the owner of the NFT (or someone that is approved to use it) that controls the `userId`s the new `NFTDriverClient` will manage and cannot be changed after creation**.
+	 * The `signer` would be the `owner` of the NFTs that control the drips accounts and cannot be changed after creation.
 	 *
 	 * The supported networks are:
 	 * - 'goerli': chain ID `5`
-	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver`'s address.
+	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `NFTDriverClient` instance.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
@@ -113,6 +117,7 @@ export default class NFTDriverClient {
 
 	/**
 	 * Mints a new token controlling a new user ID and transfers it to an address.
+	 * Note that a `tokenId` and the `userId` controlled by it are always equal.
 	 * Usage of this method is discouraged, use `safeMint` whenever possible.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
 	 * @returns A `Promise` which resolves to the minted token ID. It's equal to the user ID controlled by it.
@@ -133,6 +138,7 @@ export default class NFTDriverClient {
 
 	/**
 	 * Mints a new token controlling a new user ID and safely transfers it to an address.
+	 * Note that a `tokenId` and the `userId` controlled by it are always equal.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
 	 * @returns A `Promise` which resolves to the minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.

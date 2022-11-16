@@ -82,8 +82,10 @@ describe('NFTDriverClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
+			assert.equal(testNftDriverClient.owner, signerStub);
 			assert.equal(testNftDriverClient.provider, providerStub);
 			assert.equal(testNftDriverClient.provider.getSigner(), providerStub.getSigner());
+			assert.equal(await testNftDriverClient.owner.getAddress(), await signerStub.getAddress());
 			assert.equal(
 				await testNftDriverClient.provider.getSigner().getAddress(),
 				await providerStub.getSigner().getAddress()
