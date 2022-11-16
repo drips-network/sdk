@@ -26,7 +26,7 @@
 		]
 	},
 	"scripts": {
-		"lint": "prettier . --check . && eslint .",
+		"lint": "prettier . --check . && eslint . --ext .ts",
 		"format": "prettier . --write .",
 		"build": "npm run generate-graphql-types && npm run build:contracts && npm run build:lib && npx typedoc --excludeInternal src/index.ts",
 		"build:lib": "tsup --dts",
