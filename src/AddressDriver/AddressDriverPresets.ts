@@ -37,7 +37,7 @@ export namespace AddressDriverPresets {
 	};
 
 	/**
- * Pre-configured sets of smart contract calls that can be used as input to `Caller.callBatched` method.
+ * Pre-configured sets of contract calls that can be used as input to `Caller.callBatched` method.
  * @see `CallerClient` for more.
  *
  *

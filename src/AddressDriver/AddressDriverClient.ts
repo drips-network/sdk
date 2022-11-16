@@ -29,7 +29,7 @@ import {
  * Each address can use an `AddressDriverClient` to control a `userId` equal to that address.
  *
  * No registration is required, an `AddressDriver`-based `userId` for each address is know upfront.
- * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} smart contract.
+ * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} contract.
  */
 export default class AddressDriverClient {
 	#driver!: AddressDriver;
@@ -135,7 +135,7 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Returns the remaining number of tokens the `AddressDriver` smart contract is allowed to spend on behalf of the user for the given ERC20 token.
+	 * Returns the remaining number of tokens the `AddressDriver` contract is allowed to spend on behalf of the user for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A `Promise` which resolves to the remaining number of tokens.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
@@ -155,7 +155,7 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Sets the maximum allowance value for the `AddressDriver` smart contract over the user's tokens for the given ERC20 token.
+	 * Sets the maximum allowance value for the `AddressDriver` contract over the user's tokens for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
@@ -202,7 +202,7 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Collects the received and already split funds and transfers them from the `DripsHub` smart contract to an address.
+	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {string} transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
@@ -219,7 +219,7 @@ export default class AddressDriverClient {
 	/**
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
-	 * Transfers funds from the user's wallet to the `DripsHub` smart contract.
+	 * Transfers funds from the user's wallet to the `DripsHub` contract.
 	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
@@ -253,7 +253,7 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Sets the splits configuration.
+	 * Sets the Splits configuration.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
@@ -272,8 +272,8 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Sets a drips configuration.
-	 * Transfers funds from the user's wallet to the `DripsHub` smart contract to fulfill the change of the drips balance.
+	 * Sets a Drips configuration.
+	 * Transfers funds from the user's wallet to the `DripsHub` contract to fulfill the change of the drips balance.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.

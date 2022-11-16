@@ -7,8 +7,8 @@ import type { Caller } from '../../contracts/Caller';
 import { Caller__factory } from '../../contracts/factories';
 
 /**
- * A generic call executor that increases the flexibility of other smart contracts' APIs.
- * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/Caller.sol Caller} smart contract.
+ * A generic call executor that increases the flexibility of other contracts' APIs.
+ * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/Caller.sol Caller} contract.
  */
 export default class CallerClient {
 	#caller!: Caller;
@@ -66,10 +66,10 @@ export default class CallerClient {
 	/**
 	 * Executes a batch of calls.
 	 *
-	 * Reverts if any of the calls reverts or any of the called addresses is not a smart contract.
+	 * Reverts if any of the calls reverts or any of the called addresses is not a contract.
 	 *
 	 * **Important**:
-	 * If the called contract is `Caller`-aware and trusts that instance of `Caller` (e.g., the official Drips Drivers smart contracts)
+	 * If the called contract is `Caller`-aware and trusts that instance of `Caller` (e.g., the official Drips Drivers contracts)
 	 * the `msg.sender` will be set to the address of the wallet which called the `Caller`.
 	 * If not, `msg.sender` will be set to the address of the `Caller`.
 	 * @param  {CallStruct[]} calls The calls to perform.

@@ -13,7 +13,7 @@ import { validateClientProvider, validateSplitsReceivers } from '../common/valid
  *
  * Anybody can create a new `userId` and configure its splits configuration,
  * but nobody can update its configuration afterwards, it's immutable.
- * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/ImmutableSplitsDriver.sol ImmutableSplitsDriver} smart contract.
+ * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/ImmutableSplitsDriver.sol ImmutableSplitsDriver} contract.
  */
 export default class ImmutableSplitsDriverClient {
 	#driverAddress!: string;
