@@ -14,8 +14,8 @@ import {
 import Utils from '../utils';
 import { formatDripsReceivers, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 /**
- * Manages Drips accounts identified by NFTs.
- * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/NFTDriver.sol NFTDriver} smart contract.
+ * A client for managing Drips accounts identified by NFTs.
+ * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/NFTDriver.sol NFTDriver} contract.
  */
 export default class NFTDriverClient {
 	#driver!: NFTDriver;
@@ -24,21 +24,21 @@ export default class NFTDriverClient {
 	#driverAddress!: string;
 	#provider!: JsonRpcProvider;
 
-	/** Returns the `NFTDriverClient`'s `provider`. */
+	/** Returns the client's `provider`. */
 	public get provider(): JsonRpcProvider {
 		return this.#provider;
 	}
 
 	/**
-	 * Returns the owner of the NFTs that control the drips accounts the `NFTDriverClient` manages.
+	 * Returns the client's `signer`.
 	 *
-	 * The `owner` is the `provider`'s signer.
+	 * The `signer` is the `provider`'s signer.
 	 */
-	public get owner(): JsonRpcSigner {
+	public get signer(): JsonRpcSigner {
 		return this.#signer;
 	}
 
-	/** Returns the `NFTDriver` contract address to which the `NFTDriverClient` is connected. */
+	/** Returns the `NFTDriver` contract address to which the client is connected. */
 	public get driverAddress(): string {
 		return this.#driverAddress;
 	}
@@ -50,15 +50,13 @@ export default class NFTDriverClient {
 	 * Creates a new immutable `NFTDriverClient` instance.
 	 * @param  {JsonRpcProvider} provider The network provider.
 	 *
-	 * The `provider` must have a `signer` associated with it.
-	 *
-	 * The `signer` would be the `owner` of the NFTs that control the drips accounts and cannot be changed after creation.
+	 * The `provider` must have a `signer` associated with it, and cannot be changed after creation.
 	 *
 	 * The supported networks are:
 	 * - 'goerli': chain ID `5`
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `NFTDriverClient` instance.
+	 * @returns A `Promise` which resolves to the new client instance.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
@@ -86,7 +84,7 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Returns the remaining number of tokens the `NFTDriver` smart contract is allowed to spend on behalf of the user for the given ERC20 token.
+	 * Returns the remaining number of tokens the `NFTDriver` contract is allowed to spend on behalf of the client's `signer` for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A `Promise` which resolves to the remaining number of tokens.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
@@ -102,7 +100,7 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Sets the maximum allowance value for the `NFTDriver` smart contract over the user's tokens for the given ERC20 token.
+	 * Sets the maximum allowance value for the `NFTDriver` contract over the client's `signer` tokens for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
@@ -116,11 +114,13 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Mints a new token controlling a new user ID and transfers it to an address.
-	 * Note that a `tokenId` and the `userId` controlled by it are always equal.
-	 * Usage of this method is discouraged, use `safeMint` whenever possible.
+	 * Creates a new Drips account and transfers its ownership to an address.
+	 *
+	 * It will mint a new NFT controlling the new account and transfer it to the `transferToAddress`.
+	 *
+	 * **Usage of this method is discouraged**; use the {@link safeMint} method whenever possible.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @returns A `Promise` which resolves to the minted token ID. It's equal to the user ID controlled by it.
+	 * @returns A `Promise` which resolves to the minted token ID.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
@@ -137,10 +137,11 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Mints a new token controlling a new user ID and safely transfers it to an address.
-	 * Note that a `tokenId` and the `userId` controlled by it are always equal.
+	 * Creates a new Drips account and transfers its ownership to an address.
+	 *
+	 * It will safely mint a new NFT controlling the new account and transfer it to the `transferToAddress`.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @returns A `Promise` which resolves to the minted token ID. It's equal to the user ID controlled by it.
+	 * @returns A `Promise` which resolves to the minted token ID.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
@@ -156,12 +157,11 @@ export default class NFTDriverClient {
 		return BigInt(tokenId).toString();
 	}
 
-	// TODO: Add squeezing support.
-
 	/**
-	 * Collects the received and already split funds and transfers them from the `DripsHub` smart contract to an address.
-	 * @param  {string} tokenId The ID of the token representing the collecting user ID.
-	 * The token ID is equal to the user ID controlled by it.
+	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
+	 *
+	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
+	 * @param  {string} tokenId The ID of the token representing the collecting account.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {string} transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
@@ -185,10 +185,10 @@ export default class NFTDriverClient {
 	/**
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
-	 * Transfers funds from the user's wallet to the `DripsHub` smart contract.
-	 * @param  {string} tokenId The ID of the token representing the giving user.
-	 * The token ID is equal to the user ID controlled by it.
-	 * @param  {string} receiverUserId The receiver user ID.
+	 *
+	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
+	 * @param  {string} tokenId The ID of the token representing the giving account.
+	 * @param  {string} receiverTokenId The ID of the token representing the receiving account.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the contract transaction.
@@ -198,7 +198,7 @@ export default class NFTDriverClient {
 	 */
 	public give(
 		tokenId: string,
-		receiverUserId: string,
+		receiverTokenId: string,
 		tokenAddress: string,
 		amount: BigNumberish
 	): Promise<ContractTransaction> {
@@ -209,10 +209,10 @@ export default class NFTDriverClient {
 			);
 		}
 
-		if (isNullOrUndefined(receiverUserId)) {
+		if (isNullOrUndefined(receiverTokenId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not give: '${nameOf({ receiverUserId })}' is missing.`,
-				nameOf({ receiverUserId })
+				`Could not give: '${nameOf({ receiverTokenId })}' is missing.`,
+				nameOf({ receiverTokenId })
 			);
 		}
 
@@ -226,14 +226,16 @@ export default class NFTDriverClient {
 
 		validateAddress(tokenAddress);
 
-		return this.#driver.give(tokenId, receiverUserId, tokenAddress, amount);
+		return this.#driver.give(tokenId, receiverTokenId, tokenAddress, amount);
 	}
 
 	/**
-	 * Sets a drips configuration.
-	 * Transfers funds from the user's wallet to the `DripsHub` smart contract to fulfill the change of the drips balance.
-	 * @param  {string} tokenId The ID of the token representing the configured user ID.
-	 * The token ID is equal to the user ID controlled by it.
+	 * Sets a Drips configuration for the given account.
+	 *
+	 * It will transfer funds from the client's `signer` wallet to the `DripsHub` contract to fulfill the change of the drips balance.
+	 *
+	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
+	 * @param  {string} tokenId The ID of the token representing the configured account.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
@@ -302,9 +304,10 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Sets the splits configuration.
-	 * @param  {string} tokenId The ID of the token representing the configured user ID.
-	 * The token ID is equal to the user ID controlled by it.
+	 * Sets the account's Splits configuration.
+	 *
+	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
+	 * @param  {string} tokenId The ID of the token representing the configured account.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
@@ -328,9 +331,11 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Emits the user's metadata.
-	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {string} tokenId The ID of the token representing the collecting user ID. The token ID is equal to the user ID controlled by it.
+	 * Emits the account's metadata.
+	 * The key and the value are _not_ standardized by the protocol, it's up to the caller to establish and follow conventions to ensure compatibility with the consumers.
+	 *
+	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
+	 * @param  {string} tokenId The ID of the token representing the emitting account.
 	 * @param  {BigNumberish} key The metadata key.
 	 * @param  {string} value The metadata value.
 	 * @returns A `Promise` which resolves to the contract transaction.
