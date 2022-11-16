@@ -127,3 +127,56 @@ query getNftSubAccountsByOwner($ownerAddress: Bytes!) {
 	}
 }
 `;
+
+export const getCollectedEventsByUserId = `#graphql
+query getCollectedEventsByUserId($userId: String!) {
+  collectedEvents(where: {user: $userId}) {
+		id
+		user {
+			id
+		}
+		assetId
+		collected
+		blockTimestamp
+	}
+}
+`;
+
+export const getSplitEventsByUserId = `#graphql
+query getSplitEventsByUserId($userId: String!) {
+  splitEvents(where: {userId: $userId}) {
+		id
+		userId
+		receiverId
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;
+
+export const getReceivedDripsEventsByUserId = `#graphql
+query getReceivedDripsEventsByUserId($userId: String!) {
+  receivedDripsEvents(where: {userId: $userId}) {
+		id
+		userId
+		receivableCycles
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;
+
+export const getGivenEventsByUserId = `#graphql
+query getGivenEventsByUserId($userId: String!) {
+  givenEvents(where: {userId: $userId}) {
+		id
+		userId
+		receiverUserId
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;

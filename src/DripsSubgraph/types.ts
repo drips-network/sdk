@@ -33,6 +33,41 @@ export type DripsSetEvent = {
 	receiversHash: string;
 };
 
+export type CollectedEvent = {
+	id: string;
+	userId: string;
+	assetId: bigint;
+	collected: bigint;
+	blockTimestamp: bigint;
+};
+
+export type SplitEvent = {
+	id: string;
+	amount: bigint;
+	assetId: bigint;
+	blockTimestamp: bigint;
+	receiverId: string;
+	userId: string;
+};
+
+export type ReceivedDripsEvent = {
+	id: string;
+	amount: bigint;
+	assetId: bigint;
+	blockTimestamp: bigint;
+	receivableCycles: bigint;
+	userId: string;
+};
+
+export type GivenEvent = {
+	id: string;
+	amount: bigint;
+	assetId: bigint;
+	blockTimestamp: bigint;
+	receiverUserId: string;
+	userId: string;
+};
+
 export type DripsReceiverSeenEvent = {
 	id: string;
 	config: bigint;
