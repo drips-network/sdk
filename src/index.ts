@@ -16,11 +16,15 @@ import {
 } from './common/types';
 import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance } from './DripsHub/types';
 import {
+	GivenEvent,
+	SplitEvent,
 	SplitsEntry,
 	UserMetadata,
 	NftSubAccount,
 	DripsSetEvent,
+	CollectedEvent,
 	UserAssetConfig,
+	ReceivedDripsEvent,
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
@@ -56,20 +60,24 @@ export { default as Utils } from './utils';
 export {
 	Preset,
 	CycleInfo,
+	SplitEvent,
 	CallStruct,
 	DripsState,
+	GivenEvent,
 	SplitsEntry,
 	UserMetadata,
 	NftSubAccount,
 	DripsSetEvent,
 	NetworkConfig,
+	CollectedEvent,
 	DripsReceiver,
 	UserAssetConfig,
 	CallerInterface,
 	ReceivableBalance,
 	DripsHubInterface,
-	NFTDriverInterface,
 	SplittableBalance,
+	ReceivedDripsEvent,
+	NFTDriverInterface,
 	DripsHistoryStruct,
 	CollectableBalance,
 	DripsReceiverStruct,

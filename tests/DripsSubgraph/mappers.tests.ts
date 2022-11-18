@@ -1,14 +1,117 @@
 import { assert } from 'chai';
 import {
+	mapCollectedEventToDto,
 	mapDripsReceiverSeenEventToDto,
 	mapDripsSetEventToDto,
+	mapGivenEventToDto,
+	mapReceivedDripsEventToDto,
 	mapSplitEntryToDto,
+	mapSplitEventToDto,
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 
 describe('mappers', () => {
+	describe('mapCollectedEventToDto()', () => {
+		it('should return the expected result', () => {
+			// Arrange
+			const event: SubgraphTypes.CollectedEvent = {
+				assetId: 1n,
+				blockTimestamp: 2n,
+				collected: 3n,
+				id: '4',
+				user: {
+					id: '5'
+				} as SubgraphTypes.User
+			};
+
+			// Act
+			const result = mapCollectedEventToDto(event);
+
+			// Assert
+			assert.equal(result.id, event.id);
+			assert.equal(result.assetId, event.assetId);
+			assert.equal(result.collected, event.collected);
+			assert.equal(result.blockTimestamp, event.blockTimestamp);
+		});
+	});
+
+	describe('mapGivenEventToDto()', () => {
+		it('should return the expected result', () => {
+			// Arrange
+			const event: SubgraphTypes.GivenEvent = {
+				amt: 1n,
+				assetId: 2n,
+				blockTimestamp: 3n,
+				id: '4',
+				receiverUserId: '5',
+				userId: '6'
+			};
+
+			// Act
+			const result = mapGivenEventToDto(event);
+
+			// Assert
+			assert.equal(result.id, event.id);
+			assert.equal(result.assetId, BigInt(event.assetId));
+			assert.equal(result.amount, BigInt(event.amt));
+			assert.equal(result.userId, event.userId);
+			assert.equal(result.receiverUserId, event.receiverUserId);
+			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
+		});
+	});
+
+	describe('mapReceivedDripsEventToDto()', () => {
+		it('should return the expected result', () => {
+			// Arrange
+			const event: SubgraphTypes.ReceivedDripsEvent = {
+				amt: 1n,
+				assetId: '2',
+				blockTimestamp: 3n,
+				id: '4',
+				receivableCycles: 5n,
+				userId: '6'
+			};
+
+			// Act
+			const result = mapReceivedDripsEventToDto(event);
+
+			// Assert
+			assert.equal(result.id, event.id);
+			assert.equal(result.assetId, event.assetId);
+			assert.equal(result.amount, BigInt(event.amt));
+			assert.equal(result.receivableCycles, BigInt(event.receivableCycles));
+			assert.equal(result.userId, event.userId);
+			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
+		});
+	});
+
+	describe('mapSplitEventToDto()', () => {
+		it('should return the expected result', () => {
+			// Arrange
+			const event: SubgraphTypes.SplitEvent = {
+				amt: 1n,
+				assetId: 2n,
+				blockTimestamp: 3n,
+				id: '4',
+				receiverId: '5',
+				userId: '6'
+			};
+
+			// Act
+			const result = mapSplitEventToDto(event);
+
+			// Assert
+			assert.equal(result.id, event.id);
+			assert.equal(result.assetId, BigInt(event.assetId));
+			assert.equal(result.amount, BigInt(event.amt));
+			assert.equal(result.receiverId, event.receiverId);
+			assert.equal(result.userId, event.userId);
+			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
+		});
+	});
+
 	describe('mapUserAssetConfigToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange

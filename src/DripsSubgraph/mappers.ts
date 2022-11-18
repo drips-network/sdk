@@ -1,4 +1,14 @@
-import type { DripsReceiverSeenEvent, DripsSetEvent, SplitsEntry, UserAssetConfig, UserMetadata } from './types';
+import type {
+	DripsReceiverSeenEvent,
+	DripsSetEvent,
+	SplitsEntry,
+	UserAssetConfig,
+	UserMetadata,
+	SplitEvent,
+	ReceivedDripsEvent,
+	GivenEvent,
+	CollectedEvent
+} from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
 
 /** @internal */
@@ -37,6 +47,47 @@ export const mapDripsSetEventToDto = (dripsSetEvent: SubgraphTypes.DripsSetEvent
 	blockTimestamp: BigInt(dripsSetEvent.blockTimestamp),
 	maxEnd: BigInt(dripsSetEvent.maxEnd),
 	receiversHash: dripsSetEvent.receiversHash
+});
+
+/** @internal */
+export const mapSplitEventToDto = (splitEvent: SubgraphTypes.SplitEvent): SplitEvent => ({
+	id: splitEvent.id,
+	amount: BigInt(splitEvent.amt),
+	assetId: BigInt(splitEvent.assetId),
+	blockTimestamp: BigInt(splitEvent.blockTimestamp),
+	receiverId: splitEvent.receiverId,
+	userId: splitEvent.userId
+});
+
+/** @internal */
+export const mapReceivedDripsEventToDto = (
+	receivedDripsEvent: SubgraphTypes.ReceivedDripsEvent
+): ReceivedDripsEvent => ({
+	id: receivedDripsEvent.id,
+	amount: BigInt(receivedDripsEvent.amt),
+	assetId: BigInt(receivedDripsEvent.assetId),
+	blockTimestamp: BigInt(receivedDripsEvent.blockTimestamp),
+	receivableCycles: BigInt(receivedDripsEvent.receivableCycles),
+	userId: receivedDripsEvent.userId
+});
+
+/** @internal */
+export const mapCollectedEventToDto = (splitEvent: SubgraphTypes.CollectedEvent): CollectedEvent => ({
+	id: splitEvent.id,
+	collected: BigInt(splitEvent.collected),
+	assetId: BigInt(splitEvent.assetId),
+	blockTimestamp: BigInt(splitEvent.blockTimestamp),
+	userId: splitEvent.user.id
+});
+
+/** @internal */
+export const mapGivenEventToDto = (splitEvent: SubgraphTypes.GivenEvent): GivenEvent => ({
+	id: splitEvent.id,
+	amount: BigInt(splitEvent.amt),
+	assetId: BigInt(splitEvent.assetId),
+	blockTimestamp: BigInt(splitEvent.blockTimestamp),
+	receiverUserId: splitEvent.receiverUserId,
+	userId: splitEvent.userId
 });
 
 /** @internal */
