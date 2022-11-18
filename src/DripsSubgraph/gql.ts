@@ -38,6 +38,7 @@ export const getSplitsConfigByUserId = `#graphql
 query getSplitsConfigByUserId($userId: ID!) {
   user(id: $userId) {
 		splitsEntries {
+			id
 			userId
 			weight
 		}
