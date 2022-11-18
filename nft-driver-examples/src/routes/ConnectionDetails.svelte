@@ -1,20 +1,30 @@
 <script lang="ts">
-	import { dripsClients, isConnected } from '$lib/stores';
+	import { dripsClients } from '$lib/stores';
+	import type { JsonRpcSigner, Network } from '@ethersproject/providers';
+
+	let network: Network;
+	let signer: JsonRpcSigner;
+	let signerAddress: string;
 
 	$: nftDriverClient = $dripsClients?.nftDriverClient;
 	$: subgraphClient = $dripsClients?.subgraphClient;
+	$: if (nftDriverClient) getConnectionDetails();
+
+	async function getConnectionDetails() {
+		signer = nftDriverClient!.provider.getSigner();
+		network = await nftDriverClient!.provider.getNetwork();
+		signerAddress = await signer.getAddress();
+	}
 </script>
 
 <div class="terminal-card">
 	<header>Connection Details</header>
 	<div>
-		<strong>Network</strong>: {$isConnected ? nftDriverClient?.network?.name : '[Not Connected]'}
+		<strong>Network</strong>: {network ? network.name : '[Not Connected]'}
 		<br />
-		<strong>Chain ID</strong>:{$isConnected ? nftDriverClient?.network?.chainId : '[Not Connected]'}
+		<strong>Chain ID</strong>:{network ? network.chainId : '[Not Connected]'}
 		<br />
-		<strong>Signer Address</strong>: {$isConnected
-			? nftDriverClient?.signerAddress
-			: '[Not Connected]'}
+		<strong>Accounts Owner (client signer)</strong>: {signerAddress || '[Not Connected]'}
 		<br />
 		<div>
 			<strong>Subgraph URL</strong>:

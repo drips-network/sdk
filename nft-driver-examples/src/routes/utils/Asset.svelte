@@ -43,7 +43,7 @@
 		<div class="form-group">
 			<input
 				type="text"
-				placeholder="e.g. 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+				placeholder="e.g., 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 				bind:value={tokenAddressInput}
 			/>
 		</div>

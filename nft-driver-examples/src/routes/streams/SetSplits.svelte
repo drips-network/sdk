@@ -63,12 +63,12 @@
 	<fieldset>
 		<legend>Parameters</legend>
 
-		<label for="configuredUserId">Configured user ID:</label>
+		<label for="configuredUserId">Configured user (or token) ID:</label>
 		<div class="form-group">
 			<input
 				type="text"
 				name="configuredUserId"
-				placeholder="e.g. 26959946667150639794667015087019630673637144422540572481103610249216"
+				placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
 				bind:value={configuredUserId}
 			/>
 		</div>

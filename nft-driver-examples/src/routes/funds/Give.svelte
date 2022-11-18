@@ -15,7 +15,7 @@
 	let txReceipt: ContractReceipt | undefined;
 
 	async function give(
-		tokenId: BigNumberish,
+		tokenId: string,
 		receiverUserId: string,
 		tokenAddress: string,
 		amount: BigNumberish
@@ -42,15 +42,6 @@
 
 <h2>Give</h2>
 
-<p>
-	Calls the <code
-		>give( tokenId: BigNumberish, receiverUserId: string, tokenAddress: string, amount: BigNumberish
-		)</code
-	>
-	on the
-	<code>NFTDriverClient</code> and gives funds to the receiver.
-</p>
-
 <div>
 	<form class="collect">
 		<fieldset>
@@ -58,7 +49,7 @@
 			<div class="form-group">
 				<label for="tokenid">Giving user ID:</label>
 				<input
-					placeholder="e.g. 26959946667150639794667015087019630673637144422540572481103610249216"
+					placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
 					type="text"
 					name="tokenid"
 					bind:value={tokenIdInput}
@@ -67,7 +58,7 @@
 			<div class="form-group">
 				<label for="receiver">Receiver user ID:</label>
 				<input
-					placeholder="e.g. 26959946667150639794667015087019630673637144422540572481103610249218"
+					placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249218"
 					type="text"
 					name="receiver"
 					bind:value={receiverUserIdInput}
@@ -76,7 +67,7 @@
 			<div class="form-group">
 				<label for="token">ERC20 Token Address:</label>
 				<input
-					placeholder="e.g. 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+					placeholder="e.g., 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 					type="text"
 					name="token"
 					bind:value={tokenAddressInput}
@@ -87,7 +78,7 @@
 				<input
 					type="text"
 					name="amount"
-					placeholder="e.g. 50000000000000000 (wei)"
+					placeholder="e.g., 50000000000000000 (wei)"
 					bind:value={amountInput}
 				/>
 			</div>

@@ -10,7 +10,7 @@
 	let minting = false;
 	let transferToAddressInput: string;
 	let errorMessage: string | undefined;
-	let mintedToken: bigint | undefined;
+	let mintedToken: string | undefined;
 
 	async function mint(transferToAddress: string) {
 		try {
@@ -19,9 +19,9 @@
 			minting = true;
 			errorMessage = undefined;
 
-			mintedToken = await nftDriverClient?.safeMint(transferToAddress);
+			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress);
 
-			console.log('Minted token: ' + mintedToken);
+			console.log('Minted account token ID: ' + mintedToken);
 
 			dispatch('tokenMinted', {
 				token: mintedToken
@@ -35,12 +35,7 @@
 	}
 </script>
 
-<h2>Mint a new identity token</h2>
-
-<p>
-	Calls the <code>safeMint(transferToAddress: string)</code> on the
-	<code>NFTDriverClient</code> and mints a new identity token for the connected user.
-</p>
+<h2>Create a New Account</h2>
 
 <div>
 	<form>
@@ -55,7 +50,7 @@
 					type="text"
 					minlength="42"
 					required
-					placeholder="Ethereum address"
+					placeholder="e.g., 0x945AFA63507e56748368D3F31ccC35043efDbd4b"
 				/>
 			</div>
 
@@ -76,7 +71,7 @@
 					</div>
 				{:else if mintedToken}
 					<div class="terminal-alert terminal-alert-primary">
-						<p>Minted token: {mintedToken}</p>
+						<p>Minted account token ID: {mintedToken}</p>
 					</div>
 				{:else if minting}
 					<div class="terminal-alert terminal-alert-primary">

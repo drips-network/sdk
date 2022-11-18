@@ -26,13 +26,6 @@
 
 <h2>Allowance</h2>
 
-<p>
-	Calls the <code>getAllowance(tokenAddress: string)</code>
-	on the
-	<code>NFTDriverClient</code> and returns the remaining number of tokens the <code>NFTDriver</code>
-	smart contract is allowed to spend on behalf of the user.
-</p>
-
 <form class="allowance">
 	<fieldset>
 		<legend>Parameters</legend>
@@ -42,7 +35,7 @@
 			<input
 				name="token"
 				type="text"
-				placeholder="0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+				placeholder="e.g., 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 				bind:value={tokenInput}
 			/>
 		</div>

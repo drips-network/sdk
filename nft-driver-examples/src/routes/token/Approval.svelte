@@ -34,13 +34,6 @@
 
 <h2>Approve</h2>
 
-<p>
-	Calls the <code>approve(tokenAddress: string)</code>
-	on the
-	<code>NFTDriverClient</code> and sets the maximum allowance value for the <code>NFTDriver</code> smart
-	contract over the connected user's tokens.
-</p>
-
 <form>
 	<fieldset>
 		<legend>Parameters</legend>
@@ -49,7 +42,7 @@
 			<input
 				name="token"
 				type="text"
-				placeholder="e.g. 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+				placeholder="e.g., 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 				bind:value={tokenInput}
 			/>
 		</div>

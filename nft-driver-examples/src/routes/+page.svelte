@@ -8,7 +8,7 @@
 	<meta name="description" content="NFT Driver examples app" />
 </svelte:head>
 
-<h1>NFT Driver Examples App</h1>
+<h1>NFT Driver Client Examples App</h1>
 
 <div class="welcome">
 	{#if $isConnected}
@@ -18,10 +18,10 @@
 
 		<ul>
 			<li>
-				Sub Accounts:
+				Managing Accounts:
 				<ul>
-					<li><a href="/subaccounts">List sub accounts</a></li>
-					<li><a href="/subaccounts">Mint a new identity token</a></li>
+					<li><a href="/accounts">List an Owner's Accounts</a></li>
+					<li><a href="/accounts">Create a New Account</a></li>
 				</ul>
 			</li>
 			<li>
@@ -35,8 +35,8 @@
 			<li>
 				Drips & Splits:
 				<ul>
-					<li><a href="/streams">List user asset configurations</a></li>
-					<li><a href="/streams">Set user asset configuration</a></li>
+					<li><a href="/streams">List Drips configurations</a></li>
+					<li><a href="/streams">Set Drips configuration</a></li>
 					<li><a href="/streams">Get splits configuration</a></li>
 					<li><a href="/streams">Set splits configuration</a></li>
 				</ul>

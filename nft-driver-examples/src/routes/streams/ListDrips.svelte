@@ -21,23 +21,18 @@
 	}
 </script>
 
-<h2>List User Asset Configurations (Drips)</h2>
-
-<p>
-	Calls the <code>getAllUserAssetConfigsByUserId(userId: string)</code> on the
-	<code>DripsSubgraphClient</code> and returns the specified user's asset configurations.
-</p>
+<h2>List Drips Configurations</h2>
 
 <form>
 	<fieldset>
 		<legend>Parameters</legend>
 		<div class="form-group">
-			<label for="config">User ID:</label>
+			<label for="config">User (or Token) ID:</label>
 			<input
 				id="config"
 				name="config"
 				type="text"
-				placeholder="e.g. 269599466671506397946670150870196306736371444226143594574070383902750000"
+				placeholder="e.g., 269599466671506397946670150870196306736371444226143594574070383902750000"
 				bind:value={userIdInput}
 			/>
 		</div>
@@ -75,6 +70,6 @@
 	.json {
 		--json-tree-font-size: 1em;
 		--json-tree-li-indentation: 2em;
-		--json-tree-font-family: font-family: var(--font-stack);
+		--json-tree-font-family: var(--font-stack);
 	}
 </style>

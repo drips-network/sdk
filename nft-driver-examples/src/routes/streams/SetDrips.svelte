@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Utils, type DripsSubgraphClient, type NFTDriverClient, constants, type DripsReceiverStruct } from 'radicle-drips';
+	import {
+		Utils,
+		type DripsSubgraphClient,
+		type NFTDriverClient,
+		constants,
+		type DripsReceiverStruct
+	} from 'radicle-drips';
 	import { BigNumber, type ContractReceipt, type ContractTransaction } from 'ethers';
 	import { isConnected } from '$lib/stores';
 
@@ -91,7 +97,7 @@
 					})
 			);
 
-			const tranferTo = nftDriverClient!.signerAddress;
+			const tranferTo = await nftDriverClient!.signer.getAddress();
 
 			tx = await nftDriverClient?.setDrips(
 				configuredUserId,
@@ -114,44 +120,35 @@
 	}
 </script>
 
-<h2>Set Asset Configuration (Drips)</h2>
-
-<p>
-	Calls the <code
-		>setDrips( tokenId: BigNumberish, tokenAddress: string, currentReceivers: DripsReceiverStruct[],
-		newReceivers: DripsReceiverStruct[], transferToAddress: string, balanceDelta: BigNumberish = 0 )</code
-	>
-	on the
-	<code>NFTDriverClient</code> and sets the specified configuration.
-</p>
+<h2>Set Drips Configuration</h2>
 
 <p>
 	<strong>
 		The <code>amountPerSec</code> must be multiplied by 10 ^ 19 when passed in the call.</strong
 	>
-	See implementation for details.
+	See documentation for details.
 </p>
 
 <form>
 	<fieldset>
 		<legend>Parameters</legend>
 
-		<label for="configuredUserId">Configured user ID:</label>
+		<label for="configuredUserId">Configured account's token ID:</label>
 		<div class="form-group">
 			<input
 				type="text"
 				name="configuredUserId"
-				placeholder="e.g. 26959946667150639794667015087019630673637144422540572481103610249216"
+				placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
 				bind:value={configuredUserId}
 			/>
 		</div>
 
-		<label for="assetId">Token Address:</label>
+		<label for="assetId">ERC20 Token Address:</label>
 		<div class="form-group">
 			<input
 				type="text"
 				name="assetId"
-				placeholder="e.g. 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+				placeholder="e.g., 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 				bind:value={tokenAddress}
 			/>
 		</div>

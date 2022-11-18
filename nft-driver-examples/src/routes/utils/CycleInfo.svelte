@@ -8,12 +8,12 @@
 
 	let cycleInfo: CycleInfoDTO;
 
-	$: if (nftDriverClient?.network.chainId) {
+	$: if (nftDriverClient) {
 		getCycleInfo();
 	}
 
 	async function getCycleInfo() {
-		const chainId = nftDriverClient!.network.chainId;
+		const chainId = (await nftDriverClient!.provider.getNetwork()).chainId;
 
 		cycleInfo = Utils.Cycle.getInfo(chainId);
 	}
