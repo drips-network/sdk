@@ -24,11 +24,7 @@ import {
 } from '../common/internals';
 
 /**
- * A client for managing Drips for a user identified by an Ethereum address.
- *
- * Each address can use an `AddressDriverClient` to control a `userId` equal to that address.
- *
- * No registration is required, an `AddressDriver`-based `userId` for each address is know upfront.
+ * A client for managing Drips accounts identified by Ethereum addresses.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} contract.
  */
 export default class AddressDriverClient {
@@ -37,18 +33,15 @@ export default class AddressDriverClient {
 	#provider!: JsonRpcProvider;
 	#signer: JsonRpcSigner | undefined;
 
-	/** Returns the `AddressDriverClient`'s `provider`. */
+	/** Returns the client's `provider`. */
 	public get provider(): JsonRpcProvider {
 		return this.#provider;
 	}
 
 	/**
-	 * Returns the `AddressDriverClient`'s `signer`.
-	 *
-	 * This is the user to which the `AddressDriverClient` is linked and manages Drips.
+	 * Returns the client's `signer`.
 	 *
 	 * Note that for read-only client instances created with the {@link createReadonly} method it returns `undefined`.
-	 *
 	 */
 	public get signer(): JsonRpcSigner | undefined {
 		return this.#signer;
@@ -66,8 +59,12 @@ export default class AddressDriverClient {
 	 * Creates a new immutable `AddressDriverClient` instance.
 	 * @param  {JsonRpcProvider} signer The signer.
 	 *
-	 * **The `signer` will be the user the new `AddressDriverClient` will manage Drips for and cannot be changed after creation**
-	 * (i.e., the new instance will control a `userId` equal to that address).
+	 * The `signer`'s address will be the Drips account the new instance will manage and cannot be changed after creation.
+	 *
+	 * **Important**:
+	 * In Drips, an account "is" a **user ID** at the protocol level.
+	 * The `AddressDriver` contract derives an account's user ID from an Ethereum address. In this case, from the `signer`'s.
+	 * For retrieving the client's `signer` user ID call, {@link getUserId}.
 	 *
 	 * The `provider` this signer was established from can be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`

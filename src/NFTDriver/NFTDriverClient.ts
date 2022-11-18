@@ -117,13 +117,13 @@ export default class NFTDriverClient {
 	 *
 	 * **Usage of this method is discouraged**; use {@link safeCreateAccount} whenever possible.
 	 *
-	 * Creates a new account.
+	 * Creates a new Drips account.
 	 *
 	 * It will mint a new NFT controlling a new Drips account and transfer its ownership to an address.
 	 *
 	 * **Important**:
 	 * In Drips, an account "is" a **user ID** at the protocol level.
-	 * The NFT's ID (token ID) and the user ID controlled by it are always equal.
+	 * The minted NFT's ID (token ID) and the user ID controlled by it are always equal.
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
@@ -144,13 +144,13 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Creates a new account.
+	 * Creates a new Drips account.
 	 *
 	 * It will _safely_ mint a new NFT controlling a new Drips account and transfer its ownership to an address.
 	 *
 	 * **Important**:
 	 * In Drips, an account "is" a **user ID** at the protocol level.
-	 * The NFT's ID (token ID) and the user ID controlled by it are always equal.
+	 * The minted NFT's ID (token ID) and the user ID controlled by it are always equal.
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
