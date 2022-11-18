@@ -193,7 +193,7 @@ describe('NFTDriverClient', () => {
 		});
 	});
 
-	describe('mint()', () => {
+	describe('createAccount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const transferToAddress = Wallet.createRandom().address;
@@ -207,7 +207,7 @@ describe('NFTDriverClient', () => {
 			nftDriverContractStub.mint.withArgs(transferToAddress).resolves(txResponse);
 
 			// Act
-			await testNftDriverClient.mint(transferToAddress);
+			await testNftDriverClient.createAccount(transferToAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(transferToAddress));
@@ -226,7 +226,7 @@ describe('NFTDriverClient', () => {
 			nftDriverContractStub.mint.withArgs(transferToAddress).resolves(txResponse);
 
 			// Act
-			const actualTokenId = await testNftDriverClient.mint(transferToAddress);
+			const actualTokenId = await testNftDriverClient.createAccount(transferToAddress);
 
 			// Assert
 			assert.equal(actualTokenId, expectedTokenId);
@@ -237,7 +237,7 @@ describe('NFTDriverClient', () => {
 		});
 	});
 
-	describe('safeMint()', () => {
+	describe('safeCreateAccount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
 			const transferToAddress = Wallet.createRandom().address;
@@ -251,7 +251,7 @@ describe('NFTDriverClient', () => {
 			nftDriverContractStub.safeMint.withArgs(transferToAddress).resolves(txResponse);
 
 			// Act
-			await testNftDriverClient.safeMint(transferToAddress);
+			await testNftDriverClient.safeCreateAccount(transferToAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(transferToAddress));
@@ -270,7 +270,7 @@ describe('NFTDriverClient', () => {
 			nftDriverContractStub.safeMint.withArgs(transferToAddress).resolves(txResponse);
 
 			// Act
-			const actualTokenId = await testNftDriverClient.safeMint(transferToAddress);
+			const actualTokenId = await testNftDriverClient.safeCreateAccount(transferToAddress);
 
 			// Assert
 			assert.equal(actualTokenId, expectedTokenId);

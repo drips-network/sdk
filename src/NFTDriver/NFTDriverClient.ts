@@ -114,17 +114,24 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Creates a new Drips account and transfers its ownership to an address.
 	 *
-	 * It will mint a new NFT controlling the new account and transfer it to the `transferToAddress`.
+	 * **Usage of this method is discouraged**; use {@link safeCreateAccount} whenever possible.
 	 *
-	 * **Usage of this method is discouraged**; use the {@link safeMint} method whenever possible.
+	 * Creates a new account.
+	 *
+	 * It will mint a new NFT controlling a new Drips account and transfer its ownership to an address.
+	 *
+	 * **Important**:
+	 * In Drips, an account "is" a **user ID** at the protocol level.
+	 * The NFT's ID (token ID) and the user ID controlled by it are always equal.
+	 *
+	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @returns A `Promise` which resolves to the minted token ID.
+	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async mint(transferToAddress: string): Promise<string> {
+	public async createAccount(transferToAddress: string): Promise<string> {
 		validateAddress(transferToAddress);
 
 		const txResponse = await this.#driver.mint(transferToAddress);
@@ -137,15 +144,21 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Creates a new Drips account and transfers its ownership to an address.
+	 * Creates a new account.
 	 *
-	 * It will safely mint a new NFT controlling the new account and transfer it to the `transferToAddress`.
+	 * It will _safely_ mint a new NFT controlling a new Drips account and transfer its ownership to an address.
+	 *
+	 * **Important**:
+	 * In Drips, an account "is" a **user ID** at the protocol level.
+	 * The NFT's ID (token ID) and the user ID controlled by it are always equal.
+	 *
+	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @returns A `Promise` which resolves to the minted token ID.
+	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async safeMint(transferToAddress: string): Promise<string> {
+	public async safeCreateAccount(transferToAddress: string): Promise<string> {
 		validateAddress(transferToAddress);
 
 		const txResponse = await this.#driver.safeMint(transferToAddress);
@@ -188,7 +201,9 @@ export default class NFTDriverClient {
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the giving account.
-	 * @param  {string} receiverTokenId The ID of the token representing the receiving account.
+	 * @param  {string} receiverUserId The receiver user ID:
+	 * - For the `NFTDriver` it's equal to the token ID.
+	 * - For the `AddressDriver` it's equal to the receiver's Ethereum address.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the contract transaction.
@@ -198,7 +213,7 @@ export default class NFTDriverClient {
 	 */
 	public give(
 		tokenId: string,
-		receiverTokenId: string,
+		receiverUserId: string,
 		tokenAddress: string,
 		amount: BigNumberish
 	): Promise<ContractTransaction> {
@@ -209,10 +224,10 @@ export default class NFTDriverClient {
 			);
 		}
 
-		if (isNullOrUndefined(receiverTokenId)) {
+		if (isNullOrUndefined(receiverUserId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not give: '${nameOf({ receiverTokenId })}' is missing.`,
-				nameOf({ receiverTokenId })
+				`Could not give: '${nameOf({ receiverUserId })}' is missing.`,
+				nameOf({ receiverUserId })
 			);
 		}
 
@@ -226,7 +241,7 @@ export default class NFTDriverClient {
 
 		validateAddress(tokenAddress);
 
-		return this.#driver.give(tokenId, receiverTokenId, tokenAddress, amount);
+		return this.#driver.give(tokenId, receiverUserId, tokenAddress, amount);
 	}
 
 	/**
