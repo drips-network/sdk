@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
-	import type { DripsSubgraphClient, SplitsEntry } from 'radicle-drips';
+	import type { DripsSubgraphClient, UserAssetConfig } from 'radicle-drips';
 	import JSONTree from 'svelte-json-tree';
 
 	export let subgraphClient: DripsSubgraphClient | undefined;
 
 	let userIdInput: string;
 	let errorMessage: string | undefined;
-	let splitsConfiguration: SplitsEntry[] | undefined;
+	let userAssetConfigs: UserAssetConfig[] | undefined;
 
-	async function getSplitsConfigByUserId(userId: string) {
+	async function getAllUserAssetConfigsByUserId(userId: string) {
 		try {
 			errorMessage = undefined;
 
-			splitsConfiguration = await subgraphClient?.getSplitsConfigByUserId(userId);
+			userAssetConfigs = await subgraphClient?.getAllUserAssetConfigsByUserId(userId);
 		} catch (error: any) {
 			errorMessage = error.message;
 			console.error(error);
@@ -21,7 +21,7 @@
 	}
 </script>
 
-<h2>Splits Configuration</h2>
+<h2>List Drips Configurations</h2>
 
 <form>
 	<fieldset>
@@ -41,7 +41,7 @@
 				class="btn btn-default"
 				disabled={!$isConnected}
 				type="button"
-				on:click={() => getSplitsConfigByUserId(userIdInput)}>Get</button
+				on:click={() => getAllUserAssetConfigsByUserId(userIdInput)}>Get</button
 			>
 		</div>
 		<div>
@@ -51,10 +51,10 @@
 				<div class="terminal-alert terminal-alert-error">
 					<p>{errorMessage}</p>
 				</div>
-			{:else if splitsConfiguration}
+			{:else if userAssetConfigs}
 				<div class="json">
-					{#if splitsConfiguration?.length}
-						<JSONTree value={splitsConfiguration} defaultExpandedLevel={1} />
+					{#if userAssetConfigs?.length}
+						<JSONTree value={userAssetConfigs} defaultExpandedLevel={1} />
 					{:else}
 						<p>No Entries Found</p>
 					{/if}

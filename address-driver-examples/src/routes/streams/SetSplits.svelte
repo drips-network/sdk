@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
-	import type { NFTDriverClient, SplitsReceiverStruct } from 'radicle-drips';
+	import type { AddressDriverClient, SplitsReceiverStruct } from 'radicle-drips';
 
-	export let nftDriverClient: NFTDriverClient | undefined;
+	export let addressDriverClient: AddressDriverClient | undefined;
 
 	type SplitsInput = {
 		receiverUserId: string;
@@ -16,7 +16,6 @@
 	];
 
 	let settingDrips = false;
-	let configuredUserId: string;
 	let errorMessage: string | undefined;
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
@@ -37,10 +36,10 @@
 					}))
 			);
 
-			tx = await nftDriverClient!.setSplits(configuredUserId, splits);
+			tx = await addressDriverClient!.setSplits(splits);
 			console.log(tx);
 
-			txReceipt = await tx?.wait();
+			txReceipt = await tx.wait();
 			console.log(txReceipt);
 		} catch (error: any) {
 			errorMessage = error.message;
@@ -56,16 +55,6 @@
 <form>
 	<fieldset>
 		<legend>Parameters</legend>
-
-		<label for="configuredUserId">Configured user (or token) ID:</label>
-		<div class="form-group">
-			<input
-				type="text"
-				name="configuredUserId"
-				placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
-				bind:value={configuredUserId}
-			/>
-		</div>
 
 		<div class="form-group">
 			{#each splitsInputs as splitInput, i}

@@ -4,11 +4,11 @@
 </script>
 
 <svelte:head>
-	<title>NFTDriver Examples</title>
+	<title>AddressDriver Examples</title>
 	<meta name="description" content="NFT Driver examples app" />
 </svelte:head>
 
-<h1>NFT Driver Client Examples App</h1>
+<h1>Address Driver Examples App</h1>
 
 <div class="welcome">
 	{#if $isConnected}
@@ -17,13 +17,6 @@
 		<h2>API</h2>
 
 		<ul>
-			<li>
-				Managing Accounts:
-				<ul>
-					<li><a href="/accounts">List an Owner's Accounts</a></li>
-					<li><a href="/accounts">Create a New Account</a></li>
-				</ul>
-			</li>
 			<li>
 				Tokens:
 				<ul>
@@ -54,6 +47,7 @@
 					<li><a href="/utils">Asset Helpers</a></li>
 					<li><a href="/utils">Cycle info</a></li>
 					<li><a href="/utils">Debug Drips Receiver Configuration</a></li>
+					<li><a href="/utils">User IDs</a></li>
 				</ul>
 			</li>
 		</ul>
@@ -72,5 +66,9 @@
 
 	h1 {
 		width: 100%;
+	}
+
+	.btn-group {
+		padding: var(--global-line-height);
 	}
 </style>

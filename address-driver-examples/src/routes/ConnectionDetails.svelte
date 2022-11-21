@@ -5,15 +5,17 @@
 	let network: Network;
 	let signer: JsonRpcSigner;
 	let signerAddress: string;
+	let userId: string;
 
-	$: nftDriverClient = $dripsClients?.nftDriverClient;
+	$: addressDriverClient = $dripsClients?.addressDriverClient;
 	$: subgraphClient = $dripsClients?.subgraphClient;
-	$: if (nftDriverClient) getConnectionDetails();
+	$: if (addressDriverClient) getConnectionDetails();
 
 	async function getConnectionDetails() {
-		signer = nftDriverClient!.signer;
-		network = await nftDriverClient!.provider.getNetwork();
+		signer = addressDriverClient!.signer!;
+		network = await addressDriverClient!.provider.getNetwork();
 		signerAddress = await signer.getAddress();
+		userId = await addressDriverClient!.getUserId();
 	}
 </script>
 
@@ -24,7 +26,9 @@
 		<br />
 		<strong>Chain ID</strong>:{network ? network.chainId : '[Not Connected]'}
 		<br />
-		<strong>Accounts Owner (client signer)</strong>: {signerAddress || '[Not Connected]'}
+		<strong>Account Address (client signer)</strong>: {signerAddress || '[Not Connected]'}
+		<br />
+		<strong>Signer's User ID</strong>: {userId || '[Not Connected]'}
 		<br />
 		<div>
 			<strong>Subgraph URL</strong>:

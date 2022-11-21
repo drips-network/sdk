@@ -1,22 +1,22 @@
 <script lang="ts">
-	import { constants, Utils, type DripsSubgraphClient, type NFTDriverClient } from 'radicle-drips';
+	import { Utils, type DripsSubgraphClient, AddressDriverClient, constants } from 'radicle-drips';
 	import { isConnected } from '$lib/stores';
 	import { BigNumber, type ContractReceipt, type ContractTransaction } from 'ethers';
 
-	export let nftDriverClient: NFTDriverClient | undefined;
+	export let addressDriverClient: AddressDriverClient | undefined;
 	export let subgraphClient: DripsSubgraphClient | undefined;
 
 	let settingDrips = false;
 	let amount: string;
 	let tokenAddress: string;
-	let configuredUserId: string;
 	let errorMessage: string | undefined;
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
 	async function getCurrentReceivers() {
 		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
-		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(configuredUserId, assetId);
+		const userId = await addressDriverClient!.getUserId();
+		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(userId, assetId);
 
 		return (
 			userAssetConfig?.dripsEntries.map((d) => ({
@@ -40,14 +40,13 @@
 
 			const newReceivers = currentReceivers;
 
-			const tranferTo = await nftDriverClient!.signer.getAddress();
+			const tranferTo = await addressDriverClient!.signer!.getAddress();
 
 			// Amount Per Second must be multiplied by 10^9.
 			// See `DripsReceiverConfig` type for more details.
 			const topUpAmount = BigNumber.from(amount).mul(constants.AMT_PER_SEC_MULTIPLIER).toBigInt();
 
-			tx = await nftDriverClient?.setDrips(
-				configuredUserId,
+			tx = await addressDriverClient?.setDrips(
 				tokenAddress,
 				currentReceivers,
 				newReceivers,
@@ -77,17 +76,7 @@
 	<fieldset>
 		<legend>Parameters</legend>
 
-		<label for="configuredUserId">Configured Account Token ID:</label>
-		<div class="form-group">
-			<input
-				type="text"
-				name="configuredUserId"
-				placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
-				bind:value={configuredUserId}
-			/>
-		</div>
-
-		<label for="assetId">ERC20 Token Address:</label>
+		<label for="assetId">Token Address:</label>
 		<div class="form-group">
 			<input
 				type="text"
