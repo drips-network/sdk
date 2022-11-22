@@ -6,50 +6,52 @@
 <p>Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and splitting funding streams among multiple recipients. With Drips, no 💸 commissions, predatory 👔 middle-men, or 🏦 banks are involved.</p>
 <p>Drips is a part of the <a href="https://radicle.xyz/">Radicle</a> ecosystem of projects. See the <a href="https://v2.docs.drips.network/docs/whats-a-drip.html">docs</a> for more details about the Drips protocol and and its use.</p>
 
+<a href="#alpha-version" id="alpha-version" style="color: inherit; text-decoration: none;">
+  <h2>Alpha Version</h2>
+</a>
+<p>The SDK is an alpha software. It may contain bugs or change significantly between patch versions. Reach out in the <code>#⛲️drips-dev</code> channel of our Discord for any questions!</p>
+
 <a href="#installing" id="installing" style="color: inherit; text-decoration: none;">
   <h2>Installing</h2>
 </a>
-<p>We plan to add the project to npm soon, but you can now include it into your project&#39;s <code>package.json</code> as a dependency by using this command:</p>
-<pre><code class="language-bash"><span class="hl-0">npm install https://github.com/radicle-dev/drips-js-sdk#v2</span>
+<p>To add the SDK into your project run:</p>
+<pre><code class="language-bash"><span class="hl-0">npm install radicle-dev/drips-js-sdk</span>
 </code></pre>
 
-<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
-  <h2>Documentation</h2>
+<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+  <h2>Usage</h2>
 </a>
-<p>The SDK contains documentation generated using <a href="https://typedoc.org/">TypeDoc</a>.</p>
-<p>To browse it locally, clone the project, install the project&#39;s dependencies, and open <code>docs/index.html</code> in your web browser.</p>
-<p>Alternatively, visit the hosted version <a href="https://melodious-bombolone-ca37e0.netlify.app/">here</a>.</p>
+<p>To use the SDK import from <code>radicle-drips</code>. For example:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">NFTDriverClient</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;radicle-drips&#39;</span><span class="hl-0">;</span>
+</code></pre>
 
-<a href="#getting-started-with-examples" id="getting-started-with-examples" style="color: inherit; text-decoration: none;">
-  <h2>Getting Started With Examples</h2>
+<a href="#api-documentation" id="api-documentation" style="color: inherit; text-decoration: none;">
+  <h2>API Documentation</h2>
 </a>
-<p>The <code>examples-app</code> directory contains example code that illustrates how Drips can be incorporated into a web project. To get started exploring the Drips SDK through these examples, we recommend first cloning repository to your local machine:</p>
-<pre><code class="language-bash"><span class="hl-0">git clone -b v2 https://github.com/radicle-dev/drips-js-sdk.git</span>
-</code></pre>
-<p>Now change directory to the directory for the web example:</p>
-<pre><code class="language-bash"><span class="hl-1">cd</span><span class="hl-0"> examples-app</span>
-</code></pre>
-<p>Next, install the project dependencies for the example app using npm:</p>
-<pre><code class="language-bash"><span class="hl-0">npm install</span>
-</code></pre>
-<p>Finally, to start the web-based Drips SDK example locally run:</p>
-<pre><code class="language-bash"><span class="hl-0">npm run dev</span>
-</code></pre>
-<p>Open your web browser and go to <a href="http://localhost:8080">localhost</a>. You should see a simple UI that will let you explore most of the Drips SDK functionality.</p>
-<p>A few notes:</p>
-<ol>
-<li><p>Take a look at the code in <code>examples-app/src/Header.svelte</code> to see how this example web app is utilizing the <code>AddressDriverClient</code> and the <code>DripsSubgraphClient</code>, and play around with the code in all *.svelte files in src/components.</p>
-</li>
-<li><p>You will need to click on the <code>Connect</code> button in the UI to connect your MetaMask or WalletConnect wallet before the other functionality will be enabled.</p>
-</li>
-<li><p>There is a hosted version of the <code>examples-app</code> <a href="https://lovely-froyo-8d2419.netlify.app/">here</a>.</p>
-</li>
-</ol>
-<p>Enjoy!</p>
+<p>You can find the API documentation <a href="https://melodious-bombolone-ca37e0.netlify.app/">here</a>.</p>
+<p>You can also browse the docs locally:</p>
+<ul>
+<li>Clone the project.</li>
+<li>Run <code>npm install</code>.</li>
+<li>Open <code>docs/index.html</code> in your web browser.</li>
+</ul>
 
-<a href="#related-resources" id="related-resources" style="color: inherit; text-decoration: none;">
-  <h2>Related Resources</h2>
+<a href="#running-the-examples-apps" id="running-the-examples-apps" style="color: inherit; text-decoration: none;">
+  <h2>Running the Examples Apps</h2>
 </a>
-<p>The <a href="https://v2.docs.drips.network/docs/for-developers/technical-overview">Technical Overview</a> page from the Drips documentation gives a concise high-level overview of how Drips works, as well as provides links to all of the project&#39;s repositories.</p>
-<p>The <a href="https://v2.docs.drips.network/docs/for-developers/smart-contract-and-subgraph-details">Smart Contract and Subgraph Details</a> page from the Drips documentation provides an aggregated list of details for all of the project&#39;s smart contracts and subgraphs for all networks where Drips has been deployed.</p>
+<p>The repository contains two example apps (built with <code>SvelteKit</code>) demonstrating how you can start building on Drips with the SDK.
+They also serve as &quot;interactive&quot; documentation, covering the major client&#39;s operations.
+These examples are not production-ready applications and do not demonstrate software engineering best practices in building Svelte apps.</p>
+<p>To run the <code>NFTDriverClient</code> examples app locally:</p>
+<ul>
+<li>From the project&#39;s root dir run <code>cd nft-driver-examples/</code></li>
+<li>Run <code>npm run dev -- --open</code></li>
+</ul>
+<p>You can find a hosted version of the <code>NFTDriverClient</code> examples app <a href="https://drips-js-sdk.vercel.app/">here</a>.</p>
+<p>To run the <code>AddressDriverClient</code> examples app locally:</p>
+<ul>
+<li>From the project&#39;s root dir run <code>cd address-driver-examples/</code></li>
+<li>Run <code>npm run dev -- --open</code></li>
+</ul>
+<p>You can find a hosted version of the <code>AddressDriverClient</code> examples app <a href="https://lovely-froyo-8d2419.netlify.app/">here</a>.</p>
 </div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/AddressDriverPresets.html">Address<wbr/>Driver<wbr/>Presets</a></li><li class=" tsd-kind-namespace"><a href="modules/Utils.html">Utils</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-enum"><a href="enums/DripsErrorCode.html" class="tsd-kind-icon">Drips<wbr/>Error<wbr/>Code</a></li><li class="tsd-kind-class"><a href="classes/AddressDriverClient.html" class="tsd-kind-icon">Address<wbr/>Driver<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/CallerClient.html" class="tsd-kind-icon">Caller<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/DripsError.html" class="tsd-kind-icon">Drips<wbr/>Error</a></li><li class="tsd-kind-class"><a href="classes/DripsHubClient.html" class="tsd-kind-icon">Drips<wbr/>Hub<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/DripsSubgraphClient.html" class="tsd-kind-icon">Drips<wbr/>Subgraph<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/ImmutableSplitsDriverClient.html" class="tsd-kind-icon">Immutable<wbr/>Splits<wbr/>Driver<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/NFTDriverClient.html" class="tsd-kind-icon">NFTDriver<wbr/>Client</a></li><li class="tsd-kind-interface"><a href="interfaces/AddressDriverInterface.html" class="tsd-kind-icon">Address<wbr/>Driver<wbr/>Interface</a></li><li class="tsd-kind-interface"><a href="interfaces/CallerInterface.html" class="tsd-kind-icon">Caller<wbr/>Interface</a></li><li class="tsd-kind-interface"><a href="interfaces/DripsHubInterface.html" class="tsd-kind-icon">Drips<wbr/>Hub<wbr/>Interface</a></li><li class="tsd-kind-interface"><a href="interfaces/ImmutableSplitsDriverInterface.html" class="tsd-kind-icon">Immutable<wbr/>Splits<wbr/>Driver<wbr/>Interface</a></li><li class="tsd-kind-interface"><a href="interfaces/NFTDriverInterface.html" class="tsd-kind-icon">NFTDriver<wbr/>Interface</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CallStruct" class="tsd-kind-icon">Call<wbr/>Struct</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CollectableBalance" class="tsd-kind-icon">Collectable<wbr/>Balance</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CollectedEvent" class="tsd-kind-icon">Collected<wbr/>Event</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CycleInfo" class="tsd-kind-icon">Cycle<wbr/>Info</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsHistoryStruct" class="tsd-kind-icon">Drips<wbr/>History<wbr/>Struct</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsReceiver" class="tsd-kind-icon">Drips<wbr/>Receiver</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsReceiverConfig" class="tsd-kind-icon">Drips<wbr/>Receiver<wbr/>Config</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsReceiverSeenEvent" class="tsd-kind-icon">Drips<wbr/>Receiver<wbr/>Seen<wbr/>Event</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsReceiverStruct" class="tsd-kind-icon">Drips<wbr/>Receiver<wbr/>Struct</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsSetEvent" class="tsd-kind-icon">Drips<wbr/>Set<wbr/>Event</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DripsState" class="tsd-kind-icon">Drips<wbr/>State</a></li><li class="tsd-kind-type-alias"><a href="modules.html#GivenEvent" class="tsd-kind-icon">Given<wbr/>Event</a></li><li class="tsd-kind-type-alias"><a href="modules.html#NetworkConfig" class="tsd-kind-icon">Network<wbr/>Config</a></li><li class="tsd-kind-type-alias"><a href="modules.html#NftSubAccount" class="tsd-kind-icon">Nft<wbr/>Sub<wbr/>Account</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Preset" class="tsd-kind-icon">Preset</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ReceivableBalance" class="tsd-kind-icon">Receivable<wbr/>Balance</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ReceivedDripsEvent" class="tsd-kind-icon">Received<wbr/>Drips<wbr/>Event</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SplitEvent" class="tsd-kind-icon">Split<wbr/>Event</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SplitsEntry" class="tsd-kind-icon">Splits<wbr/>Entry</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SplitsReceiverStruct" class="tsd-kind-icon">Splits<wbr/>Receiver<wbr/>Struct</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SplittableBalance" class="tsd-kind-icon">Splittable<wbr/>Balance</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UserAssetConfig" class="tsd-kind-icon">User<wbr/>Asset<wbr/>Config</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UserMetadata" class="tsd-kind-icon">User<wbr/>Metadata</a></li><li class="tsd-kind-variable"><a href="modules.html#constants" class="tsd-kind-icon">constants</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
