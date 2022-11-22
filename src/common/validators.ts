@@ -157,7 +157,7 @@ export const validateClientProvider = async (provider: JsonRpcProvider, supporte
 	const network = await provider.getNetwork();
 	if (!supportedChains.includes(network?.chainId)) {
 		throw DripsErrors.unsupportedNetworkError(
-			`The provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains are: ${supportedChains}.`,
+			`The provider is connected to an unsupported network (name: '${network?.name}', chain ID: ${network?.chainId}). Supported chains IDs are: ${supportedChains}.`,
 			network?.chainId
 		);
 	}

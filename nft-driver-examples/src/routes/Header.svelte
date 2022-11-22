@@ -4,7 +4,9 @@
 	import { wallet, isConnected, dripsClients } from '$lib/stores';
 	import { providers } from 'ethers';
 	import { DripsSubgraphClient, NFTDriverClient } from 'radicle-drips';
-	import { onMount } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	let web3Modal: Web3Modal;
 
@@ -34,6 +36,9 @@
 
 	async function connect() {
 		try {
+			dispatch('connectionError', {
+				error: undefined
+			});
 			const walletProvider = await web3Modal.connect();
 			const provider = new providers.Web3Provider(walletProvider, 'any');
 
@@ -46,6 +51,10 @@
 			console.error(error);
 			wallet.set(undefined);
 			dripsClients.set(undefined);
+
+			dispatch('connectionError', {
+				error
+			});
 		}
 	}
 

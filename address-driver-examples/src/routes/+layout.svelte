@@ -1,13 +1,23 @@
-<script>
+<script lang="ts">
 	import Header from './Header.svelte';
 	import './styles.css';
+
+	let connectionError: any;
 </script>
 
 <div class="app">
-	<Header />
+	<Header
+		on:connectionError={(errorMessage) => {
+			connectionError = errorMessage.detail.error;
+		}}
+	/>
 
 	<main>
-		<slot />
+		{#if connectionError}
+			<div class="terminal-alert terminal-alert-error">{connectionError}</div>
+		{:else}
+			<slot />
+		{/if}
 	</main>
 
 	<footer>
