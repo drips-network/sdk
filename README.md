@@ -47,11 +47,11 @@ To run the `NFTDriverClient` examples app locally:
 - From the project's root dir run `cd nft-driver-examples/`
 - Run `npm run dev -- --open`
 
-You can find a hosted version of the `NFTDriverClient` examples app [here](https://drips-js-sdk.vercel.app/).
+You can find a hosted version of the `NFTDriverClient` examples app [here](https://drips-js-nft-driver-sdk.vercel.app/).
 
 To run the `AddressDriverClient` examples app locally:
 
 - From the project's root dir run `cd address-driver-examples/`
 - Run `npm run dev -- --open`
 
-You can find a hosted version of the `AddressDriverClient` examples app [here](https://lovely-froyo-8d2419.netlify.app/).
+You can find a hosted version of the `AddressDriverClient` examples app [here](https://drips-sdk-address-driver.vercel.app/).
