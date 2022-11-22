@@ -8,7 +8,7 @@
 	<meta name="description" content="NFT Driver examples app" />
 </svelte:head>
 
-<h1>NFT Driver Client Examples App</h1>
+<h1>NFT Driver Client Examples</h1>
 
 <div class="welcome">
 	{#if $isConnected}
