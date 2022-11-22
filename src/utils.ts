@@ -45,7 +45,7 @@ namespace Utils {
 		export const getInfo = (chainId: number): CycleInfo => {
 			if (!Network.isSupportedChain(chainId)) {
 				throw DripsErrors.unsupportedNetworkError(
-					`Could not get cycle info: chain ID '${chainId}' is not supported. Supported chains are: ${Network.SUPPORTED_CHAINS.toString()}.`,
+					`Could not get cycle info: chain ID '${chainId}' is not supported. Supported chain IDs are: ${Network.SUPPORTED_CHAINS.toString()}.`,
 					chainId
 				);
 			}
