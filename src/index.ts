@@ -28,6 +28,7 @@ import {
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
+import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
 // AddressDriver
 export { default as AddressDriverClient } from './AddressDriver/AddressDriverClient';
@@ -69,10 +70,11 @@ export {
 	NftSubAccount,
 	DripsSetEvent,
 	NetworkConfig,
-	CollectedEvent,
 	DripsReceiver,
+	CollectedEvent,
 	UserAssetConfig,
 	CallerInterface,
+	NFTDriverPresets,
 	ReceivableBalance,
 	DripsHubInterface,
 	SplittableBalance,
