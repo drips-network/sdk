@@ -15,7 +15,6 @@
 		"@neoconfetti/svelte": "^1.0.0",
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/adapter-netlify": "^1.0.0-next.81",
-		"@sveltejs/adapter-vercel": "^1.0.0-next.80",
 		"@sveltejs/kit": "next",
 		"@types/cookie": "^0.5.1",
 		"@typescript-eslint/eslint-plugin": "^5.27.0",
@@ -36,7 +35,7 @@
 	"dependencies": {
 		"@walletconnect/web3-provider": "^1.8.0",
 		"ethers": "^5.7.2",
-		"radicle-drips": "github:radicle-dev/drips-js-sdk#main",
+		"radicle-drips": "github:radicle-dev/drips-js-sdk",
 		"svelte-json-tree": "^1.0.0",
 		"web3modal": "^1.9.9"
 	}
