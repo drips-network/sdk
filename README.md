@@ -28,7 +28,7 @@ import { NFTDriverClient } from 'radicle-drips';
 
 ## API Documentation
 
-You can find the API documentation [here](https://melodious-bombolone-ca37e0.netlify.app/).
+You can find the API documentation [here](https://drips-js-sdk-api.netlify.app/).
 
 You can also browse the docs locally:
 
@@ -47,11 +47,11 @@ To run the `NFTDriverClient` examples app locally:
 - From the project's root dir run `cd nft-driver-examples/`
 - Run `npm run dev -- --open`
 
-You can find a hosted version of the `NFTDriverClient` examples app [here](https://drips-js-nft-driver-sdk.vercel.app/).
+You can find a hosted version of the `NFTDriverClient` examples app [here](https://nftdriver-examples-app.netlify.app/).
 
 To run the `AddressDriverClient` examples app locally:
 
 - From the project's root dir run `cd address-driver-examples/`
 - Run `npm run dev -- --open`
 
-You can find a hosted version of the `AddressDriverClient` examples app [here](https://drips-sdk-address-driver.vercel.app/).
+You can find a hosted version of the `AddressDriverClient` examples app [here](https://address-driver-examples.netlify.app/).
