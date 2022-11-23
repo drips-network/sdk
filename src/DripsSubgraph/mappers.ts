@@ -29,6 +29,7 @@ export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAsset
 export const mapSplitEntryToDto = (splitEntry: SubgraphTypes.SplitsEntry): SplitsEntry => ({
 	id: splitEntry.id,
 	userId: splitEntry.userId,
+	senderId: splitEntry.sender.id,
 	weight: BigInt(splitEntry.weight)
 });
 

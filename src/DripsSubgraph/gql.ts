@@ -156,6 +156,19 @@ query getSplitEventsByUserId($userId: String!) {
 }
 `;
 
+export const getSplitEntriesByReceiverUserId = `#graphql
+query getSplitEntriesByReceiverUserId($receiverUserId: String!) {
+  splitsEntries(where: {userId: $receiverUserId}) {
+    id
+    sender {
+      id
+    }
+    userId
+    weight
+  }
+}
+`;
+
 export const getReceivedDripsEventsByUserId = `#graphql
 query getReceivedDripsEventsByUserId($userId: String!) {
   receivedDripsEvents(where: {userId: $userId}) {

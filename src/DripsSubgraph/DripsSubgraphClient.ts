@@ -171,6 +171,30 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
+	 * Returns the receiver's `Split` entries.
+	 * @param  {string} receiverUserId The receiver's user ID.
+	 * @returns A `Promise` which resolves to the receivers's `Split` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getSplitEntriesByReceiverUserId(receiverUserId: string): Promise<SplitsEntry[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentMissingError(
+				`Could not get 'split' events: ${nameOf({ receiverUserId })} is missing.`,
+				nameOf({ receiverUserId })
+			);
+		}
+
+		type QueryResponse = {
+			splitsEntries: SubgraphTypes.SplitsEntry[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getSplitEntriesByReceiverUserId, { receiverUserId });
+
+		return response?.data?.splitsEntries?.map(mapSplitEntryToDto) || [];
+	}
+
+	/**
 	 * Returns the user's `DripsSet` events.
 	 * @param  {string} userId The user ID.
 	 * @returns A `Promise` which resolves to the user's `DripsSet` events.
@@ -197,7 +221,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns all `DripsReceiverSeen` events for a given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
-	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeenEvent`s.
+	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeen` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
