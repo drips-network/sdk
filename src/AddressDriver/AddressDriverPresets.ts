@@ -138,19 +138,25 @@ export namespace AddressDriverPresets {
 
 		/**
 		 * Creates a new batch with the following sequence of calls:
-		 * 1. `receiveDrips`
-		 * 2. `split`
+		 * 1. `receiveDrips` (optional)
+		 * 2. `split` (optional)
 		 * 3. `collect`
 		 *
 		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
 		 * @param  {CollectFlowPayload} payload the flow's payload.
+		 * @param  {boolean} skipReceive skips the `receiveDrips` step.
+		 * @param  {boolean} skipSplit  skips the `split` step.
 		 * @returns The preset.
 		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or the `payload.transferToAddress` address is not valid.
 		 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 		 * @throws {@link DripsErrors.argumentError} if `payload.maxCycles` or `payload.currentReceivers` is not valid.
 		 * @throws {@link DripsErrors.splitsReceiverError} if any of the `payload.currentReceivers` is not valid.
 		 */
-		public static createCollectFlow(payload: CollectFlowPayload): Preset {
+		public static createCollectFlow(
+			payload: CollectFlowPayload,
+			skipReceive: boolean = false,
+			skipSplit: boolean = false
+		): Preset {
 			if (isNullOrUndefined(payload)) {
 				throw DripsErrors.argumentMissingError(
 					`Could not create collect flow: '${nameOf({ payload })}' is missing.`,
@@ -161,29 +167,48 @@ export namespace AddressDriverPresets {
 			const { driverAddress, dripsHubAddress, userId, tokenAddress, maxCycles, currentReceivers, transferToAddress } =
 				payload;
 
+			const flow: CallStruct[] = [];
+
+			if (!skipReceive) {
+				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+				const receive: CallStruct = {
+					value: 0,
+					to: dripsHubAddress,
+					data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [
+						userId,
+						tokenAddress,
+						maxCycles
+					])
+				};
+
+				flow.push(receive);
+			}
+
+			if (!skipSplit) {
+				validateSplitInput(userId, tokenAddress, currentReceivers);
+				const split: CallStruct = {
+					value: 0,
+					to: dripsHubAddress,
+					data: DripsHub__factory.createInterface().encodeFunctionData('split', [
+						userId,
+						tokenAddress,
+						currentReceivers
+					])
+				};
+
+				flow.push(split);
+			}
+
 			validateCollectInput(tokenAddress, transferToAddress);
-			validateSplitInput(userId, tokenAddress, currentReceivers);
-			validateReceiveDripsInput(userId, tokenAddress, maxCycles);
-
-			const receive: CallStruct = {
-				value: 0,
-				to: dripsHubAddress,
-				data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [userId, tokenAddress, maxCycles])
-			};
-
-			const split: CallStruct = {
-				value: 0,
-				to: dripsHubAddress,
-				data: DripsHub__factory.createInterface().encodeFunctionData('split', [userId, tokenAddress, currentReceivers])
-			};
-
 			const collect: CallStruct = {
 				value: 0,
 				to: driverAddress,
 				data: AddressDriver__factory.createInterface().encodeFunctionData('collect', [tokenAddress, transferToAddress])
 			};
 
-			return [receive, split, collect];
+			flow.push(collect);
+
+			return flow;
 		}
 	}
 }

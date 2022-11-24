@@ -375,5 +375,129 @@ describe('AddressDriverPresets', () => {
 			assert.equal(preset[1].data, 'split');
 			assert.equal(preset[2].data, 'collect');
 		});
+
+		it('should return the expected preset when skip receiveDrips is true', () => {
+			// Arrange
+			sinon.stub(validators, 'validateSplitInput');
+			sinon.stub(validators, 'validateCollectInput');
+			sinon.stub(validators, 'validateReceiveDripsInput');
+
+			const payload: AddressDriverPresets.CollectFlowPayload = {
+				userId: '1',
+				maxCycles: 1,
+				tokenAddress: Wallet.createRandom().address,
+				driverAddress: Wallet.createRandom().address,
+				dripsHubAddress: Wallet.createRandom().address,
+				transferToAddress: Wallet.createRandom().address,
+				currentReceivers: [
+					{
+						userId: 1n,
+						weight: 1n
+					}
+				]
+			};
+
+			dripsHubInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'split'),
+					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.currentReceivers])
+				)
+				.returns('split');
+
+			addressDriverInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'collect'),
+					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
+				)
+				.returns('collect');
+
+			// Act
+			const preset = AddressDriverPresets.Presets.createCollectFlow(payload, true, false);
+
+			// Assert
+			assert.equal(preset.length, 2);
+			assert.equal(preset[0].data, 'split');
+			assert.equal(preset[1].data, 'collect');
+		});
+
+		it('should return the expected preset when skip split is true', () => {
+			// Arrange
+			sinon.stub(validators, 'validateSplitInput');
+			sinon.stub(validators, 'validateCollectInput');
+			sinon.stub(validators, 'validateReceiveDripsInput');
+
+			const payload: AddressDriverPresets.CollectFlowPayload = {
+				userId: '1',
+				maxCycles: 1,
+				tokenAddress: Wallet.createRandom().address,
+				driverAddress: Wallet.createRandom().address,
+				dripsHubAddress: Wallet.createRandom().address,
+				transferToAddress: Wallet.createRandom().address,
+				currentReceivers: [
+					{
+						userId: 1n,
+						weight: 1n
+					}
+				]
+			};
+
+			dripsHubInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'receiveDrips'),
+					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
+				)
+				.returns('receiveDrips');
+
+			addressDriverInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'collect'),
+					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
+				)
+				.returns('collect');
+
+			// Act
+			const preset = AddressDriverPresets.Presets.createCollectFlow(payload, false, true);
+
+			// Assert
+			assert.equal(preset.length, 2);
+			assert.equal(preset[0].data, 'receiveDrips');
+			assert.equal(preset[1].data, 'collect');
+		});
+
+		it('should return the expected preset when skip receiveDrips and split are true', () => {
+			// Arrange
+			sinon.stub(validators, 'validateSplitInput');
+			sinon.stub(validators, 'validateCollectInput');
+			sinon.stub(validators, 'validateReceiveDripsInput');
+
+			const payload: AddressDriverPresets.CollectFlowPayload = {
+				userId: '1',
+				maxCycles: 1,
+				tokenAddress: Wallet.createRandom().address,
+				driverAddress: Wallet.createRandom().address,
+				dripsHubAddress: Wallet.createRandom().address,
+				transferToAddress: Wallet.createRandom().address,
+				currentReceivers: [
+					{
+						userId: 1n,
+						weight: 1n
+					}
+				]
+			};
+
+			addressDriverInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'collect'),
+					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
+				)
+				.returns('collect');
+
+			// Act
+			const preset = AddressDriverPresets.Presets.createCollectFlow(payload, true, true);
+
+			// Assert
+			assert.equal(preset.length, 1);
+			assert.equal(preset[0].data, 'collect');
+		});
 	});
 });
