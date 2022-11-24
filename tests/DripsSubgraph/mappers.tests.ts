@@ -183,7 +183,10 @@ describe('mappers', () => {
 			const apiSplitEntry: SubgraphTypes.SplitsEntry = {
 				id: '100',
 				userId: '1',
-				weight: '2'
+				weight: '2',
+				sender: {
+					id: '3'
+				}
 			} as SubgraphTypes.SplitsEntry;
 
 			// Act
@@ -193,6 +196,7 @@ describe('mappers', () => {
 			assert.equal(result.id.toString(), apiSplitEntry.id);
 			assert.equal(result.userId.toString(), apiSplitEntry.userId);
 			assert.equal(result.weight.toString(), apiSplitEntry.weight);
+			assert.equal(result.senderId.toString(), apiSplitEntry.sender.id);
 		});
 	});
 

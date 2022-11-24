@@ -15,6 +15,7 @@ export type SplitsEntry = {
 	id: string;
 	userId: string;
 	weight: bigint;
+	senderId: string;
 };
 
 export type DripsSetEvent = {

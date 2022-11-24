@@ -294,7 +294,7 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getSplitsConfig()', () => {
-		it('should throw argumentMissingError error when asset ID is missing', async () => {
+		it('should throw argumentMissingError error when user ID is missing', async () => {
 			let threw = false;
 
 			try {
@@ -369,6 +369,85 @@ describe('DripsSubgraphClient', () => {
 			assert.isEmpty(splits);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getSplitsConfigByUserId, { userId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getSplitEntriesByReceiverUserId()', () => {
+		it('should throw argumentMissingError error when user ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getSplitEntriesByReceiverUserId(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const receiverUserId = '1';
+			const splitsEntries: SubgraphTypes.SplitsEntry[] = [
+				{
+					id: '1',
+					weight: '2',
+					userId: '3'
+				} as SubgraphTypes.SplitsEntry
+			];
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSplitEntriesByReceiverUserId, { receiverUserId })
+				.resolves({
+					data: {
+						splitsEntries
+					}
+				});
+
+			const expectedSplitEntry: SplitsEntry = {} as SplitsEntry;
+
+			const mapperStub = sinon
+				.stub(mappers, 'mapSplitEntryToDto')
+				.withArgs(splitsEntries[0])
+				.returns(expectedSplitEntry);
+
+			// Act
+			const splits = await testSubgraphClient.getSplitEntriesByReceiverUserId(receiverUserId);
+
+			// Assert
+			assert.equal(splits[0], expectedSplitEntry);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getSplitEntriesByReceiverUserId, { receiverUserId }),
+				'Expected method to be called with different arguments'
+			);
+			assert(mapperStub.calledOnceWith(splitsEntries[0]), 'Expected method to be called with different arguments');
+		});
+
+		it('should return an empty array when splits does not exist', async () => {
+			// Arrange
+			const receiverUserId = '1';
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSplitEntriesByReceiverUserId, { receiverUserId })
+				.resolves({
+					data: {
+						splitsEntries: []
+					}
+				});
+
+			// Act
+			const splits = await testSubgraphClient.getSplitEntriesByReceiverUserId(receiverUserId);
+
+			// Assert
+			assert.isEmpty(splits);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getSplitEntriesByReceiverUserId, { receiverUserId }),
 				'Expected method to be called with different arguments'
 			);
 		});
