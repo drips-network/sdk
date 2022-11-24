@@ -1258,7 +1258,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(response.data, apiResponse);
 		});
 
-		it('should return expected error response', async () => {
+		it('should throw a subgraphQueryError when the graphql response contains errors', async () => {
 			// Arrange
 			const apiResponse = [
 				{
