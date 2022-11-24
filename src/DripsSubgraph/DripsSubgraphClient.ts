@@ -294,7 +294,7 @@ export default class DripsSubgraphClient {
 			userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
 		};
 
-		let response: { data: QueryResponse | undefined };
+		let response: { data: QueryResponse };
 
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
