@@ -294,7 +294,7 @@ export default class DripsSubgraphClient {
 			userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
 		};
 
-		let response: { data: QueryResponse };
+		let response: { data: QueryResponse | undefined };
 
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
@@ -462,7 +462,7 @@ export default class DripsSubgraphClient {
 	}
 
 	/** @internal */
-	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
+	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T | undefined; error: unknown }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
 			headers: {
@@ -472,7 +472,10 @@ export default class DripsSubgraphClient {
 		});
 
 		if (resp.status >= 200 && resp.status <= 299) {
-			return (await resp.json()) as { data: T };
+			const responseContent = (await resp.json()) as { data: T; errors?: any[] };
+			return responseContent.errors?.length && responseContent.errors.length > 0
+				? { data: undefined, error: responseContent.errors[0] }
+				: { ...(responseContent as { data: T }), error: undefined };
 		}
 
 		throw DripsErrors.subgraphQueryError(`Subgraph query failed: ${resp.statusText}`);
