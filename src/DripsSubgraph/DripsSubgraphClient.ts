@@ -462,7 +462,7 @@ export default class DripsSubgraphClient {
 	}
 
 	/** @internal */
-	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T | undefined; error: unknown }> {
+	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
 			headers: {
@@ -472,10 +472,13 @@ export default class DripsSubgraphClient {
 		});
 
 		if (resp.status >= 200 && resp.status <= 299) {
-			const responseContent = (await resp.json()) as { data: T; errors?: any[] };
-			return responseContent.errors?.length && responseContent.errors.length > 0
-				? { data: undefined, error: responseContent.errors[0] }
-				: { ...(responseContent as { data: T }), error: undefined };
+			const responseContent = (await resp.json()) as { data?: T; errors?: any[] };
+
+			if (responseContent?.errors?.length && responseContent.errors.length > 0) {
+				throw DripsErrors.subgraphQueryError(`Subgraph query failed`, responseContent.errors[0]);
+			}
+
+			return responseContent as { data: T };
 		}
 
 		throw DripsErrors.subgraphQueryError(`Subgraph query failed: ${resp.statusText}`);

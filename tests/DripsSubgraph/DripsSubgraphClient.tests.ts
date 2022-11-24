@@ -144,8 +144,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userAssetConfig: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -182,8 +181,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userAssetConfig: apiConfig
-					},
-					error: undefined
+					}
 				});
 
 			const expectedConfig: UserAssetConfig = {} as UserAssetConfig;
@@ -252,8 +250,7 @@ describe('DripsSubgraphClient', () => {
 						user: {
 							assetConfigs: apiConfigs
 						}
-					},
-					error: undefined
+					}
 				});
 
 			const expectedConfig: UserAssetConfig = {} as UserAssetConfig;
@@ -285,8 +282,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						user: {}
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -332,8 +328,7 @@ describe('DripsSubgraphClient', () => {
 						user: {
 							splitsEntries
 						}
-					},
-					error: undefined
+					}
 				});
 
 			const expectedSplitEntry: SplitsEntry = {} as SplitsEntry;
@@ -364,8 +359,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						user: {}
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -413,8 +407,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						splitsEntries
-					},
-					error: undefined
+					}
 				});
 
 			const expectedSplitEntry: SplitsEntry = {} as SplitsEntry;
@@ -445,8 +438,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						splitsEntries: []
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -492,8 +484,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						dripsSetEvents
-					},
-					error: undefined
+					}
 				});
 
 			const expectedDripsSetEvent = {} as DripsSetEvent;
@@ -524,8 +515,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						dripsSetEvents: undefined
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -572,8 +562,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						dripsReceiverSeenEvents
-					},
-					error: undefined
+					}
 				});
 
 			const expectedDripsReceiverSeenEvent = {} as DripsReceiverSeenEvent;
@@ -607,8 +596,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						dripsReceiverSeenEvents: []
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -699,8 +687,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userMetadataEvent: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -730,8 +717,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userMetadataEvents
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -771,8 +757,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userMetadataEvents
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -840,8 +825,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userMetadataEvents: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -869,8 +853,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						userMetadataByKey
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -915,8 +898,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						nftsubAccounts: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -942,8 +924,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						nftsubAccounts
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -986,8 +967,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						givenEvents: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1018,8 +998,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						collectedEvents: events
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1061,8 +1040,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						givenEvents: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1091,8 +1069,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						splitEvents: events
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1134,8 +1111,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						givenEvents: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1165,8 +1141,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						receivedDripsEvents: events
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1208,8 +1183,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						givenEvents: null
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1239,8 +1213,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves({
 					data: {
 						givenEvents: events
-					},
-					error: undefined
+					}
 				});
 
 			// Act
@@ -1302,16 +1275,20 @@ describe('DripsSubgraphClient', () => {
 					} as Response)
 			);
 
+			let threw = false;
+
 			// Act
-			const response = await testSubgraphClient.query<
-				{
-					amtPerSec: string;
-					receiver: string;
-				}[]
-			>(gql.getSplitsConfigByUserId, {});
+			try {
+				// Act
+				await testSubgraphClient.query(gql.getSplitsConfigByUserId, {});
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.SUBGRAPH_QUERY_ERROR);
+				threw = true;
+			}
 
 			// Assert
-			assert.equal(response.error, 'something went wrong');
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
 		it('should throw subgraphQueryError when API response status code is not >= 200 and <= 299', async () => {
