@@ -14,7 +14,7 @@ import {
 	AddressDriverInterface,
 	ImmutableSplitsDriverInterface
 } from './common/types';
-import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance } from './DripsHub/types';
+import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance, SplitResult } from './DripsHub/types';
 import {
 	GivenEvent,
 	SplitEvent,
@@ -65,6 +65,7 @@ export {
 	CallStruct,
 	DripsState,
 	GivenEvent,
+	SplitResult,
 	SplitsEntry,
 	UserMetadata,
 	NftSubAccount,
