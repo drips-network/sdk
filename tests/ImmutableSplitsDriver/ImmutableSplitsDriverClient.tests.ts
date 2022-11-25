@@ -10,11 +10,11 @@ import type {
 	SplitsReceiverStruct,
 	UserMetadataStruct
 } from '../../contracts/ImmutableSplitsDriver';
-import { DripsErrorCode } from '../../dist';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriver';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
+import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('ImmutableSplitsDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.

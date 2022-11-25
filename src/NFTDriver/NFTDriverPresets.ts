@@ -23,7 +23,7 @@ export namespace NFTDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		key: BigNumberish;
+		key: string;
 		value: string;
 	};
 
@@ -132,6 +132,8 @@ export namespace NFTDriverPresets {
 					formatDripsReceivers(currentReceivers),
 					balanceDelta,
 					formatDripsReceivers(newReceivers),
+					0,
+					0,
 					transferToAddress
 				])
 			};
@@ -141,7 +143,7 @@ export namespace NFTDriverPresets {
 				to: driverAddress,
 				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
 					tokenId,
-					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
 					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
 				])
 			};

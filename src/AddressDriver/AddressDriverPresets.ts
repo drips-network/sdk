@@ -22,7 +22,7 @@ export namespace AddressDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		key: BigNumberish;
+		key: string;
 		value: string;
 	};
 
@@ -120,6 +120,8 @@ export namespace AddressDriverPresets {
 					formatDripsReceivers(currentReceivers),
 					balanceDelta,
 					formatDripsReceivers(newReceivers),
+					0,
+					0,
 					transferToAddress
 				])
 			};
@@ -128,7 +130,7 @@ export namespace AddressDriverPresets {
 				value: 0,
 				to: driverAddress,
 				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
-					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
 					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
 				])
 			};

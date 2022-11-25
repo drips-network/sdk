@@ -52,7 +52,7 @@ describe('AddressDriverPresets', () => {
 			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
-				key: 1,
+				key: '1',
 				value: 'value',
 				balanceDelta: 1,
 				currentReceivers: [
@@ -113,7 +113,7 @@ describe('AddressDriverPresets', () => {
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
-				key: 1,
+				key: '1',
 				value: 'value',
 				balanceDelta: 1,
 				currentReceivers: [
@@ -159,7 +159,7 @@ describe('AddressDriverPresets', () => {
 			sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
-				key: 1,
+				key: '1',
 				value: 'value',
 				balanceDelta: 1,
 				currentReceivers: [
@@ -197,6 +197,8 @@ describe('AddressDriverPresets', () => {
 						formatDripsReceivers(payload.currentReceivers),
 						payload.balanceDelta,
 						formatDripsReceivers(payload.newReceivers),
+						0,
+						0,
 						payload.transferToAddress
 					])
 				)
@@ -205,7 +207,10 @@ describe('AddressDriverPresets', () => {
 			addressDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'emitUserMetadata'),
-					[sinon.match((s: string) => s === payload.key), ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.value))]
+					[
+						ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.key)),
+						ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.value))
+					]
 				)
 				.returns('emitUserMetadata');
 

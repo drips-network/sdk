@@ -314,6 +314,8 @@ export default class NFTDriverClient {
 			formatDripsReceivers(currentReceivers),
 			balanceDelta,
 			formatDripsReceivers(newReceivers),
+			0,
+			0,
 			transferToAddress
 		);
 	}
@@ -351,12 +353,12 @@ export default class NFTDriverClient {
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the emitting account.
-	 * @param  {BigNumberish} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @param  {string} value The metadata value.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
-	public emitUserMetadata(tokenId: string, key: BigNumberish, value: string): Promise<ContractTransaction> {
+	public emitUserMetadata(tokenId: string, key: string, value: string): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not set emit user metadata: '${nameOf({ tokenId })}' is missing.`,
@@ -378,6 +380,10 @@ export default class NFTDriverClient {
 			);
 		}
 
-		return this.#driver.emitUserMetadata(tokenId, key, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value)));
+		return this.#driver.emitUserMetadata(
+			tokenId,
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+		);
 	}
 }

@@ -18,7 +18,14 @@ import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
-import type { AssetId, CollectableBalance, DripsState, ReceivableBalance, SplittableBalance } from './types';
+import type {
+	AssetId,
+	CollectableBalance,
+	DripsState,
+	ReceivableBalance,
+	SplitResult,
+	SplittableBalance
+} from './types';
 
 /**
  * A client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub}.
@@ -208,8 +215,7 @@ export default class DripsHubClient {
 
 		return {
 			tokenAddress,
-			receivableAmount: receivableBalance.receivableAmt.toBigInt(),
-			remainingReceivableCycles: receivableBalance.receivableCycles
+			receivableAmount: receivableBalance.toBigInt()
 		};
 	}
 
@@ -404,7 +410,7 @@ export default class DripsHubClient {
 	 * @param  {string} userId The user ID.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The current splits receivers.
 	 * @param  {BigNumberish[]} amount The amount being split. It must be greater than `0`.
-	 * @returns A `Promise` which resolves to the the amount left for collection after splitting.
+	 * @returns A `Promise` which resolves to the split result.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {@link DripsErrors.argumentError} if `amount` or `currentReceivers`' is not valid.
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `currentReceivers` is not valid.
@@ -413,7 +419,7 @@ export default class DripsHubClient {
 		userId: string,
 		currentReceivers: SplitsReceiverStruct[],
 		amount: BigNumberish
-	): Promise<bigint> {
+	): Promise<SplitResult> {
 		validateSplitsReceivers(currentReceivers);
 
 		if (isNullOrUndefined(userId)) {
@@ -431,9 +437,12 @@ export default class DripsHubClient {
 			);
 		}
 
-		const amountLeft = await this.#driver.splitResult(userId, currentReceivers, amount);
+		const { collectableAmt, splitAmt } = await this.#driver.splitResult(userId, currentReceivers, amount);
 
-		return amountLeft.toBigInt();
+		return {
+			collectableAmount: collectableAmt.toBigInt(),
+			splitAmount: splitAmt.toBigInt()
+		};
 	}
 
 	/**

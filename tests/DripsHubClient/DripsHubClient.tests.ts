@@ -269,12 +269,10 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
+			const expectedBalance = BigNumber.from(1);
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
-			dripsHubContractStub.receiveDripsResult.withArgs(userId, tokenAddress, maxCycles).resolves({
-				receivableAmt: BigNumber.from(1),
-				receivableCycles: 1
-			} as any);
+			dripsHubContractStub.receiveDripsResult.withArgs(userId, tokenAddress, maxCycles).resolves(expectedBalance);
 
 			// Act
 			await testDripsHubClient.getReceivableBalanceForUser(userId, tokenAddress, maxCycles);
@@ -324,10 +322,7 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
-			const expectedBalance = {
-				receivableAmt: BigNumber.from(1),
-				receivableCycles: 1
-			} as [BigNumber, number] & { receivableAmt: BigNumber; receivableCycles: number };
+			const expectedBalance = BigNumber.from(1);
 
 			dripsHubContractStub.receiveDripsResult.withArgs(userId, tokenAddress, maxCycles).resolves(expectedBalance);
 
@@ -335,8 +330,7 @@ describe('DripsHubClient', () => {
 			const actualBalance = await testDripsHubClient.getReceivableBalanceForUser(userId, tokenAddress, maxCycles);
 
 			// Assert
-			assert.equal(actualBalance.receivableAmount, expectedBalance.receivableAmt.toBigInt());
-			assert.equal(actualBalance.remainingReceivableCycles, expectedBalance.receivableCycles);
+			assert.equal(actualBalance.receivableAmount, expectedBalance.toBigInt());
 			assert(dripsHubContractStub.receiveDripsResult.calledOnceWithExactly(userId, tokenAddress, maxCycles));
 		});
 	});
@@ -409,13 +403,11 @@ describe('DripsHubClient', () => {
 			const receivableDrips: ReceivableBalance[] = [
 				{
 					tokenAddress: tokenAddress1,
-					receivableAmount: BigInt(1),
-					remainingReceivableCycles: 1
+					receivableAmount: BigInt(1)
 				},
 				{
 					tokenAddress: tokenAddress2,
-					receivableAmount: BigInt(2),
-					remainingReceivableCycles: 2
+					receivableAmount: BigInt(2)
 				}
 			];
 
@@ -434,10 +426,8 @@ describe('DripsHubClient', () => {
 			// Assert
 			assert.equal(balances[0].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[0].assetId));
 			assert.equal(balances[0].receivableAmount, receivableDrips[0].receivableAmount);
-			assert.equal(balances[0].remainingReceivableCycles, receivableDrips[0].remainingReceivableCycles);
 			assert.equal(balances[1].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[1].assetId));
 			assert.equal(balances[1].receivableAmount, receivableDrips[1].receivableAmount);
-			assert.equal(balances[1].remainingReceivableCycles, receivableDrips[1].remainingReceivableCycles);
 		});
 	});
 
@@ -773,7 +763,10 @@ describe('DripsHubClient', () => {
 
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
-			dripsHubContractStub.splitResult.withArgs('1', receivers, 1).resolves(BigNumber.from(0));
+			dripsHubContractStub.splitResult.withArgs('1', receivers, 1).resolves({
+				collectableAmt: BigNumber.from(1),
+				splitAmt: BigNumber.from(1)
+			} as any);
 
 			// Act
 			await testDripsHubClient.getSplitResult('1', receivers, 1);
@@ -837,16 +830,23 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const amount = 1;
 			const userId = '1';
-			const expectedAmountLeft = BigNumber.from(10);
+			const expectedResult = {
+				collectableAmt: BigNumber.from(1),
+				splitAmt: BigNumber.from(1)
+			} as [ethers.BigNumber, ethers.BigNumber] & {
+				collectableAmt: ethers.BigNumber;
+				splitAmt: ethers.BigNumber;
+			};
 			const currentReceivers: SplitsReceiverStruct[] = [];
 
-			dripsHubContractStub.splitResult.withArgs(userId, currentReceivers, amount).resolves(expectedAmountLeft);
+			dripsHubContractStub.splitResult.withArgs(userId, currentReceivers, amount).resolves(expectedResult);
 
 			// Act
-			const actualAmountLeft = await testDripsHubClient.getSplitResult(userId, currentReceivers, amount);
+			const actualResult = await testDripsHubClient.getSplitResult(userId, currentReceivers, amount);
 
 			// Assert
-			assert.equal(actualAmountLeft, expectedAmountLeft.toBigInt());
+			assert.equal(actualResult.splitAmount, expectedResult.splitAmt.toBigInt());
+			assert.equal(actualResult.collectableAmount, expectedResult.collectableAmt.toBigInt());
 			assert(dripsHubContractStub.splitResult.calledOnceWithExactly(userId, currentReceivers, amount));
 		});
 	});

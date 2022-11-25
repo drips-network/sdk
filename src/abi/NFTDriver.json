@@ -125,7 +125,7 @@
 	{
 		"inputs": [
 			{ "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-			{ "internalType": "uint256", "name": "key", "type": "uint256" },
+			{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 			{ "internalType": "bytes", "name": "value", "type": "bytes" }
 		],
 		"name": "emitUserMetadata",
@@ -267,13 +267,12 @@
 				"name": "newReceivers",
 				"type": "tuple[]"
 			},
+			{ "internalType": "uint32", "name": "maxEndTip1", "type": "uint32" },
+			{ "internalType": "uint32", "name": "maxEndTip2", "type": "uint32" },
 			{ "internalType": "address", "name": "transferTo", "type": "address" }
 		],
 		"name": "setDrips",
-		"outputs": [
-			{ "internalType": "uint128", "name": "newBalance", "type": "uint128" },
-			{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }
-		],
+		"outputs": [{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},

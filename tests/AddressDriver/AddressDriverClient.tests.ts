@@ -672,6 +672,8 @@ describe('AddressDriverClient', () => {
 					currentReceivers,
 					1n,
 					[],
+					0,
+					0,
 					transferToAddress
 				),
 				'Expected method to be called with different arguments'
@@ -716,6 +718,8 @@ describe('AddressDriverClient', () => {
 						.match((r: DripsReceiverStruct[]) => r[0].userId === 1n)
 						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2n))
 						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2)),
+					0,
+					0,
 					transferToAddress
 				),
 				'Expected method to be called with different arguments'
@@ -732,7 +736,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], transferToAddress),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], 0, 0, transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -803,7 +807,7 @@ describe('AddressDriverClient', () => {
 			// Assert
 			assert(
 				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(
-					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
 					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
 				),
 				'Expected method to be called with different arguments'

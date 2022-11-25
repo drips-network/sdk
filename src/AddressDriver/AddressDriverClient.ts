@@ -317,6 +317,8 @@ export default class AddressDriverClient {
 			formatDripsReceivers(currentReceivers),
 			balanceDelta,
 			formatDripsReceivers(newReceivers),
+			0,
+			0,
 			transferToAddress
 		);
 	}
@@ -324,17 +326,20 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {BigNumberish} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @param  {string} value The metadata value.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public emitUserMetadata(key: BigNumberish, value: string): Promise<ContractTransaction> {
+	public emitUserMetadata(key: string, value: string): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(key, value);
 
-		return this.#driver.emitUserMetadata(key, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value)));
+		return this.#driver.emitUserMetadata(
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+		);
 	}
 
 	/**

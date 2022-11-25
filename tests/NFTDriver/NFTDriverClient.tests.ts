@@ -2,7 +2,7 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import type { BigNumberish, ContractReceipt, ContractTransaction, Event } from 'ethers';
+import type { ContractReceipt, ContractTransaction, Event } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
 import type { IERC20, NFTDriver } from '../../contracts';
@@ -578,6 +578,8 @@ describe('NFTDriverClient', () => {
 					currentReceivers,
 					1n,
 					[],
+					0,
+					0,
 					transferToAddress
 				),
 				'Expected method to be called with different arguments'
@@ -602,7 +604,7 @@ describe('NFTDriverClient', () => {
 
 			// Assert
 			assert(
-				nftDriverContractStub.setDrips.calledOnceWithExactly(tokenId, tokenAddress, [], 0, [], transferToAddress),
+				nftDriverContractStub.setDrips.calledOnceWithExactly(tokenId, tokenAddress, [], 0, [], 0, 0, transferToAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -651,6 +653,8 @@ describe('NFTDriverClient', () => {
 					currentReceivers,
 					1,
 					newReceivers,
+					0,
+					0,
 					transferToAddress
 				),
 				'Expected method to be called with different arguments'
@@ -776,7 +780,7 @@ describe('NFTDriverClient', () => {
 
 			// Act
 			try {
-				await testNftDriverClient.emitUserMetadata('1', undefined as unknown as BigNumberish, 'value');
+				await testNftDriverClient.emitUserMetadata('1', undefined as unknown as string, 'value');
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -817,7 +821,7 @@ describe('NFTDriverClient', () => {
 			assert(
 				nftDriverContractStub.emitUserMetadata.calledOnceWithExactly(
 					tokenId,
-					key,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
 					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
 				),
 				'Expected method to be called with different arguments'

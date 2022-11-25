@@ -68,7 +68,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				key: 1,
+				key: '1',
 				value: 'value',
 				balanceDelta: 1,
 				currentReceivers: [
@@ -130,7 +130,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				key: 1,
+				key: '1',
 				value: 'value',
 				balanceDelta: 1,
 				currentReceivers: [
@@ -177,7 +177,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				key: 1,
+				key: '1',
 				value: 'value',
 				balanceDelta: 1,
 				currentReceivers: [
@@ -216,6 +216,8 @@ describe('NFTDriverPresets', () => {
 						formatDripsReceivers(payload.currentReceivers),
 						payload.balanceDelta,
 						formatDripsReceivers(payload.newReceivers),
+						0,
+						0,
 						payload.transferToAddress
 					])
 				)
@@ -227,7 +229,7 @@ describe('NFTDriverPresets', () => {
 					sinon.match(
 						(array: any[]) =>
 							array[0] === payload.tokenId &&
-							array[1] === payload.key &&
+							array[1] === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.key)) &&
 							array[2] === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.value))
 					)
 				)

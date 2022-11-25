@@ -169,7 +169,7 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "uint256", "name": "userId", "type": "uint256" },
-			{ "indexed": true, "internalType": "uint256", "name": "key", "type": "uint256" },
+			{ "indexed": true, "internalType": "bytes32", "name": "key", "type": "bytes32" },
 			{ "indexed": false, "internalType": "bytes", "name": "value", "type": "bytes" }
 		],
 		"name": "UserMetadata",
@@ -311,7 +311,7 @@
 	{
 		"inputs": [
 			{ "internalType": "uint256", "name": "userId", "type": "uint256" },
-			{ "internalType": "uint256", "name": "key", "type": "uint256" },
+			{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 			{ "internalType": "bytes", "name": "value", "type": "bytes" }
 		],
 		"name": "emitUserMetadata",
@@ -416,10 +416,7 @@
 			{ "internalType": "uint32", "name": "maxCycles", "type": "uint32" }
 		],
 		"name": "receiveDrips",
-		"outputs": [
-			{ "internalType": "uint128", "name": "receivedAmt", "type": "uint128" },
-			{ "internalType": "uint32", "name": "receivableCycles", "type": "uint32" }
-		],
+		"outputs": [{ "internalType": "uint128", "name": "receivedAmt", "type": "uint128" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -430,10 +427,7 @@
 			{ "internalType": "uint32", "name": "maxCycles", "type": "uint32" }
 		],
 		"name": "receiveDripsResult",
-		"outputs": [
-			{ "internalType": "uint128", "name": "receivableAmt", "type": "uint128" },
-			{ "internalType": "uint32", "name": "receivableCycles", "type": "uint32" }
-		],
+		"outputs": [{ "internalType": "uint128", "name": "receivableAmt", "type": "uint128" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -473,13 +467,12 @@
 				"internalType": "struct DripsReceiver[]",
 				"name": "newReceivers",
 				"type": "tuple[]"
-			}
+			},
+			{ "internalType": "uint32", "name": "maxEndTip1", "type": "uint32" },
+			{ "internalType": "uint32", "name": "maxEndTip2", "type": "uint32" }
 		],
 		"name": "setDrips",
-		"outputs": [
-			{ "internalType": "uint128", "name": "newBalance", "type": "uint128" },
-			{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }
-		],
+		"outputs": [{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -538,7 +531,10 @@
 			{ "internalType": "uint128", "name": "amount", "type": "uint128" }
 		],
 		"name": "splitResult",
-		"outputs": [{ "internalType": "uint128", "name": "collectableAmt", "type": "uint128" }],
+		"outputs": [
+			{ "internalType": "uint128", "name": "collectableAmt", "type": "uint128" },
+			{ "internalType": "uint128", "name": "splitAmt", "type": "uint128" }
+		],
 		"stateMutability": "view",
 		"type": "function"
 	},

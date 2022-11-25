@@ -17,9 +17,6 @@ export type ReceivableBalance = {
 
 	/** The amount which would be received. */
 	receivableAmount: bigint;
-
-	/** The number of cycles that would still be receivable after `receivableAmount` is received. */
-	remainingReceivableCycles: number;
 };
 
 export type SplittableBalance = {
@@ -36,6 +33,14 @@ export type CollectableBalance = {
 
 	/** The amount which would be collected. */
 	collectableAmount: bigint;
+};
+
+export type SplitResult = {
+	/** The amount made collectable for the user on top of what was collectable before. */
+	collectableAmount: bigint;
+
+	/** The amount split to the user's splits receivers. */
+	splitAmount: bigint;
 };
 
 export type AssetId = bigint;
