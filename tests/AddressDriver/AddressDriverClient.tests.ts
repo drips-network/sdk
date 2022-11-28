@@ -4,10 +4,16 @@ import { assert } from 'chai';
 import type { Provider } from '@ethersproject/providers';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import { ethers, BigNumber, constants, Wallet } from 'ethers';
+import type { ethers } from 'ethers';
+import { BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import type { SplitsReceiverStruct, DripsReceiverStruct, AddressDriverInterface } from '../../src/common/types';
+import type {
+	SplitsReceiverStruct,
+	DripsReceiverStruct,
+	AddressDriverInterface,
+	UserMetadataStruct
+} from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
@@ -758,14 +764,10 @@ describe('AddressDriverClient', () => {
 	describe('emitUserMetadata()', () => {
 		it('should ensure the signer exists', async () => {
 			// Arrange
-			const key = '1';
-			const value = 'value';
-
-			// Act
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
 			// Act
-			await testAddressDriverClient.emitUserMetadata(key, value);
+			await testAddressDriverClient.emitUserMetadata([]);
 
 			// Assert
 			assert(
@@ -776,40 +778,26 @@ describe('AddressDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const expectedKey = '1';
-			const expectedValue = 'value';
-			const expectedEncodedCallData = '0x11';
-
+			const metadata: UserMetadataStruct[] = [];
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
-			addressDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'emitUserMetadata'),
-					[expectedKey, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(expectedValue))]
-				)
-				.returns(expectedEncodedCallData);
-
 			// Act
-			await testAddressDriverClient.emitUserMetadata(expectedKey, expectedValue);
+			await testAddressDriverClient.emitUserMetadata(metadata);
 
 			// Assert
-			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(expectedKey, expectedValue));
+			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
 		it('should call the emitUserMetadata() method of the AddressDriver contract', async () => {
 			// Arrange
-			const key = '1';
-			const value = 'value';
+			const metadata: UserMetadataStruct[] = [];
 
 			// Act
-			await testAddressDriverClient.emitUserMetadata(key, value);
+			await testAddressDriverClient.emitUserMetadata(metadata);
 
 			// Assert
 			assert(
-				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-				),
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadata),
 				'Expected method to be called with different arguments'
 			);
 		});

@@ -1,6 +1,6 @@
 import type { CallStruct } from 'contracts/Caller';
 import type { BigNumberish } from 'ethers';
-import { ethers, BigNumber } from 'ethers';
+import { BigNumber } from 'ethers';
 import {
 	validateCollectInput,
 	validateEmitUserMetadataInput,
@@ -10,7 +10,7 @@ import {
 } from '../common/validators';
 import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsReceiverStruct, Preset, SplitsReceiverStruct } from '../common/types';
+import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
@@ -22,8 +22,7 @@ export namespace AddressDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		key: string;
-		value: string;
+		userMetadata: UserMetadataStruct[];
 	};
 
 	export type CollectFlowPayload = {
@@ -87,8 +86,7 @@ export namespace AddressDriverPresets {
 			}
 
 			const {
-				key,
-				value,
+				userMetadata,
 				tokenAddress,
 				driverAddress,
 				newReceivers,
@@ -110,7 +108,7 @@ export namespace AddressDriverPresets {
 				transferToAddress,
 				balanceDelta
 			);
-			validateEmitUserMetadataInput(key, value);
+			validateEmitUserMetadataInput(userMetadata);
 
 			const setDrips: CallStruct = {
 				value: 0,
@@ -129,10 +127,7 @@ export namespace AddressDriverPresets {
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-				])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadata])
 			};
 
 			return [setDrips, emitUserMetadata];

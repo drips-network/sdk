@@ -1,6 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
+import type { UserMetadataStruct } from 'contracts/NFTDriver';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import {
 	validateAddress,
@@ -326,20 +327,16 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {string} key The metadata key.
-	 * @param  {string} value The metadata value.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to the contract transaction.
-	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
+	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public emitUserMetadata(key: string, value: string): Promise<ContractTransaction> {
+	public emitUserMetadata(userMetadata: UserMetadataStruct[]): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
-		validateEmitUserMetadataInput(key, value);
+		validateEmitUserMetadataInput(userMetadata);
 
-		return this.#driver.emitUserMetadata(
-			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
-			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-		);
+		return this.#driver.emitUserMetadata(userMetadata);
 	}
 
 	/**

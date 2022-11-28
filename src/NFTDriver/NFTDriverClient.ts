@@ -1,7 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
-import { ethers, constants, BigNumber } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
+import { constants, BigNumber } from 'ethers';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
 import type { NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
@@ -9,6 +9,7 @@ import {
 	validateAddress,
 	validateClientProvider,
 	validateDripsReceivers,
+	validateEmitUserMetadataInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
@@ -120,6 +121,7 @@ export default class NFTDriverClient {
 	 * Creates a new Drips account.
 	 *
 	 * It will mint a new NFT controlling a new Drips account and transfer its ownership to an address.
+	 * It also emits user metadata for the new token.
 	 *
 	 * **Important**:
 	 * In Drips, an account "is" a **user ID** at the protocol level.
@@ -127,14 +129,15 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async createAccount(transferToAddress: string): Promise<string> {
+	public async createAccount(transferToAddress: string, userMetadata: UserMetadataStruct[] = []): Promise<string> {
 		validateAddress(transferToAddress);
 
-		const txResponse = await this.#driver.mint(transferToAddress);
+		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
 
 		const txReceipt = await txResponse.wait();
 		const [transferEvent] = txReceipt.events!;
@@ -147,6 +150,7 @@ export default class NFTDriverClient {
 	 * Creates a new Drips account.
 	 *
 	 * It will _safely_ mint a new NFT controlling a new Drips account and transfer its ownership to an address.
+	 * It also emits user metadata for the new token.
 	 *
 	 * **Important**:
 	 * In Drips, an account "is" a **user ID** at the protocol level.
@@ -154,14 +158,15 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async safeCreateAccount(transferToAddress: string): Promise<string> {
+	public async safeCreateAccount(transferToAddress: string, userMetadata: UserMetadataStruct[] = []): Promise<string> {
 		validateAddress(transferToAddress);
 
-		const txResponse = await this.#driver.safeMint(transferToAddress);
+		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
 
 		const txReceipt = await txResponse.wait();
 		const [transferEvent] = txReceipt.events!;
@@ -353,37 +358,20 @@ export default class NFTDriverClient {
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the emitting account.
-	 * @param  {string} key The metadata key.
-	 * @param  {string} value The metadata value.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to the contract transaction.
-	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
+	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 */
-	public emitUserMetadata(tokenId: string, key: string, value: string): Promise<ContractTransaction> {
+	public emitUserMetadata(tokenId: string, userMetadata: UserMetadataStruct[]): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not set emit user metadata: '${nameOf({ tokenId })}' is missing.`,
+				`Could not emit user metadata: '${nameOf({ tokenId })}' is missing.`,
 				nameOf({ tokenId })
 			);
 		}
 
-		if (isNullOrUndefined(key)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not set emit user metadata: '${nameOf({ key })}' is missing.`,
-				nameOf({ key })
-			);
-		}
+		validateEmitUserMetadataInput(userMetadata);
 
-		if (!value) {
-			throw DripsErrors.argumentMissingError(
-				`Could not set emit user metadata: '${nameOf({ value })}' is missing.`,
-				nameOf({ value })
-			);
-		}
-
-		return this.#driver.emitUserMetadata(
-			tokenId,
-			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
-			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-		);
+		return this.#driver.emitUserMetadata(tokenId, userMetadata);
 	}
 }

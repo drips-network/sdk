@@ -3,7 +3,7 @@ import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct } from './types';
+import type { DripsReceiverConfig, SplitsReceiverStruct, UserMetadataStruct } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -201,20 +201,30 @@ export const validateSetDripsInput = (
 };
 
 /** @internal */
-export const validateEmitUserMetadataInput = (key: BigNumberish, value: string) => {
-	if (isNullOrUndefined(key)) {
-		throw DripsErrors.argumentMissingError(
-			`Could not set emit user metadata: '${nameOf({ key })}' is missing.`,
-			nameOf({ key })
+export const validateEmitUserMetadataInput = (metadata: UserMetadataStruct[]) => {
+	if (!metadata) {
+		throw DripsErrors.argumentError(
+			`Invalid user metadata: '${nameOf({ metadata })}' is missing.`,
+			nameOf({ metadata }),
+			metadata
 		);
 	}
 
-	if (!value) {
-		throw DripsErrors.argumentMissingError(
-			`Could not set emit user metadata: '${nameOf({ value })}' is missing.`,
-			nameOf({ value })
-		);
-	}
+	metadata?.forEach((meta) => {
+		const { key, value } = meta;
+
+		if (!key) {
+			throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ key })}' is missing.`, nameOf({ key }), key);
+		}
+
+		if (!value) {
+			throw DripsErrors.argumentError(
+				`Invalid user metadata: '${nameOf({ value })}' is missing.`,
+				nameOf({ value }),
+				value
+			);
+		}
+	});
 };
 
 /** @internal */

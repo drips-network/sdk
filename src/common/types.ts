@@ -4,7 +4,8 @@ export {
 	DripsReceiverStruct,
 	SplitsReceiverStruct,
 	DripsHistoryStruct,
-	DripsHubInterface
+	DripsHubInterface,
+	UserMetadataStruct
 } from '../../contracts/DripsHub';
 export { NFTDriverInterface } from '../../contracts/NFTDriver';
 export { CallStruct, CallerInterface } from '../../contracts/Caller';

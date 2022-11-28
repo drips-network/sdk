@@ -1,6 +1,7 @@
 import type { CallStruct } from 'contracts/Caller';
 import type { BigNumberish } from 'ethers';
-import { ethers, BigNumber } from 'ethers';
+import { BigNumber } from 'ethers';
+import type { UserMetadata } from 'src/DripsSubgraph/types';
 import {
 	validateCollectInput,
 	validateEmitUserMetadataInput,
@@ -23,8 +24,7 @@ export namespace NFTDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		key: string;
-		value: string;
+		userMetadata: UserMetadata[];
 	};
 
 	export type CollectFlowPayload = {
@@ -89,9 +89,8 @@ export namespace NFTDriverPresets {
 			}
 
 			const {
-				key,
-				value,
 				tokenId,
+				userMetadata,
 				tokenAddress,
 				driverAddress,
 				newReceivers,
@@ -121,7 +120,7 @@ export namespace NFTDriverPresets {
 				transferToAddress,
 				balanceDelta
 			);
-			validateEmitUserMetadataInput(key, value);
+			validateEmitUserMetadataInput(userMetadata);
 
 			const setDrips: CallStruct = {
 				value: 0,
@@ -141,11 +140,7 @@ export namespace NFTDriverPresets {
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
-					tokenId,
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(key)),
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-				])
+				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [tokenId, userMetadata])
 			};
 
 			return [setDrips, emitUserMetadata];

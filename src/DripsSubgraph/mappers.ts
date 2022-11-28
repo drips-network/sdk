@@ -112,6 +112,6 @@ export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetada
 	id: userMetadata.id,
 	value: userMetadata.value,
 	userId: userMetadata.userId,
-	key: BigInt(userMetadata.key),
+	key: userMetadata.key,
 	lastUpdatedBlockTimestamp: BigInt(userMetadata.lastUpdatedBlockTimestamp)
 });

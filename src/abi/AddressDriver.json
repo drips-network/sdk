@@ -76,8 +76,15 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
-			{ "internalType": "bytes", "name": "value", "type": "bytes" }
+			{
+				"components": [
+					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
+					{ "internalType": "bytes", "name": "value", "type": "bytes" }
+				],
+				"internalType": "struct UserMetadata[]",
+				"name": "userMetadata",
+				"type": "tuple[]"
+			}
 		],
 		"name": "emitUserMetadata",
 		"outputs": [],

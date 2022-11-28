@@ -84,7 +84,7 @@ export type DripsReceiverSeenEvent = {
 
 export type UserMetadata = {
 	id: string;
-	key: bigint;
+	key: string;
 	value: string;
 	userId: string;
 	lastUpdatedBlockTimestamp: bigint;

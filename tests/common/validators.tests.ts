@@ -1,12 +1,12 @@
 import { assert } from 'chai';
-import type { BigNumberish } from 'ethers';
+import type { BigNumberish, BytesLike } from 'ethers';
 import { Wallet } from 'ethers';
 import sinon, { stubObject } from 'ts-sinon';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { DripsReceiver, DripsReceiverConfig } from '../../src/common/types';
+import type { DripsReceiver, DripsReceiverConfig, UserMetadataStruct } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -140,19 +140,17 @@ describe('validators', () => {
 	});
 
 	describe('validateEmitUserMetadataInput', () => {
-		it('should throw an argumentMissingError when key is missing', () => {
+		it('should throw an argumentError when metadata are missing', () => {
 			// Arrange
-			const value = 'value';
-
 			let threw = false;
 
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput(undefined as unknown as BigNumberish, value);
+				validators.validateEmitUserMetadataInput(undefined as unknown as UserMetadataStruct[]);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -160,19 +158,35 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw an argumentMissingError when value is missing', () => {
+		it('should throw an argumentError when key is missing in a metadata entry', () => {
 			// Arrange
-			const key = 1;
-
 			let threw = false;
 
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput(key, undefined as unknown as string);
+				validators.validateEmitUserMetadataInput([{ key: undefined as unknown as BytesLike, value: 'value' }]);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw an argumentError when value is missing in a metadata entry', () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateEmitUserMetadataInput([{ key: 'key', value: undefined as unknown as BytesLike }]);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 

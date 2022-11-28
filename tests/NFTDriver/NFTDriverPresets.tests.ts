@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, ethers, Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface } from 'ts-sinon';
 import { NFTDriver__factory, DripsHub__factory } from '../../contracts';
@@ -68,8 +68,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				key: '1',
-				value: 'value',
+				userMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
@@ -130,8 +129,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				key: '1',
-				value: 'value',
+				userMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
@@ -165,7 +163,7 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateEmitUserMetadataInputStub.calledOnceWithExactly(payload.key, payload.value),
+				validateEmitUserMetadataInputStub.calledOnceWithExactly(payload.userMetadata),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -177,8 +175,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				key: '1',
-				value: 'value',
+				userMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
@@ -226,12 +223,7 @@ describe('NFTDriverPresets', () => {
 			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'emitUserMetadata'),
-					sinon.match(
-						(array: any[]) =>
-							array[0] === payload.tokenId &&
-							array[1] === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.key)) &&
-							array[2] === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.value))
-					)
+					sinon.match((array: any[]) => array[0] === payload.tokenId && array[1] === payload.userMetadata)
 				)
 				.returns('emitUserMetadata');
 

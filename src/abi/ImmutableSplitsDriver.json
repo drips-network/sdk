@@ -68,7 +68,7 @@
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
 				"internalType": "struct UserMetadata[]",
-				"name": "metadata",
+				"name": "userMetadata",
 				"type": "tuple[]"
 			}
 		],
