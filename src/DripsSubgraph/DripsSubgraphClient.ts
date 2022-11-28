@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import type { BigNumberish } from 'ethers';
+import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber } from 'ethers';
 import { nameOf } from '../common/internals';
 import Utils from '../utils';
@@ -277,12 +277,12 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the history of all user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {BigNumberish} key The metadata key.
+	 * @param  {BytesLike} key The metadata key.
 	 * @returns A `Promise` which resolves to the user's metadata.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getMetadataHistory(userId: string, key?: string): Promise<UserMetadataEntry[]> {
+	public async getMetadataHistory(userId: string, key?: BytesLike): Promise<UserMetadataEntry[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: ${nameOf({ userId })} is missing.`,
@@ -313,12 +313,12 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the latest metadata update for the given `userId`-`key` pair.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} key The metadata key.
+	 * @param  {BytesLike} key The metadata key.
 	 * @returns A `Promise` which resolves to the user's metadata, or `null` if not found.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameter is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getLatestUserMetadata(userId: string, key: string): Promise<UserMetadataEntry | null> {
+	public async getLatestUserMetadata(userId: string, key: BytesLike): Promise<UserMetadataEntry | null> {
 		if (!userId || !key) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: '${nameOf({ userId })}' and '${nameOf({ key })}' are required.`,

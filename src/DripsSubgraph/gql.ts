@@ -97,7 +97,7 @@ query getMetadataHistoryByUser($userId: String!) {
 `;
 
 export const getMetadataHistoryByUserAndKey = `#graphql
-query getMetadataHistoryByUserAndKey($userId: String!, $key: String!) {
+query getMetadataHistoryByUserAndKey($userId: String!, $key: Bytes!) {
   userMetadataEvents(where: {userId: $userId, key: $key}) {
 		id
     key

@@ -19,6 +19,8 @@ import { formatDripsReceivers, formatSplitReceivers, isNullOrUndefined, nameOf }
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/NFTDriver.sol NFTDriver} contract.
  */
 export default class NFTDriverClient {
+	private ASSOSIATED_APP_KEY = 'associatedApp';
+
 	#driver!: NFTDriver;
 	#signer!: JsonRpcSigner;
 	#signerAddress!: string;
@@ -129,14 +131,23 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
+	 * @param  {string} associatedApp The name/ID of the app that is associated with the new account token. It will be emitted together with the rest `userMetadata`.
 	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async createAccount(transferToAddress: string, userMetadata: UserMetadataStruct[] = []): Promise<string> {
+	public async createAccount(
+		transferToAddress: string,
+		associatedApp?: string,
+		userMetadata: UserMetadataStruct[] = []
+	): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
+
+		if (associatedApp) {
+			userMetadata.push({ key: this.ASSOSIATED_APP_KEY, value: associatedApp });
+		}
 
 		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
 
@@ -159,14 +170,23 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
+	 * @param  {string} associatedApp The name/ID of the app that is associated with the new account token. It will be emitted together with the rest `userMetadata`.
 	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async safeCreateAccount(transferToAddress: string, userMetadata: UserMetadataStruct[] = []): Promise<string> {
+	public async safeCreateAccount(
+		transferToAddress: string,
+		associatedApp?: string,
+		userMetadata: UserMetadataStruct[] = []
+	): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
+
+		if (associatedApp) {
+			userMetadata.push({ key: this.ASSOSIATED_APP_KEY, value: associatedApp });
+		}
 
 		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
 
