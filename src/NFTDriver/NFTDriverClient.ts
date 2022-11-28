@@ -131,7 +131,11 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @param  {string} associatedApp The name/ID of the app that is associated with the new account token. It will be emitted together with the rest `userMetadata`.
+	 * @param  {string} associatedApp
+	 * The name/ID of the app that is associated with the new account.
+	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
+	 * - key: "associatedApp"
+	 * - value: `associatedApp`.
 	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
@@ -170,8 +174,11 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @param  {string} associatedApp The name/ID of the app that is associated with the new account token. It will be emitted together with the rest `userMetadata`.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
+	 * @param  {string} associatedApp
+	 * The name/ID of the app that is associated with the new account.
+	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
+	 * - key: "associatedApp"
+	 * - value: `associatedApp`.	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
