@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
+  import { ethers } from 'ethers';
 	import type { NFTDriverClient } from 'radicle-drips';
 	import { createEventDispatcher } from 'svelte';
 
@@ -19,7 +20,7 @@
 			minting = true;
 			errorMessage = undefined;
 
-			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress, "SDK-tests");
+			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress, ethers.utils.toUtf8Bytes("SDK-tests"));
 
 			console.log('Minted account token ID: ' + mintedToken);
 

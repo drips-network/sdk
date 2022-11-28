@@ -198,7 +198,7 @@ export default class NFTDriverClient {
 		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
 
 		const txReceipt = await txResponse.wait();
-		const [transferEvent] = txReceipt.events!;
+		const transferEvent = txReceipt.events!.filter((e) => e.event?.toLowerCase() === 'transfer')[0]!;
 		const { tokenId } = transferEvent.args!;
 
 		return BigInt(tokenId).toString();
