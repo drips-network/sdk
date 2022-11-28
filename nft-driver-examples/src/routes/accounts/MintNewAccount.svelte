@@ -19,7 +19,7 @@
 			minting = true;
 			errorMessage = undefined;
 
-			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress);
+			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress, "SDK-tests");
 
 			console.log('Minted account token ID: ' + mintedToken);
 

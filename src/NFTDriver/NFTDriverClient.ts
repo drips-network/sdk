@@ -1,6 +1,6 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, ContractTransaction } from 'ethers';
-import { constants, BigNumber } from 'ethers';
+import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
+import { ethers, constants, BigNumber } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
 import type { NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
@@ -131,7 +131,7 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @param  {string} associatedApp
+	 * @param  {BytesLike} associatedApp
 	 * The name/ID of the app that is associated with the new account.
 	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
 	 * - key: "associatedApp"
@@ -143,14 +143,14 @@ export default class NFTDriverClient {
 	 */
 	public async createAccount(
 		transferToAddress: string,
-		associatedApp?: string,
+		associatedApp?: BytesLike,
 		userMetadata: UserMetadataStruct[] = []
 	): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
 
 		if (associatedApp) {
-			userMetadata.push({ key: this.ASSOSIATED_APP_KEY, value: associatedApp });
+			userMetadata.push({ key: ethers.utils.formatBytes32String(this.ASSOSIATED_APP_KEY), value: associatedApp });
 		}
 
 		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
@@ -174,7 +174,7 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @param  {string} associatedApp
+	 * @param  {BytesLike} associatedApp
 	 * The name/ID of the app that is associated with the new account.
 	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
 	 * - key: "associatedApp"
@@ -185,14 +185,14 @@ export default class NFTDriverClient {
 	 */
 	public async safeCreateAccount(
 		transferToAddress: string,
-		associatedApp?: string,
+		associatedApp?: BytesLike,
 		userMetadata: UserMetadataStruct[] = []
 	): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
 
 		if (associatedApp) {
-			userMetadata.push({ key: this.ASSOSIATED_APP_KEY, value: associatedApp });
+			userMetadata.push({ key: ethers.utils.formatBytes32String(this.ASSOSIATED_APP_KEY), value: associatedApp });
 		}
 
 		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);

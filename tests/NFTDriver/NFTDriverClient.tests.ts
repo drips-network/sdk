@@ -3,7 +3,7 @@ import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import type { ContractReceipt, ContractTransaction, Event } from 'ethers';
-import { BigNumber, constants, Wallet } from 'ethers';
+import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
 import type { IERC20, NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
@@ -303,7 +303,7 @@ describe('NFTDriverClient', () => {
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
 
 			// Act
-			await testNftDriverClient.createAccount(transferToAddress, 'myApp', metadata);
+			await testNftDriverClient.createAccount(transferToAddress, ethers.utils.toUtf8Bytes('myApp'), metadata);
 
 			// Assert
 			assert(
@@ -313,8 +313,8 @@ describe('NFTDriverClient', () => {
 						(meta: UserMetadataStruct[]) =>
 							meta.length === 2 &&
 							meta[0].key === metadata[0].key &&
-							meta[1].key === 'associatedApp' &&
-							meta[1].value === 'myApp'
+							meta[1].key === ethers.utils.formatBytes32String('associatedApp') &&
+							ethers.utils.toUtf8String(meta[1].value) === ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
 					)
 				),
 				'Expected method to be called with different arguments'
@@ -426,7 +426,7 @@ describe('NFTDriverClient', () => {
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
 
 			// Act
-			await testNftDriverClient.safeCreateAccount(transferToAddress, 'myApp', metadata);
+			await testNftDriverClient.safeCreateAccount(transferToAddress, ethers.utils.toUtf8Bytes('myApp'), metadata);
 
 			// Assert
 			assert(
@@ -436,8 +436,8 @@ describe('NFTDriverClient', () => {
 						(meta: UserMetadataStruct[]) =>
 							meta.length === 2 &&
 							meta[0].key === metadata[0].key &&
-							meta[1].key === 'associatedApp' &&
-							meta[1].value === 'myApp'
+							meta[1].key === ethers.utils.formatBytes32String('associatedApp') &&
+							ethers.utils.toUtf8String(meta[1].value) === ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
 					)
 				),
 				'Expected method to be called with different arguments'
