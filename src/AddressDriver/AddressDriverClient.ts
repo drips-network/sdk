@@ -1,8 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { UserMetadataStruct } from 'contracts/NFTDriver';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
