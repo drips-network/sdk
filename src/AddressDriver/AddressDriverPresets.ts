@@ -1,6 +1,6 @@
 import type { CallStruct } from 'contracts/Caller';
 import type { BigNumberish } from 'ethers';
-import { BigNumber } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import {
 	validateCollectInput,
 	validateEmitUserMetadataInput,
@@ -10,7 +10,7 @@ import {
 } from '../common/validators';
 import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
@@ -22,7 +22,7 @@ export namespace AddressDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		userMetadata: UserMetadataStruct[];
+		userMetadata: UserMetadata[];
 	};
 
 	export type CollectFlowPayload = {
@@ -127,7 +127,12 @@ export namespace AddressDriverPresets {
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadata])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
+					userMetadata.map((meta) => ({
+						key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
+						value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
+					}))
+				])
 			};
 
 			return [setDrips, emitUserMetadata];

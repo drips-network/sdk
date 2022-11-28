@@ -1,12 +1,12 @@
 import { assert } from 'chai';
-import type { BigNumberish, BytesLike } from 'ethers';
+import type { BigNumberish } from 'ethers';
 import { Wallet } from 'ethers';
 import sinon, { stubObject } from 'ts-sinon';
 import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { DripsReceiver, DripsReceiverConfig, UserMetadataStruct } from '../../src/common/types';
+import type { DripsReceiver, DripsReceiverConfig, UserMetadata } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -147,7 +147,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput(undefined as unknown as UserMetadataStruct[]);
+				validators.validateEmitUserMetadataInput(undefined as unknown as UserMetadata[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -165,7 +165,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput([{ key: undefined as unknown as BytesLike, value: 'value' }]);
+				validators.validateEmitUserMetadataInput([{ key: undefined as unknown as string, value: 'value' }]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -183,7 +183,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput([{ key: 'key', value: undefined as unknown as BytesLike }]);
+				validators.validateEmitUserMetadataInput([{ key: 'key', value: undefined as unknown as string }]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);

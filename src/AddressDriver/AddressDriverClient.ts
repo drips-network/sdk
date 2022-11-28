@@ -1,7 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
@@ -331,11 +331,16 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public emitUserMetadata(userMetadata: UserMetadataStruct[]): Promise<ContractTransaction> {
+	public emitUserMetadata(userMetadata: UserMetadata[]): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(userMetadata);
 
-		return this.#driver.emitUserMetadata(userMetadata);
+		const metadata = userMetadata.map((meta) => ({
+			key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
+			value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
+		}));
+
+		return this.#driver.emitUserMetadata(metadata);
 	}
 
 	/**

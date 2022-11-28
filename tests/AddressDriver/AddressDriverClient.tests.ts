@@ -4,15 +4,14 @@ import { assert } from 'chai';
 import type { Provider } from '@ethersproject/providers';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import type { ethers } from 'ethers';
-import { BigNumber, constants, Wallet } from 'ethers';
+import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type {
 	SplitsReceiverStruct,
 	DripsReceiverStruct,
 	AddressDriverInterface,
-	UserMetadataStruct
+	UserMetadata
 } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
@@ -778,7 +777,7 @@ describe('AddressDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadata[] = [];
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			// Act
@@ -790,14 +789,19 @@ describe('AddressDriverClient', () => {
 
 		it('should call the emitUserMetadata() method of the AddressDriver contract', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 
 			// Act
 			await testAddressDriverClient.emitUserMetadata(metadata);
 
 			// Assert
 			assert(
-				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadata),
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(
+					metadata.map((meta) => ({
+						key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
+						value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
+					}))
+				),
 				'Expected method to be called with different arguments'
 			);
 		});

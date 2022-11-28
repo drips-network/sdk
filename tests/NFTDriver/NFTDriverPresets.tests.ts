@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, Wallet } from 'ethers';
+import { BigNumber, ethers, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface } from 'ts-sinon';
 import { NFTDriver__factory, DripsHub__factory } from '../../contracts';
@@ -175,7 +175,7 @@ describe('NFTDriverPresets', () => {
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				tokenId: '200',
-				userMetadata: [],
+				userMetadata: [{ key: 'key', value: 'value' }],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
@@ -223,7 +223,12 @@ describe('NFTDriverPresets', () => {
 			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'emitUserMetadata'),
-					sinon.match((array: any[]) => array[0] === payload.tokenId && array[1] === payload.userMetadata)
+					sinon.match(
+						(values: any[]) =>
+							values[0] === payload.tokenId &&
+							values[1][0].key === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].key)) &&
+							values[1][0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].value))
+					)
 				)
 				.returns('emitUserMetadata');
 
