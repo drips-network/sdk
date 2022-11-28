@@ -1,12 +1,11 @@
 import type { JsonRpcProvider } from '@ethersproject/providers';
-import type { SplitsReceiverStruct, UserMetadataStruct } from 'contracts/ImmutableSplitsDriver';
+import type { SplitsReceiverStruct } from 'contracts/ImmutableSplitsDriver';
 import type { ContractTransaction } from 'ethers';
+import type { UserMetadataStruct } from 'src/common/types';
 import type { ImmutableSplitsDriver } from '../../contracts/ImmutableSplitsDriver';
-import { nameOf } from '../common/internals';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import Utils from '../utils';
-import { DripsErrors } from '../common/DripsError';
-import { validateClientProvider, validateSplitsReceivers } from '../common/validators';
+import { validateClientProvider, validateEmitUserMetadataInput, validateSplitsReceivers } from '../common/validators';
 
 /**
  * A client for creating immutable splits configurations.
@@ -74,7 +73,7 @@ export default class ImmutableSplitsDriverClient {
 	 * The configuration is immutable and nobody can control the user ID after its creation.
 	 * Calling this function is the only way and the only chance to emit metadata for that user.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
-	 * @param  {UserMetadataStruct[]} metadata The list of user metadata to emit for the created user.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata to emit for the created user.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receivers` are missing.
@@ -82,17 +81,11 @@ export default class ImmutableSplitsDriverClient {
 	 */
 	public async createSplits(
 		receivers: SplitsReceiverStruct[],
-		metadata: UserMetadataStruct[]
+		userMetadata: UserMetadataStruct[]
 	): Promise<ContractTransaction> {
 		validateSplitsReceivers(receivers);
+		validateEmitUserMetadataInput(userMetadata);
 
-		if (!metadata) {
-			throw DripsErrors.argumentMissingError(
-				`Could not create immutable splits: '${nameOf({ receivers })}' is missing.`,
-				nameOf({ receivers })
-			);
-		}
-
-		return this.#driver.createSplits(receivers, metadata);
+		return this.#driver.createSplits(receivers, userMetadata);
 	}
 }

@@ -5,16 +5,12 @@ import { Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
-import type {
-	ImmutableSplitsDriver,
-	SplitsReceiverStruct,
-	UserMetadataStruct
-} from '../../contracts/ImmutableSplitsDriver';
+import type { ImmutableSplitsDriver, SplitsReceiverStruct } from '../../contracts/ImmutableSplitsDriver';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriver';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
-import { DripsErrorCode } from '../../src/common/DripsError';
+import type { UserMetadataStruct } from '../../src/common/types';
 
 describe('ImmutableSplitsDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -97,59 +93,38 @@ describe('ImmutableSplitsDriverClient', () => {
 	});
 
 	describe('createSplits()', () => {
-		it('should throw argumentMissingError error when receivers are missing', async () => {
-			// Arrange
-			let threw = false;
-			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
-
-			try {
-				// Act
-				await testImmutableSplitsDriverClient.createSplits(undefined as unknown as SplitsReceiverStruct[], []);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should validate the ERC20 address', async () => {
+		it('should validate the splits receivers', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [];
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
-			await testImmutableSplitsDriverClient.createSplits(receivers, []);
+			await testImmutableSplitsDriverClient.createSplits(receivers, metadata);
 
 			// Assert
 			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
 		});
 
-		it('should throw argumentMissingError error when metadata are missing', async () => {
+		it('should validate the user metadata', async () => {
 			// Arrange
-			let threw = false;
-			providerStub.getSigner.returns(undefined as unknown as JsonRpcSigner);
+			const receivers: SplitsReceiverStruct[] = [];
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 
-			try {
-				// Act
-				await testImmutableSplitsDriverClient.createSplits([], undefined as unknown as UserMetadataStruct[]);
-			} catch (error: any) {
-				// MISSING_ARGUMENT
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
+			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+
+			// Act
+			await testImmutableSplitsDriverClient.createSplits(receivers, metadata);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
 		it('should call the createSplits() method of the AddressDriver contract', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 
 			// Act
 			await testImmutableSplitsDriverClient.createSplits(receivers, metadata);

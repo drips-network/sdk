@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, ethers, Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface } from 'ts-sinon';
 import { NFTDriver__factory, DripsHub__factory } from '../../contracts';
@@ -226,8 +226,8 @@ describe('NFTDriverPresets', () => {
 					sinon.match(
 						(values: any[]) =>
 							values[0] === payload.tokenId &&
-							values[1][0].key === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].key)) &&
-							values[1][0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].value))
+							values[1][0].key === payload.userMetadata[0].key &&
+							values[1][0].value === payload.userMetadata[0].value
 					)
 				)
 				.returns('emitUserMetadata');

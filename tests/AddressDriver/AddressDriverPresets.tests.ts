@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, ethers, Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface } from 'ts-sinon';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts';
@@ -207,8 +207,7 @@ describe('AddressDriverPresets', () => {
 					sinon.match((s: string) => s === 'emitUserMetadata'),
 					sinon.match(
 						(values: UserMetadataStruct[][]) =>
-							values[0][0].key === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].key)) &&
-							values[0][0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].value))
+							values[0][0].key === payload.userMetadata[0].key && values[0][0].value === payload.userMetadata[0].value
 					)
 				)
 

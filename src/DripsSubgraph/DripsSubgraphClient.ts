@@ -282,7 +282,7 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getMetadataHistory(userId: string, key?: BigNumberish): Promise<UserMetadataEntry[]> {
+	public async getMetadataHistory(userId: string, key?: string): Promise<UserMetadataEntry[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: ${nameOf({ userId })} is missing.`,
@@ -318,7 +318,7 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameter is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getLatestUserMetadata(userId: string, key: BigNumberish): Promise<UserMetadataEntry | null> {
+	public async getLatestUserMetadata(userId: string, key: string): Promise<UserMetadataEntry | null> {
 		if (!userId || !key) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: '${nameOf({ userId })}' and '${nameOf({ key })}' are required.`,

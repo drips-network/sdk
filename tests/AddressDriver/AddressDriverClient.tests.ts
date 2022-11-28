@@ -4,14 +4,15 @@ import { assert } from 'chai';
 import type { Provider } from '@ethersproject/providers';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import { ethers, BigNumber, constants, Wallet } from 'ethers';
+import type { ethers } from 'ethers';
+import { BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type {
 	SplitsReceiverStruct,
 	DripsReceiverStruct,
 	AddressDriverInterface,
-	UserMetadata
+	UserMetadataStruct
 } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
@@ -517,34 +518,6 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
-		it('should throw argumentMissingError when splits receivers are missing', async () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				await testAddressDriverClient.setSplits(undefined as unknown as SplitsReceiverStruct[]);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should clear splits when new receivers is an empty list', async () => {
-			// Act
-			await testAddressDriverClient.setSplits([]);
-
-			// Assert
-			assert(
-				addressDriverContractStub.setSplits.calledOnceWithExactly([]),
-				'Expected method to be called with different arguments'
-			);
-		});
-
 		it('should validate the splits receivers', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
@@ -777,7 +750,7 @@ describe('AddressDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const metadata: UserMetadata[] = [];
+			const metadata: UserMetadataStruct[] = [];
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			// Act
@@ -789,19 +762,14 @@ describe('AddressDriverClient', () => {
 
 		it('should call the emitUserMetadata() method of the AddressDriver contract', async () => {
 			// Arrange
-			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 
 			// Act
 			await testAddressDriverClient.emitUserMetadata(metadata);
 
 			// Assert
 			assert(
-				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(
-					metadata.map((meta) => ({
-						key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
-						value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
-					}))
-				),
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadata),
 				'Expected method to be called with different arguments'
 			);
 		});

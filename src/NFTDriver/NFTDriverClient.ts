@@ -1,7 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
-import { ethers, constants, BigNumber } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
+import { constants, BigNumber } from 'ethers';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
 import type { NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
@@ -134,17 +134,11 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async createAccount(transferToAddress: string, userMetadata: UserMetadata[] = []): Promise<string> {
+	public async createAccount(transferToAddress: string, userMetadata: UserMetadataStruct[] = []): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
 
-		const txResponse = await this.#driver.mint(
-			transferToAddress,
-			userMetadata.map((meta) => ({
-				key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
-				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
-			}))
-		);
+		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
 
 		const txReceipt = await txResponse.wait();
 		const [transferEvent] = txReceipt.events!;
@@ -170,17 +164,11 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
-	public async safeCreateAccount(transferToAddress: string, userMetadata: UserMetadata[] = []): Promise<string> {
+	public async safeCreateAccount(transferToAddress: string, userMetadata: UserMetadataStruct[] = []): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
 
-		const txResponse = await this.#driver.safeMint(
-			transferToAddress,
-			userMetadata.map((meta) => ({
-				key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
-				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
-			}))
-		);
+		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
 
 		const txReceipt = await txResponse.wait();
 		const [transferEvent] = txReceipt.events!;
@@ -376,7 +364,7 @@ export default class NFTDriverClient {
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 */
-	public emitUserMetadata(tokenId: string, userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+	public emitUserMetadata(tokenId: string, userMetadata: UserMetadataStruct[]): Promise<ContractTransaction> {
 		if (isNullOrUndefined(tokenId)) {
 			throw DripsErrors.argumentMissingError(
 				`Could not emit user metadata: '${nameOf({ tokenId })}' is missing.`,
@@ -386,12 +374,6 @@ export default class NFTDriverClient {
 
 		validateEmitUserMetadataInput(userMetadata);
 
-		return this.#driver.emitUserMetadata(
-			tokenId,
-			userMetadata.map((meta) => ({
-				key: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.key)),
-				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(meta.value))
-			}))
-		);
+		return this.#driver.emitUserMetadata(tokenId, userMetadata);
 	}
 }
