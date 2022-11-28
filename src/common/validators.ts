@@ -3,7 +3,7 @@ import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct, UserMetadataStruct } from './types';
+import type { DripsReceiverConfig, SplitsReceiverStruct, UserMetadata } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -201,7 +201,7 @@ export const validateSetDripsInput = (
 };
 
 /** @internal */
-export const validateEmitUserMetadataInput = (metadata: UserMetadataStruct[]) => {
+export const validateEmitUserMetadataInput = (metadata: UserMetadata[]) => {
 	if (!metadata) {
 		throw DripsErrors.argumentError(
 			`Invalid user metadata: '${nameOf({ metadata })}' is missing.`,

@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, Wallet } from 'ethers';
+import { BigNumber, ethers, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface } from 'ts-sinon';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts';
@@ -8,6 +8,7 @@ import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { AddressDriverPresets } from '../../src/AddressDriver/AddressDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import { formatDripsReceivers } from '../../src/common/internals';
+import type { UserMetadataStruct } from '../../src/common/types';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 
@@ -157,7 +158,7 @@ describe('AddressDriverPresets', () => {
 			sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
-				userMetadata: [],
+				userMetadata: [{ key: 'key', value: 'value' }],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
@@ -204,8 +205,13 @@ describe('AddressDriverPresets', () => {
 			addressDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'emitUserMetadata'),
-					sinon.match((array: any[]) => array[0] === payload.userMetadata)
+					sinon.match(
+						(values: UserMetadataStruct[][]) =>
+							values[0][0].key === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].key)) &&
+							values[0][0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(payload.userMetadata[0].value))
+					)
 				)
+
 				.returns('emitUserMetadata');
 
 			// Act

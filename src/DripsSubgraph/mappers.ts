@@ -3,7 +3,7 @@ import type {
 	DripsSetEvent,
 	SplitsEntry,
 	UserAssetConfig,
-	UserMetadata,
+	UserMetadataEntry,
 	SplitEvent,
 	ReceivedDripsEvent,
 	GivenEvent,
@@ -108,7 +108,7 @@ export const mapDripsReceiverSeenEventToDto = (
 });
 
 /** @internal */
-export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadata => ({
+export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadataEntry => ({
 	id: userMetadata.id,
 	value: userMetadata.value,
 	userId: userMetadata.userId,
