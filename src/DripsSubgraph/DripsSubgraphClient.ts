@@ -523,7 +523,7 @@ export default class DripsSubgraphClient {
 			const responseContent = (await resp.json()) as { data?: T; errors?: any[] };
 
 			if (responseContent?.errors?.length && responseContent.errors.length > 0) {
-				throw DripsErrors.subgraphQueryError(`Subgraph query failed`, responseContent.errors[0]);
+				throw DripsErrors.subgraphQueryError(`Subgraph query failed: ${JSON.stringify(responseContent.errors[0])}`);
 			}
 
 			return responseContent as { data: T };

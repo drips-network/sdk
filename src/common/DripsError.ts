@@ -73,6 +73,5 @@ export class DripsErrors {
 			}
 		});
 
-	static subgraphQueryError = (message: string, error?: unknown) =>
-		new DripsError(DripsErrorCode.SUBGRAPH_QUERY_ERROR, message, error);
+	static subgraphQueryError = (message: string) => new DripsError(DripsErrorCode.SUBGRAPH_QUERY_ERROR, message);
 }

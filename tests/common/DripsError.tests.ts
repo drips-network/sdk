@@ -143,13 +143,11 @@ describe('DripsErrors', () => {
 		it('should return expected error details', () => {
 			// Act
 			const expectedMessage = 'Error';
-			const expectedError = new Error('error');
 
 			// Act
-			const { code, message, context } = DripsErrors.subgraphQueryError(expectedMessage, expectedError);
+			const { code, message } = DripsErrors.subgraphQueryError(expectedMessage);
 
 			// Assert
-			assert.equal(context, expectedError);
 			assert.equal(message, expectedMessage);
 			assert.equal(code, DripsErrorCode.SUBGRAPH_QUERY_ERROR);
 		});
