@@ -1015,7 +1015,7 @@ describe('DripsSubgraphClient', () => {
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByKeyAndValue, {
-					key: ethers.utils.formatBytes32String(constants.ASSOCIATED_APP_KEY_BYTES),
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
 					value: associatedApp
 				})
 				.resolves({
@@ -1033,7 +1033,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(accountIds[1], '2');
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyAndValue, {
-					key: ethers.utils.formatBytes32String(constants.ASSOCIATED_APP_KEY_BYTES),
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
 					value: associatedApp
 				}),
 				'Expected method to be called with different arguments'

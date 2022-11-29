@@ -397,7 +397,7 @@ export default class DripsSubgraphClient {
 		};
 
 		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
-			key: ethers.utils.formatBytes32String(constants.ASSOCIATED_APP_KEY_BYTES),
+			key: constants.ASSOCIATED_APP_KEY_BYTES,
 			value: associatedApp
 		});
 
