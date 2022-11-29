@@ -14,13 +14,12 @@ import {
 } from '../common/validators';
 import Utils from '../utils';
 import { formatDripsReceivers, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import dripsConstants from '../constants';
 /**
  * A client for managing Drips accounts identified by NFTs.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/NFTDriver.sol NFTDriver} contract.
  */
 export default class NFTDriverClient {
-	private ASSOSIATED_APP_KEY = 'associatedApp';
-
 	#driver!: NFTDriver;
 	#signer!: JsonRpcSigner;
 	#signerAddress!: string;
@@ -158,7 +157,7 @@ export default class NFTDriverClient {
 				);
 			}
 
-			userMetadata.push({ key: ethers.utils.formatBytes32String(this.ASSOSIATED_APP_KEY), value: associatedApp });
+			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY_BYTES, value: associatedApp });
 		}
 
 		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
@@ -208,7 +207,7 @@ export default class NFTDriverClient {
 				);
 			}
 
-			userMetadata.push({ key: ethers.utils.formatBytes32String(this.ASSOSIATED_APP_KEY), value: associatedApp });
+			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY_BYTES, value: associatedApp });
 		}
 
 		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
