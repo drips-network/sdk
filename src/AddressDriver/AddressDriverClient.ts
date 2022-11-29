@@ -326,8 +326,9 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata.
-	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 *
+	 * **Tip**: you might want to use `utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */

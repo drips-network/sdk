@@ -73,8 +73,9 @@ export default class ImmutableSplitsDriverClient {
 	 * The configuration is immutable and nobody can control the user ID after its creation.
 	 * Calling this function is the only way and the only chance to emit metadata for that user.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata to emit for the created user.
-	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
+	 *
+	 * **Tip**: you might want to use `utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receivers` are missing.
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.

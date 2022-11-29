@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
-	import type { ContractReceipt, ContractTransaction } from 'ethers';
+	import { ethers, type ContractReceipt, type ContractTransaction } from 'ethers';
 	import type { NFTDriverClient, UserMetadataStruct } from 'radicle-drips';
 
 	export let nftDriverClient: NFTDriverClient | undefined;
@@ -34,8 +34,11 @@
 		errorMessage = undefined;
 
 		const metadata: UserMetadataStruct[] = metadataInputs
-			.filter((m) => m.key && m.value)
-			.map((m) => ({ key: m.key as string, value: m.value as string }));
+			.filter((m) => m.key?.length && m.value?.length)
+			.map((m) => ({
+				key: ethers.utils.formatBytes32String(m.key as string),
+				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(m.value as string))
+			}));
 
 		console.log(metadata);
 

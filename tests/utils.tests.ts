@@ -12,6 +12,53 @@ describe('Utils', () => {
 		sinon.restore();
 	});
 
+	describe('UserMetadata', () => {
+		describe('createFromStrings', () => {
+			it('should throw argumentError when key is missing', async () => {
+				// Arrange
+				let threw = false;
+
+				// Act
+				try {
+					Utils.UserMetadata.createFromStrings(undefined as unknown as string, 'value');
+				} catch (error: any) {
+					// Assert
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+					threw = true;
+				}
+
+				// Assert
+				assert.isTrue(threw, 'Expected type of exception was not thrown');
+			});
+
+			it('should throw argumentError when value is missing', async () => {
+				// Arrange
+				let threw = false;
+
+				// Act
+				try {
+					Utils.UserMetadata.createFromStrings('key', undefined as unknown as string);
+				} catch (error: any) {
+					// Assert
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+					threw = true;
+				}
+
+				// Assert
+				assert.isTrue(threw, 'Expected type of exception was not thrown');
+			});
+
+			it('should return the expected result', () => {
+				// Act
+				const metadata = Utils.UserMetadata.createFromStrings('key', 'value');
+
+				// Assert
+				assert.equal(metadata.key, ethers.utils.formatBytes32String('key'));
+				assert.equal(metadata.value, ethers.utils.hexlify(ethers.utils.toUtf8Bytes('value')));
+			});
+		});
+	});
+
 	describe('Cycle', () => {
 		describe('getInfo()', () => {
 			it('should throw unsupportedNetworkError when the provided chain ID is not supported', async () => {

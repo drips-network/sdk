@@ -1,10 +1,35 @@
 import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
+import { nameOf } from './common/internals';
+import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
+	export namespace UserMetadata {
+		/**
+		 * Creates a user metadata object in the format the Drips protocol expects, from `string` inputs.
+		 *
+		 * @param  {string} key The metadata key.
+		 * @param  {string} value The metadata value.
+		 * @returns UserMetadataStruct the user metadata object.
+		 */
+		export const createFromStrings = (key: string, value: string): UserMetadataStruct => {
+			if (!key || !value) {
+				throw DripsErrors.argumentError(
+					`Invalid key-value user metadata pair: ${nameOf({ key })} and ${nameOf({ value })} are required.`,
+					key ? nameOf({ value }) : nameOf({ key }),
+					key ? value : key
+				);
+			}
+
+			return {
+				key: ethers.utils.formatBytes32String(key),
+				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
+			};
+		};
+	}
+
 	export namespace Network {
 		export const configs: Record<number, NetworkConfig> = {
 			5: {
