@@ -150,6 +150,14 @@ export default class NFTDriverClient {
 		validateEmitUserMetadataInput(userMetadata);
 
 		if (associatedApp) {
+			if (!ethers.utils.isBytesLike(associatedApp)) {
+				throw DripsErrors.argumentError(
+					`Could not collect '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
+					nameOf({ associatedApp }),
+					associatedApp
+				);
+			}
+
 			userMetadata.push({ key: ethers.utils.formatBytes32String(this.ASSOSIATED_APP_KEY), value: associatedApp });
 		}
 
@@ -192,6 +200,14 @@ export default class NFTDriverClient {
 		validateEmitUserMetadataInput(userMetadata);
 
 		if (associatedApp) {
+			if (!ethers.utils.isBytesLike(associatedApp)) {
+				throw DripsErrors.argumentError(
+					`Could not collect '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
+					nameOf({ associatedApp }),
+					associatedApp
+				);
+			}
+
 			userMetadata.push({ key: ethers.utils.formatBytes32String(this.ASSOSIATED_APP_KEY), value: associatedApp });
 		}
 

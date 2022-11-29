@@ -239,6 +239,25 @@ describe('NFTDriverClient', () => {
 			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
+		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
+			let threw = false;
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+
+			const transferToAddress = Wallet.createRandom().address;
+
+			try {
+				// Act
+				await testNftDriverClient.createAccount(transferToAddress, 'invalid BytesLike string', metadata);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should return the expected token', async () => {
 			// Arrange
 			const expectedTokenId = '1';
@@ -442,6 +461,25 @@ describe('NFTDriverClient', () => {
 				),
 				'Expected method to be called with different arguments'
 			);
+		});
+
+		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
+			let threw = false;
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+
+			const transferToAddress = Wallet.createRandom().address;
+
+			try {
+				// Act
+				await testNftDriverClient.createAccount(transferToAddress, 'invalid BytesLike string', metadata);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
 		it('should return the expected token', async () => {
