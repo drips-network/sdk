@@ -21,6 +21,7 @@
 				Managing Accounts:
 				<ul>
 					<li><a href="/accounts">List an Owner's Accounts</a></li>
+					<li><a href="/accounts">List an App's Accounts</a></li>
 					<li><a href="/accounts">Create a New Account</a></li>
 				</ul>
 			</li>
