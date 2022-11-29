@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish, BytesLike } from 'ethers';
-import { BigNumber } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import constants from '../constants';
 import { nameOf } from '../common/internals';
 import Utils from '../utils';
@@ -384,12 +384,20 @@ export default class DripsSubgraphClient {
 			);
 		}
 
+		if (!ethers.utils.isBytesLike(associatedApp)) {
+			throw DripsErrors.argumentError(
+				`Could not get user metadata: ${nameOf({ associatedApp })} is not a valid BytesLike object.`,
+				nameOf({ associatedApp }),
+				associatedApp
+			);
+		}
+
 		type QueryResponse = {
 			userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
 		};
 
 		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
-			key: constants.ASSOCIATED_APP_KEY_BYTES,
+			key: ethers.utils.formatBytes32String(constants.ASSOCIATED_APP_KEY_BYTES),
 			value: associatedApp
 		});
 
