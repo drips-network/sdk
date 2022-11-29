@@ -207,7 +207,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: 1 } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -227,7 +227,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: 1 } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -247,7 +247,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -271,7 +271,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -297,7 +297,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -329,7 +329,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -354,7 +354,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: 1 } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -374,7 +374,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: 1 } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -394,7 +394,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -420,7 +420,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -452,7 +452,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
@@ -473,7 +473,7 @@ describe('NFTDriverClient', () => {
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ args: { tokenId: expectedTokenId } } as unknown as Event]
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
