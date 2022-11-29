@@ -2,7 +2,7 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import type { ContractReceipt, ContractTransaction, Event } from 'ethers';
+import type { BytesLike, ContractReceipt, ContractTransaction, Event } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
 import type { IERC20, NFTDriver } from '../../contracts';
@@ -332,8 +332,10 @@ describe('NFTDriverClient', () => {
 						(meta: UserMetadataStruct[]) =>
 							meta.length === 2 &&
 							meta[0].key === metadata[0].key &&
+							meta[0].value === metadata[0].value &&
 							meta[1].key === ethers.utils.formatBytes32String('associatedApp') &&
-							ethers.utils.toUtf8String(meta[1].value) === ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
+							ethers.utils.toUtf8String(meta[1].value as BytesLike) ===
+								ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
 					)
 				),
 				'Expected method to be called with different arguments'
@@ -455,8 +457,10 @@ describe('NFTDriverClient', () => {
 						(meta: UserMetadataStruct[]) =>
 							meta.length === 2 &&
 							meta[0].key === metadata[0].key &&
+							meta[0].value === metadata[0].value &&
 							meta[1].key === ethers.utils.formatBytes32String('associatedApp') &&
-							ethers.utils.toUtf8String(meta[1].value) === ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
+							ethers.utils.toUtf8String(meta[1].value as BytesLike) ===
+								ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
 					)
 				),
 				'Expected method to be called with different arguments'
