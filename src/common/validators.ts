@@ -213,11 +213,11 @@ export const validateEmitUserMetadataInput = (metadata: UserMetadataStruct[]) =>
 	metadata?.forEach((meta) => {
 		const { key, value } = meta;
 
-		if (!key) {
+		if (isNullOrUndefined(key)) {
 			throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ key })}' is missing.`, nameOf({ key }), key);
 		}
 
-		if (!value) {
+		if (isNullOrUndefined(value)) {
 			throw DripsErrors.argumentError(
 				`Invalid user metadata: '${nameOf({ value })}' is missing.`,
 				nameOf({ value }),

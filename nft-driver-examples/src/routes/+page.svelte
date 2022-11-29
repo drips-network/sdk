@@ -50,6 +50,12 @@
 				</ul>
 			</li>
 			<li>
+				Metadata:
+				<ul>
+					<li><a href="/metadata">Emit User Metadata</a></li>
+				</ul>
+			</li>
+			<li>
 				Utilities:
 				<ul>
 					<li><a href="/utils">Asset Helpers</a></li>

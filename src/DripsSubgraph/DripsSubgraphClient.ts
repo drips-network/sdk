@@ -370,7 +370,7 @@ export default class DripsSubgraphClient {
 	 * Returns the token IDs that are associated with the given app identifier.
 	 * @param  {BytesLike} associatedApp The name/ID of the app to retrieve accounts for.
 	 *
-	 * Tip: you might want to use `ethers.utils.formatBytes32String(associatedAppAsString)` to create your `associatedApp` argument from a `string`.
+	 * **Tip**: you might want to use `ethers.utils.hexlify(ethers.utils.toUtf8Bytes(associatedAppAsString))` to create your `associatedApp` argument from a `string`.
 	 * @returns A `Promise` which resolves to the account IDs.
 	 * @throws {@link DripsErrors.argumentError} if the `associatedApp` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
