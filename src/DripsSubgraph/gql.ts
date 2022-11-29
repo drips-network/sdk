@@ -108,6 +108,18 @@ query getMetadataHistoryByUserAndKey($userId: String!, $key: Bytes!) {
 }
 `;
 
+export const getMetadataHistoryByKeyAndValue = `#graphql
+query getMetadataHistoryByKeyAndValue($key: Bytes!, $value: Bytes!) {
+  userMetadataEvents(where: {key: $key, value: $value}) {
+		id
+    key
+    value
+    userId
+    lastUpdatedBlockTimestamp
+  }
+}
+`;
+
 export const getLatestUserMetadata = `#graphql
 query getLatestUserMetadata($id: ID!) {
   userMetadataByKey(id: $id) {

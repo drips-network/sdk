@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, Wallet } from 'ethers';
+import { BigNumber, ethers, Wallet } from 'ethers';
 import * as sinon from 'sinon';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
@@ -14,6 +14,7 @@ import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
 import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
+import constants from '../../src/constants';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -935,6 +936,90 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(result![0].ownerAddress, nftsubAccounts[0].ownerAddress);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getNftSubAccountsByOwner, { ownerAddress }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getNftSubAccountIdsByApp()', () => {
+		it('should throw an argumentError when associatedApp is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getNftSubAccountIdsByApp(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return empty array when no sub accounts found', async () => {
+			// Arrange
+			const associatedApp = ethers.utils.formatBytes32String('myApp');
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getMetadataHistoryByKeyAndValue, {
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
+					value: associatedApp
+				})
+				.resolves({
+					data: {
+						nftsubAccounts: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getNftSubAccountIdsByApp(associatedApp);
+
+			// Assert
+			assert.isEmpty(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const associatedApp = ethers.utils.formatBytes32String('myApp');
+			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
+				{
+					userId: '1'
+				} as SubgraphTypes.UserMetadataEvent,
+				{
+					userId: '1'
+				} as SubgraphTypes.UserMetadataEvent,
+				{
+					userId: '2'
+				} as SubgraphTypes.UserMetadataEvent
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getMetadataHistoryByKeyAndValue, {
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
+					value: associatedApp
+				})
+				.resolves({
+					data: {
+						userMetadataEvents
+					}
+				});
+
+			// Act
+			const accountIds = await testSubgraphClient.getNftSubAccountIdsByApp(associatedApp);
+
+			// Assert
+			assert.equal(accountIds.length, 2);
+			assert.equal(accountIds[0], '1');
+			assert.equal(accountIds[1], '2');
+			assert(
+				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyAndValue, {
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
+					value: associatedApp
+				}),
 				'Expected method to be called with different arguments'
 			);
 		});

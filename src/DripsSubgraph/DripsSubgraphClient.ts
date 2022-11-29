@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber } from 'ethers';
+import constants from '../constants';
 import { nameOf } from '../common/internals';
 import Utils from '../utils';
 import { validateAddress } from '../common/validators';
@@ -363,6 +364,45 @@ export default class DripsSubgraphClient {
 					ownerAddress: s.ownerAddress
 			  }))
 			: [];
+	}
+
+	/**
+	 * Returns the token IDs that are associated with the given app identifier.
+	 * @param  {BytesLike} associatedApp The name/ID of the app to retrieve accounts for.
+	 *
+	 * Tip: you might want to use `ethers.utils.formatBytes32String(associatedAppAsString)` to create your `associatedApp` argument from a `string`.
+	 * @returns A `Promise` which resolves to the account IDs.
+	 * @throws {@link DripsErrors.argumentError} if the `associatedApp` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getNftSubAccountIdsByApp(associatedApp: BytesLike): Promise<string[]> {
+		if (!associatedApp) {
+			throw DripsErrors.argumentError(
+				`Could not get user metadata: ${nameOf({ associatedApp })} is missing.`,
+				nameOf({ associatedApp }),
+				associatedApp
+			);
+		}
+
+		type QueryResponse = {
+			userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
+			key: constants.ASSOCIATED_APP_KEY_BYTES,
+			value: associatedApp
+		});
+
+		const userMetadataEvents = response?.data?.userMetadataEvents;
+
+		const uniqueUserIds = userMetadataEvents?.reduce((unique: string[], o: SubgraphTypes.UserMetadataEvent) => {
+			if (!unique.some((id: string) => id === o.userId)) {
+				unique.push(o.userId);
+			}
+			return unique;
+		}, []);
+
+		return uniqueUserIds || [];
 	}
 
 	/**
