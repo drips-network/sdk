@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
-	import { ethers, type ContractReceipt, type ContractTransaction } from 'ethers';
-	import type { NFTDriverClient, UserMetadataStruct } from 'radicle-drips';
+	import type { ContractReceipt, ContractTransaction } from 'ethers';
+	import { Utils, type NFTDriverClient, type UserMetadataStruct } from 'radicle-drips';
 
 	export let nftDriverClient: NFTDriverClient | undefined;
 
@@ -26,6 +26,7 @@
 	let errorMessage: string | undefined;
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
+	let metadata: UserMetadataStruct[];
 
 	async function emitUserMetadata(tokenId: string) {
 		tx = undefined;
@@ -33,16 +34,11 @@
 		txReceipt = undefined;
 		errorMessage = undefined;
 
-		const metadata: UserMetadataStruct[] = metadataInputs
-			.filter((m) => m.key?.length && m.value?.length)
-			.map((m) => ({
-				key: ethers.utils.formatBytes32String(m.key as string),
-				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(m.value as string))
-			}));
-
-		console.log(metadata);
-
 		try {
+			metadata = metadataInputs
+				.filter((m) => m.key && m.value)
+				.map((m) => Utils.UserMetadata.createFromStrings(m.key as string, m.value as string));
+
 			tx = await nftDriverClient?.emitUserMetadata(tokenId, metadata);
 			console.log(tx);
 
@@ -101,11 +97,15 @@
 				</div>
 			{:else if txReceipt}
 				<div class="terminal-alert terminal-alert-primary">
-					<p>Updated ✅</p>
-					<p>
-						Wait for a few seconds and refresh to see the updated configuration. Sometimes the
-						Subgraph takes some time to update.
-					</p>
+					<p>Emitted ✅</p>
+					<ol>
+						{#each metadata as m}
+							<li>
+								<p>Key ('{Utils.UserMetadata.toHumanReadable(m).key}'): {m.key}</p>
+								<p>Key ('{Utils.UserMetadata.toHumanReadable(m).value}'): {m.value}</p>
+							</li>
+						{/each}
+					</ol>
 				</div>
 			{:else if tx}
 				<div class="terminal-alert terminal-alert-primary">
