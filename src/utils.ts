@@ -1,33 +1,49 @@
-import type { BigNumberish } from 'ethers';
+import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import { nameOf } from './common/internals';
 import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
 	export namespace UserMetadata {
 		/**
-		 * Creates a user metadata object in the format the Drips protocol expects, from `string` inputs.
+		 * Creates a user metadata key in the format the Drips protocol expects from the given `string`.
+		 * @param  {string} key The metadata key.
+		 * @returns The metadata key as BytesLike.
+		 */
+		export const keyFromString = (key: string): BytesLike => ethers.utils.formatBytes32String(key);
+
+		/**
+		 * Creates a user metadata value in the format the Drips protocol expects from the given `string`.
+		 * @param  {string} value The metadata key.
+		 * @returns The metadata value as BytesLike.
+		 */
+		export const valueFromString = (value: string): BytesLike => ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value));
+
+		/**
+		 * Creates a user metadata object in the format the Drips protocol expects from the given `string` inputs.
 		 *
 		 * @param  {string} key The metadata key.
 		 * @param  {string} value The metadata value.
-		 * @returns UserMetadataStruct the user metadata object.
+		 * @returns The user metadata.
 		 */
-		export const createFromStrings = (key: string, value: string): UserMetadataStruct => {
-			if (!key || !value) {
-				throw DripsErrors.argumentError(
-					`Invalid key-value user metadata pair: ${nameOf({ key })} and ${nameOf({ value })} are required.`,
-					key ? nameOf({ value }) : nameOf({ key }),
-					key ? value : key
-				);
-			}
+		export const createFromStrings = (key: string, value: string): UserMetadataStruct => ({
+			key: keyFromString(key),
+			value: valueFromString(value)
+		});
 
-			return {
-				key: ethers.utils.formatBytes32String(key),
-				value: ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value))
-			};
-		};
+		/**
+		 * Returns the given user metadata object in a human readable form.
+		 * @param  {UserMetadataStruct} userMetadata The user metadata.
+		 * @returns An object with the same properties as the `userMetadata` but with `string` properties instead of `BytesLike`.
+		 */
+		export const toHumanReadable = (userMetadata: {
+			key: BytesLike;
+			value: BytesLike;
+		}): { key: string; value: string } => ({
+			key: ethers.utils.parseBytes32String(userMetadata.key),
+			value: ethers.utils.toUtf8String(userMetadata.value)
+		});
 	}
 
 	export namespace Network {

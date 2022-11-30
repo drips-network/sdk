@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import type { BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import sinon from 'ts-sinon';
 import { DripsErrorCode } from '../src/common/DripsError';
@@ -13,48 +14,48 @@ describe('Utils', () => {
 	});
 
 	describe('UserMetadata', () => {
+		describe('keyFromString', () => {
+			it('should return the expected result', () => {
+				// Act
+				const key = Utils.UserMetadata.keyFromString('key');
+
+				// Assert
+				assert.equal(key, ethers.utils.formatBytes32String('key'));
+			});
+		});
+
+		describe('valueFromString', () => {
+			it('should return the expected result', () => {
+				// Act
+				const value = Utils.UserMetadata.valueFromString('value');
+
+				// Assert
+				assert.equal(value, ethers.utils.hexlify(ethers.utils.toUtf8Bytes('value')));
+			});
+		});
+
 		describe('createFromStrings', () => {
-			it('should throw argumentError when key is missing', async () => {
-				// Arrange
-				let threw = false;
-
-				// Act
-				try {
-					Utils.UserMetadata.createFromStrings(undefined as unknown as string, 'value');
-				} catch (error: any) {
-					// Assert
-					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-					threw = true;
-				}
-
-				// Assert
-				assert.isTrue(threw, 'Expected type of exception was not thrown');
-			});
-
-			it('should throw argumentError when value is missing', async () => {
-				// Arrange
-				let threw = false;
-
-				// Act
-				try {
-					Utils.UserMetadata.createFromStrings('key', undefined as unknown as string);
-				} catch (error: any) {
-					// Assert
-					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-					threw = true;
-				}
-
-				// Assert
-				assert.isTrue(threw, 'Expected type of exception was not thrown');
-			});
-
 			it('should return the expected result', () => {
 				// Act
 				const metadata = Utils.UserMetadata.createFromStrings('key', 'value');
 
 				// Assert
-				assert.equal(metadata.key, ethers.utils.formatBytes32String('key'));
-				assert.equal(metadata.value, ethers.utils.hexlify(ethers.utils.toUtf8Bytes('value')));
+				assert.equal(metadata.key, Utils.UserMetadata.keyFromString('key'));
+				assert.equal(metadata.value, Utils.UserMetadata.valueFromString('value'));
+			});
+		});
+
+		describe('toHumanReadable', () => {
+			it('should return the expected result', () => {
+				// Act
+				const key: BytesLike = Utils.UserMetadata.keyFromString('key');
+				const value: BytesLike = Utils.UserMetadata.valueFromString('value');
+
+				const metadata = Utils.UserMetadata.toHumanReadable({ key, value });
+
+				// Assert
+				assert.equal(metadata.key, 'key');
+				assert.equal(metadata.value, 'value');
 			});
 		});
 	});

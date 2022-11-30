@@ -44,10 +44,16 @@ export class DripsErrors {
 			unsupportedChainId: chainId
 		});
 
-	static argumentError = (message: string, argName: string, argValue: unknown) =>
-		new DripsError(DripsErrorCode.INVALID_ARGUMENT, message, {
-			invalidArgument: { name: argName, value: argValue }
-		});
+	static argumentError = (message: string, argName?: string, argValue?: unknown) =>
+		new DripsError(
+			DripsErrorCode.INVALID_ARGUMENT,
+			message,
+			argName
+				? {
+						invalidArgument: { name: argName, value: argValue }
+				  }
+				: undefined
+		);
 
 	static splitsReceiverError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_SPLITS_RECEIVER, message, {
