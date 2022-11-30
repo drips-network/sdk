@@ -1,7 +1,7 @@
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
+import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
@@ -43,13 +43,18 @@ namespace Utils {
 		 * @param  {UserMetadataStruct} userMetadata The user metadata.
 		 * @returns An object with the same properties as the `userMetadata` but with `string` properties instead of `BytesLike`.
 		 */
-		export const toHumanReadable = (userMetadata: {
-			key: BytesLike;
-			value: BytesLike;
-		}): { key: string; value: string } => ({
-			key: ethers.utils.parseBytes32String(userMetadata.key),
-			value: ethers.utils.toUtf8String(userMetadata.value)
-		});
+		export const toHumanReadable = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
+			if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
+				throw DripsErrors.argumentError(
+					`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`
+				);
+			}
+
+			return {
+				key: ethers.utils.parseBytes32String(userMetadata.key),
+				value: ethers.utils.toUtf8String(userMetadata.value)
+			};
+		};
 	}
 
 	export namespace Network {
