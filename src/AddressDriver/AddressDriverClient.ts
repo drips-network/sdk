@@ -134,6 +134,12 @@ export default class AddressDriverClient {
 	/**
 	 * Returns the remaining number of tokens the `AddressDriver` contract is allowed to spend on behalf of the user for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the remaining number of tokens.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
@@ -154,6 +160,12 @@ export default class AddressDriverClient {
 	/**
 	 * Sets the maximum allowance value for the `AddressDriver` contract over the user's tokens for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
@@ -201,6 +213,12 @@ export default class AddressDriverClient {
 	/**
 	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {string} transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
@@ -219,6 +237,12 @@ export default class AddressDriverClient {
 	 * Transfers funds from the user's wallet to the `DripsHub` contract.
 	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
@@ -272,6 +296,12 @@ export default class AddressDriverClient {
 	 * Sets a Drips configuration.
 	 * Transfers funds from the user's wallet to the `DripsHub` contract to fulfill the change of the drips balance.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
 	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).
