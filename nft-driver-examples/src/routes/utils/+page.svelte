@@ -5,6 +5,7 @@
 	import CycleInfo from './CycleInfo.svelte';
 	import { goto } from '$app/navigation';
 	import Asset from './Asset.svelte';
+	import UserMetadata from './UserMetadata.svelte';
 
 	$: nftDriverClient = $dripsClients?.nftDriverClient;
 </script>
@@ -19,5 +20,6 @@
 	<Asset />
 	<CycleInfo {nftDriverClient} />
 	<DripsReceiverConfig />
+	<UserMetadata />
 	<button class="btn btn-default btn-block" on:click={() => goto('/')}>Back to API explorer</button>
 </div>

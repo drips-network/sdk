@@ -61,6 +61,7 @@
 					<li><a href="/utils">Asset Helpers</a></li>
 					<li><a href="/utils">Cycle info</a></li>
 					<li><a href="/utils">Debug Drips Receiver Configuration</a></li>
+					<li><a href="/utils">Debug User Metadata</a></li>
 				</ul>
 			</li>
 		</ul>
