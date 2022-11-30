@@ -42,15 +42,25 @@
 				</ul>
 			</li>
 			<li>
+				Metadata:
+				<ul>
+					<li>Emit User Metadata*</li>
+				</ul>
+			</li>
+			<li />
+			<li>
 				Utilities:
 				<ul>
 					<li><a href="/utils">Asset Helpers</a></li>
 					<li><a href="/utils">Cycle info</a></li>
 					<li><a href="/utils">Debug Drips Receiver Configuration</a></li>
 					<li><a href="/utils">User IDs</a></li>
+					<li>Debug User Metadata*</li>
 				</ul>
 			</li>
 		</ul>
+
+		<p>* Check the <code>NFTDriverClient</code> examples app.</p>
 	{:else}
 		<h2>Connect to start</h2>
 	{/if}
@@ -70,5 +80,9 @@
 
 	.btn-group {
 		padding: var(--global-line-height);
+	}
+
+	p {
+		font-size: 80%;
 	}
 </style>
