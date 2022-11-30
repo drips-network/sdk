@@ -407,6 +407,25 @@ describe('NFTDriverClient', () => {
 			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
+		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
+			let threw = false;
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+
+			const transferToAddress = Wallet.createRandom().address;
+
+			try {
+				// Act
+				await testNftDriverClient.safeCreateAccount(transferToAddress, 'invalid BytesLike string', metadata);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should not set an associated app metadata entry when an associated app is not provided', async () => {
 			// Arrange
 			const expectedTokenId = '1';

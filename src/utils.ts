@@ -1,7 +1,7 @@
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
+import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
@@ -27,7 +27,13 @@ namespace Utils {
 		 * @param  {string} value The metadata value.
 		 * @returns The user metadata.
 		 */
-		export const createFromStrings = (key: string, value: string): UserMetadataStruct => ({
+		export const createFromStrings = (
+			key: string,
+			value: string
+		): {
+			key: BytesLike;
+			value: BytesLike;
+		} => ({
 			key: keyFromString(key),
 			value: valueFromString(value)
 		});
