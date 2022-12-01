@@ -39,11 +39,11 @@ namespace Utils {
 		});
 
 		/**
-		 * Returns the given user metadata object in a human readable form.
+		 * Parses the properties of the given user metadata as `string`s.
 		 * @param  {UserMetadataStruct} userMetadata The user metadata.
 		 * @returns An object with the same properties as the `userMetadata` but with `string` properties instead of `BytesLike`.
 		 */
-		export const toHumanReadable = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
+		export const parseMetadataAsString = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
 			if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
 				throw DripsErrors.argumentError(
 					`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`

@@ -43,7 +43,7 @@
 		try {
 			// We don't need the value, pass and arbitrary value.
 			const value = Utils.UserMetadata.valueFromString('');
-			readKeyOutput = Utils.UserMetadata.toHumanReadable({ key, value }).key;
+			readKeyOutput = Utils.UserMetadata.parseMetadataAsString({ key, value }).key;
 		} catch (error: any) {
 			console.error(error);
 			readKeyErrorMessage = error.message;
@@ -60,7 +60,7 @@
 		try {
 			// We don't need the key, pass and arbitrary value.
 			const key = Utils.UserMetadata.keyFromString('');
-			readValueOutput = Utils.UserMetadata.toHumanReadable({ key, value }).value;
+			readValueOutput = Utils.UserMetadata.parseMetadataAsString({ key, value }).value;
 		} catch (error: any) {
 			console.error(error);
 			readValueErrorMessage = error.message;

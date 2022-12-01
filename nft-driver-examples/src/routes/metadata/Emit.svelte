@@ -101,8 +101,8 @@
 					<ol>
 						{#each metadata as m}
 							<li>
-								<p>Key ('{Utils.UserMetadata.toHumanReadable(m).key}'): {m.key}</p>
-								<p>Key ('{Utils.UserMetadata.toHumanReadable(m).value}'): {m.value}</p>
+								<p>Key ('{Utils.UserMetadata.parseMetadataAsString(m).key}'): {m.key}</p>
+								<p>Key ('{Utils.UserMetadata.parseMetadataAsString(m).value}'): {m.value}</p>
 							</li>
 						{/each}
 					</ol>

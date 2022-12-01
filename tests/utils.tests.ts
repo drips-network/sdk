@@ -45,14 +45,14 @@ describe('Utils', () => {
 			});
 		});
 
-		describe('toHumanReadable', () => {
+		describe('parseMetadataAsString', () => {
 			it('should throw argumentError user metadata key is not a valid BytesLike object', async () => {
 				// Arrange
 				let threw = false;
 
 				// Act
 				try {
-					Utils.UserMetadata.toHumanReadable({ key: undefined as unknown as string, value: 'value' });
+					Utils.UserMetadata.parseMetadataAsString({ key: undefined as unknown as string, value: 'value' });
 				} catch (error: any) {
 					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -69,7 +69,7 @@ describe('Utils', () => {
 
 				// Act
 				try {
-					Utils.UserMetadata.toHumanReadable({ key: 'key', value: undefined as unknown as string });
+					Utils.UserMetadata.parseMetadataAsString({ key: 'key', value: undefined as unknown as string });
 				} catch (error: any) {
 					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -85,7 +85,7 @@ describe('Utils', () => {
 				const key: BytesLike = Utils.UserMetadata.keyFromString('key');
 				const value: BytesLike = Utils.UserMetadata.valueFromString('value');
 
-				const metadata = Utils.UserMetadata.toHumanReadable({ key, value });
+				const metadata = Utils.UserMetadata.parseMetadataAsString({ key, value });
 
 				// Assert
 				assert.equal(metadata.key, 'key');
