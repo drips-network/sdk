@@ -199,7 +199,8 @@ export default class NFTDriverClient {
 	 * The name/ID of the app that is associated with the new account.
 	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
 	 * - key: "associatedApp"
-	 * - value: `associatedApp`.	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * - value: `associatedApp`.
+	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
