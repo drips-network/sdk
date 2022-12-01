@@ -88,6 +88,12 @@ export default class NFTDriverClient {
 	/**
 	 * Returns the remaining number of tokens the `NFTDriver` contract is allowed to spend on behalf of the client's `signer` for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the remaining number of tokens.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
@@ -104,6 +110,12 @@ export default class NFTDriverClient {
 	/**
 	 * Sets the maximum allowance value for the `NFTDriver` contract over the client's `signer` tokens for the given ERC20 token.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 */
@@ -229,6 +241,12 @@ export default class NFTDriverClient {
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the collecting account.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {string} transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `tokenId` is missing.
@@ -258,6 +276,12 @@ export default class NFTDriverClient {
 	 * - For the `NFTDriver` it's equal to the token ID.
 	 * - For the `AddressDriver` it's equal to the receiver's Ethereum address.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
@@ -305,6 +329,12 @@ export default class NFTDriverClient {
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the configured account.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
 	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).

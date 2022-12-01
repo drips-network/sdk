@@ -143,6 +143,12 @@ export default class DripsHubClient {
 	/**
 	 * Returns the total amount currently stored in `DripsHub` for the given token.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the balance of the token.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 */
@@ -159,6 +165,12 @@ export default class DripsHubClient {
 	 * This method can be used to detect if there are too many cycles to analyze in a single transaction.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the number of receivable cycles.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
@@ -181,6 +193,12 @@ export default class DripsHubClient {
 	 * Receivable balance contains the funds other users drip to and is updated once every cycle.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
 	 * If too high, receiving may become too expensive to fit in a single transaction.
@@ -271,6 +289,12 @@ export default class DripsHubClient {
 	 * Calling this function does not collect but makes the funds ready to split and collect.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {BigNumberish} maxCycles The maximum number of received drips cycles. Must be greater than `0`.
 	 * If too low, receiving will be cheap, but may not cover many cycles.
 	 * If too high, receiving may become too expensive to fit in a single transaction.
@@ -291,6 +315,12 @@ export default class DripsHubClient {
 	 * Squeezable balance contains the funds that can be received from the currently running cycle from a single sender.
 	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {string} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {string} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
@@ -352,6 +382,12 @@ export default class DripsHubClient {
 	 * Splittable balance contains the user's received but not split yet funds.
 	 * @param  {string} userId user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the the splittable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
@@ -449,6 +485,12 @@ export default class DripsHubClient {
 	 * Splits user's received but not split yet funds among receivers.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The current splits receivers.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
@@ -473,6 +515,12 @@ export default class DripsHubClient {
 	 * Collectable balance contains the user's funds that are already split and ready to be collected.
 	 * @param  {string} userId user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the the collectable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
@@ -530,6 +578,12 @@ export default class DripsHubClient {
 	 * Returns the user's drips state.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A Promise which resolves to the {@link DripsState}.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
@@ -563,6 +617,12 @@ export default class DripsHubClient {
 	 * Drips balance contains the funds the user can stream to other users.
 	 * @param  {string} userId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {DripsReceiverStruct[]} receivers The users's current drips receivers.
 	 * @param  {BigNumberish} timestamp The timestamp for which the balance should be calculated. It can't be lower than the timestamp of the last call to `setDrips`.
 	 * If it's bigger than `block.timestamp`, then it's a prediction assuming that `setDrips` won't be called before `timestamp`.
