@@ -39,8 +39,11 @@ query getSplitsConfigByUserId($userId: ID!) {
   user(id: $userId) {
 		splitsEntries {
 			id
-			userId
-			weight
+    	sender {
+      	id
+    	}
+    	userId
+    	weight
 		}
   }
 }
