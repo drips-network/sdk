@@ -1,7 +1,7 @@
 import type { JsonRpcProvider } from '@ethersproject/providers';
 import type { SplitsReceiverStruct } from 'contracts/ImmutableSplitsDriver';
-import type { ContractTransaction } from 'ethers';
 import type { UserMetadataStruct } from 'src/common/types';
+import { DripsErrors } from '../common/DripsError';
 import type { ImmutableSplitsDriver } from '../../contracts/ImmutableSplitsDriver';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import Utils from '../utils';
@@ -76,17 +76,34 @@ export default class ImmutableSplitsDriverClient {
 	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
-	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @returns A `Promise` which resolves to the new user ID.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receivers` are missing.
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
+	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
 	 */
-	public async createSplits(
-		receivers: SplitsReceiverStruct[],
-		userMetadata: UserMetadataStruct[]
-	): Promise<ContractTransaction> {
+	public async createSplits(receivers: SplitsReceiverStruct[], userMetadata: UserMetadataStruct[]): Promise<string> {
 		validateSplitsReceivers(receivers);
 		validateEmitUserMetadataInput(userMetadata);
 
-		return this.#driver.createSplits(receivers, userMetadata);
+		const txResponse = await this.#driver.createSplits(receivers, userMetadata);
+
+		const txReceipt = await txResponse.wait();
+
+		const createdSplitsEventName = 'createdsplits';
+
+		const createdSplitsEvent = txReceipt.events?.filter((e) => e.event?.toLowerCase() === createdSplitsEventName)[0];
+
+		if (!createdSplitsEvent) {
+			throw DripsErrors.txEventNotFound(
+				`Could not retrieve the user ID while creating a new immutable splits configuration: '${createdSplitsEventName}' event was not found in the transaction receipt.` +
+					`txReceipt: ${JSON.stringify(txReceipt)}`,
+				createdSplitsEventName,
+				txReceipt
+			);
+		}
+
+		const { userId } = createdSplitsEvent.args!;
+
+		return BigInt(userId).toString();
 	}
 }
