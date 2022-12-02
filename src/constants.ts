@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import Utils from './utils';
 
 const ASSOCIATED_APP_KEY = 'associatedApp';
 
@@ -9,7 +9,7 @@ const constants = {
 	AMT_PER_SEC_MULTIPLIER: 1_000_000_000,
 	AMT_PER_SEC_EXTRA_DECIMALS: 9,
 	ASSOCIATED_APP_KEY,
-	ASSOCIATED_APP_KEY_BYTES: ethers.utils.formatBytes32String(ASSOCIATED_APP_KEY)
+	ASSOCIATED_APP_KEY_BYTES: Utils.UserMetadata.keyFromString(ASSOCIATED_APP_KEY)
 };
 
 export default constants;
