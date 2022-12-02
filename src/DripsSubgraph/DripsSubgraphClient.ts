@@ -358,28 +358,12 @@ export default class DripsSubgraphClient {
 
 		const nftSubAccounts = response?.data?.nftsubAccounts;
 
-		const subAccounts: NftSubAccount[] = nftSubAccounts
+		return nftSubAccounts
 			? nftSubAccounts.map((s) => ({
 					tokenId: s.id,
-					ownerAddress: s.ownerAddress,
-					associatedApps: []
+					ownerAddress: s.ownerAddress
 			  }))
 			: [];
-
-		subAccounts?.forEach(async (subAccount) => {
-			const subAccountMetadata = await this.query<{
-				userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
-			}>(gql.getMetadataHistoryByUserAndKey, {
-				user: subAccount.tokenId,
-				key: constants.ASSOCIATED_APP_KEY_BYTES
-			});
-
-			const associatedApps = subAccountMetadata?.data?.userMetadataEvents?.map((m) => m.value);
-
-			subAccount.associatedApps.push(...associatedApps);
-		});
-
-		return subAccounts;
 	}
 
 	/**

@@ -93,5 +93,4 @@ export type UserMetadataEntry = {
 export type NftSubAccount = {
 	tokenId: string;
 	ownerAddress: string;
-	associatedApps: string[];
 };
