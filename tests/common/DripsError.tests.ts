@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import type { ContractReceipt } from 'ethers';
 import { DripsErrorCode, DripsErrors } from '../../src/common/DripsError';
 
 describe('DripsErrors', () => {
@@ -136,6 +137,24 @@ describe('DripsErrors', () => {
 			assert.equal(code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
 			assert.equal((context as any).invalidProperty.name, expectedInvalidPropertyName);
 			assert.equal((context as any).invalidProperty.value, expectedInvalidPropertyValue);
+		});
+	});
+
+	describe('dripsReceiverError()', () => {
+		it('should return expected error details', () => {
+			// Act
+			const eventName = 'Event';
+			const expectedMessage = 'Error';
+			const txReceipt = {} as ContractReceipt;
+
+			// Act
+			const { code, message, context } = DripsErrors.txEventNotFound(expectedMessage, eventName, txReceipt);
+
+			// Assert
+			assert.equal(message, expectedMessage);
+			assert.equal((context as any).txReceipt, txReceipt);
+			assert.equal((context as any).eventName, eventName);
+			assert.equal(code, DripsErrorCode.TX_EVENT_NOT_FOUND);
 		});
 	});
 
