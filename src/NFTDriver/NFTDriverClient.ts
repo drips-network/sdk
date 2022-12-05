@@ -153,6 +153,7 @@ export default class NFTDriverClient {
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
+	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
 	 */
 	public async createAccount(
 		transferToAddress: string,
@@ -176,11 +177,7 @@ export default class NFTDriverClient {
 
 		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
 
-		const txReceipt = await txResponse.wait();
-		const transferEvent = txReceipt.events!.filter((e) => e.event?.toLowerCase() === 'transfer')[0]!;
-		const { tokenId } = transferEvent.args!;
-
-		return BigInt(tokenId).toString();
+		return this.#getTokenIdFromTxResponse(txResponse);
 	}
 
 	/**
@@ -205,6 +202,7 @@ export default class NFTDriverClient {
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
+	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
 	 */
 	public async safeCreateAccount(
@@ -229,11 +227,7 @@ export default class NFTDriverClient {
 
 		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
 
-		const txReceipt = await txResponse.wait();
-		const transferEvent = txReceipt.events!.filter((e) => e.event?.toLowerCase() === 'transfer')[0]!;
-		const { tokenId } = transferEvent.args!;
-
-		return BigInt(tokenId).toString();
+		return this.#getTokenIdFromTxResponse(txResponse);
 	}
 
 	/**
@@ -454,5 +448,29 @@ export default class NFTDriverClient {
 		validateEmitUserMetadataInput(userMetadata);
 
 		return this.#driver.emitUserMetadata(tokenId, userMetadata);
+	}
+
+	async #getTokenIdFromTxResponse(txResponse: ContractTransaction) {
+		const txReceipt = await txResponse.wait();
+
+		const transferEventName = 'transfer';
+
+		const transferEvent = txReceipt.events?.filter((e) => e.event?.toLowerCase() === transferEventName)[0];
+
+		if (!transferEvent) {
+			throw DripsErrors.txEventNotFound(
+				`Could not retrieve the minted token ID while creating a new account: '${transferEventName}' event was not found in the transaction receipt.` +
+					'\n' +
+					`Note that the account might be created through. To debug, inspect the owner's accounts to see if there's a new token ID included.` +
+					'\n' +
+					`txReceipt: ${JSON.stringify(txReceipt)}`,
+				transferEventName,
+				txReceipt
+			);
+		}
+
+		const { tokenId } = transferEvent.args!;
+
+		return BigInt(tokenId).toString();
 	}
 }
