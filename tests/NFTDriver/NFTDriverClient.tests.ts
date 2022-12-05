@@ -258,6 +258,32 @@ describe('NFTDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
+		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
+			let threw = false;
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+
+			const transferToAddress = Wallet.createRandom().address;
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: []
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
+
+			try {
+				// Act
+				await testNftDriverClient.createAccount(transferToAddress, undefined, metadata);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.TX_EVENT_NOT_FOUND);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should return the expected token', async () => {
 			// Arrange
 			const expectedTokenId = '1';
@@ -498,6 +524,32 @@ describe('NFTDriverClient', () => {
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
+			let threw = false;
+			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+
+			const transferToAddress = Wallet.createRandom().address;
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: []
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+
+			try {
+				// Act
+				await testNftDriverClient.safeCreateAccount(transferToAddress, undefined, metadata);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.TX_EVENT_NOT_FOUND);
 				threw = true;
 			}
 

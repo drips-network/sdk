@@ -1,10 +1,13 @@
 /* eslint-disable max-classes-per-file */
 
+import type { ContractReceipt } from 'ethers';
+
 export enum DripsErrorCode {
 	MISSING_SIGNER = 'MISSING_SIGNER',
 	INVALID_ADDRESS = 'INVALID_ADDRESS',
 	INVALID_ARGUMENT = 'INVALID_ARGUMENT',
 	MISSING_ARGUMENT = 'MISSING_ARGUMENT',
+	TX_EVENT_NOT_FOUND = 'TX_EVENT_NOT_FOUND',
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
 	SUBGRAPH_QUERY_ERROR = 'SUBGRAPH_QUERY_ERROR',
 	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
@@ -28,6 +31,12 @@ export class DripsErrors {
 	static addressError = (message: string, address: string) =>
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, message, {
 			invalidAddress: address
+		});
+
+	static txEventNotFound = (message: string, eventName: string, txReceipt: ContractReceipt) =>
+		new DripsError(DripsErrorCode.TX_EVENT_NOT_FOUND, message, {
+			eventName,
+			txReceipt
 		});
 
 	static signerMissingError = (
