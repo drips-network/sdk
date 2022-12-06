@@ -1,26 +1,27 @@
 <script lang="ts">
-	import type { BigNumberish, ContractReceipt, ContractTransaction } from 'ethers';
-	import type { NFTDriverClient } from 'radicle-drips';
+	import type { ContractReceipt, ContractTransaction } from 'ethers';
+	import type { AddressDriverClient } from 'radicle-drips';
 	import { isConnected } from '$lib/stores';
 
-	export let nftDriverClient: NFTDriverClient | undefined;
+	export let addressDriverClient: AddressDriverClient | undefined;
 
 	let collecting = false;
 	let tokenAddressInput: string;
-	let tokenIdInput: string;
 	let trasferToAddressInput: string;
 	let errorMessage: string | undefined;
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
-	async function collect(tokenId: BigNumberish, tokenAddress: string, transferToAddress: string) {
+	async function collect(tokenAddress: string, transferToAddress: string) {
 		try {
 			console.log('Collecting...');
 
+			tx = undefined;
 			collecting = true;
+			txReceipt = undefined;
 			errorMessage = undefined;
 
-			tx = await nftDriverClient?.collect(tokenId, tokenAddress, transferToAddress);
+			tx = await addressDriverClient?.collect(tokenAddress, transferToAddress);
 			console.log(tx);
 
 			txReceipt = await tx?.wait();
@@ -36,28 +37,10 @@
 
 <h2>Collect</h2>
 
-<p>
-	Calls the <code
-		>collect( tokenId: BigNumberish, tokenAddress: string, transferToAddress: string )</code
-	>
-	on the
-	<code>NFTDriverClient</code> and collects the received and already split funds and transfers them from
-	the `DripsHub` smart contract to the specified address.
-</p>
-
 <div>
 	<form class="collect">
 		<fieldset>
 			<legend>Collect</legend>
-			<div class="form-group">
-				<label for="tokenId">Collecting user ID:</label>
-				<input
-					placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
-					type="text"
-					name="tokenId"
-					bind:value={tokenIdInput}
-				/>
-			</div>
 			<div class="form-group">
 				<label for="token">ERC20 Token Address:</label>
 				<input
@@ -81,8 +64,7 @@
 					class="btn btn-default"
 					disabled={!$isConnected}
 					type="button"
-					on:click={() => collect(tokenIdInput, tokenAddressInput, trasferToAddressInput)}
-					>Collect</button
+					on:click={() => collect(tokenAddressInput, trasferToAddressInput)}>Collect</button
 				>
 			</div>
 			{#if !$isConnected}

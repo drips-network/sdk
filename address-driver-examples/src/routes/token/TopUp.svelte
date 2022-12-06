@@ -18,6 +18,10 @@
 		const userId = await addressDriverClient!.getUserId();
 		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(userId, assetId);
 
+		console.log(assetId);
+		console.log(userId);
+		console.log(userAssetConfig);
+
 		return (
 			userAssetConfig?.dripsEntries.map((d) => ({
 				config: d.config,
@@ -42,16 +46,12 @@
 
 			const tranferTo = await addressDriverClient!.signer!.getAddress();
 
-			// Amount Per Second must be multiplied by 10^9.
-			// See `DripsReceiverConfig` type for more details.
-			const topUpAmount = BigNumber.from(amount).mul(constants.AMT_PER_SEC_MULTIPLIER).toBigInt();
-
 			tx = await addressDriverClient?.setDrips(
 				tokenAddress,
 				currentReceivers,
 				newReceivers,
 				tranferTo,
-				topUpAmount
+				amount
 			);
 			console.log(tx);
 

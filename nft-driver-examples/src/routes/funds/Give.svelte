@@ -23,7 +23,9 @@
 		try {
 			console.log('Collecting...');
 
+			tx = undefined;
 			giving = true;
+			txReceipt = undefined;
 			errorMessage = undefined;
 
 			tx = await nftDriverClient?.give(tokenId, receiverUserId, tokenAddress, amount);
@@ -78,7 +80,7 @@
 				<input
 					type="text"
 					name="amount"
-					placeholder="e.g., 50000000000000000 (wei)"
+					placeholder="e.g., 50000000000000000 (in the smallest unit, e.g., Wei)"
 					bind:value={amountInput}
 				/>
 			</div>

@@ -4,7 +4,7 @@
 	import Collect from './Collect.svelte';
 	import Give from './Give.svelte';
 
-	$: nftDriverClient = $dripsClients?.nftDriverClient;
+	$: addressDriverClient = $dripsClients?.addressDriverClient;
 </script>
 
 <svelte:head>
@@ -14,7 +14,7 @@
 
 <div class="container">
 	<h1>Send & Receive</h1>
-	<Collect {nftDriverClient} />
-	<Give {nftDriverClient} />
+	<Collect {addressDriverClient} />
+	<Give {addressDriverClient} />
 	<button class="btn btn-default btn-block" on:click={() => goto('/')}>Back to API explorer</button>
 </div>

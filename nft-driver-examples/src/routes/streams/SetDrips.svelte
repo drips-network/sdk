@@ -124,9 +124,9 @@
 
 <p>
 	<strong>
-		The <code>amountPerSec</code> must be multiplied by 10 ^ 19 when passed in the call.</strong
+		The <code>amountPerSec</code> will be multiplied by 10 ^ 19 before passed in the call.</strong
 	>
-	See documentation for details.
+	This is expected, see documentation for details.
 </p>
 
 <form>
@@ -160,7 +160,7 @@
 					<input type="text" placeholder="Receiver user ID" bind:value={dripInput.receiverUserId} />
 					<input
 						type="text"
-						placeholder="Amount per second"
+						placeholder="Amount per second (in the smallest unit, e.g., Wei)"
 						bind:value={dripInput.config.amountPerSec}
 					/>
 					<input

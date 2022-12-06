@@ -267,9 +267,7 @@ export default class NFTDriverClient {
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the giving account.
-	 * @param  {string} receiverUserId The receiver user ID:
-	 * - For the `NFTDriver` it's equal to the token ID.
-	 * - For the `AddressDriver` it's equal to the receiver's Ethereum address.
+	 * @param  {string} receiverUserId The receiver user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to

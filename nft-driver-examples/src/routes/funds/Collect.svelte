@@ -17,7 +17,9 @@
 		try {
 			console.log('Collecting...');
 
+			tx = undefined;
 			collecting = true;
+			txReceipt = undefined;
 			errorMessage = undefined;
 
 			tx = await nftDriverClient?.collect(tokenId, tokenAddress, transferToAddress);

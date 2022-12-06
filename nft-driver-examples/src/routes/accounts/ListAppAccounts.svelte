@@ -37,7 +37,6 @@
 					bind:value={associatedApp}
 					name="to"
 					type="text"
-					minlength="42"
 					required
 					placeholder="e.g., 'myApp'"
 				/>

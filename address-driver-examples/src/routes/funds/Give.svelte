@@ -1,32 +1,26 @@
 <script lang="ts">
 	import type { BigNumberish, ContractReceipt, ContractTransaction } from 'ethers';
-	import type { NFTDriverClient } from 'radicle-drips';
+	import type { AddressDriverClient } from 'radicle-drips';
 	import { isConnected } from '$lib/stores';
 
-	export let nftDriverClient: NFTDriverClient | undefined;
+	export let addressDriverClient: AddressDriverClient | undefined;
 
 	let giving = false;
 	let tokenAddressInput: string;
-	let tokenIdInput: string;
 	let receiverUserIdInput: string;
 	let amountInput: string;
 	let errorMessage: string | undefined;
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
-	async function give(
-		tokenId: BigNumberish,
-		receiverUserId: string,
-		tokenAddress: string,
-		amount: BigNumberish
-	) {
+	async function give(receiverUserId: string, tokenAddress: string, amount: BigNumberish) {
 		try {
-			console.log('Collecting...');
+			console.log('Giving...');
 
 			giving = true;
 			errorMessage = undefined;
 
-			tx = await nftDriverClient?.give(tokenId, receiverUserId, tokenAddress, amount);
+			tx = await addressDriverClient?.give(receiverUserId, tokenAddress, amount);
 			console.log(tx);
 
 			txReceipt = await tx?.wait();
@@ -42,28 +36,10 @@
 
 <h2>Give</h2>
 
-<p>
-	Calls the <code
-		>give( tokenId: BigNumberish, receiverUserId: string, tokenAddress: string, amount: BigNumberish
-		)</code
-	>
-	on the
-	<code>NFTDriverClient</code> and gives funds to the receiver.
-</p>
-
 <div>
 	<form class="collect">
 		<fieldset>
 			<legend>Give</legend>
-			<div class="form-group">
-				<label for="tokenid">Giving user ID:</label>
-				<input
-					placeholder="e.g., 26959946667150639794667015087019630673637144422540572481103610249216"
-					type="text"
-					name="tokenid"
-					bind:value={tokenIdInput}
-				/>
-			</div>
 			<div class="form-group">
 				<label for="receiver">Receiver user ID:</label>
 				<input
@@ -87,7 +63,7 @@
 				<input
 					type="text"
 					name="amount"
-					placeholder="e.g., 50000000000000000 (wei)"
+					placeholder="e.g., 50000000000000000 (in the smallest unit, e.g., Wei)"
 					bind:value={amountInput}
 				/>
 			</div>
@@ -96,8 +72,7 @@
 					class="btn btn-default"
 					disabled={!$isConnected}
 					type="button"
-					on:click={() => give(tokenIdInput, receiverUserIdInput, tokenAddressInput, amountInput)}
-					>Give</button
+					on:click={() => give(receiverUserIdInput, tokenAddressInput, amountInput)}>Give</button
 				>
 			</div>
 			{#if !$isConnected}

@@ -42,17 +42,13 @@
 
 			const tranferTo = await nftDriverClient!.signer.getAddress();
 
-			// Amount Per Second must be multiplied by 10^9.
-			// See `DripsReceiverConfig` type for more details.
-			const topUpAmount = BigNumber.from(amount).mul(constants.AMT_PER_SEC_MULTIPLIER).toBigInt();
-
 			tx = await nftDriverClient?.setDrips(
 				configuredUserId,
 				tokenAddress,
 				currentReceivers,
 				newReceivers,
 				tranferTo,
-				topUpAmount
+				amount
 			);
 			console.log(tx);
 

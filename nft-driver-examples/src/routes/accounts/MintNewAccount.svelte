@@ -21,16 +21,6 @@
 				: undefined;
 
 			console.log('Minting...');
-			console.log(`New token will be transfered to '${transferToAddress}'.`);
-			console.log(
-				associatedAppBytes
-					? `New Account will be associated with '${associatedApp}' app` +
-							`\n '${associatedApp}' in Bytes 👉 '${associatedAppBytes}'` +
-							`\n '${associatedApp}' in DataHexString 👉 '${ethers.utils.hexlify(
-								associatedAppBytes
-							)}'`
-					: 'No Associated App specified for the new account.'
-			);
 
 			minting = true;
 			errorMessage = undefined;
@@ -72,14 +62,7 @@
 
 			<div class="form-group">
 				<label for="to">Associated App (Optional):</label>
-				<input
-					bind:value={associatedAppInput}
-					name="to"
-					type="text"
-					minlength="42"
-					required
-					placeholder="e.g., 'myApp'"
-				/>
+				<input bind:value={associatedAppInput} name="to" type="text" placeholder="e.g., 'myApp'" />
 			</div>
 
 			<div class="form-group">
