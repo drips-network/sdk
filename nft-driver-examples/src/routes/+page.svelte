@@ -1,6 +1,8 @@
 <script lang="ts">
 	import ConnectionDetails from './ConnectionDetails.svelte';
 	import { isConnected } from '$lib/stores';
+
+	console.log("SDK version: 2.0.0-alpha.1")
 </script>
 
 <svelte:head>
