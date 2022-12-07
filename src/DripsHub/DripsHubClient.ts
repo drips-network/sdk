@@ -343,7 +343,7 @@ export default class DripsHubClient {
 		senderId: BigNumberish,
 		historyHash: string,
 		dripsHistory: DripsHistoryStruct[]
-	) {
+	): Promise<ContractTransaction> {
 		validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
 
 		return this.#driver.squeezeDrips(
