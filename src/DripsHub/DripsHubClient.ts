@@ -12,7 +12,8 @@ import {
 	validateDripsReceivers,
 	validateReceiveDripsInput,
 	validateSplitInput,
-	validateSplitsReceivers
+	validateSplitsReceivers,
+	validateSqueezeDripsInput
 } from '../common/validators';
 import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
@@ -308,6 +309,50 @@ export default class DripsHubClient {
 		validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 
 		return this.#driver.receiveDrips(userId, tokenAddress, maxCycles);
+	}
+
+	/**
+	 * Receives drips from the currently running cycle from a single sender.
+	 * It doesn't receive drips from the previous, finished cycles, to do that use `receiveDrips`.
+	 * Squeezed funds won't be received in the next calls to `squeezeDrips` or `receiveDrips`.
+	 * Only funds dripped before `block.timestamp` can be squeezed.
+	 *
+	 * **Tip**: you might want to use `DripsSubgraphClient.getArgsForSqueezingAllDrips` to easily populate the arguments for squeezing all Drips up to "now".
+	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
+	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
+	 * @param  {string} historyHash The sender's history hash which was valid right before they set up the sequence of configurations described by `dripsHistory`.
+	 * @param  {BigNumberish} dripsHistory The sequence of the sender's drips configurations.
+	 * It can start at an arbitrary past configuration, but must describe all the configurations
+	 * which have been used since then including the current one, in the chronological order.
+	 * Only drips described by `dripsHistory` will be squeezed.
+	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
+	 * @returns A `Promise` which resolves to the contract transaction.
+	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
+	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
+	 */
+	public squeezeDrips(
+		userId: string,
+		tokenAddress: string,
+		senderId: BigNumberish,
+		historyHash: string,
+		dripsHistory: DripsHistoryStruct[]
+	) {
+		validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
+
+		return this.#driver.squeezeDrips(
+			userId,
+			tokenAddress,
+			senderId,
+			ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
+			dripsHistory
+		);
 	}
 
 	/**

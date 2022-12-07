@@ -31,6 +31,7 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
+import type { DripsHistoryStruct } from '../common/types';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -507,6 +508,101 @@ export default class DripsSubgraphClient {
 		const response = await this.query<QueryResponse>(gql.getGivenEventsByUserId, { userId });
 
 		return response?.data?.givenEvents?.map(mapGivenEventToDto) || [];
+	}
+
+	/**
+	 * Calculates the arguments for squeezing all Drips up to "now" for the given sender and token.
+	 * @see `DripsHubClient.squeezeDrips` method for more.
+	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 *
+	 * It must preserve amounts, so if some amount of tokens is transferred to
+	 * an address, then later the same amount must be transferrable from that address.
+	 * Tokens which rebase the holders' balances, collect taxes on transfers,
+	 * or impose any restrictions on holding or transferring tokens are not supported.
+	 * If you use such tokens in the protocol, they can get stuck or lost.
+	 * @returns A `Promise` which resolves to the `DripsHubClient.squeezeDrips` arguments.
+	 */
+	public async getArgsForSqueezingAllDrips(
+		userId: string,
+		senderId: string,
+		tokenAddress: string
+	): Promise<
+		[userId: string, tokenAddress: string, senderId: string, historyHash: string, dripsHistory: DripsHistoryStruct[]]
+	> {
+		// Get all `DripsSet` events (drips configurations) for the sender.
+		const dripsSetEvents = (await this.getDripsSetEventsByUserId(senderId))
+			// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
+			?.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+
+		const squeezableDripsSetEvents: DripsSetEvent[] = [];
+
+		// Iterate over all events.
+		if (dripsSetEvents?.length) {
+			for (let i = 0; i < dripsSetEvents.length; i++) {
+				const dripsConfiguration = dripsSetEvents[i];
+
+				// Keep the drips configurations of the current cycle.
+				const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
+				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp));
+				if (eventTimestamp >= currentCycleStartDate) {
+					squeezableDripsSetEvents.push(dripsConfiguration);
+				}
+				// Get the last event of the previous cycle.
+				else {
+					squeezableDripsSetEvents.push(dripsConfiguration);
+					break;
+				}
+			}
+		}
+
+		// The last (oldest) event added, provides the hash prior to the DripsHistory (or 0, if there was only one event).
+		const historyHash =
+			squeezableDripsSetEvents?.length > 1
+				? squeezableDripsSetEvents[squeezableDripsSetEvents.length - 1].dripsHistoryHash
+				: ethers.constants.HashZero;
+
+		// Transform the events into `DripsHistory` objects.
+		const dripsHistory: DripsHistoryStruct[] = squeezableDripsSetEvents
+			?.map((dripsSetEvent) => {
+				// By default a configuration should *not* be squeezed.
+				let shouldSqueeze = false;
+
+				// Iterate over all event's `DripsReceiverSeen` events (receivers).
+				for (let i = 0; i < dripsSetEvent.dripsReceiverSeenEvents.length; i++) {
+					const receiver = dripsSetEvent.dripsReceiverSeenEvents[i];
+
+					// Mark as squeezable only the events that drip to the `userId` for the given asset; the others should not be squeezed.
+					if (
+						receiver.receiverUserId === userId &&
+						dripsSetEvent.assetId === Utils.Asset.getIdFromAddress(tokenAddress)
+					) {
+						shouldSqueeze = true;
+						// Break, because drips receivers are unique.
+						break;
+					}
+				}
+
+				const historyItem: DripsHistoryStruct = {
+					dripsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
+					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
+						? dripsSetEvent.dripsReceiverSeenEvents.map((r) => ({
+								userId: r.receiverUserId,
+								config: r.config
+						  }))
+						: [],
+					updateTime: dripsSetEvent.blockTimestamp,
+					maxEnd: dripsSetEvent.maxEnd
+				};
+
+				return historyItem;
+			})
+			// Reverse from DESC to ASC order, as the protocol expects.
+			.reverse();
+
+		// Return the parameters required by the `squeezeDrips` methods.
+		return [userId, tokenAddress, senderId, historyHash, dripsHistory];
 	}
 
 	/** @internal */

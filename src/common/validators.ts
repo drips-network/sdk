@@ -3,7 +3,7 @@ import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct, UserMetadataStruct } from './types';
+import type { DripsReceiverConfig, SplitsReceiverStruct, UserMetadataStruct, DripsHistoryStruct } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -265,4 +265,43 @@ export const validateSplitInput = (
 export const validateCollectInput = (tokenAddress: string, transferToAddress: string) => {
 	validateAddress(tokenAddress);
 	validateAddress(transferToAddress);
+};
+
+/** @internal */
+export const validateSqueezeDripsInput = (
+	userId: string,
+	tokenAddress: string,
+	senderId: BigNumberish,
+	historyHash: string,
+	dripsHistory: DripsHistoryStruct[]
+) => {
+	validateAddress(tokenAddress);
+
+	if (!userId) {
+		throw DripsErrors.argumentMissingError(
+			`Invalid input for squeezing: '${nameOf({ userId })}' is missing.`,
+			nameOf({ userId })
+		);
+	}
+
+	if (!senderId) {
+		throw DripsErrors.argumentMissingError(
+			`Invalid input for squeezing: '${nameOf({ senderId })}' is missing.`,
+			nameOf({ senderId })
+		);
+	}
+
+	if (!historyHash) {
+		throw DripsErrors.argumentMissingError(
+			`Invalid input for squeezing: '${nameOf({ historyHash })}' is missing.`,
+			nameOf({ historyHash })
+		);
+	}
+
+	if (!dripsHistory) {
+		throw DripsErrors.argumentMissingError(
+			`Invalid input for squeezing: '${nameOf({ dripsHistory })}' is missing.`,
+			nameOf({ dripsHistory })
+		);
+	}
 };
