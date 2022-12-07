@@ -21,11 +21,11 @@ import {
 	SplitEvent,
 	SplitsEntry,
 	NftSubAccount,
-	SqueezedDrips,
 	DripsSetEvent,
 	CollectedEvent,
 	UserAssetConfig,
 	UserMetadataEntry,
+	SqueezedDripsEvent,
 	ReceivedDripsEvent,
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
@@ -69,7 +69,6 @@ export {
 	GivenEvent,
 	SplitResult,
 	SplitsEntry,
-	SqueezedDrips,
 	NftSubAccount,
 	DripsSetEvent,
 	NetworkConfig,
@@ -85,6 +84,7 @@ export {
 	UserMetadataStruct,
 	ReceivedDripsEvent,
 	NFTDriverInterface,
+	SqueezedDripsEvent,
 	DripsHistoryStruct,
 	CollectableBalance,
 	DripsReceiverStruct,
