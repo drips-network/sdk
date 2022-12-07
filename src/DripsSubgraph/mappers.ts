@@ -7,7 +7,8 @@ import type {
 	SplitEvent,
 	ReceivedDripsEvent,
 	GivenEvent,
-	CollectedEvent
+	CollectedEvent,
+	SqueezedDripsEvent
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
 
@@ -73,22 +74,32 @@ export const mapReceivedDripsEventToDto = (
 });
 
 /** @internal */
-export const mapCollectedEventToDto = (splitEvent: SubgraphTypes.CollectedEvent): CollectedEvent => ({
-	id: splitEvent.id,
-	collected: BigInt(splitEvent.collected),
-	assetId: BigInt(splitEvent.assetId),
-	blockTimestamp: BigInt(splitEvent.blockTimestamp),
-	userId: splitEvent.user.id
+export const mapCollectedEventToDto = (collectedEvent: SubgraphTypes.CollectedEvent): CollectedEvent => ({
+	id: collectedEvent.id,
+	collected: BigInt(collectedEvent.collected),
+	assetId: BigInt(collectedEvent.assetId),
+	blockTimestamp: BigInt(collectedEvent.blockTimestamp),
+	userId: collectedEvent.user.id
 });
 
 /** @internal */
-export const mapGivenEventToDto = (splitEvent: SubgraphTypes.GivenEvent): GivenEvent => ({
-	id: splitEvent.id,
-	amount: BigInt(splitEvent.amt),
-	assetId: BigInt(splitEvent.assetId),
-	blockTimestamp: BigInt(splitEvent.blockTimestamp),
-	receiverUserId: splitEvent.receiverUserId,
-	userId: splitEvent.userId
+export const mapSqueezedDripsToDto = (squeezedDripsEvent: SubgraphTypes.SqueezedDripsEvent): SqueezedDripsEvent => ({
+	amount: BigInt(squeezedDripsEvent.amt),
+	assetId: BigInt(squeezedDripsEvent.assetId),
+	blockTimestamp: BigInt(squeezedDripsEvent.blockTimestamp),
+	id: squeezedDripsEvent.id,
+	senderId: squeezedDripsEvent.senderId,
+	userId: squeezedDripsEvent.userId
+});
+
+/** @internal */
+export const mapGivenEventToDto = (givenEvent: SubgraphTypes.GivenEvent): GivenEvent => ({
+	id: givenEvent.id,
+	amount: BigInt(givenEvent.amt),
+	assetId: BigInt(givenEvent.assetId),
+	blockTimestamp: BigInt(givenEvent.blockTimestamp),
+	receiverUserId: givenEvent.receiverUserId,
+	userId: givenEvent.userId
 });
 
 /** @internal */

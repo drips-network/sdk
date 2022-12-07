@@ -7,6 +7,7 @@ import {
 	mapReceivedDripsEventToDto,
 	mapSplitEntryToDto,
 	mapSplitEventToDto,
+	mapSqueezedDripsToDto,
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
@@ -107,6 +108,31 @@ describe('mappers', () => {
 			assert.equal(result.assetId, BigInt(event.assetId));
 			assert.equal(result.amount, BigInt(event.amt));
 			assert.equal(result.receiverId, event.receiverId);
+			assert.equal(result.userId, event.userId);
+			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
+		});
+	});
+
+	describe('mapSqueezedDripsToDto()', () => {
+		it('should return the expected result', () => {
+			// Arrange
+			const event: SubgraphTypes.SqueezedDripsEvent = {
+				assetId: 1n,
+				blockTimestamp: 2n,
+				id: '3',
+				amt: '4',
+				senderId: '5',
+				userId: '6'
+			} as SubgraphTypes.SqueezedDripsEvent;
+
+			// Act
+			const result = mapSqueezedDripsToDto(event);
+
+			// Assert
+			assert.equal(result.id, event.id);
+			assert.equal(result.assetId, BigInt(event.assetId));
+			assert.equal(result.amount, BigInt(event.amt));
+			assert.equal(result.senderId, event.senderId);
 			assert.equal(result.userId, event.userId);
 			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
 		});

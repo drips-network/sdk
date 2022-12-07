@@ -1041,7 +1041,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getCollectedEventsByUserId', () => {
+	describe('getCollectedEventsByUserId()', () => {
 		it('should throw an argumentMissingError when user ID is missing', async () => {
 			let threw = false;
 
@@ -1109,6 +1109,78 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(result![0].id, events[0].id);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getCollectedEventsByUserId, { userId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getSqueezedDripsEventsByUserId()', () => {
+		it('should throw an argumentMissingError when user ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getSqueezedDripsEventsByUserId(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return empty array when no events are found', async () => {
+			// Arrange
+			const userId = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId })
+				.resolves({
+					data: {
+						givenEvents: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getSqueezedDripsEventsByUserId(userId);
+
+			// Assert
+			assert.isEmpty(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const userId = '1';
+			const events: SubgraphTypes.SqueezedDripsEvent[] = [
+				{
+					assetId: 1n,
+					blockTimestamp: 2n,
+					id: '3',
+					amt: '4',
+					senderId: '5',
+					userId: '6'
+				} as SubgraphTypes.SqueezedDripsEvent
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId })
+				.resolves({
+					data: {
+						squeezedDripsEvents: events
+					}
+				});
+
+			// Act
+			const result = await testSubgraphClient.getSqueezedDripsEventsByUserId(userId);
+
+			// Assert
+			assert.equal(result![0].id, events[0].id);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getSqueezedDripsEventsByUserId, { userId }),
 				'Expected method to be called with different arguments'
 			);
 		});

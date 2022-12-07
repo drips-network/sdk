@@ -1,3 +1,5 @@
+import { type } from 'os';
+
 export type UserAssetConfig = {
 	id: string;
 	assetId: bigint;
@@ -40,6 +42,15 @@ export type CollectedEvent = {
 	assetId: bigint;
 	collected: bigint;
 	blockTimestamp: bigint;
+};
+
+export type SqueezedDripsEvent = {
+	amount: bigint;
+	assetId: bigint;
+	blockTimestamp: bigint;
+	id: string;
+	senderId: string;
+	userId: string;
 };
 
 export type SplitEvent = {

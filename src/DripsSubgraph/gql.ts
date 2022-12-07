@@ -158,6 +158,19 @@ query getCollectedEventsByUserId($userId: String!) {
 }
 `;
 
+export const getSqueezedDripsEventsByUserId = `#graphql
+query getSqueezedDripsEventsByUserId($userId: String!) {
+  squeezedDripsEvents(where: {userId: $userId}) {
+		id
+    userId
+    assetId
+    senderId
+    amt
+    blockTimestamp
+	}
+}
+`;
+
 export const getSplitEventsByUserId = `#graphql
 query getSplitEventsByUserId($userId: String!) {
   splitEvents(where: {userId: $userId}) {

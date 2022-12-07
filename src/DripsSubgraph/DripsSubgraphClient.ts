@@ -18,7 +18,8 @@ import type {
 	SplitEvent,
 	ReceivedDripsEvent,
 	GivenEvent,
-	CollectedEvent
+	CollectedEvent,
+	SqueezedDripsEvent
 } from './types';
 import {
 	mapCollectedEventToDto,
@@ -28,6 +29,7 @@ import {
 	mapReceivedDripsEventToDto,
 	mapSplitEntryToDto,
 	mapSplitEventToDto,
+	mapSqueezedDripsToDto,
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
@@ -436,6 +438,27 @@ export default class DripsSubgraphClient {
 		const response = await this.query<QueryResponse>(gql.getCollectedEventsByUserId, { userId });
 
 		return response?.data?.collectedEvents?.map(mapCollectedEventToDto) || [];
+	}
+
+	/**
+	 * Returns the user's `SqueezedDrips` events.
+	 * @param  {string} userId The user ID.
+	 * @returns A `Promise` which resolves to the user's `SqueezedDrips` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getSqueezedDripsEventsByUserId(userId: string): Promise<SqueezedDripsEvent[]> {
+		if (!userId) {
+			throw DripsErrors.argumentError(`Could not get 'squeezed Drips' events: ${nameOf({ userId })} is missing.`);
+		}
+
+		type QueryResponse = {
+			squeezedDripsEvents: SubgraphTypes.SqueezedDripsEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getSqueezedDripsEventsByUserId, { userId });
+
+		return response?.data?.squeezedDripsEvents?.map(mapSqueezedDripsToDto) || [];
 	}
 
 	/**
