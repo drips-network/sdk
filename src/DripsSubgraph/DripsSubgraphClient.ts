@@ -223,7 +223,7 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all `DripsReceiverSeen` events for a given receiver.
+	 * Returns all `DripsReceiverSeen` events for the given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeen` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
@@ -626,6 +626,52 @@ export default class DripsSubgraphClient {
 
 		// Return the parameters required by the `squeezeDrips` methods.
 		return [userId, tokenAddress, senderId, historyHash, dripsHistory];
+	}
+
+	/**
+	 * Returns a list of senders for which drips can _potentially_ be squeezed, for a given receiver.
+	 *
+	 * The returned senders have set up a configuration that drips to the given `receiver`
+	 * but **it's not guaranteed that the sender is still dripping to this sender**.
+	 * The sender might be out of funds, for example.
+	 * @param  {string} receiverId The receiver's user ID.
+	 * @returns A `Promise` which resolves to a `Record` with keys being the sender IDs and values the asset (ERC20 token) IDs.
+	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
+		type ApiResponse = {
+			dripsReceiverSeenEvents: DripsReceiverSeenEvent[];
+		};
+
+		// Get all `DripsReceiverSeen` events for the given receiver.
+		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverId });
+		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
+
+		if (!dripsReceiverSeenEvents?.length) {
+			return {};
+		}
+
+		const squeezableSenders: Record<string, string[]> = {}; // key: senderId, value: [asset1Id, asset2Id, ...]
+		const processedSenders: Record<string, boolean> = {};
+
+		// Iterate over all `DripsReceiverSeen` events.
+		for (let i = 0; i < dripsReceiverSeenEvents.length; i++) {
+			const dripsReceiverSeenEvent = dripsReceiverSeenEvents[i];
+
+			const { senderUserId, dripsSetEvent } = dripsReceiverSeenEvent;
+
+			if (!processedSenders[senderUserId.toString()]) {
+				// Mark the sender as processed in order not to process the same sender ID multiple times.
+				processedSenders[senderUserId.toString()] = true;
+
+				if (!squeezableSenders[senderUserId.toString()]) {
+					squeezableSenders[senderUserId.toString()] = [];
+				}
+				squeezableSenders[senderUserId.toString()].push(dripsSetEvent.assetId.toString());
+			}
+		}
+
+		return squeezableSenders;
 	}
 
 	/** @internal */
