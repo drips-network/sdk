@@ -16,8 +16,8 @@ query getUserAssetConfigById($configId: ID!) {
 `;
 
 export const getAllUserAssetConfigsByUserId = `#graphql
-query getAllUserAssetConfigsByUserId($userId: ID!) {
-  user(id: $userId) {
+query getAllUserAssetConfigsByUserId($userId: ID!, $skip: BigInt, $first: BigInt) {
+  user(id: $userId, skip: $skip, first: $first) {
     assetConfigs {
       id
 			assetId

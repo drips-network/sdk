@@ -126,7 +126,11 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigsByUserId(
+		userId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<UserAssetConfig[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset configs: ${nameOf({ userId })} is missing.`,
@@ -140,7 +144,7 @@ export default class DripsSubgraphClient {
 			};
 		};
 
-		const response = await this.query<QueryResponse>(gql.getAllUserAssetConfigsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getAllUserAssetConfigsByUserId, { userId, skip, first });
 
 		return response?.data?.user?.assetConfigs?.map(mapUserAssetConfigToDto) || [];
 	}
