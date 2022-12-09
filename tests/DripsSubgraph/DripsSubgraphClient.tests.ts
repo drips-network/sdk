@@ -245,7 +245,7 @@ describe('DripsSubgraphClient', () => {
 
 			const queryStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getAllUserAssetConfigsByUserId, { userId })
+				.withArgs(gql.getAllUserAssetConfigsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						user: {
@@ -264,7 +264,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(actualConfigs[0], expectedConfig);
 			assert(
-				queryStub.calledOnceWithExactly(gql.getAllUserAssetConfigsByUserId, { userId }),
+				queryStub.calledOnceWithExactly(gql.getAllUserAssetConfigsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 			assert(
@@ -279,7 +279,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getAllUserAssetConfigsByUserId, { userId })
+				.withArgs(gql.getAllUserAssetConfigsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						user: {}
@@ -323,7 +323,7 @@ describe('DripsSubgraphClient', () => {
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitsConfigByUserId, { userId })
+				.withArgs(gql.getSplitsConfigByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						user: {
@@ -345,7 +345,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(splits[0], expectedSplitEntry);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitsConfigByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getSplitsConfigByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 			assert(mapperStub.calledOnceWith(splitsEntries[0]), 'Expected method to be called with different arguments');
@@ -356,7 +356,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitsConfigByUserId, { userId })
+				.withArgs(gql.getSplitsConfigByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						user: {}
@@ -369,7 +369,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.isEmpty(splits);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitsConfigByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getSplitsConfigByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -404,7 +404,7 @@ describe('DripsSubgraphClient', () => {
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitEntriesByReceiverUserId, { receiverUserId })
+				.withArgs(gql.getSplitEntriesByReceiverUserId, { receiverUserId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						splitsEntries
@@ -424,7 +424,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(splits[0], expectedSplitEntry);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitEntriesByReceiverUserId, { receiverUserId }),
+				clientStub.calledOnceWithExactly(gql.getSplitEntriesByReceiverUserId, { receiverUserId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 			assert(mapperStub.calledOnceWith(splitsEntries[0]), 'Expected method to be called with different arguments');
@@ -435,7 +435,7 @@ describe('DripsSubgraphClient', () => {
 			const receiverUserId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitEntriesByReceiverUserId, { receiverUserId })
+				.withArgs(gql.getSplitEntriesByReceiverUserId, { receiverUserId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						splitsEntries: []
@@ -448,7 +448,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.isEmpty(splits);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitEntriesByReceiverUserId, { receiverUserId }),
+				clientStub.calledOnceWithExactly(gql.getSplitEntriesByReceiverUserId, { receiverUserId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -481,7 +481,7 @@ describe('DripsSubgraphClient', () => {
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsSetEventsByUserId, { userId })
+				.withArgs(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						dripsSetEvents
@@ -501,7 +501,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result[0], expectedDripsSetEvent);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 			assert(mapperStub.calledOnceWith(dripsSetEvents[0]), 'Expected method to be called with different arguments');
@@ -512,7 +512,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsSetEventsByUserId, { userId })
+				.withArgs(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						dripsSetEvents: undefined
@@ -525,7 +525,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.isEmpty(dripsSetEvents);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -559,7 +559,7 @@ describe('DripsSubgraphClient', () => {
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId })
+				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						dripsReceiverSeenEvents
@@ -579,7 +579,11 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result[0], expectedDripsReceiverSeenEvent);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId }),
+				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, {
+					receiverUserId,
+					skip: 0,
+					first: 100
+				}),
 				'Expected method to be called with different arguments'
 			);
 			assert(
@@ -593,7 +597,7 @@ describe('DripsSubgraphClient', () => {
 			const receiverUserId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId })
+				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						dripsReceiverSeenEvents: []
@@ -606,7 +610,11 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.isEmpty(dripsSetEvents);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId }),
+				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, {
+					receiverUserId,
+					skip: 0,
+					first: 100
+				}),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -684,7 +692,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getMetadataHistoryByUser, { userId })
+				.withArgs(gql.getMetadataHistoryByUser, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						userMetadataEvent: null
@@ -713,7 +721,9 @@ describe('DripsSubgraphClient', () => {
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByUser, {
-					userId: userMetadataEvents[0].userId
+					userId: userMetadataEvents[0].userId,
+					skip: 0,
+					first: 100
 				})
 				.resolves({
 					data: {
@@ -731,7 +741,9 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByUser, {
-					userId: userMetadataEvents[0].userId
+					userId: userMetadataEvents[0].userId,
+					skip: 0,
+					first: 100
 				}),
 				'Expected method to be called with different arguments'
 			);
@@ -753,7 +765,9 @@ describe('DripsSubgraphClient', () => {
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByUserAndKey, {
 					userId: userMetadataEvents[0].userId,
-					key: userMetadataEvents[0].key.toString()
+					key: userMetadataEvents[0].key.toString(),
+					skip: 0,
+					first: 100
 				})
 				.resolves({
 					data: {
@@ -775,7 +789,9 @@ describe('DripsSubgraphClient', () => {
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByUserAndKey, {
 					userId: userMetadataEvents[0].userId,
-					key: userMetadataEvents[0].key
+					key: userMetadataEvents[0].key,
+					skip: 0,
+					first: 100
 				}),
 				'Expected method to be called with different arguments'
 			);
@@ -921,7 +937,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getNftSubAccountsByOwner, { ownerAddress })
+				.withArgs(gql.getNftSubAccountsByOwner, { ownerAddress, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						nftsubAccounts
@@ -935,7 +951,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(result![0].tokenId, nftsubAccounts[0].id);
 			assert.equal(result![0].ownerAddress, nftsubAccounts[0].ownerAddress);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getNftSubAccountsByOwner, { ownerAddress }),
+				clientStub.calledOnceWithExactly(gql.getNftSubAccountsByOwner, { ownerAddress, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1016,7 +1032,9 @@ describe('DripsSubgraphClient', () => {
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
-					value: associatedApp
+					value: associatedApp,
+					skip: 0,
+					first: 100
 				})
 				.resolves({
 					data: {
@@ -1034,7 +1052,9 @@ describe('DripsSubgraphClient', () => {
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
-					value: associatedApp
+					value: associatedApp,
+					skip: 0,
+					first: 100
 				}),
 				'Expected method to be called with different arguments'
 			);
@@ -1095,7 +1115,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getCollectedEventsByUserId, { userId })
+				.withArgs(gql.getCollectedEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						collectedEvents: events
@@ -1108,7 +1128,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getCollectedEventsByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getCollectedEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1166,7 +1186,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSplitEventsByUserId, { userId: events[0].userId })
+				.withArgs(gql.getSplitEventsByUserId, { userId: events[0].userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						splitEvents: events
@@ -1179,7 +1199,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSplitEventsByUserId, { userId: events[0].userId }),
+				clientStub.calledOnceWithExactly(gql.getSplitEventsByUserId, { userId: events[0].userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1238,7 +1258,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getReceivedDripsEventsByUserId, { userId })
+				.withArgs(gql.getReceivedDripsEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						receivedDripsEvents: events
@@ -1251,7 +1271,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getReceivedDripsEventsByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getReceivedDripsEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1310,7 +1330,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getGivenEventsByUserId, { userId })
+				.withArgs(gql.getGivenEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						givenEvents: events
@@ -1323,7 +1343,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getGivenEventsByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getGivenEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
