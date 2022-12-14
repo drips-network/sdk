@@ -16,9 +16,9 @@ query getUserAssetConfigById($configId: ID!) {
 `;
 
 export const getAllUserAssetConfigsByUserId = `#graphql
-query getAllUserAssetConfigsByUserId($userId: ID!) {
+query getAllUserAssetConfigsByUserId($userId: ID!, $skip: Int, $first: Int) {
   user(id: $userId) {
-    assetConfigs {
+    assetConfigs(skip: $skip, first: $first) {
       id
 			assetId
 			dripsEntries {
@@ -35,9 +35,9 @@ query getAllUserAssetConfigsByUserId($userId: ID!) {
 `;
 
 export const getSplitsConfigByUserId = `#graphql
-query getSplitsConfigByUserId($userId: ID!) {
+query getSplitsConfigByUserId($userId: ID!, $skip: Int, $first: Int) {
   user(id: $userId) {
-		splitsEntries {
+		splitsEntries(skip: $skip, first: $first) {
 			id
     	sender {
       	id
@@ -49,9 +49,22 @@ query getSplitsConfigByUserId($userId: ID!) {
 }
 `;
 
+export const getSplitEntriesByReceiverUserId = `#graphql
+query getSplitEntriesByReceiverUserId($receiverUserId: String!, $skip: Int, $first: Int) {
+  splitsEntries(where: {userId: $receiverUserId}, skip: $skip, first: $first) {
+    id
+    sender {
+      id
+    }
+    userId
+    weight
+  }
+}
+`;
+
 export const getDripsSetEventsByUserId = `#graphql
-query getDripsSetEventsByUserId($userId: String!) {
-  dripsSetEvents(where: {userId: $userId}) {
+query getDripsSetEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  dripsSetEvents(where: {userId: $userId}, skip: $skip, first: $first) {
 		id
     userId
     assetId
@@ -70,8 +83,8 @@ query getDripsSetEventsByUserId($userId: String!) {
 `;
 
 export const getDripsReceiverSeenEventsByReceiverId = `#graphql
-query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!) {
-  dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}) {
+query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!, $skip: Int, $first: Int) {
+  dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}, skip: $skip, first: $first) {
 		id
     config
 		receiverUserId
@@ -88,8 +101,8 @@ query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!) {
 `;
 
 export const getMetadataHistoryByUser = `#graphql
-query getMetadataHistoryByUser($userId: String!) {
-  userMetadataEvents(where: {userId: $userId}) {
+query getMetadataHistoryByUser($userId: String!,$skip: Int, $first: Int) {
+  userMetadataEvents(where: {userId: $userId}, skip: $skip, first: $first) {
 		id
     key
     value
@@ -100,8 +113,8 @@ query getMetadataHistoryByUser($userId: String!) {
 `;
 
 export const getMetadataHistoryByUserAndKey = `#graphql
-query getMetadataHistoryByUserAndKey($userId: String!, $key: Bytes!) {
-  userMetadataEvents(where: {userId: $userId, key: $key}) {
+query getMetadataHistoryByUserAndKey($userId: String!, $key: Bytes!, $skip: Int, $first: Int) {
+  userMetadataEvents(where: {userId: $userId, key: $key}, skip: $skip, first: $first) {
 		id
     key
     value
@@ -112,14 +125,76 @@ query getMetadataHistoryByUserAndKey($userId: String!, $key: Bytes!) {
 `;
 
 export const getMetadataHistoryByKeyAndValue = `#graphql
-query getMetadataHistoryByKeyAndValue($key: Bytes!, $value: Bytes!) {
-  userMetadataEvents(where: {key: $key, value: $value}) {
+query getMetadataHistoryByKeyAndValue($key: Bytes!, $value: Bytes!, $skip: Int, $first: Int) {
+  userMetadataEvents(where: {key: $key, value: $value}, skip: $skip, first: $first) {
 		id
     key
     value
     userId
     lastUpdatedBlockTimestamp
   }
+}
+`;
+
+export const getNftSubAccountsByOwner = `#graphql
+query getNftSubAccountsByOwner($ownerAddress: Bytes!, $skip: Int, $first: Int) {
+	nftsubAccounts(where: {ownerAddress: $ownerAddress}, skip: $skip, first: $first) {
+		id
+		ownerAddress
+	}
+}
+`;
+
+export const getCollectedEventsByUserId = `#graphql
+query getCollectedEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  collectedEvents(where: {user: $userId}, skip: $skip, first: $first) {
+		id
+		user {
+			id
+		}
+		assetId
+		collected
+		blockTimestamp
+	}
+}
+`;
+
+export const getSplitEventsByUserId = `#graphql
+query getSplitEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  splitEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+		id
+		userId
+		receiverId
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;
+
+export const getReceivedDripsEventsByUserId = `#graphql
+query getReceivedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  receivedDripsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+		id
+		userId
+		receivableCycles
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;
+
+export const getGivenEventsByUserId = `#graphql
+query getGivenEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  givenEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+		id
+		userId
+		receiverUserId
+		assetId
+		amt
+		blockTimestamp
+	}
 }
 `;
 
@@ -135,29 +210,6 @@ query getLatestUserMetadata($id: ID!) {
 }
 `;
 
-export const getNftSubAccountsByOwner = `#graphql
-query getNftSubAccountsByOwner($ownerAddress: Bytes!) {
-	nftsubAccounts(where: {ownerAddress: $ownerAddress}) {
-		id
-		ownerAddress
-	}
-}
-`;
-
-export const getCollectedEventsByUserId = `#graphql
-query getCollectedEventsByUserId($userId: String!) {
-  collectedEvents(where: {user: $userId}) {
-		id
-		user {
-			id
-		}
-		assetId
-		collected
-		blockTimestamp
-	}
-}
-`;
-
 export const getSqueezedDripsEventsByUserId = `#graphql
 query getSqueezedDripsEventsByUserId($userId: String!) {
   squeezedDripsEvents(where: {userId: $userId}) {
@@ -167,58 +219,6 @@ query getSqueezedDripsEventsByUserId($userId: String!) {
     senderId
     amt
     blockTimestamp
-	}
-}
-`;
-
-export const getSplitEventsByUserId = `#graphql
-query getSplitEventsByUserId($userId: String!) {
-  splitEvents(where: {userId: $userId}) {
-		id
-		userId
-		receiverId
-		assetId
-		amt
-		blockTimestamp
-	}
-}
-`;
-
-export const getSplitEntriesByReceiverUserId = `#graphql
-query getSplitEntriesByReceiverUserId($receiverUserId: String!) {
-  splitsEntries(where: {userId: $receiverUserId}) {
-    id
-    sender {
-      id
-    }
-    userId
-    weight
-  }
-}
-`;
-
-export const getReceivedDripsEventsByUserId = `#graphql
-query getReceivedDripsEventsByUserId($userId: String!) {
-  receivedDripsEvents(where: {userId: $userId}) {
-		id
-		userId
-		receivableCycles
-		assetId
-		amt
-		blockTimestamp
-	}
-}
-`;
-
-export const getGivenEventsByUserId = `#graphql
-query getGivenEventsByUserId($userId: String!) {
-  givenEvents(where: {userId: $userId}) {
-		id
-		userId
-		receiverUserId
-		assetId
-		amt
-		blockTimestamp
 	}
 }
 `;

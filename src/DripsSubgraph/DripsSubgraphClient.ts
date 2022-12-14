@@ -87,7 +87,7 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the user's drips configuration for the given asset.
+	 * Returns the drips configuration for the given user and asset.
 	 * @param  {string} userId The user ID.
 	 * @param  {BigNumberish} assetId The asset ID.
 	 * @returns A `Promise` which resolves to the user's drips configuration, or `null` if the configuration is not found.
@@ -123,13 +123,19 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all drips configurations for the given user.
+	 * Returns a list of drips configurations for the given user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getAllUserAssetConfigsByUserId(userId: string): Promise<UserAssetConfig[]> {
+	public async getAllUserAssetConfigsByUserId(
+		userId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<UserAssetConfig[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user asset configs: ${nameOf({ userId })} is missing.`,
@@ -143,19 +149,21 @@ export default class DripsSubgraphClient {
 			};
 		};
 
-		const response = await this.query<QueryResponse>(gql.getAllUserAssetConfigsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getAllUserAssetConfigsByUserId, { userId, skip, first });
 
 		return response?.data?.user?.assetConfigs?.map(mapUserAssetConfigToDto) || [];
 	}
 
 	/**
-	 * Returns the user's splits configuration.
+	 * Returns the splits configuration for the give user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitsConfigByUserId(userId: string): Promise<SplitsEntry[]> {
+	public async getSplitsConfigByUserId(userId: string, skip: number = 0, first: number = 100): Promise<SplitsEntry[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get splits config: ${nameOf({ userId })} is missing.`,
@@ -169,19 +177,25 @@ export default class DripsSubgraphClient {
 			};
 		};
 
-		const response = await this.query<QueryResponse>(gql.getSplitsConfigByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getSplitsConfigByUserId, { userId, skip, first });
 
 		return response?.data?.user?.splitsEntries?.map(mapSplitEntryToDto) || [];
 	}
 
 	/**
-	 * Returns the receiver's `Split` entries.
+	 * Returns a list of `Split` entries for the given user.
 	 * @param  {string} receiverUserId The receiver's user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the receivers's `Split` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitEntriesByReceiverUserId(receiverUserId: string): Promise<SplitsEntry[]> {
+	public async getSplitEntriesByReceiverUserId(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<SplitsEntry[]> {
 		if (!receiverUserId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'split' events: ${nameOf({ receiverUserId })} is missing.`,
@@ -193,19 +207,29 @@ export default class DripsSubgraphClient {
 			splitsEntries: SubgraphTypes.SplitsEntry[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getSplitEntriesByReceiverUserId, { receiverUserId });
+		const response = await this.query<QueryResponse>(gql.getSplitEntriesByReceiverUserId, {
+			receiverUserId,
+			skip,
+			first
+		});
 
 		return response?.data?.splitsEntries?.map(mapSplitEntryToDto) || [];
 	}
 
 	/**
-	 * Returns the user's `DripsSet` events.
+	 * Returns a list of `DripsSet` events for the given user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `DripsSet` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsSetEventsByUserId(userId: string): Promise<DripsSetEvent[]> {
+	public async getDripsSetEventsByUserId(
+		userId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<DripsSetEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'drip set' events: ${nameOf({ userId })} is missing.`,
@@ -217,19 +241,25 @@ export default class DripsSubgraphClient {
 			dripsSetEvents: SubgraphTypes.DripsSetEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getDripsSetEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getDripsSetEventsByUserId, { userId, skip, first });
 
 		return response?.data?.dripsSetEvents?.map(mapDripsSetEventToDto) || [];
 	}
 
 	/**
-	 * Returns all `DripsReceiverSeen` events for the given receiver.
+	 * Returns a list of `DripsReceiverSeen` events for the given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeen` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsReceiverSeenEventsByReceiverId(receiverUserId: string): Promise<DripsReceiverSeenEvent[]> {
+	public async getDripsReceiverSeenEventsByReceiverId(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<DripsReceiverSeenEvent[]> {
 		if (!receiverUserId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
@@ -241,7 +271,11 @@ export default class DripsSubgraphClient {
 			dripsReceiverSeenEvents: SubgraphTypes.DripsReceiverSeenEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId });
+		const response = await this.query<QueryResponse>(gql.getDripsReceiverSeenEventsByReceiverId, {
+			receiverUserId,
+			skip,
+			first
+		});
 		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
 
 		if (!dripsReceiverSeenEvents?.length) {
@@ -252,13 +286,19 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the users that stream funds to a given receiver.
+	 * Returns the users that stream funds to the given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the users that stream funds to the given receiver.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getUsersStreamingToUser(receiverUserId: string): Promise<bigint[]> {
+	public async getUsersStreamingToUser(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<bigint[]> {
 		if (!receiverUserId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
@@ -266,7 +306,7 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		const dripReceiverSeenEvents = await this.getDripsReceiverSeenEventsByReceiverId(receiverUserId);
+		const dripReceiverSeenEvents = await this.getDripsReceiverSeenEventsByReceiverId(receiverUserId, skip, first);
 
 		const uniqueSenders = dripReceiverSeenEvents.reduce((unique: bigint[], o: DripsReceiverSeenEvent) => {
 			if (!unique.some((id: bigint) => id === o.senderUserId)) {
@@ -279,14 +319,21 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the history of all user metadata updates for the given user.
+	 * Returns the history of user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
 	 * @param  {BytesLike} key The metadata key.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's metadata.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getMetadataHistory(userId: string, key?: BytesLike): Promise<UserMetadataEntry[]> {
+	public async getMetadataHistory(
+		userId: string,
+		key?: BytesLike,
+		skip: number = 0,
+		first: number = 100
+	): Promise<UserMetadataEntry[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get user metadata: ${nameOf({ userId })} is missing.`,
@@ -303,10 +350,12 @@ export default class DripsSubgraphClient {
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
 				userId,
-				key: `${BigNumber.from(key)}`
+				key: `${BigNumber.from(key)}`,
+				skip,
+				first
 			});
 		} else {
-			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUser, { userId });
+			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUser, { userId, skip, first });
 		}
 
 		const userMetadataEvents = response?.data?.userMetadataEvents;
@@ -344,20 +393,26 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns all NFT sub accounts for a given owner.
+	 * Returns a list of NFT sub accounts for the given owner.
 	 * @param  {string} ownerAddress The owner's address.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the owner's NFT sub accounts.
 	 * @throws {@link DripsErrors.addressError} if the `ownerAddress` is not valid.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getNftSubAccountsByOwner(ownerAddress: string): Promise<NftSubAccount[]> {
+	public async getNftSubAccountsByOwner(
+		ownerAddress: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<NftSubAccount[]> {
 		validateAddress(ownerAddress);
 
 		type QueryResponse = {
 			nftsubAccounts: SubgraphTypes.NftSubAccount[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, { ownerAddress });
+		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, { ownerAddress, skip, first });
 
 		const nftSubAccounts = response?.data?.nftsubAccounts;
 
@@ -370,15 +425,21 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the token IDs that are associated with the given app identifier.
+	 * Returns a list of token IDs that are associated with the given app.
 	 * @param  {BytesLike} associatedApp The name/ID of the app to retrieve accounts for.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.valueFromString` to create your `associatedApp` argument from a `string`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the account IDs.
 	 * @throws {@link DripsErrors.argumentError} if the `associatedApp` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getNftSubAccountIdsByApp(associatedApp: BytesLike): Promise<string[]> {
+	public async getNftSubAccountIdsByApp(
+		associatedApp: BytesLike,
+		skip: number = 0,
+		first: number = 100
+	): Promise<string[]> {
 		if (!associatedApp) {
 			throw DripsErrors.argumentError(
 				`Could not get user metadata: ${nameOf({ associatedApp })} is missing.`,
@@ -401,7 +462,9 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
 			key: constants.ASSOCIATED_APP_KEY_BYTES,
-			value: associatedApp
+			value: associatedApp,
+			skip,
+			first
 		});
 
 		const userMetadataEvents = response?.data?.userMetadataEvents;
@@ -417,13 +480,19 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the user's `Collected` events.
+	 * Returns a list of `Collected` events for the given user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `Collected` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getCollectedEventsByUserId(userId: string): Promise<CollectedEvent[]> {
+	public async getCollectedEventsByUserId(
+		userId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<CollectedEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'split' events: ${nameOf({ userId })} is missing.`,
@@ -435,7 +504,7 @@ export default class DripsSubgraphClient {
 			collectedEvents: SubgraphTypes.CollectedEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getCollectedEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getCollectedEventsByUserId, { userId, skip, first });
 
 		return response?.data?.collectedEvents?.map(mapCollectedEventToDto) || [];
 	}
@@ -462,13 +531,15 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the user's `Split` events.
+	 * Returns a list of `Split` events for the given user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `Split` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSplitEventsByUserId(userId: string): Promise<SplitEvent[]> {
+	public async getSplitEventsByUserId(userId: string, skip: number = 0, first: number = 100): Promise<SplitEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'split' events: ${nameOf({ userId })} is missing.`,
@@ -480,19 +551,25 @@ export default class DripsSubgraphClient {
 			splitEvents: SubgraphTypes.SplitEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getSplitEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getSplitEventsByUserId, { userId, skip, first });
 
 		return response?.data?.splitEvents?.map(mapSplitEventToDto) || [];
 	}
 
 	/**
-	 * Returns the user's `ReceivedDrips` events.
+	 * Returns a list of `ReceivedDrips` events for the given user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `ReceivedDrips` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getReceivedDripsEventsByUserId(userId: string): Promise<ReceivedDripsEvent[]> {
+	public async getReceivedDripsEventsByUserId(
+		userId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<ReceivedDripsEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'received drips' events: ${nameOf({ userId })} is missing.`,
@@ -504,19 +581,21 @@ export default class DripsSubgraphClient {
 			receivedDripsEvents: SubgraphTypes.ReceivedDripsEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getReceivedDripsEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getReceivedDripsEventsByUserId, { userId, skip, first });
 
 		return response?.data?.receivedDripsEvents?.map(mapReceivedDripsEventToDto) || [];
 	}
 
 	/**
-	 * Returns the user's `Given` events.
+	 * Returns a list of `Given` events for the given user.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `Given` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getGivenEventsByUserId(userId: string): Promise<GivenEvent[]> {
+	public async getGivenEventsByUserId(userId: string, skip: number = 0, first: number = 100): Promise<GivenEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'given' events: ${nameOf({ userId })} is missing.`,
@@ -528,7 +607,7 @@ export default class DripsSubgraphClient {
 			givenEvents: SubgraphTypes.GivenEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getGivenEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getGivenEventsByUserId, { userId, skip, first });
 
 		return response?.data?.givenEvents?.map(mapGivenEventToDto) || [];
 	}
@@ -629,7 +708,7 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns a list of senders for which drips can _potentially_ be squeezed, for a given receiver.
+	 * Returns a list of senders for which drips can _potentially_ be squeezed, for the given receiver.
 	 *
 	 * The returned senders have set up a configuration that drips to the given `receiver`
 	 * but **it's not guaranteed that the sender is still dripping to this sender**.
