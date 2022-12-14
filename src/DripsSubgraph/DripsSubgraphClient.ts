@@ -122,8 +122,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of drips configurations for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's drips configurations.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -154,8 +154,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the splits configuration for the give user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's splits configuration.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -182,8 +182,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `Split` entries for a given user.
 	 * @param  {string} receiverUserId The receiver's user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the receivers's `Split` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -216,8 +216,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `DripsSet` events for a given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `DripsSet` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -246,8 +246,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `DripsReceiverSeen` events for a given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeen` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -285,8 +285,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the users that stream funds to a given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the users that stream funds to the given receiver.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -319,8 +319,8 @@ export default class DripsSubgraphClient {
 	 * Returns the history of user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
 	 * @param  {BytesLike} key The metadata key.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's metadata.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -392,8 +392,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of NFT sub accounts for a given owner.
 	 * @param  {string} ownerAddress The owner's address.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the owner's NFT sub accounts.
 	 * @throws {@link DripsErrors.addressError} if the `ownerAddress` is not valid.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -426,8 +426,8 @@ export default class DripsSubgraphClient {
 	 * @param  {BytesLike} associatedApp The name/ID of the app to retrieve accounts for.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.valueFromString` to create your `associatedApp` argument from a `string`.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the account IDs.
 	 * @throws {@link DripsErrors.argumentError} if the `associatedApp` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -479,8 +479,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `Collected` events for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `Collected` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -509,8 +509,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `Split` events for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `Split` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -535,8 +535,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `ReceivedDrips` events for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `ReceivedDrips` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
@@ -565,8 +565,8 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns a list of `Given` events for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {string} skip The number of database entries to skip. Defaults to `0`.
-	 * @param  {string} first The number of database entries to take. Defaults to `100`.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `Given` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
