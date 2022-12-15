@@ -211,8 +211,8 @@ query getLatestUserMetadata($id: ID!) {
 `;
 
 export const getSqueezedDripsEventsByUserId = `#graphql
-query getSqueezedDripsEventsByUserId($userId: String!) {
-  squeezedDripsEvents(where: {userId: $userId}) {
+query getSqueezedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  squeezedDripsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
 		id
     userId
     assetId

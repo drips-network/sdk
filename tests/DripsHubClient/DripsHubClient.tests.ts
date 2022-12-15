@@ -28,8 +28,8 @@ describe('DripsHubClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let providerStub: StubbedInstance<JsonRpcProvider>;
 	let dripsHubContractStub: StubbedInstance<DripsHub>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let dripsSubgraphClientStub: StubbedInstance<DripsSubgraphClient>;
 	let dripsHubContractFactoryStub: sinon.SinonStub<
 		[address: string, signerOrProvider: Provider | ethers.Signer],
@@ -474,6 +474,50 @@ describe('DripsHubClient', () => {
 
 			// Assert
 			assert(dripsHubContractStub.receiveDrips.calledOnceWithExactly(userId, tokenAddress, maxCycles));
+		});
+	});
+
+	describe('squeezeDrips()', () => {
+		it('should validate input', async () => {
+			// Arrange
+			const userId = '1';
+			const senderId = '1';
+			const historyHash = '0x00';
+			const dripsHistory: DripsHistoryStruct[] = [];
+			const tokenAddress = Wallet.createRandom().address;
+			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
+
+			// Act
+			await testDripsHubClient.squeezeDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
+
+			// Assert
+			assert(
+				validateSqueezeDripsInputStub.calledOnceWithExactly(userId, tokenAddress, senderId, historyHash, dripsHistory),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should call the squeezeDrips() method of the DripsHub contract', async () => {
+			// Arrange
+			const userId = '1';
+			const senderId = '1';
+			const historyHash = '0x';
+			const dripsHistory: DripsHistoryStruct[] = [];
+			const tokenAddress = Wallet.createRandom().address;
+
+			// Act
+			await testDripsHubClient.squeezeDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
+
+			// Assert
+			assert(
+				dripsHubContractStub.squeezeDrips.calledOnceWithExactly(
+					userId,
+					tokenAddress,
+					senderId,
+					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
+					dripsHistory
+				)
+			);
 		});
 	});
 

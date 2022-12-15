@@ -17,7 +17,7 @@ describe('CallerClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let callerContractStub: StubbedInstance<Caller>;
-	let providerStub: StubbedInstance<JsonRpcProvider>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 
 	let testCallerClient: CallerClient;
 

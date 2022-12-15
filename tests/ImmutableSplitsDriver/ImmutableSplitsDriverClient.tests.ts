@@ -19,8 +19,8 @@ describe('ImmutableSplitsDriverClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let providerStub: StubbedInstance<JsonRpcProvider>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let immutableSplitsDriverContractStub: StubbedInstance<ImmutableSplitsDriver>;
 
 	let testImmutableSplitsDriverClient: ImmutableSplitsDriverClient;

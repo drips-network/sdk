@@ -15,6 +15,7 @@ import * as mappers from '../../src/DripsSubgraph/mappers';
 import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 import constants from '../../src/constants';
+import type { CycleInfo } from '../../src/common/types';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -1157,7 +1158,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId })
+				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						givenEvents: null
@@ -1187,7 +1188,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId })
+				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						squeezedDripsEvents: events
@@ -1200,7 +1201,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSqueezedDripsEventsByUserId, { userId }),
+				clientStub.calledOnceWithExactly(gql.getSqueezedDripsEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1418,6 +1419,219 @@ describe('DripsSubgraphClient', () => {
 				clientStub.calledOnceWithExactly(gql.getGivenEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
+		});
+	});
+
+	describe('getArgsForSqueezingAllDrips()', () => {
+		it('should return the expected result when there is no previous history', async () => {
+			// Arrange
+			const userId = '1';
+			const senderId = '2';
+			const tokenAddress = Wallet.createRandom().address;
+			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
+
+			// Act
+			const args = await testSubgraphClient.getArgsForSqueezingAllDrips(userId, senderId, tokenAddress);
+
+			// Assert
+			assert.equal(args[0], userId);
+			assert.equal(args[1], tokenAddress);
+			assert.equal(args[2], senderId);
+			assert.equal(args[3], ethers.constants.HashZero);
+			assert.equal(args[4].length, 0);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const userId = '1';
+			const senderId = '2';
+			const tokenAddress = Wallet.createRandom().address;
+
+			const now = new Date(1639122049);
+			const currentCycleStartDate = new Date(new Date(now).setDate(new Date().getDate() - 5)).getTime();
+
+			const firstResults: DripsSetEvent[] = new Array(490)
+				.fill({})
+				.map(
+					(_e, i) =>
+						({
+							id: i,
+							assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+							receiversHash: `receiversHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
+							dripsHistoryHash: `dripsHistoryHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
+							blockTimestamp: BigInt(currentCycleStartDate - i * 10 - 1),
+							dripsReceiverSeenEvents: [
+								{
+									receiverUserId: '3',
+									config: i
+								}
+							],
+							maxEnd: BigInt(i)
+						} as unknown as DripsSetEvent)
+				)
+				.concat(
+					new Array(10).fill({}).map(
+						(_e, i) =>
+							({
+								id: i + 1000,
+								assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+								receiversHash: `receiversHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
+								dripsHistoryHash: `dripsHistoryHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
+								blockTimestamp: BigInt(currentCycleStartDate + i * 10),
+								dripsReceiverSeenEvents: [
+									{
+										receiverUserId: (i + 1000) % 2 === 0 ? userId : '3',
+										config: i + 1000
+									}
+								],
+								maxEnd: BigInt(i + 1000)
+							} as unknown as DripsSetEvent)
+					)
+				);
+
+			const secondResults: DripsSetEvent[] = [
+				{
+					id: firstResults[0].id,
+					maxEnd: firstResults[0].maxEnd,
+					receiversHash: firstResults[0].receiversHash,
+					blockTimestamp: firstResults[0].blockTimestamp,
+					dripsHistoryHash: firstResults[0].dripsHistoryHash,
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+					dripsReceiverSeenEvents: firstResults[0].dripsReceiverSeenEvents
+				} as unknown as DripsSetEvent,
+				{
+					id: firstResults[firstResults.length - 1].id,
+					maxEnd: firstResults[firstResults.length - 1].maxEnd,
+					receiversHash: firstResults[firstResults.length - 1].receiversHash,
+					blockTimestamp: firstResults[firstResults.length - 1].blockTimestamp,
+					dripsHistoryHash: firstResults[firstResults.length - 1].dripsHistoryHash,
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+					dripsReceiverSeenEvents: firstResults[firstResults.length - 1].dripsReceiverSeenEvents
+				} as unknown as DripsSetEvent,
+				{
+					id: '500',
+					maxEnd: '500',
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+					blockTimestamp: firstResults[firstResults.length - 1].blockTimestamp + BigInt(1),
+					receiversHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-500`,
+					dripsHistoryHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-500`,
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId,
+							config: '500'
+						}
+					]
+				} as unknown as DripsSetEvent,
+				{
+					id: '600',
+					maxEnd: '600',
+					assetId: '1000',
+					blockTimestamp: firstResults[firstResults.length - 1].blockTimestamp + BigInt(1),
+					receiversHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-600`,
+					dripsHistoryHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-600`,
+					dripsReceiverSeenEvents: [
+						{
+							receiverUserId: userId,
+							config: '600'
+						}
+					]
+				} as unknown as DripsSetEvent
+			];
+
+			sinon.stub(Utils.Cycle, 'getInfo').returns({
+				currentCycleStartDate: new Date(currentCycleStartDate)
+			} as CycleInfo);
+
+			sinon
+				.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId')
+				.onFirstCall()
+				.resolves(firstResults)
+				.onSecondCall()
+				.resolves(secondResults);
+
+			// Act
+			const args = await testSubgraphClient.getArgsForSqueezingAllDrips(userId, senderId, tokenAddress);
+
+			// Assert
+			assert.equal(args[0], userId);
+			assert.equal(args[1], tokenAddress);
+			assert.equal(args[2], senderId);
+			assert.equal(args[3].substring(args[3].length - 2), '-0');
+			assert.equal(
+				args[4].filter(
+					(c) =>
+						c.dripsHash === ethers.constants.HashZero && c.receivers.filter((e) => e.userId === userId).length === 1
+				).length,
+				6
+			);
+			assert.equal(
+				args[4].filter((c) => c.dripsHash !== ethers.constants.HashZero && c.receivers.length === 0).length,
+				6
+			);
+		});
+	});
+
+	describe('getSqueezableSenders()', () => {
+		it('should return the expected result when there are no squeezable senders', async () => {
+			// Arrange
+			const receiverId = '1';
+
+			sinon.stub(DripsSubgraphClient.prototype, 'query').resolves({ data: { dripsReceiverSeenEvents: [] } });
+
+			// Act
+			const senders = await testSubgraphClient.filterSqueezableSenders(receiverId);
+
+			// Assert
+			assert.equal(Object.keys(senders).length, 0);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const assetId = '100';
+			const receiverId = '1';
+
+			const firstResults: DripsReceiverSeenEvent[] = new Array(500).fill({}).map(
+				(_e, i) =>
+					({
+						id: i,
+						senderUserId: i,
+						dripsSetEvent: { assetId }
+					} as unknown as DripsReceiverSeenEvent)
+			);
+
+			const secondResults: DripsReceiverSeenEvent[] = [
+				firstResults[0],
+				{
+					id: '501',
+					senderUserId: 0,
+					dripsSetEvent: { assetId }
+				} as unknown as DripsReceiverSeenEvent,
+				{
+					id: '502',
+					senderUserId: 0,
+					dripsSetEvent: { assetId: '999' }
+				} as unknown as DripsReceiverSeenEvent,
+				{
+					id: '503',
+					senderUserId: 503,
+					dripsSetEvent: { assetId: '999' }
+				} as unknown as DripsReceiverSeenEvent
+			];
+
+			sinon
+				.stub(DripsSubgraphClient.prototype, 'query')
+				.onFirstCall()
+				.resolves({ data: { dripsReceiverSeenEvents: firstResults } })
+				.onSecondCall()
+				.resolves({ data: { dripsReceiverSeenEvents: secondResults } });
+
+			// Act
+			const senders = await testSubgraphClient.filterSqueezableSenders(receiverId);
+
+			// Assert
+			assert.equal(Object.keys(senders).length, 501);
+			assert.isTrue(senders['0'].includes(assetId));
+			assert.isTrue(senders['0'].includes('999'));
 		});
 	});
 

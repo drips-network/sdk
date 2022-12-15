@@ -26,8 +26,8 @@ describe('AddressDriverClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let providerStub: StubbedInstance<JsonRpcProvider>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 	let addressDriverInterfaceStub: StubbedInstance<AddressDriverInterface>;
 	let addressDriverContractFactoryStub: sinon.SinonStub<

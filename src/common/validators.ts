@@ -278,30 +278,18 @@ export const validateSqueezeDripsInput = (
 	validateAddress(tokenAddress);
 
 	if (!userId) {
-		throw DripsErrors.argumentMissingError(
-			`Invalid input for squeezing: '${nameOf({ userId })}' is missing.`,
-			nameOf({ userId })
-		);
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ userId })}' is missing.`);
 	}
 
 	if (!senderId) {
-		throw DripsErrors.argumentMissingError(
-			`Invalid input for squeezing: '${nameOf({ senderId })}' is missing.`,
-			nameOf({ senderId })
-		);
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ senderId })}' is missing.`);
 	}
 
 	if (!historyHash) {
-		throw DripsErrors.argumentMissingError(
-			`Invalid input for squeezing: '${nameOf({ historyHash })}' is missing.`,
-			nameOf({ historyHash })
-		);
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ historyHash })}' is missing.`);
 	}
 
 	if (!dripsHistory) {
-		throw DripsErrors.argumentMissingError(
-			`Invalid input for squeezing: '${nameOf({ dripsHistory })}' is missing.`,
-			nameOf({ dripsHistory })
-		);
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ dripsHistory })}' is missing.`);
 	}
 };

@@ -6,7 +6,12 @@ import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { DripsReceiver, DripsReceiverConfig, UserMetadataStruct } from '../../src/common/types';
+import type {
+	DripsHistoryStruct,
+	DripsReceiver,
+	DripsReceiverConfig,
+	UserMetadataStruct
+} from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -754,6 +759,119 @@ describe('validators', () => {
 				validateClientProviderStub.calledWithExactly(signer.provider, []),
 				'Expected method to be called with different arguments'
 			);
+		});
+	});
+
+	describe('validateSqueezeDripsInput', () => {
+		it('should throw an argumentError when userId is missing', () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateSqueezeDripsInput(
+					undefined as unknown as string,
+					Wallet.createRandom().address,
+					'1',
+					'0x00',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should validate the tokenAddress', () => {
+			// Arrange
+			const tokenAddress = Wallet.createRandom().address;
+
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+
+			// Act
+			validators.validateSqueezeDripsInput('1', tokenAddress, '1', '0x00', []);
+			// Assert
+			assert(
+				validateAddressStub.calledOnceWithExactly(tokenAddress),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw an argumentError when senderId is missing', () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateSqueezeDripsInput(
+					'1',
+					Wallet.createRandom().address,
+					undefined as unknown as string,
+					'0x00',
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw an argumentError when historyHash is missing in a metadata entry', () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateSqueezeDripsInput(
+					'1',
+					Wallet.createRandom().address,
+					'1',
+					undefined as unknown as string,
+					[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw an argumentError when dripsHistory is missing in a metadata entry', () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				// Act
+				validators.validateSqueezeDripsInput(
+					'1',
+					Wallet.createRandom().address,
+					'1',
+					'0x00',
+					undefined as unknown as DripsHistoryStruct[]
+				);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 	});
 });

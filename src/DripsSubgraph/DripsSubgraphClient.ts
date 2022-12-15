@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition */
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish, BytesLike } from 'ethers';
 import { ethers, BigNumber } from 'ethers';
@@ -512,11 +513,17 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the user's `SqueezedDrips` events.
 	 * @param  {string} userId The user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's `SqueezedDrips` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSqueezedDripsEventsByUserId(userId: string): Promise<SqueezedDripsEvent[]> {
+	public async getSqueezedDripsEventsByUserId(
+		userId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<SqueezedDripsEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentError(`Could not get 'squeezed Drips' events: ${nameOf({ userId })} is missing.`);
 		}
@@ -525,7 +532,7 @@ export default class DripsSubgraphClient {
 			squeezedDripsEvents: SubgraphTypes.SqueezedDripsEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getSqueezedDripsEventsByUserId, { userId });
+		const response = await this.query<QueryResponse>(gql.getSqueezedDripsEventsByUserId, { userId, skip, first });
 
 		return response?.data?.squeezedDripsEvents?.map(mapSqueezedDripsToDto) || [];
 	}
@@ -614,6 +621,10 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Calculates the arguments for squeezing all Drips up to "now" for the given sender and token.
+	 *
+	 * **Important**: This method might fail if two Drips updates were performed in a single block.
+	 * because the order of the Drips configurations returned by the Subgraph is not guaranteed for such cases.
+	 * The transaction will fail in the gas estimation phase, so no gas will be wasted.
 	 * @see `DripsHubClient.squeezeDrips` method for more.
 	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
@@ -634,26 +645,50 @@ export default class DripsSubgraphClient {
 		[userId: string, tokenAddress: string, senderId: string, historyHash: string, dripsHistory: DripsHistoryStruct[]]
 	> {
 		// Get all `DripsSet` events (drips configurations) for the sender.
-		const dripsSetEvents = (await this.getDripsSetEventsByUserId(senderId))
-			// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
-			?.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+		const allDripsSetEvents: DripsSetEvent[] = [];
+		let skip = 0;
+		const first = 500;
+		while (true) {
+			const iterationEvents = await this.getDripsSetEventsByUserId(senderId, skip, first);
 
-		const squeezableDripsSetEvents: DripsSetEvent[] = [];
+			allDripsSetEvents.push(...iterationEvents);
+
+			if (!iterationEvents?.length || iterationEvents.length < first) {
+				break;
+			}
+
+			skip += first;
+		}
+
+		const squeezableDripsSetEvents = allDripsSetEvents
+			// Remove any duplicates (limitation of skip-first pagination).
+			.reduce((unique: DripsSetEvent[], o: DripsSetEvent) => {
+				if (!unique.some((ev: DripsSetEvent) => ev.id === o.id)) {
+					unique.push(o);
+				}
+				return unique;
+			}, [])
+			// Filter only the events for the token-to-be-squeezed.
+			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(tokenAddress))
+			// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
+			.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+
+		const dripsSetEventsToSqueeze: DripsSetEvent[] = [];
 
 		// Iterate over all events.
-		if (dripsSetEvents?.length) {
-			for (let i = 0; i < dripsSetEvents.length; i++) {
-				const dripsConfiguration = dripsSetEvents[i];
+		if (squeezableDripsSetEvents?.length) {
+			for (let i = 0; i < squeezableDripsSetEvents.length; i++) {
+				const dripsConfiguration = squeezableDripsSetEvents[i];
 
 				// Keep the drips configurations of the current cycle.
 				const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
 				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp));
 				if (eventTimestamp >= currentCycleStartDate) {
-					squeezableDripsSetEvents.push(dripsConfiguration);
+					dripsSetEventsToSqueeze.push(dripsConfiguration);
 				}
 				// Get the last event of the previous cycle.
 				else {
-					squeezableDripsSetEvents.push(dripsConfiguration);
+					dripsSetEventsToSqueeze.push(dripsConfiguration);
 					break;
 				}
 			}
@@ -661,12 +696,12 @@ export default class DripsSubgraphClient {
 
 		// The last (oldest) event added, provides the hash prior to the DripsHistory (or 0, if there was only one event).
 		const historyHash =
-			squeezableDripsSetEvents?.length > 1
-				? squeezableDripsSetEvents[squeezableDripsSetEvents.length - 1].dripsHistoryHash
+			dripsSetEventsToSqueeze?.length > 1
+				? dripsSetEventsToSqueeze[dripsSetEventsToSqueeze.length - 1].dripsHistoryHash
 				: ethers.constants.HashZero;
 
 		// Transform the events into `DripsHistory` objects.
-		const dripsHistory: DripsHistoryStruct[] = squeezableDripsSetEvents
+		const dripsHistory: DripsHistoryStruct[] = dripsSetEventsToSqueeze
 			?.map((dripsSetEvent) => {
 				// By default a configuration should *not* be squeezed.
 				let shouldSqueeze = false;
@@ -675,11 +710,8 @@ export default class DripsSubgraphClient {
 				for (let i = 0; i < dripsSetEvent.dripsReceiverSeenEvents.length; i++) {
 					const receiver = dripsSetEvent.dripsReceiverSeenEvents[i];
 
-					// Mark as squeezable only the events that drip to the `userId` for the given asset; the others should not be squeezed.
-					if (
-						receiver.receiverUserId === userId &&
-						dripsSetEvent.assetId === Utils.Asset.getIdFromAddress(tokenAddress)
-					) {
+					// Mark as squeezable only the events that drip to the `userId`; the others should not be squeezed.
+					if (receiver.receiverUserId === userId) {
 						shouldSqueeze = true;
 						// Break, because drips receivers are unique.
 						break;
@@ -717,35 +749,58 @@ export default class DripsSubgraphClient {
 	 * @returns A `Promise` which resolves to a `Record` with keys being the sender IDs and values the asset (ERC20 token) IDs.
 	 * @throws {DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
+	public async filterSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
 		type ApiResponse = {
 			dripsReceiverSeenEvents: DripsReceiverSeenEvent[];
 		};
 
 		// Get all `DripsReceiverSeen` events for the given receiver.
-		const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, { receiverId });
-		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
+		const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [];
+		let skip = 0;
+		const first = 500;
+		while (true) {
+			const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, {
+				receiverId,
+				skip,
+				first
+			});
+			const iterationEvents = response?.data?.dripsReceiverSeenEvents;
+
+			dripsReceiverSeenEvents.push(...iterationEvents);
+
+			if (!iterationEvents?.length || iterationEvents.length < first) {
+				break;
+			}
+
+			skip += first;
+		}
 
 		if (!dripsReceiverSeenEvents?.length) {
 			return {};
 		}
 
+		// Remove any duplicates.
+		const uniqueEvents = dripsReceiverSeenEvents.reduce(
+			(unique: DripsReceiverSeenEvent[], o: DripsReceiverSeenEvent) => {
+				if (!unique.some((ev: DripsReceiverSeenEvent) => ev.id === o.id)) {
+					unique.push(o);
+				}
+				return unique;
+			},
+			[]
+		);
+
 		const squeezableSenders: Record<string, string[]> = {}; // key: senderId, value: [asset1Id, asset2Id, ...]
-		const processedSenders: Record<string, boolean> = {};
 
 		// Iterate over all `DripsReceiverSeen` events.
-		for (let i = 0; i < dripsReceiverSeenEvents.length; i++) {
-			const dripsReceiverSeenEvent = dripsReceiverSeenEvents[i];
+		for (let i = 0; i < uniqueEvents.length; i++) {
+			const { senderUserId, dripsSetEvent } = uniqueEvents[i];
 
-			const { senderUserId, dripsSetEvent } = dripsReceiverSeenEvent;
+			if (!squeezableSenders[senderUserId.toString()]) {
+				squeezableSenders[senderUserId.toString()] = [];
+			}
 
-			if (!processedSenders[senderUserId.toString()]) {
-				// Mark the sender as processed in order not to process the same sender ID multiple times.
-				processedSenders[senderUserId.toString()] = true;
-
-				if (!squeezableSenders[senderUserId.toString()]) {
-					squeezableSenders[senderUserId.toString()] = [];
-				}
+			if (!squeezableSenders[senderUserId.toString()].includes(dripsSetEvent.assetId.toString())) {
 				squeezableSenders[senderUserId.toString()].push(dripsSetEvent.assetId.toString());
 			}
 		}
