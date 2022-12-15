@@ -219,6 +219,7 @@ query getSqueezedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) 
     senderId
     amt
     blockTimestamp
+		dripsHistoryHashes
 	}
 }
 `;

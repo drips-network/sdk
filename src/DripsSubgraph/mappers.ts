@@ -89,7 +89,8 @@ export const mapSqueezedDripsToDto = (squeezedDripsEvent: SubgraphTypes.Squeezed
 	blockTimestamp: BigInt(squeezedDripsEvent.blockTimestamp),
 	id: squeezedDripsEvent.id,
 	senderId: squeezedDripsEvent.senderId,
-	userId: squeezedDripsEvent.userId
+	userId: squeezedDripsEvent.userId,
+	dripsHistoryHashes: squeezedDripsEvent.dripsHistoryHashes
 });
 
 /** @internal */

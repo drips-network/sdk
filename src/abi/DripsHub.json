@@ -148,7 +148,8 @@
 			{ "indexed": true, "internalType": "uint256", "name": "userId", "type": "uint256" },
 			{ "indexed": true, "internalType": "uint256", "name": "assetId", "type": "uint256" },
 			{ "indexed": true, "internalType": "uint256", "name": "senderId", "type": "uint256" },
-			{ "indexed": false, "internalType": "uint128", "name": "amt", "type": "uint128" }
+			{ "indexed": false, "internalType": "uint128", "name": "amt", "type": "uint128" },
+			{ "indexed": false, "internalType": "bytes32[]", "name": "dripsHistoryHashes", "type": "bytes32[]" }
 		],
 		"name": "SqueezedDrips",
 		"type": "event"

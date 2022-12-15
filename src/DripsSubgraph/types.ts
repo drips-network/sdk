@@ -49,6 +49,7 @@ export type SqueezedDripsEvent = {
 	id: string;
 	senderId: string;
 	userId: string;
+	dripsHistoryHashes: string[];
 };
 
 export type SplitEvent = {

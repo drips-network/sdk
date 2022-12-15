@@ -68,6 +68,7 @@ export default class AddressDriverClient {
 	 *
 	 * The `provider` this signer was established from can be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
@@ -106,6 +107,7 @@ export default class AddressDriverClient {
 	 *
 	 * Supported networks are:
 	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.

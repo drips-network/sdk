@@ -68,6 +68,7 @@ export default class DripsHubClient {
 	 *
 	 * The `provider` this signer was established from can be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
@@ -107,6 +108,7 @@ export default class DripsHubClient {
 	 *
 	 * Supported networks are:
 	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.

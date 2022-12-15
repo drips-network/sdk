@@ -40,6 +40,7 @@ export default class ImmutableSplitsDriverClient {
 	 *
 	 * The supported networks are:
 	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param  {string|undefined} customDriverAddress Overrides the `ImmutableSplitsDriver`'s address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new `ImmutableSplitsDriverClient` instance.

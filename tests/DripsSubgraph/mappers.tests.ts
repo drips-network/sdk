@@ -122,7 +122,8 @@ describe('mappers', () => {
 				id: '3',
 				amt: '4',
 				senderId: '5',
-				userId: '6'
+				userId: '6',
+				dripsHistoryHashes: ['7', '8']
 			} as SubgraphTypes.SqueezedDripsEvent;
 
 			// Act
@@ -135,6 +136,8 @@ describe('mappers', () => {
 			assert.equal(result.senderId, event.senderId);
 			assert.equal(result.userId, event.userId);
 			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
+			assert.isTrue(result.dripsHistoryHashes.includes('7'));
+			assert.isTrue(result.dripsHistoryHashes.includes('8'));
 		});
 	});
 
