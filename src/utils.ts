@@ -93,7 +93,7 @@ namespace Utils {
 				CONTRACT_IMMUTABLE_SPLITS_DRIVER_ID: '2',
 				CONTRACT_IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x28703A7C5B25b58d6732fA14A62B25aFae189e38',
 				// TODO: Update the Subgraph URL after hosted service is shut down.
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v2-on-mumbai'
 			}
 		};
 
