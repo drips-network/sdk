@@ -347,7 +347,7 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 */
-	public setDrips(
+	public async setDrips(
 		tokenId: string,
 		tokenAddress: string,
 		currentReceivers: DripsReceiverStruct[],
@@ -385,15 +385,36 @@ export default class NFTDriverClient {
 			);
 		}
 
+		const formattedCurrentReceivers = formatDripsReceivers(currentReceivers);
+		const formattedNewReceivers = formatDripsReceivers(newReceivers);
+
+		const estimatedGasFees = (
+			await this.#driver.estimateGas.setDrips(
+				tokenId,
+				tokenAddress,
+				formattedCurrentReceivers,
+				balanceDelta,
+				formattedNewReceivers,
+				0,
+				0,
+				transferToAddress
+			)
+		).toNumber();
+
+		const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
 		return this.#driver.setDrips(
 			tokenId,
 			tokenAddress,
-			formatDripsReceivers(currentReceivers),
+			formattedCurrentReceivers,
 			balanceDelta,
-			formatDripsReceivers(newReceivers),
+			formattedNewReceivers,
 			0,
 			0,
-			transferToAddress
+			transferToAddress,
+			{
+				gasLimit
+			}
 		);
 	}
 

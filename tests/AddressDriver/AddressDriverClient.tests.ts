@@ -565,6 +565,11 @@ describe('AddressDriverClient', () => {
 			const transferToAddress = Wallet.createRandom().address;
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
+			const estimatedGasFees = 2000000;
+
+			addressDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
 
@@ -603,6 +608,12 @@ describe('AddressDriverClient', () => {
 
 			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
+			const estimatedGasFees = 2000000;
+
+			addressDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
@@ -640,6 +651,13 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
+			const estimatedGasFees = 2000000;
+			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
+			addressDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, [], transferToAddress, 1n);
 
@@ -652,7 +670,8 @@ describe('AddressDriverClient', () => {
 					[],
 					0,
 					0,
-					transferToAddress
+					transferToAddress,
+					{ gasLimit }
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -683,6 +702,13 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
+			const estimatedGasFees = 2000000;
+			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
+			addressDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
@@ -698,7 +724,8 @@ describe('AddressDriverClient', () => {
 						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2)),
 					0,
 					0,
-					transferToAddress
+					transferToAddress,
+					{ gasLimit }
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -709,12 +736,21 @@ describe('AddressDriverClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
+			const estimatedGasFees = 2000000;
+			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
+			addressDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
 
 			// Assert
 			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], 0, 0, transferToAddress),
+				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], 0, 0, transferToAddress, {
+					gasLimit
+				}),
 				'Expected method to be called with different arguments'
 			);
 		});
