@@ -322,7 +322,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public setDrips(
+	public async setDrips(
 		tokenAddress: string,
 		currentReceivers: DripsReceiverStruct[],
 		newReceivers: DripsReceiverStruct[],
@@ -344,14 +344,34 @@ export default class AddressDriverClient {
 			balanceDelta
 		);
 
+		const formattedCurrentReceivers = formatDripsReceivers(currentReceivers);
+		const formattedNewReceivers = formatDripsReceivers(newReceivers);
+
+		const estimatedGasFees = (
+			await this.#driver.estimateGas.setDrips(
+				tokenAddress,
+				formattedCurrentReceivers,
+				balanceDelta,
+				formattedNewReceivers,
+				0,
+				0,
+				transferToAddress
+			)
+		).toNumber();
+
+		const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
 		return this.#driver.setDrips(
 			tokenAddress,
-			formatDripsReceivers(currentReceivers),
+			formattedCurrentReceivers,
 			balanceDelta,
-			formatDripsReceivers(newReceivers),
+			formattedNewReceivers,
 			0,
 			0,
-			transferToAddress
+			transferToAddress,
+			{
+				gasLimit
+			}
 		);
 	}
 

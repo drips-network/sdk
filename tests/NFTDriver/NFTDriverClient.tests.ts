@@ -791,6 +791,12 @@ describe('NFTDriverClient', () => {
 				}
 			];
 
+			const estimatedGasFees = 2000000;
+
+			nftDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
@@ -826,6 +832,12 @@ describe('NFTDriverClient', () => {
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
+
+			const estimatedGasFees = 2000000;
+
+			nftDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
 
 			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
 
@@ -888,6 +900,13 @@ describe('NFTDriverClient', () => {
 				}
 			];
 
+			const estimatedGasFees = 2000000;
+			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
+			nftDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			// Act
 			await testNftDriverClient.setDrips(tokenId, tokenAddress, currentReceivers, [], transferToAddress, 1n);
 
@@ -901,7 +920,10 @@ describe('NFTDriverClient', () => {
 					[],
 					0,
 					0,
-					transferToAddress
+					transferToAddress,
+					{
+						gasLimit
+					}
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -912,6 +934,13 @@ describe('NFTDriverClient', () => {
 			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
+
+			const estimatedGasFees = 2000000;
+			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
+			nftDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
 
 			// Act
 			await testNftDriverClient.setDrips(
@@ -925,7 +954,19 @@ describe('NFTDriverClient', () => {
 
 			// Assert
 			assert(
-				nftDriverContractStub.setDrips.calledOnceWithExactly(tokenId, tokenAddress, [], 0, [], 0, 0, transferToAddress),
+				nftDriverContractStub.setDrips.calledOnceWithExactly(
+					tokenId,
+					tokenAddress,
+					[],
+					0,
+					[],
+					0,
+					0,
+					transferToAddress,
+					{
+						gasLimit
+					}
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -956,6 +997,13 @@ describe('NFTDriverClient', () => {
 				}
 			];
 
+			const estimatedGasFees = 2000000;
+			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+
+			nftDriverContractStub.estimateGas = {
+				setDrips: () => BigNumber.from(estimatedGasFees) as any
+			} as any;
+
 			sinon
 				.stub(internals, 'formatDripsReceivers')
 				.onFirstCall()
@@ -976,7 +1024,10 @@ describe('NFTDriverClient', () => {
 					newReceivers,
 					0,
 					0,
-					transferToAddress
+					transferToAddress,
+					{
+						gasLimit
+					}
 				),
 				'Expected method to be called with different arguments'
 			);
