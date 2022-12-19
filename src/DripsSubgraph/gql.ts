@@ -136,6 +136,18 @@ query getMetadataHistoryByKeyAndValue($key: Bytes!, $value: Bytes!, $skip: Int, 
 }
 `;
 
+export const getMetadataHistoryByKeyValueAndOwner = `#graphql
+query getMetadataHistoryByKeyValueAndOwner($key: Bytes!, $value: Bytes!, $userId: String, $skip: Int, $first: Int) {
+  userMetadataEvents(where: {key: $key, value: $value, userId:$userId}, skip: $skip, first: $first) {
+		id
+    key
+    value
+    userId
+    lastUpdatedBlockTimestamp
+  }
+}
+`;
+
 export const getNftSubAccountsByOwner = `#graphql
 query getNftSubAccountsByOwner($ownerAddress: Bytes!, $skip: Int, $first: Int) {
 	nftsubAccounts(where: {ownerAddress: $ownerAddress}, skip: $skip, first: $first) {

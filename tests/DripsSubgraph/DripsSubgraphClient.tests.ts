@@ -958,13 +958,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getNftSubAccountIdsByApp()', () => {
+	describe('getNftSubAccountIds()', () => {
 		it('should throw an argumentError when associatedApp is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getNftSubAccountIdsByApp(undefined as unknown as string);
+				await testSubgraphClient.getNftSubAccountIds(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -980,7 +980,7 @@ describe('DripsSubgraphClient', () => {
 
 			try {
 				// Act
-				await testSubgraphClient.getNftSubAccountIdsByApp('invalid bytes like string');
+				await testSubgraphClient.getNftSubAccountIds('invalid bytes like string');
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -1008,7 +1008,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getNftSubAccountIdsByApp(associatedApp);
+			const metadata = await testSubgraphClient.getNftSubAccountIds(associatedApp);
 
 			// Assert
 			assert.isEmpty(metadata);
@@ -1044,7 +1044,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const accountIds = await testSubgraphClient.getNftSubAccountIdsByApp(associatedApp);
+			const accountIds = await testSubgraphClient.getNftSubAccountIds(associatedApp);
 
 			// Assert
 			assert.equal(accountIds.length, 2);
@@ -1054,6 +1054,51 @@ describe('DripsSubgraphClient', () => {
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
 					value: associatedApp,
+					skip: 0,
+					first: 100
+				}),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should return the expected result when a user ID is provided', async () => {
+			// Arrange
+			const associatedApp = ethers.utils.formatBytes32String('myApp');
+			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
+				{
+					userId: '1'
+				} as SubgraphTypes.UserMetadataEvent,
+				{
+					userId: '1'
+				} as SubgraphTypes.UserMetadataEvent
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getMetadataHistoryByKeyValueAndOwner, {
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
+					value: associatedApp,
+					userId: '1',
+					skip: 0,
+					first: 100
+				})
+				.resolves({
+					data: {
+						userMetadataEvents
+					}
+				});
+
+			// Act
+			const accountIds = await testSubgraphClient.getNftSubAccountIds(associatedApp, '1');
+
+			// Assert
+			assert.equal(accountIds.length, 1);
+			assert.equal(accountIds[0], '1');
+			assert(
+				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyValueAndOwner, {
+					key: constants.ASSOCIATED_APP_KEY_BYTES,
+					value: associatedApp,
+					userId: '1',
 					skip: 0,
 					first: 100
 				}),

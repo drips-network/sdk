@@ -430,23 +430,21 @@ export default class DripsSubgraphClient {
 	 * @param  {BytesLike} associatedApp The name/ID of the app to retrieve accounts for.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.valueFromString` to create your `associatedApp` argument from a `string`.
+	 * @param  {string} userId The owner's user ID.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
 	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the account IDs.
 	 * @throws {@link DripsErrors.argumentError} if the `associatedApp` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getNftSubAccountIdsByApp(
+	public async getNftSubAccountIds(
 		associatedApp: BytesLike,
+		userId?: string,
 		skip: number = 0,
 		first: number = 100
 	): Promise<string[]> {
 		if (!associatedApp) {
-			throw DripsErrors.argumentError(
-				`Could not get user metadata: ${nameOf({ associatedApp })} is missing.`,
-				nameOf({ associatedApp }),
-				associatedApp
-			);
+			throw DripsErrors.argumentError(`Could not get user metadata: ${nameOf({ associatedApp })} is missing.`);
 		}
 
 		if (!ethers.utils.isBytesLike(associatedApp)) {
@@ -461,12 +459,26 @@ export default class DripsSubgraphClient {
 			userMetadataEvents: SubgraphTypes.UserMetadataEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
-			key: constants.ASSOCIATED_APP_KEY_BYTES,
-			value: associatedApp,
-			skip,
-			first
-		});
+		let response: {
+			data: QueryResponse;
+		};
+
+		if (userId) {
+			response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyValueAndOwner, {
+				key: constants.ASSOCIATED_APP_KEY_BYTES,
+				value: associatedApp,
+				userId,
+				skip,
+				first
+			});
+		} else {
+			response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
+				key: constants.ASSOCIATED_APP_KEY_BYTES,
+				value: associatedApp,
+				skip,
+				first
+			});
+		}
 
 		const userMetadataEvents = response?.data?.userMetadataEvents;
 
