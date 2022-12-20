@@ -808,7 +808,48 @@ export default class DripsSubgraphClient {
 		return squeezableSenders;
 	}
 
-	/** @internal */
+	/**
+	 * Executes the given query against the Drips Subgraph.
+	 * @example <caption>Example usage for querying `Split` events.</caption>
+		type SplitEvent = {
+			id: string;
+			amount: bigint;
+			assetId: bigint;
+			blockTimestamp: bigint;
+			receiverId: string;
+			userId: string;
+		}
+
+ 	 	type QueryResponse = {
+			splitEvents: SplitEvent[];
+		};
+
+		export const getSplitEventsByUserId = `#graphql
+			query getSplitEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  			splitEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+					id
+					userId
+					receiverId
+					assetId
+					amt
+					blockTimestamp
+				}
+			}
+		`;
+
+		const userId = "1";
+		const skip = 0;
+		const first = 100;
+
+		const response = await dripsSubgraphClient.query<QueryResponse>(getSplitEventsByUserId, { userId, skip, first });
+
+		const events = response?.data?.splitEvents?.map(mapSplitEventToDto) || [];
+
+	 * @param  {string} query The GraphQL query.
+	 * @param  {unknown} variables The GraphQL query variables.
+	 * @returns A `Promise` which resolves to the expected data.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
 	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',
