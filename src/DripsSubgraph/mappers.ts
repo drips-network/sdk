@@ -23,7 +23,9 @@ export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAsset
 	})),
 	balance: BigInt(userAssetConfig.balance),
 	amountCollected: BigInt(userAssetConfig.amountCollected),
-	lastUpdatedBlockTimestamp: BigInt(userAssetConfig.lastUpdatedBlockTimestamp)
+	lastUpdatedBlockTimestamp: BigInt(userAssetConfig.lastUpdatedBlockTimestamp),
+	amountSplittable: BigInt(userAssetConfig.amountSplittable),
+	amountPostSplitCollectable: BigInt(userAssetConfig.amountPostSplitCollectable)
 });
 
 /** @internal */

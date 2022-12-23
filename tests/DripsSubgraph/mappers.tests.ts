@@ -150,7 +150,9 @@ describe('mappers', () => {
 				dripsEntries: [{ id: '1', userId: '3', config: '4' }],
 				balance: '5',
 				amountCollected: '6',
-				lastUpdatedBlockTimestamp: '7'
+				lastUpdatedBlockTimestamp: '7',
+				amountSplittable: '8',
+				amountPostSplitCollectable: '9'
 			} as SubgraphTypes.UserAssetConfig;
 
 			// Act
@@ -165,6 +167,8 @@ describe('mappers', () => {
 			assert.equal(result.balance.toString(), apiConfig.balance);
 			assert.equal(result.amountCollected.toString(), apiConfig.amountCollected);
 			assert.equal(result.lastUpdatedBlockTimestamp.toString(), apiConfig.lastUpdatedBlockTimestamp);
+			assert.equal(result.amountSplittable.toString(), apiConfig.amountSplittable);
+			assert.equal(result.amountPostSplitCollectable.toString(), apiConfig.amountPostSplitCollectable);
 		});
 	});
 

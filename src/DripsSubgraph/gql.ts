@@ -11,6 +11,8 @@ query getUserAssetConfigById($configId: ID!) {
 		balance
 		amountCollected
 		lastUpdatedBlockTimestamp
+		amountSplittable
+		amountPostSplitCollectable
 	}
 }
 `;
@@ -29,6 +31,8 @@ query getAllUserAssetConfigsByUserId($userId: ID!, $skip: Int, $first: Int) {
 			balance
 			amountCollected
 			lastUpdatedBlockTimestamp
+			amountSplittable
+			amountPostSplitCollectable
     }
   }
 }

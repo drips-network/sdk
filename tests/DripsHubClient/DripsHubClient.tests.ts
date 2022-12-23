@@ -19,8 +19,7 @@ import type {
 	DripsReceiverConfig
 } from '../../src/common/types';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
-import type { CollectableBalance, ReceivableBalance, SplittableBalance } from '../../src/DripsHub/types';
+import type { DripsReceiverSeenEvent, UserAssetConfig } from '../../src/DripsSubgraph/types';
 import * as internals from '../../src/common/internals';
 
 describe('DripsHubClient', () => {
@@ -375,7 +374,7 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const maxCycles = 10;
 
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
+			dripsSubgraphClientStub.getDripsReceiverSeenEventsByReceiverId.withArgs(userId).resolves([]);
 
 			// Act
 			const balances = await testDripsHubClient.getAllReceivableBalancesForUser(userId, maxCycles);
@@ -388,46 +387,65 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 			const maxCycles = 10;
-			const tokenAddress1 = Wallet.createRandom().address;
-			const tokenAddress2 = Wallet.createRandom().address;
 
-			const dripsSetEvents: DripsSetEvent[] = [
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
-				} as DripsSetEvent,
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
-				} as DripsSetEvent
-			];
+			const firstResults: DripsReceiverSeenEvent[] = new Array(100).fill({}).map(
+				() =>
+					({
+						dripsSetEvent: {
+							assetId: Utils.Asset.getIdFromAddress('0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6')
+						}
+					} as DripsReceiverSeenEvent)
+			);
 
-			const receivableDrips: ReceivableBalance[] = [
+			const secondResults: DripsReceiverSeenEvent[] = [
 				{
-					tokenAddress: tokenAddress1,
-					receivableAmount: BigInt(1)
-				},
-				{
-					tokenAddress: tokenAddress2,
-					receivableAmount: BigInt(2)
-				}
+					dripsSetEvent: {
+						assetId: Utils.Asset.getIdFromAddress('0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')
+					}
+				} as DripsReceiverSeenEvent
 			];
 
 			sinon
 				.stub(DripsHubClient.prototype, 'getReceivableBalanceForUser')
 				.onFirstCall()
-				.resolves(receivableDrips[0])
+				.resolves({
+					receivableAmount: BigInt(1),
+					tokenAddress: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'
+				})
 				.onSecondCall()
-				.resolves(receivableDrips[1]);
+				.resolves({
+					receivableAmount: BigInt(2),
+					tokenAddress: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984'
+				});
 
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
+			dripsSubgraphClientStub.getDripsReceiverSeenEventsByReceiverId
+				.withArgs(userId)
+				.onFirstCall()
+				.resolves(firstResults)
+				.onSecondCall()
+				.resolves(secondResults);
 
 			// Act
 			const balances = await testDripsHubClient.getAllReceivableBalancesForUser(userId, maxCycles);
 
 			// Assert
-			assert.equal(balances[0].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[0].assetId));
-			assert.equal(balances[0].receivableAmount, receivableDrips[0].receivableAmount);
-			assert.equal(balances[1].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[1].assetId));
-			assert.equal(balances[1].receivableAmount, receivableDrips[1].receivableAmount);
+			assert.equal(balances.length, 2);
+			assert.equal(
+				balances.filter((x) => x.tokenAddress === '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6')[0].receivableAmount,
+				BigInt(1)
+			);
+			assert.equal(
+				balances.filter((x) => x.tokenAddress === '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6')[0].tokenAddress,
+				'0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'
+			);
+			assert.equal(
+				balances.filter((x) => x.tokenAddress === '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')[0].receivableAmount,
+				BigInt(2)
+			);
+			assert.equal(
+				balances.filter((x) => x.tokenAddress === '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')[0].tokenAddress,
+				'0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984'
+			);
 		});
 	});
 
@@ -742,7 +760,7 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
+			dripsSubgraphClientStub.getAllUserAssetConfigsByUserId.withArgs(userId).resolves([]);
 
 			// Act
 			const balances = await testDripsHubClient.getAllSplittableBalancesForUser(userId);
@@ -754,46 +772,45 @@ describe('DripsHubClient', () => {
 		it('should return the expected splittable balances', async () => {
 			// Arrange
 			const userId = '1';
-			const tokenAddress1 = Wallet.createRandom().address;
-			const tokenAddress2 = Wallet.createRandom().address;
 
-			const dripsSetEvents: DripsSetEvent[] = [
+			const firstResults: UserAssetConfig[] = new Array(100).fill({}).map(
+				() =>
+					({
+						assetId: Utils.Asset.getIdFromAddress(Wallet.createRandom().address),
+						amountSplittable: Math.floor(Math.random() * 100000)
+					} as any)
+			);
+
+			const secondResults: UserAssetConfig[] = [
 				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
-				} as DripsSetEvent,
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
-				} as DripsSetEvent
+					assetId: Utils.Asset.getIdFromAddress(Wallet.createRandom().address),
+					amountSplittable: Math.floor(Math.random() * 100000)
+				} as any
 			];
 
-			const splittableBalances: SplittableBalance[] = [
-				{
-					tokenAddress: tokenAddress1,
-					splittableAmount: 1n
-				},
-				{
-					tokenAddress: tokenAddress2,
-					splittableAmount: 2n
-				}
-			];
-
-			sinon
-				.stub(DripsHubClient.prototype, 'getSplittableBalanceForUser')
+			dripsSubgraphClientStub.getAllUserAssetConfigsByUserId
 				.onFirstCall()
-				.resolves(splittableBalances[0])
+				.resolves(firstResults)
 				.onSecondCall()
-				.resolves(splittableBalances[1]);
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
+				.resolves(secondResults);
 
 			// Act
 			const balances = await testDripsHubClient.getAllSplittableBalancesForUser(userId);
 
 			// Assert
-			assert.equal(balances[0].splittableAmount, splittableBalances[0].splittableAmount);
-			assert.equal(balances[0].tokenAddress, splittableBalances[0].tokenAddress);
-			assert.equal(balances[1].splittableAmount, splittableBalances[1].splittableAmount);
-			assert.equal(balances[1].tokenAddress, splittableBalances[1].tokenAddress);
+			assert.equal(balances.length, 101);
+			for (let i = 0; i < firstResults.length; i++) {
+				const element = firstResults[i];
+
+				assert.equal(Utils.Asset.getAddressFromId(element.assetId), balances[i].tokenAddress);
+				assert.equal(element.amountSplittable, balances[i].splittableAmount);
+			}
+			for (let i = 49; i < secondResults.length; i++) {
+				const element = secondResults[i];
+
+				assert.equal(Utils.Asset.getAddressFromId(element.assetId), balances[i].tokenAddress);
+				assert.equal(element.amountSplittable, balances[i].splittableAmount);
+			}
 		});
 	});
 
@@ -1029,7 +1046,7 @@ describe('DripsHubClient', () => {
 			// Arrange
 			const userId = '1';
 
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
+			dripsSubgraphClientStub.getAllUserAssetConfigsByUserId.withArgs(userId).resolves([]);
 
 			// Act
 			const balances = await testDripsHubClient.getAllCollectableBalancesForUser(userId);
@@ -1041,46 +1058,45 @@ describe('DripsHubClient', () => {
 		it('should return the expected collectable balances', async () => {
 			// Arrange
 			const userId = '1';
-			const tokenAddress1 = Wallet.createRandom().address;
-			const tokenAddress2 = Wallet.createRandom().address;
 
-			const dripsSetEvents: DripsSetEvent[] = [
+			const firstResults: UserAssetConfig[] = new Array(100).fill({}).map(
+				() =>
+					({
+						assetId: Utils.Asset.getIdFromAddress(Wallet.createRandom().address),
+						amountPostSplitCollectable: Math.floor(Math.random() * 100000)
+					} as any)
+			);
+
+			const secondResults: UserAssetConfig[] = [
 				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
-				} as DripsSetEvent,
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
-				} as DripsSetEvent
+					assetId: Utils.Asset.getIdFromAddress(Wallet.createRandom().address),
+					amountPostSplitCollectable: Math.floor(Math.random() * 100000)
+				} as any
 			];
 
-			const collectableBalances: CollectableBalance[] = [
-				{
-					tokenAddress: tokenAddress1,
-					collectableAmount: 1n
-				},
-				{
-					tokenAddress: tokenAddress2,
-					collectableAmount: 2n
-				}
-			];
-
-			sinon
-				.stub(DripsHubClient.prototype, 'getCollectableBalanceForUser')
+			dripsSubgraphClientStub.getAllUserAssetConfigsByUserId
 				.onFirstCall()
-				.resolves(collectableBalances[0])
+				.resolves(firstResults)
 				.onSecondCall()
-				.resolves(collectableBalances[1]);
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
+				.resolves(secondResults);
 
 			// Act
 			const balances = await testDripsHubClient.getAllCollectableBalancesForUser(userId);
 
 			// Assert
-			assert.equal(balances[0].collectableAmount, collectableBalances[0].collectableAmount);
-			assert.equal(balances[0].tokenAddress, collectableBalances[0].tokenAddress);
-			assert.equal(balances[1].collectableAmount, collectableBalances[1].collectableAmount);
-			assert.equal(balances[1].tokenAddress, collectableBalances[1].tokenAddress);
+			assert.equal(balances.length, 101);
+			for (let i = 0; i < firstResults.length; i++) {
+				const element = firstResults[i];
+
+				assert.equal(Utils.Asset.getAddressFromId(element.assetId), balances[i].tokenAddress);
+				assert.equal(element.amountPostSplitCollectable, balances[i].collectableAmount);
+			}
+			for (let i = 49; i < secondResults.length; i++) {
+				const element = secondResults[i];
+
+				assert.equal(Utils.Asset.getAddressFromId(element.assetId), balances[i].tokenAddress);
+				assert.equal(element.amountPostSplitCollectable, balances[i].collectableAmount);
+			}
 		});
 	});
 

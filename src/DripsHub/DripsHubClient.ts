@@ -1,7 +1,9 @@
+/* eslint-disable no-constant-condition */
+/* eslint-disable no-await-in-loop */
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber } from 'ethers';
-import type { DripsSetEvent } from 'src/DripsSubgraph/types';
+import type { DripsReceiverSeenEvent } from 'src/DripsSubgraph/types';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import DripsSubgraphClient from '../DripsSubgraph/DripsSubgraphClient';
 import { ensureSignerExists, isNullOrUndefined, nameOf } from '../common/internals';
@@ -19,14 +21,7 @@ import Utils from '../utils';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
-import type {
-	AssetId,
-	CollectableBalance,
-	DripsState,
-	ReceivableBalance,
-	SplitResult,
-	SplittableBalance
-} from './types';
+import type { CollectableBalance, DripsState, ReceivableBalance, SplitResult, SplittableBalance } from './types';
 
 /**
  * A client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub}.
@@ -272,7 +267,37 @@ export default class DripsHubClient {
 			);
 		}
 
-		const assetIds = await this.#getAllAssetIdsForUser(userId);
+		const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [];
+
+		let skip = 0;
+		const first = 100;
+		while (true) {
+			const iterationEvents = await this.#subgraphClient.getDripsReceiverSeenEventsByReceiverId(userId, skip, first);
+
+			dripsReceiverSeenEvents.push(...iterationEvents);
+
+			if (!iterationEvents?.length || iterationEvents.length < first) {
+				break;
+			}
+
+			skip += first;
+		}
+
+		if (!dripsReceiverSeenEvents?.length) {
+			return [];
+		}
+
+		const uniqueTokenEvents = dripsReceiverSeenEvents.reduce(
+			(unique: DripsReceiverSeenEvent[], ev: DripsReceiverSeenEvent) => {
+				if (!unique.some((obj: DripsReceiverSeenEvent) => obj.dripsSetEvent.assetId === ev.dripsSetEvent.assetId)) {
+					unique.push(ev);
+				}
+				return unique;
+			},
+			[]
+		);
+
+		const assetIds = uniqueTokenEvents.map((e) => e.dripsSetEvent.assetId);
 
 		const receivableBalances: Promise<ReceivableBalance>[] = [];
 
@@ -468,24 +493,33 @@ export default class DripsHubClient {
 	public async getAllSplittableBalancesForUser(userId: string): Promise<SplittableBalance[]> {
 		if (isNullOrUndefined(userId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get splittable balance: '${nameOf({ userId })}' is missing.`,
+				`Could not get splittable balances: '${nameOf({ userId })}' is missing.`,
 				nameOf({ userId })
 			);
 		}
 
-		const assetIds = await this.#getAllAssetIdsForUser(userId);
+		const splittableBalances: SplittableBalance[] = [];
 
-		const splittableBalances: Promise<SplittableBalance>[] = [];
+		let skip = 0;
+		const first = 100;
+		while (true) {
+			const iterationConfigs = await this.#subgraphClient.getAllUserAssetConfigsByUserId(userId, skip, first);
 
-		assetIds.forEach((id) => {
-			const tokenAddress = Utils.Asset.getAddressFromId(id);
+			splittableBalances.push(
+				...iterationConfigs.map((c) => ({
+					tokenAddress: Utils.Asset.getAddressFromId(c.assetId),
+					splittableAmount: c.amountSplittable
+				}))
+			);
 
-			const splittableBalance = this.getSplittableBalanceForUser(userId, tokenAddress);
+			if (!iterationConfigs?.length || iterationConfigs.length < first) {
+				break;
+			}
 
-			splittableBalances.push(splittableBalance);
-		});
+			skip += first;
+		}
 
-		return Promise.all(splittableBalances);
+		return splittableBalances;
 	}
 
 	/**
@@ -601,24 +635,33 @@ export default class DripsHubClient {
 	public async getAllCollectableBalancesForUser(userId: string): Promise<CollectableBalance[]> {
 		if (isNullOrUndefined(userId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get receivable balances: '${nameOf({ userId })}' is missing.`,
+				`Could not get collectable balances: '${nameOf({ userId })}' is missing.`,
 				nameOf({ userId })
 			);
 		}
 
-		const assetIds = await this.#getAllAssetIdsForUser(userId);
+		const collectableBalances: CollectableBalance[] = [];
 
-		const collectableBalances: Promise<CollectableBalance>[] = [];
+		let skip = 0;
+		const first = 100;
+		while (true) {
+			const iterationConfigs = await this.#subgraphClient.getAllUserAssetConfigsByUserId(userId, skip, first);
 
-		assetIds.forEach((id) => {
-			const tokenAddress = Utils.Asset.getAddressFromId(id);
+			collectableBalances.push(
+				...iterationConfigs.map((c) => ({
+					tokenAddress: Utils.Asset.getAddressFromId(c.assetId),
+					collectableAmount: c.amountPostSplitCollectable
+				}))
+			);
 
-			const collectableBalance = this.getCollectableBalanceForUser(userId, tokenAddress);
+			if (!iterationConfigs?.length || iterationConfigs.length < first) {
+				break;
+			}
 
-			collectableBalances.push(collectableBalance);
-		});
+			skip += first;
+		}
 
-		return Promise.all(collectableBalances);
+		return collectableBalances;
 	}
 
 	/**
@@ -712,22 +755,5 @@ export default class DripsHubClient {
 		const dripsBalance = await this.#driver.balanceAt(userId, tokenAddress, receivers, timestamp);
 
 		return dripsBalance.toBigInt();
-	}
-
-	async #getAllAssetIdsForUser(userId: string): Promise<AssetId[]> {
-		const dripsSetEvents = await this.#subgraphClient.getDripsSetEventsByUserId(BigNumber.from(userId).toString());
-
-		if (!dripsSetEvents?.length) {
-			return [];
-		}
-
-		const uniqueTokenEvents = dripsSetEvents.reduce((unique: DripsSetEvent[], ev: DripsSetEvent) => {
-			if (!unique.some((obj: DripsSetEvent) => obj.assetId === ev.assetId)) {
-				unique.push(ev);
-			}
-			return unique;
-		}, []);
-
-		return uniqueTokenEvents.map((e) => e.assetId);
 	}
 }

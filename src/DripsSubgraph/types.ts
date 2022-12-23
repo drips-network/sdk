@@ -9,6 +9,8 @@ export type UserAssetConfig = {
 	balance: bigint;
 	amountCollected: bigint;
 	lastUpdatedBlockTimestamp: bigint;
+	amountSplittable: bigint;
+	amountPostSplitCollectable: bigint;
 };
 
 export type SplitsEntry = {
