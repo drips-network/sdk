@@ -811,7 +811,7 @@ describe('DripsHubClient', () => {
 				assert.equal(Utils.Asset.getAddressFromId(element.assetId), balances[i].tokenAddress);
 				assert.equal(element.amountSplittable, balances[i].splittableAmount);
 			}
-		});
+		}).timeout(5000);
 	});
 
 	describe('getSplitResult', () => {
@@ -1097,7 +1097,7 @@ describe('DripsHubClient', () => {
 				assert.equal(Utils.Asset.getAddressFromId(element.assetId), balances[i].tokenAddress);
 				assert.equal(element.amountPostSplitCollectable, balances[i].collectableAmount);
 			}
-		});
+		}).timeout(5000);
 	});
 
 	describe('dripsState()', () => {
