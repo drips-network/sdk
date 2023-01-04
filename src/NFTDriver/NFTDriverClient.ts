@@ -56,9 +56,9 @@ export default class NFTDriverClient {
 	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {JsonRpcProvider} signer The singer used to sign transactions.
+	 * @param  {JsonRpcProvider} signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
-	 * The `singer` will connect to the `provider` and cannot be changed after creation.
+	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
