@@ -5,8 +5,8 @@ import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import type { BytesLike, ContractReceipt, ContractTransaction, Event } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
-import type { IERC20, NFTDriver } from '../../contracts';
-import { IERC20__factory, NFTDriver__factory } from '../../contracts';
+import { IERC20, IERC20__factory, NFTDriver } from '../../contracts';
+import { NFTDriver__factory } from '../../contracts';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
@@ -25,6 +25,7 @@ describe('NFTDriverClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let nftDriverContractStub: StubbedInstance<NFTDriver>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
@@ -40,19 +41,21 @@ describe('NFTDriverClient', () => {
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
+
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		nftDriverContractStub = stubInterface<NFTDriver>();
 		sinon
 			.stub(NFTDriver__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerWithProviderStub)
 			.returns(nftDriverContractStub);
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
 		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
 
-		testNftDriverClient = await NFTDriverClient.create(providerStub);
+		testNftDriverClient = await NFTDriverClient.create(providerStub, signerStub);
 	});
 
 	afterEach(() => {
@@ -60,12 +63,26 @@ describe('NFTDriverClient', () => {
 	});
 
 	describe('create()', () => {
+		it('should validate the signer', async () => {
+			// Arrange
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
+
+			// Act
+			await NFTDriverClient.create(providerStub, signerStub);
+
+			// Assert
+			assert(
+				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			NFTDriverClient.create(providerStub);
+			await NFTDriverClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -74,12 +91,29 @@ describe('NFTDriverClient', () => {
 			);
 		});
 
+		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await NFTDriverClient.create(undefined as any, undefined as any);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should set the custom driver address when provided', async () => {
 			// Arrange
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await NFTDriverClient.create(providerStub, customDriverAddress);
+			const client = await NFTDriverClient.create(providerStub, signerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
@@ -87,14 +121,9 @@ describe('NFTDriverClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(testNftDriverClient.signer, signerStub);
+			assert.equal(testNftDriverClient.signer, signerWithProviderStub);
 			assert.equal(testNftDriverClient.provider, providerStub);
-			assert.equal(testNftDriverClient.provider.getSigner(), providerStub.getSigner());
-			assert.equal(await testNftDriverClient.signer.getAddress(), await signerStub.getAddress());
-			assert.equal(
-				await testNftDriverClient.provider.getSigner().getAddress(),
-				await providerStub.getSigner().getAddress()
-			);
+			assert.equal(testNftDriverClient.signer.provider, providerStub);
 			assert.equal(
 				testNftDriverClient.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_NFT_DRIVER
@@ -114,10 +143,7 @@ describe('NFTDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testNftDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testNftDriverClient.getAllowance(tokenAddress);
@@ -136,10 +162,7 @@ describe('NFTDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testNftDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			const allowance = await testNftDriverClient.getAllowance(tokenAddress);
@@ -148,7 +171,7 @@ describe('NFTDriverClient', () => {
 			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					await testNftDriverClient.provider.getSigner().getAddress(),
+					await signerWithProviderStub.getAddress(),
 					testNftDriverClient.driverAddress
 				),
 				'Expected method to be called with different arguments'
@@ -164,10 +187,7 @@ describe('NFTDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testNftDriverClient.approve(tokenAddress);
@@ -182,10 +202,7 @@ describe('NFTDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testNftDriverClient.approve(tokenAddress);

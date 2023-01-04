@@ -696,7 +696,7 @@ describe('validators', () => {
 				await validators.validateClientProvider(undefined as unknown as JsonRpcProvider, []);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -735,30 +735,15 @@ describe('validators', () => {
 
 			try {
 				// Act
-				await validators.validateClientSigner(undefined as unknown as JsonRpcSigner, []);
+				await validators.validateClientSigner(undefined as unknown as JsonRpcSigner);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
 			// Assert
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should validate provider', () => {
-			// Arrange
-			const signer = { provider: {} as unknown as JsonRpcProvider } as unknown as JsonRpcSigner;
-			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
-
-			// Act
-			validators.validateClientSigner(signer, []);
-
-			// Assert
-			assert(
-				validateClientProviderStub.calledWithExactly(signer.provider, []),
-				'Expected method to be called with different arguments'
-			);
 		});
 	});
 

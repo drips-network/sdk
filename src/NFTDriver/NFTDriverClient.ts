@@ -1,5 +1,5 @@
-import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
+import type { BigNumberish, BytesLike, ContractTransaction, Signer } from 'ethers';
 import { ethers, constants, BigNumber } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
 import type { NFTDriver } from '../../contracts';
@@ -8,6 +8,7 @@ import { DripsErrors } from '../common/DripsError';
 import {
 	validateAddress,
 	validateClientProvider,
+	validateClientSigner,
 	validateDripsReceivers,
 	validateEmitUserMetadataInput,
 	validateSplitsReceivers
@@ -21,13 +22,13 @@ import dripsConstants from '../constants';
  */
 export default class NFTDriverClient {
 	#driver!: NFTDriver;
-	#signer!: JsonRpcSigner;
+	#signer!: Signer;
 	#signerAddress!: string;
 	#driverAddress!: string;
-	#provider!: JsonRpcProvider;
+	#provider!: Provider;
 
 	/** Returns the client's `provider`. */
-	public get provider(): JsonRpcProvider {
+	public get provider(): Provider {
 		return this.#provider;
 	}
 
@@ -36,7 +37,7 @@ export default class NFTDriverClient {
 	 *
 	 * The `signer` is the `provider`'s signer.
 	 */
-	public get signer(): JsonRpcSigner {
+	public get signer(): Signer {
 		return this.#signer;
 	}
 
@@ -50,40 +51,44 @@ export default class NFTDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `NFTDriverClient` instance.
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * @param  {JsonRpcProvider} provider The network provider. It cannot be changed after creation.
 	 *
-	 * The `provider` must have a `signer` associated with it, and cannot be changed after creation.
-	 *
-	 * The supported networks are:
+	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
+	 * @param  {JsonRpcProvider} signer The singer used to sign transactions.
+	 *
+	 * The `singer` will connect to the `provider` and cannot be changed after creation.
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
-	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
 	 */
 	public static async create(
-		provider: JsonRpcProvider,
+		provider: Provider,
+		signer: Signer,
 		customDriverAddress: string | undefined = undefined
 	): Promise<NFTDriverClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		try {
+			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+			await validateClientSigner(signer);
 
-		const signer = provider.getSigner();
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_NFT_DRIVER;
+			const network = await provider.getNetwork();
+			const signerWithProvider = signer.connect(provider);
+			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_NFT_DRIVER;
 
-		const client = new NFTDriverClient();
+			const client = new NFTDriverClient();
 
-		client.#signer = signer;
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#signerAddress = await signer.getAddress();
-		client.#driver = NFTDriver__factory.connect(driverAddress, signer);
+			client.#signer = signerWithProvider;
+			client.#provider = provider;
+			client.#driverAddress = driverAddress;
+			client.#signerAddress = await signer.getAddress();
+			client.#driver = NFTDriver__factory.connect(driverAddress, signerWithProvider);
 
-		return client;
+			return client;
+		} catch (error: any) {
+			throw DripsErrors.clientInitializationError(`Could not create NFTDriverClient: ${error.message}`);
+		}
 	}
 
 	/**
@@ -167,7 +172,7 @@ export default class NFTDriverClient {
 		if (associatedApp) {
 			if (!ethers.utils.isBytesLike(associatedApp)) {
 				throw DripsErrors.argumentError(
-					`Could not collect '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
+					`Could not create new account '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
 					nameOf({ associatedApp }),
 					associatedApp
 				);
@@ -217,7 +222,7 @@ export default class NFTDriverClient {
 		if (associatedApp) {
 			if (!ethers.utils.isBytesLike(associatedApp)) {
 				throw DripsErrors.argumentError(
-					`Could not collect '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
+					`Could not create new account '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
 					nameOf({ associatedApp }),
 					associatedApp
 				);

@@ -77,7 +77,7 @@ describe('DripsHubClient', () => {
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub, Utils.Network.SUPPORTED_CHAINS),
+				validateClientSignerStub.calledOnceWithExactly(signerStub),
 				'Expected method to be called with different arguments'
 			);
 		});

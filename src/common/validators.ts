@@ -1,5 +1,5 @@
-import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
+import type { BigNumberish, Signer } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
@@ -149,9 +149,9 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 };
 
 /** @internal */
-export const validateClientProvider = async (provider: JsonRpcProvider, supportedChains: readonly number[]) => {
+export const validateClientProvider = async (provider: Provider, supportedChains: readonly number[]) => {
 	if (!provider) {
-		throw DripsErrors.argumentMissingError(`'${nameOf({ provider })}' is missing.`, nameOf({ provider }));
+		throw DripsErrors.argumentError(`'${nameOf({ provider })}' is missing.`);
 	}
 
 	const network = await provider.getNetwork();
@@ -164,14 +164,12 @@ export const validateClientProvider = async (provider: JsonRpcProvider, supporte
 };
 
 /** @internal */
-export const validateClientSigner = async (signer: JsonRpcSigner, supportedChains: readonly number[]) => {
+export const validateClientSigner = async (signer: Signer) => {
 	if (!signer) {
-		throw DripsErrors.argumentMissingError(`'${nameOf({ signer })}' is missing.`, nameOf({ signer }));
+		throw DripsErrors.argumentError(`'${nameOf({ signer })}' is missing.`);
 	}
 
-	const { provider } = signer;
-
-	await validateClientProvider(provider, supportedChains);
+	validateAddress(await signer.getAddress());
 };
 
 /** @internal */

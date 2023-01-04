@@ -81,7 +81,7 @@ export default class DripsHubClient {
 		signer: JsonRpcSigner,
 		customDriverAddress: string | undefined = undefined
 	): Promise<DripsHubClient> {
-		await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
+		await validateClientSigner(signer);
 
 		const { provider } = signer;
 		const network = await provider.getNetwork();
