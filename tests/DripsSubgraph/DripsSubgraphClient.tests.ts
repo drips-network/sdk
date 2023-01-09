@@ -1207,7 +1207,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getSplitEventsByUserId', () => {
+	describe('getSplitEventsByUserId()', () => {
 		it('should throw an argumentMissingError when user ID is missing', async () => {
 			let threw = false;
 
@@ -1278,7 +1278,82 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getReceivedDripsEventsByUserId', () => {
+	describe('getSplitEventsByReceiverUserId()', () => {
+		it('should throw an argumentError when user ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getSplitEventsByReceiverUserId(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return empty array when no events are found', async () => {
+			// Arrange
+			const receiverUserId = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSplitEventsByReceiverUserId, { receiverUserId })
+				.resolves({
+					data: {
+						givenEvents: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getSplitEventsByReceiverUserId(receiverUserId);
+
+			// Assert
+			assert.isEmpty(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const events: SubgraphTypes.SplitEvent[] = [
+				{
+					amt: 1n,
+					assetId: 2n,
+					blockTimestamp: 3n,
+					id: '4',
+					receiverId: '5',
+					userId: '6'
+				}
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getSplitEventsByReceiverUserId, { receiverUserId: events[0].receiverId, skip: 0, first: 100 })
+				.resolves({
+					data: {
+						splitEvents: events
+					}
+				});
+
+			// Act
+			const result = await testSubgraphClient.getSplitEventsByReceiverUserId(events[0].receiverId);
+
+			// Assert
+			assert.equal(result![0].id, events[0].id);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getSplitEventsByReceiverUserId, {
+					receiverUserId: events[0].receiverId,
+					skip: 0,
+					first: 100
+				}),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getReceivedDripsEventsByUserId()', () => {
 		it('should throw an argumentMissingError when user ID is missing', async () => {
 			let threw = false;
 
@@ -1350,7 +1425,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getGivenEventsByUserId', () => {
+	describe('getGivenEventsByUserId()', () => {
 		it('should throw an argumentMissingError when user ID is missing', async () => {
 			let threw = false;
 
@@ -1417,6 +1492,78 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(result![0].id, events[0].id);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getGivenEventsByUserId, { userId, skip: 0, first: 100 }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('getGivenEventsByReceiverUserId()', () => {
+		it('should throw an argumentMissingError when user ID is missing', async () => {
+			let threw = false;
+
+			try {
+				// Act
+				await testSubgraphClient.getGivenEventsByReceiverUserId(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return empty array when no events are found', async () => {
+			// Arrange
+			const receiverUserId = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getGivenEventsByReceiverUserId, { receiverUserId })
+				.resolves({
+					data: {
+						givenEvents: null
+					}
+				});
+
+			// Act
+			const metadata = await testSubgraphClient.getGivenEventsByReceiverUserId(receiverUserId);
+
+			// Assert
+			assert.isEmpty(metadata);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const receiverUserId = '1';
+			const events: SubgraphTypes.GivenEvent[] = [
+				{
+					id: '1',
+					amt: 1n,
+					assetId: '1',
+					blockTimestamp: 1n,
+					userId: '1',
+					receiverUserId
+				}
+			];
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getGivenEventsByReceiverUserId, { receiverUserId, skip: 0, first: 100 })
+				.resolves({
+					data: {
+						givenEvents: events
+					}
+				});
+
+			// Act
+			const result = await testSubgraphClient.getGivenEventsByReceiverUserId(receiverUserId);
+
+			// Assert
+			assert.equal(result![0].id, events[0].id);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getGivenEventsByReceiverUserId, { receiverUserId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});

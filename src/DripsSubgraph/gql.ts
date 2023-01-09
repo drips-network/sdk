@@ -172,6 +172,19 @@ query getSplitEventsByUserId($userId: String!, $skip: Int, $first: Int) {
 }
 `;
 
+export const getSplitEventsByReceiverUserId = `#graphql
+query getSplitEventsByReceiverUserId($receiverUserId: String!, $skip: Int, $first: Int) {
+  splitEvents(where: {receiverId: $receiverUserId}, skip: $skip, first: $first) {
+		id
+		userId
+		receiverId
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;
+
 export const getReceivedDripsEventsByUserId = `#graphql
 query getReceivedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
   receivedDripsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
@@ -188,6 +201,19 @@ query getReceivedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) 
 export const getGivenEventsByUserId = `#graphql
 query getGivenEventsByUserId($userId: String!, $skip: Int, $first: Int) {
   givenEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+		id
+		userId
+		receiverUserId
+		assetId
+		amt
+		blockTimestamp
+	}
+}
+`;
+
+export const getGivenEventsByReceiverUserId = `#graphql
+query getGivenEventsByReceiverUserId($receiverUserId: String!, $skip: Int, $first: Int) {
+  givenEvents(where: {receiverUserId: $receiverUserId}, skip: $skip, first: $first) {
 		id
 		userId
 		receiverUserId
