@@ -10,7 +10,7 @@ import {
 } from '../common/validators';
 import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
@@ -22,7 +22,7 @@ export namespace AddressDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		userMetadata: UserMetadataStruct[];
+		userMetadata: UserMetadata[];
 	};
 
 	export type CollectFlowPayload = {

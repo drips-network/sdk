@@ -4,10 +4,90 @@ import * as internals from '../../src/common/internals';
 import Utils from '../../src/utils';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
+import { BytesLike, ethers } from 'ethers';
 
 describe('internals', () => {
 	afterEach(() => {
 		sinon.restore();
+	});
+
+	describe('keyFromString', () => {
+		it('should return the expected result', () => {
+			// Act
+			const key = internals.keyFromString('key');
+
+			// Assert
+			assert.equal(key, ethers.utils.formatBytes32String('key'));
+		});
+	});
+
+	describe('valueFromString', () => {
+		it('should return the expected result', () => {
+			// Act
+			const value = internals.valueFromString('value');
+
+			// Assert
+			assert.equal(value, ethers.utils.hexlify(ethers.utils.toUtf8Bytes('value')));
+		});
+	});
+
+	describe('createFromStrings', () => {
+		it('should return the expected result', () => {
+			// Act
+			const metadata = internals.createFromStrings('key', 'value');
+
+			// Assert
+			assert.equal(metadata.key, internals.keyFromString('key'));
+			assert.equal(metadata.value, internals.valueFromString('value'));
+		});
+	});
+
+	describe('parseMetadataAsString', () => {
+		it('should throw argumentError user metadata key is not a valid BytesLike object', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				internals.parseMetadataAsString({ key: undefined as unknown as string, value: 'value' });
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentError user metadata value is not a valid BytesLike object', async () => {
+			// Arrange
+			let threw = false;
+
+			// Act
+			try {
+				internals.parseMetadataAsString({ key: 'key', value: undefined as unknown as string });
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return the expected result', () => {
+			// Act
+			const key: BytesLike = internals.keyFromString('key');
+			const value: BytesLike = internals.valueFromString('value');
+
+			const metadata = internals.parseMetadataAsString({ key, value });
+
+			// Assert
+			assert.equal(metadata.key, 'key');
+			assert.equal(metadata.value, 'value');
+		});
 	});
 
 	describe('ensureSignerExists()', () => {

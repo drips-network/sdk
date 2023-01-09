@@ -1,9 +1,9 @@
 /* eslint-disable no-nested-ternary */
 
 import type { JsonRpcSigner } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { BigNumber, BytesLike, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from './types';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from './types';
 
 /** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];
@@ -72,3 +72,35 @@ export function ensureSignerExists(signer: JsonRpcSigner | undefined): asserts s
 		throw DripsErrors.signerMissingError();
 	}
 }
+
+/** @internal */
+export const keyFromString = (key: string): BytesLike => ethers.utils.formatBytes32String(key);
+
+/** @internal */
+export const valueFromString = (value: string): BytesLike => ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value));
+
+/** @internal */
+export const createFromStrings = (
+	key: string,
+	value: string
+): {
+	key: BytesLike;
+	value: BytesLike;
+} => ({
+	key: keyFromString(key),
+	value: valueFromString(value)
+});
+
+/** @internal */
+export const parseMetadataAsString = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
+	if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
+		throw DripsErrors.argumentError(
+			`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`
+		);
+	}
+
+	return {
+		key: ethers.utils.parseBytes32String(userMetadata.key),
+		value: ethers.utils.toUtf8String(userMetadata.value)
+	};
+};

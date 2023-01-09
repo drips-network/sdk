@@ -16,6 +16,7 @@ import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 import constants from '../../src/constants';
 import type { CycleInfo } from '../../src/common/types';
+import { keyFromString } from '../../src/common/internals';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -800,7 +801,7 @@ describe('DripsSubgraphClient', () => {
 	});
 
 	describe('getLatestUserMetadata()', () => {
-		it('should throw argumentMissingError error when user ID is missing', async () => {
+		it('should throw argumentError error when user ID is missing', async () => {
 			let threw = false;
 
 			try {
@@ -808,7 +809,7 @@ describe('DripsSubgraphClient', () => {
 				await testSubgraphClient.getLatestUserMetadata(undefined as unknown as string, 'key');
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -816,7 +817,7 @@ describe('DripsSubgraphClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw argumentMissingError error when key is missing', async () => {
+		it('should throw argumentError error when key is missing', async () => {
 			let threw = false;
 
 			try {
@@ -824,7 +825,7 @@ describe('DripsSubgraphClient', () => {
 				await testSubgraphClient.getLatestUserMetadata('1', undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -866,7 +867,7 @@ describe('DripsSubgraphClient', () => {
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getLatestUserMetadata, {
-					id: `${userMetadataByKey.userId}-${BigNumber.from(userMetadataByKey.key)}`
+					id: `${userMetadataByKey.userId}-${keyFromString(userMetadataByKey.key)}`
 				})
 				.resolves({
 					data: {
@@ -884,7 +885,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataByKey.lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, {
-					id: `${userMetadataByKey.userId}-${BigNumber.from(userMetadataByKey.key)}`
+					id: `${userMetadataByKey.userId}-${keyFromString(userMetadataByKey.key)}`
 				}),
 				'Expected method to be called with different arguments'
 			);

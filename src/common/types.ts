@@ -54,3 +54,8 @@ export type CycleInfo = {
 export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
 
 export type Preset = CallStruct[];
+
+export type UserMetadata = {
+	key: string;
+	value: string;
+};

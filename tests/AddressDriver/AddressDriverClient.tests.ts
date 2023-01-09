@@ -12,7 +12,7 @@ import type {
 	SplitsReceiverStruct,
 	DripsReceiverStruct,
 	AddressDriverInterface,
-	UserMetadataStruct
+	UserMetadata
 } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
@@ -786,7 +786,7 @@ describe('AddressDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadata[] = [];
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			// Act
@@ -798,14 +798,15 @@ describe('AddressDriverClient', () => {
 
 		it('should call the emitUserMetadata() method of the AddressDriver contract', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			// Act
 			await testAddressDriverClient.emitUserMetadata(metadata);
 
 			// Assert
 			assert(
-				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadata),
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadataAsBytes),
 				'Expected method to be called with different arguments'
 			);
 		});
