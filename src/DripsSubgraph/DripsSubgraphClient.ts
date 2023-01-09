@@ -566,6 +566,37 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
+	 * Returns a list of `Split` events for the given receiver.
+	 * @param  {string} receiverUserId The receiver user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
+	 * @returns A `Promise` which resolves to the receiver's `Split` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getSplitEventsByReceiverUserId(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<SplitEvent[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentError(`Could not get 'split' events: ${nameOf({ receiverUserId })} is missing.`);
+		}
+
+		type QueryResponse = {
+			splitEvents: SubgraphTypes.SplitEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getSplitEventsByReceiverUserId, {
+			receiverUserId,
+			skip,
+			first
+		});
+
+		return response?.data?.splitEvents?.map(mapSplitEventToDto) || [];
+	}
+
+	/**
 	 * Returns a list of `ReceivedDrips` events for the given user.
 	 * @param  {string} userId The user ID.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
@@ -617,6 +648,37 @@ export default class DripsSubgraphClient {
 		};
 
 		const response = await this.query<QueryResponse>(gql.getGivenEventsByUserId, { userId, skip, first });
+
+		return response?.data?.givenEvents?.map(mapGivenEventToDto) || [];
+	}
+
+	/**
+	 * Returns a list of `Given` events for the given receiver.
+	 * @param  {string} receiverUserId The receiver user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
+	 * @returns A `Promise` which resolves to the receiver's `Given` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getGivenEventsByReceiverUserId(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<GivenEvent[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentError(`Could not get 'given' events: ${nameOf({ receiverUserId })} is missing.`);
+		}
+
+		type QueryResponse = {
+			givenEvents: SubgraphTypes.GivenEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getGivenEventsByReceiverUserId, {
+			receiverUserId,
+			skip,
+			first
+		});
 
 		return response?.data?.givenEvents?.map(mapGivenEventToDto) || [];
 	}
