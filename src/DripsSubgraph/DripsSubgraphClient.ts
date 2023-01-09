@@ -1,7 +1,7 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish, BytesLike } from 'ethers';
-import { ethers, BigNumber } from 'ethers';
+import { ethers } from 'ethers';
 import constants from '../constants';
 import { nameOf } from '../common/internals';
 import Utils from '../utils';
@@ -323,7 +323,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the history of user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {BytesLike} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
 	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's metadata.
@@ -332,7 +332,7 @@ export default class DripsSubgraphClient {
 	 */
 	public async getMetadataHistory(
 		userId: string,
-		key?: BytesLike,
+		key?: string,
 		skip: number = 0,
 		first: number = 100
 	): Promise<UserMetadataEntry[]> {
@@ -352,7 +352,7 @@ export default class DripsSubgraphClient {
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
 				userId,
-				key: `${BigNumber.from(key)}`,
+				key: `${keyFromString(key)}`,
 				skip,
 				first
 			});

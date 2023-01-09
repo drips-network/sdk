@@ -16,7 +16,7 @@ import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 import constants from '../../src/constants';
 import type { CycleInfo } from '../../src/common/types';
-import { keyFromString } from '../../src/common/internals';
+import { keyFromString, valueFromString } from '../../src/common/internals';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -713,8 +713,8 @@ describe('DripsSubgraphClient', () => {
 			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
 				{
 					id: '1',
-					key: '2',
-					value: '3',
+					key: keyFromString('key'),
+					value: valueFromString('value'),
 					userId: '5',
 					lastUpdatedBlockTimestamp: '5'
 				}
@@ -737,9 +737,9 @@ describe('DripsSubgraphClient', () => {
 			const metadata = await testSubgraphClient.getMetadataHistory(userMetadataEvents[0].userId);
 
 			// Assert
-			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
+			assert.equal(metadata![0].key.toString(), 'key');
 			assert.equal(metadata![0].userId, userMetadataEvents[0].userId);
-			assert.equal(metadata![0].value, userMetadataEvents[0].value);
+			assert.equal(metadata![0].value, 'value');
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByUser, {
@@ -756,8 +756,8 @@ describe('DripsSubgraphClient', () => {
 			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
 				{
 					id: '1',
-					key: '2',
-					value: '3',
+					key: keyFromString('key'),
+					value: valueFromString('value'),
 					userId: '5',
 					lastUpdatedBlockTimestamp: '5'
 				}
@@ -767,7 +767,7 @@ describe('DripsSubgraphClient', () => {
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByUserAndKey, {
 					userId: userMetadataEvents[0].userId,
-					key: userMetadataEvents[0].key.toString(),
+					key: keyFromString('key'),
 					skip: 0,
 					first: 100
 				})
@@ -778,15 +778,12 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getMetadataHistory(
-				userMetadataEvents[0].userId,
-				userMetadataEvents[0].key
-			);
+			const metadata = await testSubgraphClient.getMetadataHistory(userMetadataEvents[0].userId, 'key');
 
 			// Assert
-			assert.equal(metadata![0].key.toString(), userMetadataEvents[0].key);
+			assert.equal(metadata![0].key.toString(), 'key');
 			assert.equal(metadata![0].userId, userMetadataEvents[0].userId);
-			assert.equal(metadata![0].value, userMetadataEvents[0].value);
+			assert.equal(metadata![0].value, 'value');
 			assert.equal(metadata![0].lastUpdatedBlockTimestamp.toString(), userMetadataEvents[0].lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByUserAndKey, {
@@ -858,8 +855,8 @@ describe('DripsSubgraphClient', () => {
 			// Arrange
 			const userMetadataByKey: SubgraphTypes.UserMetadataEvent = {
 				id: '1',
-				key: '2',
-				value: '3',
+				key: keyFromString('key'),
+				value: valueFromString('value'),
 				userId: '4',
 				lastUpdatedBlockTimestamp: '5'
 			};
@@ -867,7 +864,7 @@ describe('DripsSubgraphClient', () => {
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getLatestUserMetadata, {
-					id: `${userMetadataByKey.userId}-${keyFromString(userMetadataByKey.key)}`
+					id: `${userMetadataByKey.userId}-${keyFromString('key')}`
 				})
 				.resolves({
 					data: {
@@ -876,16 +873,16 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getLatestUserMetadata(userMetadataByKey.userId, userMetadataByKey.key);
+			const metadata = await testSubgraphClient.getLatestUserMetadata(userMetadataByKey.userId, 'key');
 
 			// Assert
-			assert.equal(metadata!.key.toString(), userMetadataByKey.key);
+			assert.equal(metadata!.key, 'key');
 			assert.equal(metadata!.userId, userMetadataByKey.userId);
-			assert.equal(metadata!.value, userMetadataByKey.value);
+			assert.equal(metadata!.value, 'value');
 			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataByKey.lastUpdatedBlockTimestamp);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, {
-					id: `${userMetadataByKey.userId}-${keyFromString(userMetadataByKey.key)}`
+					id: `${userMetadataByKey.userId}-${keyFromString('key')}`
 				}),
 				'Expected method to be called with different arguments'
 			);

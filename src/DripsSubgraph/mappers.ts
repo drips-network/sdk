@@ -11,6 +11,7 @@ import type {
 	SqueezedDripsEvent
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
+import * as internals from '../../src/common/internals';
 
 /** @internal */
 export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
@@ -120,10 +121,14 @@ export const mapDripsReceiverSeenEventToDto = (
 });
 
 /** @internal */
-export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadataEntry => ({
-	id: userMetadata.id,
-	value: userMetadata.value,
-	userId: userMetadata.userId,
-	key: userMetadata.key,
-	lastUpdatedBlockTimestamp: BigInt(userMetadata.lastUpdatedBlockTimestamp)
-});
+export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadataEntry => {
+	const { key, value } = internals.parseMetadataAsString(userMetadata);
+
+	return {
+		key,
+		value,
+		id: userMetadata.id,
+		userId: userMetadata.userId,
+		lastUpdatedBlockTimestamp: BigInt(userMetadata.lastUpdatedBlockTimestamp)
+	};
+};
