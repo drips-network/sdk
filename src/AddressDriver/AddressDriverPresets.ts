@@ -8,7 +8,7 @@ import {
 	validateSetDripsInput,
 	validateSplitInput
 } from '../common/validators';
-import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import { createFromStrings, formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
@@ -124,10 +124,12 @@ export namespace AddressDriverPresets {
 				])
 			};
 
+			const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadata])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadataAsBytes])
 			};
 
 			return [setDrips, emitUserMetadata];

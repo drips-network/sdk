@@ -8,7 +8,7 @@ import {
 	validateSetDripsInput,
 	validateSplitInput
 } from '../common/validators';
-import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import { createFromStrings, formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
@@ -136,10 +136,15 @@ export namespace NFTDriverPresets {
 				])
 			};
 
+			const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [tokenId, userMetadata])
+				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
+					tokenId,
+					userMetadataAsBytes
+				])
 			};
 
 			return [setDrips, emitUserMetadata];

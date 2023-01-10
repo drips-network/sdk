@@ -7,7 +7,7 @@ import type { NFTDriverInterface } from '../../contracts/NFTDriver';
 import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { NFTDriverPresets } from '../../src/NFTDriver/NFTDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { formatDripsReceivers } from '../../src/common/internals';
+import { formatDripsReceivers, keyFromString, valueFromString } from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 
@@ -226,8 +226,8 @@ describe('NFTDriverPresets', () => {
 					sinon.match(
 						(values: any[]) =>
 							values[0] === payload.tokenId &&
-							values[1][0].key === payload.userMetadata[0].key &&
-							values[1][0].value === payload.userMetadata[0].value
+							values[1][0].key === keyFromString(payload.userMetadata[0].key) &&
+							values[1][0].value === valueFromString(payload.userMetadata[0].value)
 					)
 				)
 				.returns('emitUserMetadata');
