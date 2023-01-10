@@ -861,10 +861,12 @@ describe('DripsSubgraphClient', () => {
 				lastUpdatedBlockTimestamp: '5'
 			};
 
+			const id = `${userMetadataByKey.userId}-key`;
+
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getLatestUserMetadata, {
-					id: `${userMetadataByKey.userId}-${keyFromString('key')}`
+					id
 				})
 				.resolves({
 					data: {
@@ -881,9 +883,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(metadata!.value, 'value');
 			assert.equal(metadata!.lastUpdatedBlockTimestamp.toString(), userMetadataByKey.lastUpdatedBlockTimestamp);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, {
-					id: `${userMetadataByKey.userId}-${keyFromString('key')}`
-				}),
+				clientStub.calledOnceWithExactly(gql.getLatestUserMetadata, { id }),
 				'Expected method to be called with different arguments'
 			);
 		});
