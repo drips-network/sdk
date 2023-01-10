@@ -387,7 +387,7 @@ export default class DripsSubgraphClient {
 		};
 
 		const response = await this.query<QueryResponse>(gql.getLatestUserMetadata, {
-			id: `${userId}-${keyFromString(key)}`
+			id: `${userId}-${key}`
 		});
 
 		const userMetadataEvent = response?.data?.userMetadataByKey;
