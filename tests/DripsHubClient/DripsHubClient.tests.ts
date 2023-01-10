@@ -18,9 +18,6 @@ import type {
 	SplitsReceiverStruct,
 	DripsReceiverConfig
 } from '../../src/common/types';
-import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import type { DripsSetEvent } from '../../src/DripsSubgraph/types';
-import type { CollectableBalance, ReceivableBalance, SplittableBalance } from '../../src/DripsHub/types';
 import * as internals from '../../src/common/internals';
 
 describe('DripsHubClient', () => {
@@ -30,7 +27,6 @@ describe('DripsHubClient', () => {
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let dripsHubContractStub: StubbedInstance<DripsHub>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let dripsSubgraphClientStub: StubbedInstance<DripsSubgraphClient>;
 	let dripsHubContractFactoryStub: sinon.SinonStub<
 		[address: string, signerOrProvider: Provider | ethers.Signer],
 		DripsHub
@@ -56,9 +52,6 @@ describe('DripsHubClient', () => {
 		dripsHubContractFactoryStub
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, signerStub)
 			.returns(dripsHubContractStub);
-
-		dripsSubgraphClientStub = stubInterface<DripsSubgraphClient>();
-		sinon.stub(DripsSubgraphClient, 'create').returns(dripsSubgraphClientStub);
 
 		testDripsHubClient = await DripsHubClient.create(signerStub);
 	});
@@ -332,102 +325,6 @@ describe('DripsHubClient', () => {
 			// Assert
 			assert.equal(actualBalance.receivableAmount, expectedBalance.toBigInt());
 			assert(dripsHubContractStub.receiveDripsResult.calledOnceWithExactly(userId, tokenAddress, maxCycles));
-		});
-	});
-
-	describe('getAllReceivableBalancesForUser()', () => {
-		it('should throw argumentMissingError when userId is missing', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await testDripsHubClient.getAllReceivableBalancesForUser(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should throw argumentError when maxCycles is less than 0', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await testDripsHubClient.getAllReceivableBalancesForUser('1', -1);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should return an empty array when there are no tokens found for the user', async () => {
-			// Arrange
-			const userId = '1';
-			const maxCycles = 10;
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
-
-			// Act
-			const balances = await testDripsHubClient.getAllReceivableBalancesForUser(userId, maxCycles);
-
-			// Assert
-			assert.isEmpty(balances);
-		});
-
-		it('should return the expected receivable balances', async () => {
-			// Arrange
-			const userId = '1';
-			const maxCycles = 10;
-			const tokenAddress1 = Wallet.createRandom().address;
-			const tokenAddress2 = Wallet.createRandom().address;
-
-			const dripsSetEvents: DripsSetEvent[] = [
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
-				} as DripsSetEvent,
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
-				} as DripsSetEvent
-			];
-
-			const receivableDrips: ReceivableBalance[] = [
-				{
-					tokenAddress: tokenAddress1,
-					receivableAmount: BigInt(1)
-				},
-				{
-					tokenAddress: tokenAddress2,
-					receivableAmount: BigInt(2)
-				}
-			];
-
-			sinon
-				.stub(DripsHubClient.prototype, 'getReceivableBalanceForUser')
-				.onFirstCall()
-				.resolves(receivableDrips[0])
-				.onSecondCall()
-				.resolves(receivableDrips[1]);
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
-
-			// Act
-			const balances = await testDripsHubClient.getAllReceivableBalancesForUser(userId, maxCycles);
-
-			// Assert
-			assert.equal(balances[0].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[0].assetId));
-			assert.equal(balances[0].receivableAmount, receivableDrips[0].receivableAmount);
-			assert.equal(balances[1].tokenAddress, Utils.Asset.getAddressFromId(dripsSetEvents[1].assetId));
-			assert.equal(balances[1].receivableAmount, receivableDrips[1].receivableAmount);
 		});
 	});
 
@@ -720,83 +617,6 @@ describe('DripsHubClient', () => {
 		});
 	});
 
-	describe('getAllSplittableBalancesForUser()', () => {
-		it('should throw argumentMissingError when userId is missing', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await testDripsHubClient.getAllSplittableBalancesForUser(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should return an empty array when there are no tokens found for the user', async () => {
-			// Arrange
-			const userId = '1';
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
-
-			// Act
-			const balances = await testDripsHubClient.getAllSplittableBalancesForUser(userId);
-
-			// Assert
-			assert.isEmpty(balances);
-		});
-
-		it('should return the expected splittable balances', async () => {
-			// Arrange
-			const userId = '1';
-			const tokenAddress1 = Wallet.createRandom().address;
-			const tokenAddress2 = Wallet.createRandom().address;
-
-			const dripsSetEvents: DripsSetEvent[] = [
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
-				} as DripsSetEvent,
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
-				} as DripsSetEvent
-			];
-
-			const splittableBalances: SplittableBalance[] = [
-				{
-					tokenAddress: tokenAddress1,
-					splittableAmount: 1n
-				},
-				{
-					tokenAddress: tokenAddress2,
-					splittableAmount: 2n
-				}
-			];
-
-			sinon
-				.stub(DripsHubClient.prototype, 'getSplittableBalanceForUser')
-				.onFirstCall()
-				.resolves(splittableBalances[0])
-				.onSecondCall()
-				.resolves(splittableBalances[1]);
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
-
-			// Act
-			const balances = await testDripsHubClient.getAllSplittableBalancesForUser(userId);
-
-			// Assert
-			assert.equal(balances[0].splittableAmount, splittableBalances[0].splittableAmount);
-			assert.equal(balances[0].tokenAddress, splittableBalances[0].tokenAddress);
-			assert.equal(balances[1].splittableAmount, splittableBalances[1].splittableAmount);
-			assert.equal(balances[1].tokenAddress, splittableBalances[1].tokenAddress);
-		});
-	});
-
 	describe('getSplitResult', () => {
 		it('validate split receivers', async () => {
 			// Arrange
@@ -1004,83 +824,6 @@ describe('DripsHubClient', () => {
 			assert.equal(actualBalance.tokenAddress, tokenAddress);
 			assert.equal(actualBalance.collectableAmount, expectedBalance.toBigInt());
 			assert(dripsHubContractStub.collectable.calledOnceWithExactly(userId, tokenAddress));
-		});
-	});
-
-	describe('getAllCollectableBalancesForUser()', () => {
-		it('should throw argumentMissingError when userId is missing', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await testDripsHubClient.getAllCollectableBalancesForUser(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should return an empty array when there are no tokens found for the user', async () => {
-			// Arrange
-			const userId = '1';
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves([]);
-
-			// Act
-			const balances = await testDripsHubClient.getAllCollectableBalancesForUser(userId);
-
-			// Assert
-			assert.isEmpty(balances);
-		});
-
-		it('should return the expected collectable balances', async () => {
-			// Arrange
-			const userId = '1';
-			const tokenAddress1 = Wallet.createRandom().address;
-			const tokenAddress2 = Wallet.createRandom().address;
-
-			const dripsSetEvents: DripsSetEvent[] = [
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress1)
-				} as DripsSetEvent,
-				{
-					assetId: Utils.Asset.getIdFromAddress(tokenAddress2)
-				} as DripsSetEvent
-			];
-
-			const collectableBalances: CollectableBalance[] = [
-				{
-					tokenAddress: tokenAddress1,
-					collectableAmount: 1n
-				},
-				{
-					tokenAddress: tokenAddress2,
-					collectableAmount: 2n
-				}
-			];
-
-			sinon
-				.stub(DripsHubClient.prototype, 'getCollectableBalanceForUser')
-				.onFirstCall()
-				.resolves(collectableBalances[0])
-				.onSecondCall()
-				.resolves(collectableBalances[1]);
-
-			dripsSubgraphClientStub.getDripsSetEventsByUserId.withArgs(userId).resolves(dripsSetEvents);
-
-			// Act
-			const balances = await testDripsHubClient.getAllCollectableBalancesForUser(userId);
-
-			// Assert
-			assert.equal(balances[0].collectableAmount, collectableBalances[0].collectableAmount);
-			assert.equal(balances[0].tokenAddress, collectableBalances[0].tokenAddress);
-			assert.equal(balances[1].collectableAmount, collectableBalances[1].collectableAmount);
-			assert.equal(balances[1].tokenAddress, collectableBalances[1].tokenAddress);
 		});
 	});
 
