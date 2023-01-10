@@ -7,7 +7,7 @@ import type { AddressDriverInterface } from '../../contracts/AddressDriver';
 import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { AddressDriverPresets } from '../../src/AddressDriver/AddressDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { formatDripsReceivers } from '../../src/common/internals';
+import { formatDripsReceivers, keyFromString, valueFromString } from '../../src/common/internals';
 import type { UserMetadataStruct } from '../../src/common/types';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
@@ -207,7 +207,8 @@ describe('AddressDriverPresets', () => {
 					sinon.match((s: string) => s === 'emitUserMetadata'),
 					sinon.match(
 						(values: UserMetadataStruct[][]) =>
-							values[0][0].key === payload.userMetadata[0].key && values[0][0].value === payload.userMetadata[0].value
+							values[0][0].key === keyFromString(payload.userMetadata[0].key) &&
+							values[0][0].value === valueFromString(payload.userMetadata[0].value)
 					)
 				)
 
