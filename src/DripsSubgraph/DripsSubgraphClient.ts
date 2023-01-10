@@ -1,7 +1,7 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish, BytesLike } from 'ethers';
-import { ethers, BigNumber } from 'ethers';
+import { ethers } from 'ethers';
 import constants from '../constants';
 import { nameOf } from '../common/internals';
 import Utils from '../utils';
@@ -35,6 +35,7 @@ import {
 	mapUserMetadataEventToDto
 } from './mappers';
 import type { DripsHistoryStruct } from '../common/types';
+import { keyFromString } from '../common/internals';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -322,7 +323,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the history of user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {BytesLike} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
 	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's metadata.
@@ -331,7 +332,7 @@ export default class DripsSubgraphClient {
 	 */
 	public async getMetadataHistory(
 		userId: string,
-		key?: BytesLike,
+		key?: string,
 		skip: number = 0,
 		first: number = 100
 	): Promise<UserMetadataEntry[]> {
@@ -351,7 +352,7 @@ export default class DripsSubgraphClient {
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
 				userId,
-				key: `${BigNumber.from(key)}`,
+				key: `${keyFromString(key)}`,
 				skip,
 				first
 			});
@@ -367,17 +368,18 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the latest metadata update for the given `userId`-`key` pair.
 	 * @param  {string} userId The user ID.
-	 * @param  {BytesLike} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @returns A `Promise` which resolves to the user's metadata, or `null` if not found.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameter is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getLatestUserMetadata(userId: string, key: BytesLike): Promise<UserMetadataEntry | null> {
-		if (!userId || !key) {
-			throw DripsErrors.argumentMissingError(
-				`Could not get user metadata: '${nameOf({ userId })}' and '${nameOf({ key })}' are required.`,
-				userId ? nameOf({ userId }) : nameOf({ key })
-			);
+	public async getLatestUserMetadata(userId: string, key: string): Promise<UserMetadataEntry | null> {
+		if (!userId) {
+			throw DripsErrors.argumentError(`Could not get user metadata: '${nameOf({ key })}' is missing.`);
+		}
+
+		if (!key) {
+			throw DripsErrors.argumentError(`Could not get user metadata: '${nameOf({ key })}' is missing.`);
 		}
 
 		type QueryResponse = {
@@ -385,7 +387,7 @@ export default class DripsSubgraphClient {
 		};
 
 		const response = await this.query<QueryResponse>(gql.getLatestUserMetadata, {
-			id: `${userId}-${BigNumber.from(key)}`
+			id: `${userId}-${keyFromString(key)}`
 		});
 
 		const userMetadataEvent = response?.data?.userMetadataByKey;

@@ -12,6 +12,7 @@ import {
 	mapUserMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
+import { keyFromString, valueFromString } from '../../src/common/internals';
 
 describe('mappers', () => {
 	describe('mapCollectedEventToDto()', () => {
@@ -266,8 +267,8 @@ describe('mappers', () => {
 			const apiUserMetadataEvent: SubgraphTypes.UserMetadataEvent = {
 				id: '100',
 				userId: '1',
-				value: '2',
-				key: '3',
+				value: valueFromString('value'),
+				key: keyFromString('key'),
 				lastUpdatedBlockTimestamp: '4'
 			} as SubgraphTypes.UserMetadataEvent;
 
@@ -275,10 +276,10 @@ describe('mappers', () => {
 			const result = mapUserMetadataEventToDto(apiUserMetadataEvent);
 
 			// Assert
-			assert.equal(result.value, apiUserMetadataEvent.value);
+			assert.equal(result.value, 'value');
 			assert.equal(result.userId, apiUserMetadataEvent.userId);
 			assert.equal(result.id.toString(), apiUserMetadataEvent.id);
-			assert.equal(result.key.toString(), apiUserMetadataEvent.key);
+			assert.equal(result.key, 'key');
 			assert.equal(result.lastUpdatedBlockTimestamp.toString(), apiUserMetadataEvent.lastUpdatedBlockTimestamp);
 		});
 	});

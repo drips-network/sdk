@@ -1,7 +1,7 @@
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
@@ -20,7 +20,8 @@ import {
 	isNullOrUndefined,
 	formatDripsReceivers,
 	formatSplitReceivers,
-	ensureSignerExists
+	ensureSignerExists,
+	createFromStrings
 } from '../common/internals';
 
 /**
@@ -378,18 +379,20 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * @param  {UserMetadata[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public emitUserMetadata(userMetadata: UserMetadataStruct[]): Promise<ContractTransaction> {
+	public emitUserMetadata(userMetadata: UserMetadata[]): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(userMetadata);
 
-		return this.#driver.emitUserMetadata(userMetadata);
+		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
+		return this.#driver.emitUserMetadata(userMetadataAsBytes);
 	}
 
 	/**

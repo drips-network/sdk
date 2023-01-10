@@ -11,8 +11,9 @@ import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriver';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
-import type { UserMetadataStruct } from '../../src/common/types';
+import type { UserMetadata } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
+import * as internals from '../../src/common/internals';
 
 describe('ImmutableSplitsDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -99,14 +100,15 @@ describe('ImmutableSplitsDriverClient', () => {
 			// Arrange
 			const expectedUserId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'CreatedSplits', args: { userId: expectedUserId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadata).resolves(txResponse);
+			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
 
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
@@ -121,14 +123,15 @@ describe('ImmutableSplitsDriverClient', () => {
 			// Arrange
 			const expectedUserId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'CreatedSplits', args: { userId: expectedUserId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadata).resolves(txResponse);
+			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
 
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
@@ -142,14 +145,15 @@ describe('ImmutableSplitsDriverClient', () => {
 		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: []
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadata).resolves(txResponse);
+			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
 
 			try {
 				// Act
@@ -168,21 +172,22 @@ describe('ImmutableSplitsDriverClient', () => {
 			// Arrange
 			const expectedUserId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'CreatedSplits', args: { userId: expectedUserId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadata).resolves(txResponse);
+			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
 
 			// Act
 			await testImmutableSplitsDriverClient.createSplits(receivers, metadata);
 
 			// Assert
 			assert(
-				immutableSplitsDriverContractStub.createSplits.calledOnceWithExactly(receivers, metadata),
+				immutableSplitsDriverContractStub.createSplits.calledOnceWithExactly(receivers, metadataAsBytes),
 				'Expected method to be called with different arguments'
 			);
 		});
