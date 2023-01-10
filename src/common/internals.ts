@@ -104,3 +104,8 @@ export const parseMetadataAsString = (userMetadata: UserMetadataStruct): { key: 
 		value: ethers.utils.toUtf8String(userMetadata.value)
 	};
 };
+
+/** @internal */
+export const wait = (secs: number) => {
+	return new Promise((resolve) => setTimeout(resolve, secs * 1000));
+};
