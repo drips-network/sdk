@@ -97,7 +97,7 @@ export default class NFTDriverClient {
 
 			return client;
 		} catch (error: any) {
-			throw DripsErrors.clientInitializationError(`Could not create NFTDriverClient: ${error.message}`);
+			throw DripsErrors.clientInitializationError(`Could not create 'NFTDriverClient': ${error.message}`);
 		}
 	}
 

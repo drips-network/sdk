@@ -1,5 +1,4 @@
 import type { Network } from '@ethersproject/networks';
-import type { Provider } from '@ethersproject/providers';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
@@ -26,34 +25,31 @@ describe('DripsHubClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let dripsHubContractStub: StubbedInstance<DripsHub>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let dripsHubContractFactoryStub: sinon.SinonStub<
-		[address: string, signerOrProvider: Provider | ethers.Signer],
-		DripsHub
-	>;
 
 	let testDripsHubClient: DripsHubClient;
 
 	beforeEach(async () => {
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
+
 		signerStub = sinon.createStubInstance(JsonRpcSigner);
 		signerStub.getAddress.resolves(Wallet.createRandom().address);
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		providerStub = sinon.createStubInstance(JsonRpcProvider);
-		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
 
-		(signerStub as any).provider = providerStub;
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		dripsHubContractStub = stubInterface<DripsHub>();
-
-		dripsHubContractFactoryStub = sinon.stub(DripsHub__factory, 'connect');
-		dripsHubContractFactoryStub
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, signerStub)
+		sinon
+			.stub(DripsHub__factory, 'connect')
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, signerWithProviderStub)
 			.returns(dripsHubContractStub);
 
-		testDripsHubClient = await DripsHubClient.create(signerStub);
+		testDripsHubClient = await DripsHubClient.create(providerStub, signerStub);
 	});
 
 	afterEach(() => {
@@ -66,7 +62,7 @@ describe('DripsHubClient', () => {
 			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
 			// Act
-			DripsHubClient.create(signerStub);
+			await DripsHubClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -75,42 +71,12 @@ describe('DripsHubClient', () => {
 			);
 		});
 
-		it('should set the custom driver address when provided', async () => {
-			// Arrange
-			const customDriverAddress = Wallet.createRandom().address;
-
-			// Act
-			const client = await DripsHubClient.create(signerStub, customDriverAddress);
-
-			// Assert
-			assert.equal(client.driverAddress, customDriverAddress);
-		});
-
-		it('should create a fully initialized client instance', async () => {
-			// Assert
-			assert.equal(testDripsHubClient.signer, signerStub);
-			assert.equal(testDripsHubClient.provider, signerStub.provider);
-			assert.equal(
-				testDripsHubClient.driverAddress,
-				Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_DRIPS_HUB
-			);
-			assert(
-				dripsHubContractFactoryStub.calledOnceWithExactly(
-					Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_DRIPS_HUB,
-					signerStub
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('createReadonly()', () => {
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			await DripsHubClient.createReadonly(providerStub);
+			await DripsHubClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -119,34 +85,42 @@ describe('DripsHubClient', () => {
 			);
 		});
 
+		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await DripsHubClient.create(undefined as any, undefined as any);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should set the custom driver address when provided', async () => {
 			// Arrange
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await DripsHubClient.createReadonly(providerStub, customDriverAddress);
+			const client = await DripsHubClient.create(providerStub, signerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
-			// Act
-			const client = await DripsHubClient.createReadonly(providerStub);
-
 			// Assert
-			assert.isUndefined(client.signer);
-			assert.equal(client.provider, providerStub);
+			assert.equal(testDripsHubClient.signer, signerWithProviderStub);
+			assert.equal(testDripsHubClient.provider, providerStub);
+			assert.equal(testDripsHubClient.signer!.provider, providerStub);
 			assert.equal(
-				client.driverAddress,
+				testDripsHubClient.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB
-			);
-			assert(
-				dripsHubContractFactoryStub.calledWithExactly(
-					Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB,
-					providerStub
-				),
-				'Expected method to be called with different arguments'
 			);
 		});
 	});

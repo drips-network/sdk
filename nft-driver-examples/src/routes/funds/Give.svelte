@@ -21,7 +21,7 @@
 		amount: BigNumberish
 	) {
 		try {
-			console.log('Collecting...');
+			console.log('Giving...');
 
 			tx = undefined;
 			giving = true;

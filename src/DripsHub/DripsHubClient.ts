@@ -1,5 +1,5 @@
-import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, ContractTransaction } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
+import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import { ensureSignerExists, isNullOrUndefined, nameOf } from '../common/internals';
@@ -25,11 +25,11 @@ import type { CollectableBalance, DripsState, ReceivableBalance, SplitResult, Sp
 export default class DripsHubClient {
 	#driver!: DripsHub;
 	#driverAddress!: string;
-	#provider!: JsonRpcProvider;
-	#signer: JsonRpcSigner | undefined;
+	#provider!: Provider;
+	#signer: Signer | undefined;
 
 	/** Returns the `DripsHubClient`'s `provider`. */
-	public get provider(): JsonRpcProvider {
+	public get provider(): Provider {
 		return this.#provider;
 	}
 
@@ -40,7 +40,7 @@ export default class DripsHubClient {
 	 *
 	 * Note that for read-only client instances created with the {@link createReadonly} method it returns `undefined`.
 	 */
-	public get signer(): JsonRpcSigner | undefined {
+	public get signer(): Signer | undefined {
 		return this.#signer;
 	}
 
@@ -54,73 +54,50 @@ export default class DripsHubClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `DripsHubClient` instance.
-	 * @param  {JsonRpcProvider} signer The signer.
+	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
-	 * The `provider` this signer was established from can be connected to one of the following supported networks:
+	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
+	 * @param  {Provider|undefined} signer The singer used to sign transactions. It cannot be changed after creation.
+	 *
+	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
+	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
-	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @returns A `Promise` which resolves to the new client instance.
+	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
 	 */
 	public static async create(
-		signer: JsonRpcSigner,
+		provider: Provider,
+		signer: Signer | undefined = undefined,
 		customDriverAddress: string | undefined = undefined
 	): Promise<DripsHubClient> {
-		await validateClientSigner(signer);
+		try {
+			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
-		const { provider } = signer;
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
+			let signerOrProvider: Signer | Provider = provider;
 
-		const client = new DripsHubClient();
+			if (signer) {
+				await validateClientSigner(signer);
 
-		client.#signer = signer;
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#driver = DripsHub__factory.connect(driverAddress, signer);
+				if (!signer.provider) {
+					signerOrProvider = signer.connect(provider);
+				}
+			}
 
-		return client;
-	}
+			const network = await provider.getNetwork();
+			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
 
-	// TODO: Update the supported chains documentation comments.
-	/**
-	 * Creates a new immutable `DripsHubClient` instance that allows only **read-only operations** (i.e., any operation that does _not_ require signing).
-	 * @param  {JsonRpcProvider} provider The network provider.
-	 *
-	 * Note that even if the `provider` has a `singer` associated with it, the client will ignore it.
-	 * If you want to _sign_ transactions use the {@link create} method instead.
-	 *
-	 * Supported networks are:
-	 * - 'goerli': chain ID `5`
-	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {string|undefined} customDriverAddress Overrides the `DripsHub`'s address.
-	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `DripsHubClient` instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
-	 */
-	public static async createReadonly(
-		provider: JsonRpcProvider,
-		customDriverAddress: string | undefined = undefined
-	): Promise<DripsHubClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+			const client = new DripsHubClient();
 
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
-
-		const client = new DripsHubClient();
-
-		client.#signer = undefined;
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#driver = DripsHub__factory.connect(driverAddress, provider);
-
-		return client;
+			client.#signer = signer ? (signerOrProvider as Signer) : undefined;
+			client.#provider = provider;
+			client.#driverAddress = driverAddress;
+			client.#driver = DripsHub__factory.connect(driverAddress, signerOrProvider);
+			return client;
+		} catch (error: any) {
+			throw DripsErrors.clientInitializationError(`Could not create 'DripsHubClient': ${error.message}`);
+		}
 	}
 
 	/**

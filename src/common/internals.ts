@@ -1,7 +1,6 @@
 /* eslint-disable no-nested-ternary */
 
-import type { JsonRpcSigner } from '@ethersproject/providers';
-import { BigNumber, BytesLike, ethers } from 'ethers';
+import { BigNumber, BytesLike, ethers, Signer } from 'ethers';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from './types';
 
@@ -67,7 +66,7 @@ export const formatSplitReceivers = (receivers: SplitsReceiverStruct[]): SplitsR
 };
 
 /** @internal */
-export function ensureSignerExists(signer: JsonRpcSigner | undefined): asserts signer is NonNullable<JsonRpcSigner> {
+export function ensureSignerExists(signer: Signer | undefined): asserts signer is NonNullable<Signer> {
 	if (isNullOrUndefined(signer)) {
 		throw DripsErrors.signerMissingError();
 	}

@@ -2,6 +2,7 @@ import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
+import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { assert } from 'chai';
@@ -13,7 +14,7 @@ describe('NFTDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-	it.skip('should create a new sub-account and transfer it to the expected address', async () => {
+	it('should create a new sub-account and transfer it to the expected address', async () => {
 		const provider = new InfuraProvider('goerli');
 		const signer = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
 
@@ -46,7 +47,7 @@ describe('NFTDriver integration tests', () => {
 		assert.isFalse(subAccountsBefore.some((a) => a.tokenId === tokenId));
 	}).timeout(THREE_MINS);
 
-	it.skip('should update Drips configuration', async () => {
+	it('should update Drips configuration', async () => {
 		const provider = new InfuraProvider('goerli');
 		const signer = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
 
@@ -140,7 +141,7 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it.skip('should update Splits configuration', async () => {
+	it('should update Splits configuration', async () => {
 		const provider = new InfuraProvider('goerli');
 		const signer = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
 
@@ -203,7 +204,7 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it.skip('should emit user metadata', async () => {
+	it('should emit user metadata', async () => {
 		const provider = new InfuraProvider('goerli');
 		const signer = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
 
@@ -252,5 +253,89 @@ describe('NFTDriver integration tests', () => {
 		assert.equal(latestMetadataEntry!.value, value);
 		assert.equal(latestMetadataEntry?.userId, testAccount.tokenId);
 		assert.equal(latestMetadataEntry!.id, `${testAccount.tokenId}-${key}`);
+	}).timeout(THREE_MINS);
+
+	it('should give', async () => {
+		const provider = new InfuraProvider('goerli');
+		const signer = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
+
+		const account1 = process.env.ACCOUNT_1 as string;
+		const account2 = process.env.ACCOUNT_2 as string;
+
+		const giveClient = await NFTDriverClient.create(provider, signer);
+		const receiverClient = await NFTDriverClient.create(
+			provider,
+			new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string)
+		);
+
+		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
+
+		console.log(`Getting sub-accounts for ${account1}...`);
+		const subAccounts1 = await subgraphClient.getNftSubAccountsByOwner(account1);
+		console.log(`${account1} sub-accounts: ${subAccounts1.map((a) => `${a.tokenId}\r\n`)}`);
+
+		if (!subAccounts1.length || subAccounts1.length < 2) {
+			assert.fail('No test sub-accounts found.');
+		}
+
+		console.log(`Getting sub-accounts for ${account2}...`);
+		const subAccounts2 = await subgraphClient.getNftSubAccountsByOwner(account2);
+		console.log(`${account2} sub-accounts: ${subAccounts2.map((a) => `${a.tokenId}\r\n`)}`);
+
+		if (!subAccounts2.length || subAccounts2.length < 2) {
+			assert.fail('No test sub-accounts found.');
+		}
+
+		console.log('Retrieving the first account...');
+		const giveAccount = subAccounts1[0];
+		console.log(`Selected give account is ${giveAccount.tokenId} (Wallet: ${giveAccount.ownerAddress}).`);
+		const receiverAccount = subAccounts2[0];
+		console.log(`Selected receiver account is ${receiverAccount.tokenId} (Wallet: ${receiverAccount.ownerAddress}).`);
+
+		console.log('Setting receiver splits to empty array...');
+		// Make sure receiver does not split to others.
+		await receiverClient.setSplits(receiverAccount.tokenId, []);
+
+		console.log('Awaiting for the blockchain to update...');
+		await wait(40);
+
+		console.log('Collecting to set collectable amount to 0...');
+		await receiverClient.collect(receiverAccount.tokenId, WETH, receiverAccount.ownerAddress);
+
+		console.log('Awaiting for the blockchain to update...');
+		await wait(40);
+
+		const dripsHub = await DripsHubClient.create(provider, signer);
+
+		const collectableBefore = await dripsHub.getCollectableBalanceForUser(receiverAccount.tokenId, WETH);
+		console.log(`Collectable amount before receiving is ${collectableBefore.collectableAmount}`);
+		assert.equal(collectableBefore.collectableAmount, 0n);
+
+		console.log('Giving...');
+		await giveClient.give(giveAccount.tokenId, receiverAccount.tokenId, WETH, 1);
+		console.log('Successfully gave...');
+
+		console.log('Awaiting for the blockchain to update...');
+		await wait(40);
+
+		const receiverSplitConfig = await subgraphClient.getSplitsConfigByUserId(receiverAccount.tokenId);
+
+		console.log('Splitting before collecting...');
+		await dripsHub.split(
+			receiverAccount.tokenId,
+			WETH,
+			receiverSplitConfig.map((r) => ({
+				userId: r.userId,
+				weight: r.weight
+			}))
+		);
+
+		console.log('Awaiting for the blockchain to update...');
+		await wait(40);
+
+		const collectableAfter = await dripsHub.getCollectableBalanceForUser(receiverAccount.tokenId, WETH);
+		console.log(`Collectable amount after receiving is ${collectableAfter.collectableAmount}`);
+
+		assert.equal(collectableAfter.collectableAmount, 1n);
 	}).timeout(THREE_MINS);
 });
