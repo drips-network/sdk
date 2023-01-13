@@ -78,10 +78,7 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(
-		signer: JsonRpcSigner,
-		customDriverAddress: string | undefined = undefined
-	): Promise<AddressDriverClient> {
+	public static async create(signer: JsonRpcSigner, customDriverAddress?: string): Promise<AddressDriverClient> {
 		await validateClientSigner(signer);
 
 		const { provider } = signer;
@@ -117,7 +114,7 @@ export default class AddressDriverClient {
 	 */
 	public static async createReadonly(
 		provider: JsonRpcProvider,
-		customDriverAddress: string | undefined = undefined
+		customDriverAddress?: string
 	): Promise<AddressDriverClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 

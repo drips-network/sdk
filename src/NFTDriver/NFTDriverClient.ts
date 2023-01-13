@@ -57,12 +57,12 @@ export default class NFTDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `NFTDriverClient` instance.
-	 * @param  {JsonRpcProvider} provider The network provider. It cannot be changed after creation.
+	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
 	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {JsonRpcProvider} signer The singer used to sign transactions. It cannot be changed after creation.
+	 * @param  {Provider} signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
 	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
@@ -73,7 +73,7 @@ export default class NFTDriverClient {
 	public static async create(
 		provider: Provider,
 		signer: Signer,
-		customDriverAddress: string | undefined = undefined
+		customDriverAddress?: string
 	): Promise<NFTDriverClient> {
 		try {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);

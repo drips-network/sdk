@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber, ethers, Wallet } from 'ethers';
 import sinon from 'ts-sinon';
 import { DripsErrorCode } from '../src/common/DripsError';
 import * as internals from '../src/common/internals';
@@ -68,7 +68,7 @@ describe('Utils', () => {
 		describe('getIdFromAddress()', () => {
 			it('should validate ERC20 address', () => {
 				// Arrange
-				const tokenAddress = '-1';
+				const tokenAddress = Wallet.createRandom().address;
 				const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 				// Act

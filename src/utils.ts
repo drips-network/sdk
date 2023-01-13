@@ -103,7 +103,7 @@ namespace Utils {
 		export const getIdFromAddress = (tokenAddress: string): bigint => {
 			validateAddress(tokenAddress);
 
-			return BigNumber.from(tokenAddress).toBigInt();
+			return BigNumber.from(ethers.utils.getAddress(tokenAddress)).toBigInt();
 		};
 	}
 

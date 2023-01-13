@@ -65,7 +65,7 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
-	public static create(chainId: number, customApiUrl: string | undefined = undefined): DripsSubgraphClient {
+	public static create(chainId: number, customApiUrl?: string): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not create a new 'DripsSubgraphClient': ${nameOf({ chainId })} is missing.`,
@@ -415,14 +415,18 @@ export default class DripsSubgraphClient {
 			nftsubAccounts: SubgraphTypes.NftSubAccount[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, { ownerAddress, skip, first });
+		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, {
+			ownerAddress: ethers.utils.getAddress(ownerAddress),
+			skip,
+			first
+		});
 
 		const nftSubAccounts = response?.data?.nftsubAccounts;
 
 		return nftSubAccounts
 			? nftSubAccounts.map((s) => ({
 					tokenId: s.id,
-					ownerAddress: s.ownerAddress
+					ownerAddress: ethers.utils.getAddress(s.ownerAddress)
 			  }))
 			: [];
 	}
@@ -733,7 +737,7 @@ export default class DripsSubgraphClient {
 				return unique;
 			}, [])
 			// Filter only the events for the token-to-be-squeezed.
-			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(tokenAddress))
+			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(ethers.utils.getAddress(tokenAddress)))
 			// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
 			.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 

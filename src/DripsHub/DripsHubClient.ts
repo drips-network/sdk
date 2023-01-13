@@ -69,8 +69,8 @@ export default class DripsHubClient {
 	 */
 	public static async create(
 		provider: Provider,
-		signer: Signer | undefined = undefined,
-		customDriverAddress: string | undefined = undefined
+		signer?: Signer,
+		customDriverAddress?: string
 	): Promise<DripsHubClient> {
 		try {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);

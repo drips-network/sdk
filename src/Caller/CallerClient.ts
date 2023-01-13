@@ -44,10 +44,7 @@ export default class CallerClient {
 	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
 	 */
-	public static async create(
-		provider: JsonRpcProvider,
-		customCallerAddress: string | undefined = undefined
-	): Promise<CallerClient> {
+	public static async create(provider: JsonRpcProvider, customCallerAddress?: string): Promise<CallerClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const signer = provider.getSigner();
