@@ -10,6 +10,7 @@ import CallerClient from '../../src/Caller/CallerClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
 import type { CallStruct } from '../../contracts/Caller';
+import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('CallerClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -17,6 +18,7 @@ describe('CallerClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let callerContractStub: StubbedInstance<Caller>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 
 	let testCallerClient: CallerClient;
@@ -30,16 +32,18 @@ describe('CallerClient', () => {
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
+
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		callerContractStub = stubInterface<Caller>();
 		sinon
 			.stub(Caller__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_CALLER, signerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_CALLER, signerWithProviderStub)
 			.returns(callerContractStub);
 
-		testCallerClient = await CallerClient.create(providerStub);
+		testCallerClient = await CallerClient.create(providerStub, signerStub);
 	});
 
 	afterEach(() => {
@@ -47,12 +51,26 @@ describe('CallerClient', () => {
 	});
 
 	describe('create()', () => {
+		it('should validate the signer', async () => {
+			// Arrange
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
+
+			// Act
+			await CallerClient.create(providerStub, signerStub);
+
+			// Assert
+			assert(
+				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			CallerClient.create(providerStub);
+			CallerClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -61,25 +79,39 @@ describe('CallerClient', () => {
 			);
 		});
 
-		it('should set the custom caller address when provided', async () => {
+		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
 			// Arrange
-			const customDriverAddress = Wallet.createRandom().address;
+			let threw = false;
 
-			// Act
-			const client = await CallerClient.create(providerStub, customDriverAddress);
+			try {
+				// Act
+				await CallerClient.create(undefined as any, undefined as any);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				threw = true;
+			}
 
 			// Assert
-			assert.equal(client.callerAddress, customDriverAddress);
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should set the custom caller address when provided', async () => {
+			// Arrange
+			const customCallerAddress = Wallet.createRandom().address;
+
+			// Act
+			const client = await CallerClient.create(providerStub, signerStub, customCallerAddress);
+
+			// Assert
+			assert.equal(client.callerAddress, customCallerAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
+			assert.equal(testCallerClient.signer, signerWithProviderStub);
 			assert.equal(testCallerClient.provider, providerStub);
-			assert.equal(testCallerClient.provider.getSigner(), providerStub.getSigner());
-			assert.equal(
-				await testCallerClient.provider.getSigner().getAddress(),
-				await providerStub.getSigner().getAddress()
-			);
+			assert.equal(testCallerClient.signer.provider, providerStub);
 			assert.equal(
 				testCallerClient.callerAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_CALLER

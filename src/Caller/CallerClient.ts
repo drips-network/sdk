@@ -1,10 +1,11 @@
-import type { JsonRpcProvider } from '@ethersproject/providers';
+import type { Provider } from '@ethersproject/providers';
 import type { CallStruct } from 'contracts/Caller';
-import type { ContractTransaction } from 'ethers';
-import { validateClientProvider } from '../common/validators';
+import type { ContractTransaction, Signer } from 'ethers';
+import { validateClientProvider, validateClientSigner } from '../common/validators';
 import Utils from '../utils';
 import type { Caller } from '../../contracts/Caller';
 import { Caller__factory } from '../../contracts/factories';
+import { DripsErrors } from '../../src/common/DripsError';
 
 /**
  * A generic call executor that increases the flexibility of other contracts' APIs.
@@ -12,15 +13,25 @@ import { Caller__factory } from '../../contracts/factories';
  */
 export default class CallerClient {
 	#caller!: Caller;
+	#signer!: Signer;
 	#callerAddress!: string;
 
-	#provider!: JsonRpcProvider;
-	/** Returns the `CallerClient`'s `provider`. */
-	public get provider(): JsonRpcProvider {
+	#provider!: Provider;
+	/** Returns the client's `provider`. */
+	public get provider(): Provider {
 		return this.#provider;
 	}
 
-	/** Returns the `Caller`'s address to which the `CallerClient` is connected. */
+	/**
+	 * Returns the client's `signer`.
+	 *
+	 * The `signer` is the `provider`'s signer.
+	 */
+	public get signer(): Signer {
+		return this.#signer;
+	}
+
+	/** Returns the `Caller` contract address to which the client is connected. */
 	public get callerAddress(): string {
 		return this.#callerAddress;
 	}
@@ -30,34 +41,42 @@ export default class CallerClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `CallerClient` instance.
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
-	 * The `provider` must have a `signer` associated with it.
+	 * The `provider` must be connected to one of the following supported networks:
+	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
+	 * @param  {Provider} signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
-	 * The supported networks are:
-	 * - `goerli`: chain ID `5`
-	 * @param  {string|undefined} customCallerAddress Overrides the `Caller`'s address.
+	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
+	 * @param  {string|undefined} customCallerAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `CallerClient` instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
-	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @returns A `Promise` which resolves to the new client instance.
+	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
 	 */
-	public static async create(provider: JsonRpcProvider, customCallerAddress?: string): Promise<CallerClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+	public static async create(provider: Provider, signer: Signer, customCallerAddress?: string): Promise<CallerClient> {
+		try {
+			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+			await validateClientSigner(signer);
 
-		const signer = provider.getSigner();
-		const network = await provider.getNetwork();
-		const callerAddress = customCallerAddress ?? Utils.Network.configs[network.chainId].CONTRACT_CALLER;
+			if (!signer.provider) {
+				signer = signer.connect(provider);
+			}
 
-		const client = new CallerClient();
+			const network = await provider.getNetwork();
+			const callerAddress = customCallerAddress ?? Utils.Network.configs[network.chainId].CONTRACT_CALLER;
 
-		client.#provider = provider;
-		client.#callerAddress = callerAddress;
-		client.#caller = Caller__factory.connect(callerAddress, signer);
+			const client = new CallerClient();
 
-		return client;
+			client.#signer = signer;
+			client.#provider = provider;
+			client.#callerAddress = callerAddress;
+			client.#caller = Caller__factory.connect(callerAddress, signer);
+
+			return client;
+		} catch (error: any) {
+			throw DripsErrors.clientInitializationError(`Could not create 'CallerClient': ${error.message}`);
+		}
 	}
 
 	/**
