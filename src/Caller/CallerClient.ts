@@ -46,7 +46,7 @@ export default class CallerClient {
 	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {Provider} signer The singer used to sign transactions. It cannot be changed after creation.
+	 * @param  {Signer} signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
 	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
 	 * @param  {string|undefined} customCallerAddress Overrides the `NFTDriver` contract address.
