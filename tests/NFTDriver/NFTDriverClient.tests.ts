@@ -20,9 +20,9 @@ describe('NFTDriverClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let nftDriverContractStub: StubbedInstance<NFTDriver>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 
 	let testNftDriverClient: NFTDriverClient;

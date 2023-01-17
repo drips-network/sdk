@@ -79,9 +79,8 @@ export default class NFTDriverClient {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 			await validateClientSigner(signer);
 
-			let signerWithProvider = signer;
 			if (!signer.provider) {
-				signerWithProvider = signer.connect(provider);
+				signer = signer.connect(provider);
 			}
 
 			const network = await provider.getNetwork();
@@ -89,11 +88,11 @@ export default class NFTDriverClient {
 
 			const client = new NFTDriverClient();
 
-			client.#signer = signerWithProvider;
+			client.#signer = signer;
 			client.#provider = provider;
 			client.#driverAddress = driverAddress;
 			client.#signerAddress = await signer.getAddress();
-			client.#driver = NFTDriver__factory.connect(driverAddress, signerWithProvider);
+			client.#driver = NFTDriver__factory.connect(driverAddress, signer);
 
 			return client;
 		} catch (error: any) {

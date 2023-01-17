@@ -1,5 +1,5 @@
-import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, ContractTransaction } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
+import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
@@ -31,11 +31,11 @@ import {
 export default class AddressDriverClient {
 	#driver!: AddressDriver;
 	#driverAddress!: string;
-	#provider!: JsonRpcProvider;
-	#signer: JsonRpcSigner | undefined;
+	#provider!: Provider;
+	#signer: Signer | undefined;
 
 	/** Returns the client's `provider`. */
-	public get provider(): JsonRpcProvider {
+	public get provider(): Provider {
 		return this.#provider;
 	}
 
@@ -44,7 +44,7 @@ export default class AddressDriverClient {
 	 *
 	 * Note that for read-only client instances created with the {@link createReadonly} method it returns `undefined`.
 	 */
-	public get signer(): JsonRpcSigner | undefined {
+	public get signer(): Signer | undefined {
 		return this.#signer;
 	}
 
@@ -58,77 +58,48 @@ export default class AddressDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `AddressDriverClient` instance.
-	 * @param  {JsonRpcProvider} signer The signer.
+	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
-	 * The `signer`'s address will be the Drips account the new instance will manage and cannot be changed after creation.
-	 *
-	 * **Important**:
-	 * In Drips, an account "is" a **user ID** at the protocol level.
-	 * The `AddressDriver` contract derives an account's user ID from an Ethereum address. In this case, from the `signer`'s.
-	 * For retrieving the client's `signer` user ID call, {@link getUserId}.
-	 *
-	 * The `provider` this signer was established from can be connected to one of the following supported networks:
+	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver`'s address.
-	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
-	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
-	 */
-	public static async create(signer: JsonRpcSigner, customDriverAddress?: string): Promise<AddressDriverClient> {
-		await validateClientSigner(signer);
-
-		const { provider } = signer;
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
-
-		const client = new AddressDriverClient();
-
-		client.#signer = signer;
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#driver = AddressDriver__factory.connect(driverAddress, signer);
-
-		return client;
-	}
-
-	// TODO: Update the supported chains documentation comments.
-	/**
-	 * Creates a new immutable `AddressDriverClient` instance that allows only **read-only operations** (i.e., any operation that does _not_ require signing).
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * @param  {Provider} signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
-	 * Note that even if the `provider` has a `singer` associated with it, the client will ignore it.
-	 * If you want to _sign_ transactions use the {@link create} method instead.
-	 *
-	 * Supported networks are:
-	 * - 'goerli': chain ID `5`
-	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver`'s address.
+	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
+	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `AddressDriverClient` instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @returns A `Promise` which resolves to the new client instance.
+	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
 	 */
-	public static async createReadonly(
-		provider: JsonRpcProvider,
+	public static async create(
+		provider: Provider,
+		signer?: Signer,
 		customDriverAddress?: string
 	): Promise<AddressDriverClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		try {
+			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
+			if (signer) {
+				await validateClientSigner(signer);
 
-		const client = new AddressDriverClient();
+				if (!signer.provider) {
+					signer = signer.connect(provider);
+				}
+			}
 
-		client.#signer = undefined;
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#driver = AddressDriver__factory.connect(driverAddress, provider);
+			const network = await provider.getNetwork();
+			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
 
-		return client;
+			const client = new AddressDriverClient();
+
+			client.#signer = signer;
+			client.#provider = provider;
+			client.#driverAddress = driverAddress;
+			client.#driver = AddressDriver__factory.connect(driverAddress, signer ?? provider);
+			return client;
+		} catch (error: any) {
+			throw DripsErrors.clientInitializationError(`Could not create 'AddressDriverClient': ${error.message}`);
+		}
 	}
 
 	/**

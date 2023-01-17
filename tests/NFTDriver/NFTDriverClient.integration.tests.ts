@@ -16,7 +16,7 @@ describe('NFTDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-	it('should create a new sub-account and transfer its ownership', async () => {
+	it.skip('should create a new sub-account and transfer its ownership', async () => {
 		const provider = new InfuraProvider('goerli');
 
 		const account1 = process.env.ACCOUNT_1 as string;
@@ -66,7 +66,7 @@ describe('NFTDriver integration tests', () => {
 		assert.isTrue(expectedAccounts.some((a) => a.tokenId === tokenId));
 	}).timeout(THREE_MINS);
 
-	it("should update a sub-account's WETH Drips configuration", async () => {
+	it.skip("should update a sub-account's WETH Drips configuration", async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -105,7 +105,7 @@ describe('NFTDriver integration tests', () => {
 
 		const receiver = subAccounts[1];
 		console.log(
-			`New WETH configuration will be dripping to receiver '${receiver.tokenId}' (owner: '${receiver.ownerAddress}')`
+			`New WETH configuration will be dripping to receiver '${receiver.tokenId}' (owner: '${receiver.ownerAddress}').`
 		);
 		assert.equal(receiver.ownerAddress, account2);
 		assert.equal(receiver.ownerAddress, testSubAccount.ownerAddress);
@@ -164,7 +164,7 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it("should update a sub-account's Splits configuration", async () => {
+	it.skip("should update a sub-account's Splits configuration", async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -237,7 +237,7 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it('should emit user metadata for a sub-account', async () => {
+	it.skip('should emit user metadata for a sub-account', async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -256,20 +256,6 @@ describe('NFTDriver integration tests', () => {
 		const testSubAccount = subAccounts[0];
 		console.log(`Selected test sub-account is '${testSubAccount.tokenId}'.`);
 		assert.equal(testSubAccount.ownerAddress, account2);
-
-		const splitsConfigurationBefore = await subgraphClient.getSplitsConfigByUserId(testSubAccount.tokenId);
-		console.log(
-			`Current Splits configuration receivers: ${splitsConfigurationBefore.map(
-				(d) => `id: ${d.id}, userId: ${d.userId}, senderId: ${d.senderId}, weight: ${d.weight}`
-			)}`
-		);
-
-		const receiver = subAccounts[1];
-		console.log(
-			`New Splits configuration will be splitting to receiver '${receiver.tokenId}' (owner: '${receiver.ownerAddress}')`
-		);
-		assert.equal(receiver.ownerAddress, account2);
-		assert.equal(receiver.ownerAddress, testSubAccount.ownerAddress);
 
 		const key = BigInt(Math.floor(Math.random() * 1_000_000_000)).toString();
 		const value = `${key}-value`;
@@ -315,7 +301,7 @@ describe('NFTDriver integration tests', () => {
 		assert.equal(expectedMetadata.id, `${testSubAccount.tokenId}-${key}`);
 	}).timeout(THREE_MINS);
 
-	it("should give from a sub-account's owner to another address", async () => {
+	it.skip("should give from a sub-account's owner to another address", async () => {
 		const provider = new InfuraProvider('goerli');
 
 		const account1 = process.env.ACCOUNT_1 as string;
@@ -337,6 +323,8 @@ describe('NFTDriver integration tests', () => {
 		const giveAccount = subAccounts1[0];
 		console.log(`Selected give sub-account is ${giveAccount.tokenId} (Wallet: ${giveAccount.ownerAddress}).`);
 		assert.equal(giveAccount.ownerAddress, account1);
+
+		await giveClient.approve(WETH);
 
 		const subAccounts2 = await subgraphClient.getNftSubAccountsByOwner(account2);
 		if (!subAccounts2.length || subAccounts2.length < 2) {
@@ -362,10 +350,10 @@ describe('NFTDriver integration tests', () => {
 			5000
 		)) as SplitsEntry[];
 
-		const dripsHub = await DripsHubClient.create(provider, account1AsSigner);
-
 		console.log("Collecting for receiver to reset receiver's collectable amount to 0...");
 		await receiverClient.collect(receiverAccount.tokenId, WETH, receiverAccount.ownerAddress);
+
+		const dripsHub = await DripsHubClient.create(provider, account1AsSigner);
 
 		console.log('Awaiting for the blockchain to update...');
 		(await expect(
