@@ -1592,8 +1592,11 @@ describe('DripsSubgraphClient', () => {
 			const senderId = '2';
 			const tokenAddress = Wallet.createRandom().address;
 
-			const now = new Date(1639122049);
-			const currentCycleStartDate = new Date(new Date(now).setDate(new Date().getDate() - 5)).getTime();
+			// Fri Dec 10 2021 09:40:49 GMT+0200 (Eastern European Standard Time)
+			const now = new Date(1639122049 * 1000);
+
+			// Sun Dec 05 2021 09:40:49 GMT+0200 (Eastern European Standard Time) === (1638690049000)
+			const currentCycleStartDate = new Date(new Date(now).setDate(new Date(now).getDate() - 5)).getTime();
 
 			const firstResults: DripsSetEvent[] = new Array(490)
 				.fill({})
@@ -1604,7 +1607,7 @@ describe('DripsSubgraphClient', () => {
 							assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 							receiversHash: `receiversHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
 							dripsHistoryHash: `dripsHistoryHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
-							blockTimestamp: BigInt(currentCycleStartDate - i * 10 - 1),
+							blockTimestamp: BigInt(Math.ceil(currentCycleStartDate / 1000 - i * 10 - 1)),
 							dripsReceiverSeenEvents: [
 								{
 									receiverUserId: '3',
@@ -1622,7 +1625,7 @@ describe('DripsSubgraphClient', () => {
 								assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 								receiversHash: `receiversHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
 								dripsHistoryHash: `dripsHistoryHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
-								blockTimestamp: BigInt(currentCycleStartDate + i * 10),
+								blockTimestamp: BigInt(Math.ceil(currentCycleStartDate / 1000 + i * 10)),
 								dripsReceiverSeenEvents: [
 									{
 										receiverUserId: (i + 1000) % 2 === 0 ? userId : '3',

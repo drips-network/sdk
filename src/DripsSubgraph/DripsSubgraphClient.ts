@@ -750,7 +750,7 @@ export default class DripsSubgraphClient {
 
 				// Keep the drips configurations of the current cycle.
 				const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
-				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp));
+				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp * 1000n));
 				if (eventTimestamp >= currentCycleStartDate) {
 					dripsSetEventsToSqueeze.push(dripsConfiguration);
 				}
