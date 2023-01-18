@@ -690,7 +690,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Calculates the arguments for squeezing all Drips up to "now" for the given sender and token.
 	 *
-	 * **Important**: This method might fail if two Drips updates were performed in a single block.
+	 * **Important**: This method might fail if two Drips updates were performed in a single block
 	 * because the order of the Drips configurations returned by the Subgraph is not guaranteed for such cases.
 	 * The transaction will fail in the gas estimation phase, so no gas will be wasted.
 	 * @see `DripsHubClient.squeezeDrips` method for more.
@@ -749,16 +749,9 @@ export default class DripsSubgraphClient {
 				const dripsConfiguration = squeezableDripsSetEvents[i];
 
 				// Keep the drips configurations of the current cycle.
-				const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
-				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp * 1000n));
-				if (eventTimestamp >= currentCycleStartDate) {
-					dripsSetEventsToSqueeze.push(dripsConfiguration);
-				}
-				// Get the last event of the previous cycle.
-				else {
-					dripsSetEventsToSqueeze.push(dripsConfiguration);
-					break;
-				}
+				// const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
+				// const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp * 1000n));
+				dripsSetEventsToSqueeze.push(dripsConfiguration);
 			}
 		}
 
@@ -772,19 +765,7 @@ export default class DripsSubgraphClient {
 		const dripsHistory: DripsHistoryStruct[] = dripsSetEventsToSqueeze
 			?.map((dripsSetEvent) => {
 				// By default a configuration should *not* be squeezed.
-				let shouldSqueeze = false;
-
-				// Iterate over all event's `DripsReceiverSeen` events (receivers).
-				for (let i = 0; i < dripsSetEvent.dripsReceiverSeenEvents.length; i++) {
-					const receiver = dripsSetEvent.dripsReceiverSeenEvents[i];
-
-					// Mark as squeezable only the events that drip to the `userId`; the others should not be squeezed.
-					if (receiver.receiverUserId === userId) {
-						shouldSqueeze = true;
-						// Break, because drips receivers are unique.
-						break;
-					}
-				}
+				let shouldSqueeze = true;
 
 				const historyItem: DripsHistoryStruct = {
 					dripsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.

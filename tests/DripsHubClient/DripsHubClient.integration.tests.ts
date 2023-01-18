@@ -8,6 +8,7 @@ import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { assert } from 'chai';
 import { expect } from '../../src/common/internals';
 import { UserAssetConfig } from '../../src/DripsSubgraph/types';
+import constants from '../../src/constants';
 
 dotenv.config();
 
@@ -17,26 +18,28 @@ describe('DripsHubClient integration tests', () => {
 
 	it('should squeeze', async () => {
 		const provider = new InfuraProvider('goerli');
-		const account1 = process.env.ACCOUNT_1 as string;
-		const account2 = process.env.ACCOUNT_2 as string;
+		const receiverAccount = process.env.ACCOUNT_1 as string;
+		const senderAccount = process.env.ACCOUNT_2 as string;
 
-		const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
+		const senderAccountAsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
 
-		const account2AddressDriverClient = await AddressDriverClient.create(provider, account2AsSigner);
+		const senderAddressDriverClient = await AddressDriverClient.create(provider, senderAccountAsSigner);
 		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
-		const dripsHubClient = await DripsHubClient.create(provider, account2AsSigner);
+		const dripsHubClient = await DripsHubClient.create(provider, senderAccountAsSigner);
 
-		const userId1 = await account2AddressDriverClient.getUserIdByAddress(account1);
-		const userId2 = await account2AddressDriverClient.getUserIdByAddress(account2);
+		const senderUserId = await senderAddressDriverClient.getUserId();
+		const receiverUserId = await senderAddressDriverClient.getUserIdByAddress(receiverAccount);
 
-		console.log(`Squeezing funds for user ID '${userId1}' to set squeezable balance to 0`);
-		await dripsHubClient.squeezeDrips(...(await subgraphClient.getArgsForSqueezingAllDrips(userId1, userId2, WETH)));
+		console.log(`Squeezing funds for user ID '${receiverUserId}' to set squeezable balance to 0`);
+		await dripsHubClient.squeezeDrips(
+			...(await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH))
+		);
 
 		console.log(`Awaiting for the blockchain to update...`);
 		const squeezableBalanceBefore = (await expect(
 			async () =>
 				dripsHubClient.getSqueezableBalance(
-					...(await subgraphClient.getArgsForSqueezingAllDrips(userId1, userId2, WETH))
+					...(await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH))
 				),
 			(balance) => {
 				const found = balance === 0n;
@@ -55,10 +58,12 @@ describe('DripsHubClient integration tests', () => {
 
 		assert.equal(squeezableBalanceBefore, 0n);
 
-		console.log(`Will update WETH ('${WETH}') Drips configuration for account '${account2}' (user ID: '${userId2}').`);
+		console.log(
+			`Will update WETH ('${WETH}') Drips configuration for account '${senderAccount}' (user ID: '${senderUserId}').`
+		);
 
 		const wEthConfigurationBefore = await subgraphClient.getUserAssetConfigById(
-			userId2,
+			senderUserId,
 			Utils.Asset.getIdFromAddress(WETH)
 		);
 		console.log(
@@ -68,33 +73,35 @@ describe('DripsHubClient integration tests', () => {
 		);
 
 		const config = Utils.DripsReceiverConfiguration.toUint256({
-			start: BigInt(1),
-			duration: BigInt(2),
-			amountPerSec: BigInt(1),
+			start: BigInt(0),
+			duration: BigInt(0),
+			amountPerSec: BigInt(1 * constants.AMT_PER_SEC_MULTIPLIER),
 			dripId: BigInt(Math.floor(Math.random() * 1_000_000_000))
 		});
 
-		console.log(`New WETH configuration will be dripping to receiver '${account1}' (user ID: '${userId1}').`);
+		console.log(
+			`New WETH configuration will be dripping to receiver '${receiverAccount}' (user ID: '${receiverUserId}').`
+		);
 
 		console.log(`Updating Drips configuration...`);
-		await account2AddressDriverClient.setDrips(
+		await senderAddressDriverClient.setDrips(
 			WETH,
 			wEthConfigurationBefore?.dripsEntries.map((d) => ({
 				config: d.config,
 				userId: d.userId
 			})) || [],
-			[{ config, userId: userId1 }],
-			account2
+			[{ config, userId: receiverUserId }],
+			senderAccount
 		);
 
 		console.log(`Querying the subgraph until it's updated...`);
 		const expectedConfig = (await expect(
-			() => subgraphClient.getUserAssetConfigById(userId2, Utils.Asset.getIdFromAddress(WETH)),
+			() => subgraphClient.getUserAssetConfigById(senderUserId, Utils.Asset.getIdFromAddress(WETH)),
 			(configuration) => {
 				const found =
 					configuration?.dripsEntries.length === 1 &&
 					configuration.dripsEntries[0].config === config &&
-					configuration.dripsEntries[0].userId === userId1;
+					configuration.dripsEntries[0].userId === receiverUserId;
 
 				if (!found) {
 					console.log(
@@ -113,12 +120,12 @@ describe('DripsHubClient integration tests', () => {
 			5000
 		)) as UserAssetConfig;
 
-		assert.equal(expectedConfig.dripsEntries[0].userId, userId1);
+		assert.equal(expectedConfig.dripsEntries[0].userId, receiverUserId);
 
 		const squeezableBalanceAfter = (await expect(
 			async () =>
 				dripsHubClient.getSqueezableBalance(
-					...(await subgraphClient.getArgsForSqueezingAllDrips(userId1, userId2, WETH))
+					...(await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH))
 				),
 			(balance) => {
 				const found = balance > 0;
@@ -138,14 +145,14 @@ describe('DripsHubClient integration tests', () => {
 		assert.isTrue(squeezableBalanceAfter > 0);
 
 		console.log(`Clearing WETH configuration receivers...`);
-		await account2AddressDriverClient.setDrips(
+		await senderAddressDriverClient.setDrips(
 			WETH,
 			expectedConfig.dripsEntries.map((d) => ({
 				config: d.config,
 				userId: d.userId
 			})),
 			[],
-			account2
+			senderAccount
 		);
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
