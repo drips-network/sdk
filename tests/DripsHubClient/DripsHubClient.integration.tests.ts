@@ -91,7 +91,8 @@ describe('DripsHubClient integration tests', () => {
 				userId: d.userId
 			})) || [],
 			[{ config, userId: receiverUserId }],
-			senderAccount
+			senderAccount,
+			'10000000000000000'
 		);
 
 		console.log(`Querying the subgraph until it's updated...`);

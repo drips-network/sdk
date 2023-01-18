@@ -385,7 +385,7 @@ describe('DripsHubClient', () => {
 					userId,
 					tokenAddress,
 					senderId,
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
+					historyHash,
 					dripsHistory
 				)
 			);
@@ -403,13 +403,7 @@ describe('DripsHubClient', () => {
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsHubContractStub.squeezeDripsResult
-				.withArgs(
-					userId,
-					tokenAddress,
-					senderId,
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
-					dripsHistory
-				)
+				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
 				.resolves(BigNumber.from(1));
 
 			// Act
@@ -507,13 +501,7 @@ describe('DripsHubClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 
 			dripsHubContractStub.squeezeDripsResult
-				.withArgs(
-					userId,
-					tokenAddress,
-					senderId,
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
-					dripsHistory
-				)
+				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
 				.resolves(expectedBalance);
 
 			// Act
@@ -532,7 +520,7 @@ describe('DripsHubClient', () => {
 					userId,
 					tokenAddress,
 					senderId,
-					ethers.utils.hexlify(ethers.utils.toUtf8Bytes(historyHash)),
+					historyHash,
 					dripsHistory
 				)
 			);
