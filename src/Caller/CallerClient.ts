@@ -13,7 +13,6 @@ import { DripsErrors } from '../../src/common/DripsError';
  */
 export default class CallerClient {
 	#caller!: Caller;
-	#signer!: Signer;
 	#callerAddress!: string;
 
 	#provider!: Provider;
@@ -22,6 +21,7 @@ export default class CallerClient {
 		return this.#provider;
 	}
 
+	#signer!: Signer;
 	/**
 	 * Returns the client's `signer`.
 	 *
