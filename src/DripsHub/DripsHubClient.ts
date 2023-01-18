@@ -75,13 +75,11 @@ export default class DripsHubClient {
 		try {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
-			let signerOrProvider: Signer | Provider = provider;
-
 			if (signer) {
 				await validateClientSigner(signer);
 
 				if (!signer.provider) {
-					signerOrProvider = signer.connect(provider);
+					signer = signer.connect(provider);
 				}
 			}
 
@@ -90,10 +88,10 @@ export default class DripsHubClient {
 
 			const client = new DripsHubClient();
 
-			client.#signer = signer ? (signerOrProvider as Signer) : undefined;
+			client.#signer = signer;
 			client.#provider = provider;
 			client.#driverAddress = driverAddress;
-			client.#driver = DripsHub__factory.connect(driverAddress, signerOrProvider);
+			client.#driver = DripsHub__factory.connect(driverAddress, signer ?? provider);
 			return client;
 		} catch (error: any) {
 			throw DripsErrors.clientInitializationError(`Could not create 'DripsHubClient': ${error.message}`);
