@@ -34,9 +34,6 @@ export namespace AddressDriverPresets {
 		maxCycles: BigNumberish;
 		currentReceivers: SplitsReceiverStruct[];
 		transferToAddress: string;
-	};
-
-	export type SqueezeCollectFlowPayload = CollectFlowPayload & {
 		squeezeArgs?: SqueezeArgs[];
 	};
 
@@ -142,9 +139,10 @@ export namespace AddressDriverPresets {
 
 		/**
 		 * Creates a new batch with the following sequence of calls:
-		 * 1. `receiveDrips` (optional)
-		 * 2. `split` (optional)
-		 * 3. `collect`
+		 * 1. `squeezeDrips` (optional) for each provided sender
+		 * 2. `receiveDrips` (optional)
+		 * 3. `split` (optional)
+		 * 4. `collect`
 		 *
 		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
 		 * @param  {CollectFlowPayload} payload the flow's payload.
@@ -158,82 +156,6 @@ export namespace AddressDriverPresets {
 		 */
 		public static createCollectFlow(
 			payload: CollectFlowPayload,
-			skipReceive: boolean = false,
-			skipSplit: boolean = false
-		): Preset {
-			if (isNullOrUndefined(payload)) {
-				throw DripsErrors.argumentMissingError(
-					`Could not create collect flow: '${nameOf({ payload })}' is missing.`,
-					nameOf({ payload })
-				);
-			}
-
-			const { driverAddress, dripsHubAddress, userId, tokenAddress, maxCycles, currentReceivers, transferToAddress } =
-				payload;
-
-			const flow: CallStruct[] = [];
-
-			if (!skipReceive) {
-				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
-				const receive: CallStruct = {
-					value: 0,
-					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [
-						userId,
-						tokenAddress,
-						maxCycles
-					])
-				};
-
-				flow.push(receive);
-			}
-
-			if (!skipSplit) {
-				validateSplitInput(userId, tokenAddress, currentReceivers);
-				const split: CallStruct = {
-					value: 0,
-					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('split', [
-						userId,
-						tokenAddress,
-						currentReceivers
-					])
-				};
-
-				flow.push(split);
-			}
-
-			validateCollectInput(tokenAddress, transferToAddress);
-			const collect: CallStruct = {
-				value: 0,
-				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('collect', [tokenAddress, transferToAddress])
-			};
-
-			flow.push(collect);
-
-			return flow;
-		}
-
-		/**
-		 * Creates a new batch with the following sequence of calls:
-		 * 1. `squeezeDrips` (optional) for each provided sender
-		 * 2. `receiveDrips` (optional)
-		 * 3. `split` (optional)
-		 * 4. `collect`
-		 *
-		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
-		 * @param  {SqueezeCollectFlowPayload} payload the flow's payload.
-		 * @param  {boolean} skipReceive skips the `receiveDrips` step.
-		 * @param  {boolean} skipSplit  skips the `split` step.
-		 * @returns The preset.
-		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or the `payload.transferToAddress` address is not valid.
-		 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
-		 * @throws {@link DripsErrors.argumentError} if `payload.maxCycles` or `payload.currentReceivers` is not valid.
-		 * @throws {@link DripsErrors.splitsReceiverError} if any of the `payload.currentReceivers` is not valid.
-		 */
-		public static createSqueezeCollectFlow(
-			payload: SqueezeCollectFlowPayload,
 			skipReceive: boolean = false,
 			skipSplit: boolean = false
 		): Preset {
