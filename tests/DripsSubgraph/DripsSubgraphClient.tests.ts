@@ -1719,7 +1719,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getSqueezableSenders()', () => {
+	describe('filterSqueezableSenders()', () => {
 		it('should return the expected result when there are no squeezable senders', async () => {
 			// Arrange
 			const receiverId = '1';
@@ -1780,6 +1780,86 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(Object.keys(senders).length, 501);
 			assert.isTrue(senders['0'].includes(assetId));
 			assert.isTrue(senders['0'].includes('999'));
+		});
+	});
+
+	describe('getCurrentDripsReceivers()', () => {
+		it('should return the expected result when there are no events', async () => {
+			// Arrange
+			const userId = '1';
+			const tokenAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
+
+			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
+
+			// Act
+			const senders = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress);
+
+			// Assert
+			assert.equal(Object.keys(senders).length, 0);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const userId = '1';
+			const tokenAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
+
+			const firstResults: DripsSetEvent[] = new Array(500).fill({}).map(
+				(_e, i) =>
+					({
+						id: i,
+						blockTimestamp: i,
+						assetId: 'not included',
+						dripsReceiverSeenEvents: [
+							{
+								id: i,
+								receiverUserId: i,
+								config: i
+							}
+						]
+					} as unknown as DripsSetEvent)
+			);
+
+			const secondResults: DripsSetEvent[] = [
+				{
+					id: '502',
+					blockTimestamp: 502n,
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+					dripsReceiverSeenEvents: [
+						{
+							id: '502',
+							receiverUserId: '502',
+							config: 502n
+						}
+					]
+				} as DripsSetEvent,
+				{
+					id: '501',
+					blockTimestamp: 501n,
+					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+					dripsReceiverSeenEvents: [
+						{
+							id: '501',
+							receiverUserId: '501',
+							config: 501n
+						}
+					]
+				} as DripsSetEvent
+			];
+
+			sinon
+				.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId')
+				.onFirstCall()
+				.resolves(firstResults)
+				.onSecondCall()
+				.resolves(secondResults);
+
+			// Act
+			const currentReceivers = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress);
+
+			// Assert
+			assert.equal(currentReceivers.length, 1);
+			assert.equal(currentReceivers[0].userId, '502');
+			assert.equal(currentReceivers[0].config, 502n);
 		});
 	});
 

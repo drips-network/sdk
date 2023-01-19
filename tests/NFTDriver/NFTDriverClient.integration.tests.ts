@@ -114,10 +114,7 @@ describe('NFTDriver integration tests', () => {
 		await account2NftDriverClient.setDrips(
 			testSubAccount.tokenId,
 			WETH,
-			wEthConfigurationBefore?.dripsEntries.map((d) => ({
-				config: d.config,
-				userId: d.userId
-			})) || [],
+			await subgraphClient.getCurrentDripsReceivers(testSubAccount.tokenId, WETH),
 			[{ config, userId: receiver.tokenId }],
 			account2
 		);
@@ -154,10 +151,7 @@ describe('NFTDriver integration tests', () => {
 		await account2NftDriverClient.setDrips(
 			testSubAccount.tokenId,
 			WETH,
-			expectedConfig.dripsEntries.map((d) => ({
-				config: d.config,
-				userId: d.userId
-			})),
+			await subgraphClient.getCurrentDripsReceivers(testSubAccount.tokenId, WETH),
 			[],
 			account2
 		);

@@ -34,7 +34,7 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
-import type { DripsHistoryStruct } from '../common/types';
+import type { DripsHistoryStruct, DripsReceiverStruct } from '../common/types';
 import { keyFromString } from '../common/internals';
 
 /**
@@ -697,12 +697,6 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 *
-	 * It must preserve amounts, so if some amount of tokens is transferred to
-	 * an address, then later the same amount must be transferrable from that address.
-	 * Tokens which rebase the holders' balances, collect taxes on transfers,
-	 * or impose any restrictions on holding or transferring tokens are not supported.
-	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the `DripsHubClient.squeezeDrips` arguments.
 	 */
 	public async getArgsForSqueezingAllDrips(
@@ -874,6 +868,51 @@ export default class DripsSubgraphClient {
 		}
 
 		return squeezableSenders;
+	}
+
+	/**
+	 * Returns the current Drips receivers for the given configuration.
+	 * @param  {string} userId The user ID.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @returns A `Promise` which resolves to the user's `Collected` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the current Drips receivers.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getCurrentDripsReceivers(userId: string, tokenAddress: string): Promise<DripsReceiverStruct[]> {
+		let dripsSetEvents: DripsSetEvent[] = [];
+		let skip = 0;
+		const first = 500;
+
+		// Get all `DripsSet` events.
+		while (true) {
+			const iterationDripsSetEvents = await this.getDripsSetEventsByUserId(userId, skip, first);
+
+			// Filter by asset.
+			const tokenDripsSetEvents = iterationDripsSetEvents.filter(
+				(e) => e.assetId == Utils.Asset.getIdFromAddress(tokenAddress)
+			);
+
+			dripsSetEvents.push(...tokenDripsSetEvents);
+
+			if (!iterationDripsSetEvents?.length || iterationDripsSetEvents.length < first) {
+				break;
+			}
+
+			skip += first;
+		}
+
+		if (!dripsSetEvents?.length) {
+			return [];
+		}
+
+		// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
+		dripsSetEvents = dripsSetEvents.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+
+		// Return the most recent event's receivers.
+		return dripsSetEvents[0].dripsReceiverSeenEvents.map((d) => ({
+			config: d.config,
+			userId: d.receiverUserId
+		}));
 	}
 
 	/**
