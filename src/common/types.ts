@@ -1,4 +1,5 @@
 import type { CallStruct } from '../../contracts/Caller';
+import type { DripsHistoryStruct } from '../../contracts/DripsHub';
 
 export {
 	DripsReceiverStruct,
@@ -58,4 +59,12 @@ export type Preset = CallStruct[];
 export type UserMetadata = {
 	key: string;
 	value: string;
+};
+
+export type SqueezeArgs = {
+	userId: string;
+	tokenAddress: string;
+	senderId: string;
+	historyHash: string;
+	dripsHistory: DripsHistoryStruct[];
 };

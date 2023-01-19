@@ -1579,11 +1579,11 @@ describe('DripsSubgraphClient', () => {
 			const args = await testSubgraphClient.getArgsForSqueezingAllDrips(userId, senderId, tokenAddress);
 
 			// Assert
-			assert.equal(args[0], userId);
-			assert.equal(args[1], tokenAddress);
-			assert.equal(args[2], senderId);
-			assert.equal(args[3], ethers.constants.HashZero);
-			assert.equal(args[4].length, 0);
+			assert.equal(args.userId, userId);
+			assert.equal(args.tokenAddress, tokenAddress);
+			assert.equal(args.senderId, senderId);
+			assert.equal(args.historyHash, ethers.constants.HashZero);
+			assert.equal(args.dripsHistory.length, 0);
 		});
 
 		it('should return the expected result', async () => {
@@ -1701,19 +1701,19 @@ describe('DripsSubgraphClient', () => {
 			const args = await testSubgraphClient.getArgsForSqueezingAllDrips(userId, senderId, tokenAddress);
 
 			// Assert
-			assert.equal(args[0], userId);
-			assert.equal(args[1], tokenAddress);
-			assert.equal(args[2], senderId);
-			assert.equal(args[3].substring(args[3].length - 2), '-0');
+			assert.equal(args.userId, userId);
+			assert.equal(args.tokenAddress, tokenAddress);
+			assert.equal(args.senderId, senderId);
+			assert.equal(args.historyHash.substring(args.historyHash.length - 2), '-0');
 			assert.equal(
-				args[4].filter(
+				args.dripsHistory.filter(
 					(c) =>
 						c.dripsHash === ethers.constants.HashZero && c.receivers.filter((e) => e.userId === userId).length === 1
 				).length,
 				6
 			);
 			assert.equal(
-				args[4].filter((c) => c.dripsHash !== ethers.constants.HashZero && c.receivers.length === 0).length,
+				args.dripsHistory.filter((c) => c.dripsHash !== ethers.constants.HashZero && c.receivers.length === 0).length,
 				6
 			);
 		});

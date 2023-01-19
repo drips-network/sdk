@@ -34,7 +34,7 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
-import type { DripsHistoryStruct, DripsReceiverStruct } from '../common/types';
+import type { DripsHistoryStruct, DripsReceiverStruct, SqueezeArgs } from '../common/types';
 import { keyFromString } from '../common/internals';
 
 /**
@@ -703,9 +703,7 @@ export default class DripsSubgraphClient {
 		userId: string,
 		senderId: string,
 		tokenAddress: string
-	): Promise<
-		[userId: string, tokenAddress: string, senderId: string, historyHash: string, dripsHistory: DripsHistoryStruct[]]
-	> {
+	): Promise<SqueezeArgs> {
 		// Get all `DripsSet` events (drips configurations) for the sender.
 		const allDripsSetEvents: DripsSetEvent[] = [];
 		let skip = 0;
@@ -798,7 +796,7 @@ export default class DripsSubgraphClient {
 			.reverse();
 
 		// Return the parameters required by the `squeezeDrips` methods.
-		return [userId, tokenAddress, senderId, historyHash, dripsHistory];
+		return { userId, tokenAddress, senderId, historyHash, dripsHistory };
 	}
 
 	/**
