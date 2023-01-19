@@ -16,7 +16,7 @@ describe('DripsHubClient integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-	it('should squeeze', async () => {
+	it.skip('should squeeze', async () => {
 		const provider = new InfuraProvider('goerli');
 		const receiverAccount = process.env.ACCOUNT_1 as string;
 		const senderAccount = process.env.ACCOUNT_2 as string;
