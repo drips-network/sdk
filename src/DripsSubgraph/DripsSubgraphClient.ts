@@ -1,9 +1,9 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-await-in-loop */
-import type { BigNumberish, BytesLike } from 'ethers';
+import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import constants from '../constants';
-import { nameOf } from '../common/internals';
+import { nameOf, valueFromString, keyFromString } from '../common/internals';
 import Utils from '../utils';
 import { validateAddress } from '../common/validators';
 import { DripsErrors } from '../common/DripsError';
@@ -35,7 +35,6 @@ import {
 	mapUserMetadataEventToDto
 } from './mappers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SqueezeArgs } from '../common/types';
-import { keyFromString } from '../common/internals';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -433,7 +432,7 @@ export default class DripsSubgraphClient {
 
 	/**
 	 * Returns a list of token IDs that are associated with the given app.
-	 * @param  {BytesLike} associatedApp The name/ID of the app to retrieve accounts for.
+	 * @param  {string} associatedApp The name/ID of the app to retrieve accounts for.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.valueFromString` to create your `associatedApp` argument from a `string`.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
@@ -443,24 +442,12 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
 	public async getNftSubAccountIdsByApp(
-		associatedApp: BytesLike,
+		associatedApp: string,
 		skip: number = 0,
 		first: number = 100
 	): Promise<string[]> {
 		if (!associatedApp) {
-			throw DripsErrors.argumentError(
-				`Could not get user metadata: ${nameOf({ associatedApp })} is missing.`,
-				nameOf({ associatedApp }),
-				associatedApp
-			);
-		}
-
-		if (!ethers.utils.isBytesLike(associatedApp)) {
-			throw DripsErrors.argumentError(
-				`Could not get user metadata: ${nameOf({ associatedApp })} is not a valid BytesLike object.`,
-				nameOf({ associatedApp }),
-				associatedApp
-			);
+			throw DripsErrors.argumentError(`Could not get user metadata: ${nameOf({ associatedApp })} is missing.`);
 		}
 
 		type QueryResponse = {
@@ -469,7 +456,7 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
 			key: constants.ASSOCIATED_APP_KEY_BYTES,
-			value: associatedApp,
+			value: valueFromString(associatedApp),
 			skip,
 			first
 		});

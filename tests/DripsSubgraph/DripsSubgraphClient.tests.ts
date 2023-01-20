@@ -973,22 +973,6 @@ describe('DripsSubgraphClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
-			let threw = false;
-
-			try {
-				// Act
-				await testSubgraphClient.getNftSubAccountIdsByApp('invalid bytes like string');
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should return empty array when no sub accounts found', async () => {
 			// Arrange
 			const associatedApp = ethers.utils.formatBytes32String('myApp');
@@ -1031,7 +1015,7 @@ describe('DripsSubgraphClient', () => {
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
-					value: associatedApp,
+					value: valueFromString(associatedApp),
 					skip: 0,
 					first: 100
 				})
@@ -1051,7 +1035,7 @@ describe('DripsSubgraphClient', () => {
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
-					value: associatedApp,
+					value: valueFromString(associatedApp),
 					skip: 0,
 					first: 100
 				}),
