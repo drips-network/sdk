@@ -16,7 +16,7 @@ describe('NFTDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-	it.skip('should create a new sub-account and transfer its ownership', async () => {
+	it('should create a new sub-account and transfer its ownership', async () => {
 		const provider = new InfuraProvider('goerli');
 
 		const account1 = process.env.ACCOUNT_1 as string;
@@ -66,7 +66,7 @@ describe('NFTDriver integration tests', () => {
 		assert.isTrue(expectedAccounts.some((a) => a.tokenId === tokenId));
 	}).timeout(THREE_MINS);
 
-	it.skip("should update a sub-account's WETH Drips configuration", async () => {
+	it("should update a sub-account's WETH Drips configuration", async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -158,7 +158,7 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it.skip("should update a sub-account's Splits configuration", async () => {
+	it("should update a sub-account's Splits configuration", async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -231,7 +231,7 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it.skip('should emit user metadata for a sub-account', async () => {
+	it('should emit user metadata for a sub-account', async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -295,7 +295,7 @@ describe('NFTDriver integration tests', () => {
 		assert.equal(expectedMetadata.id, `${testSubAccount.tokenId}-${key}`);
 	}).timeout(THREE_MINS);
 
-	it.skip("should give from a sub-account's owner to another address", async () => {
+	it("should give from a sub-account's owner to another address", async () => {
 		const provider = new InfuraProvider('goerli');
 
 		const account1 = process.env.ACCOUNT_1 as string;
