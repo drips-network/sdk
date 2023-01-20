@@ -1,11 +1,10 @@
 import type { Provider } from '@ethersproject/providers';
-import type { CallStruct } from 'contracts/Caller';
 import type { ContractTransaction, Signer } from 'ethers';
+import type { CallStruct, Caller } from '../../contracts/Caller';
 import { validateClientProvider, validateClientSigner } from '../common/validators';
 import Utils from '../utils';
-import type { Caller } from '../../contracts/Caller';
 import { Caller__factory } from '../../contracts/factories';
-import { DripsErrors } from '../../src/common/DripsError';
+import { DripsErrors } from '../common/DripsError';
 
 /**
  * A generic call executor that increases the flexibility of other contracts' APIs.
@@ -60,6 +59,7 @@ export default class CallerClient {
 			await validateClientSigner(signer);
 
 			if (!signer.provider) {
+				// eslint-disable-next-line no-param-reassign
 				signer = signer.connect(provider);
 			}
 

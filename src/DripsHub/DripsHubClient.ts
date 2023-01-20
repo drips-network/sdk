@@ -79,6 +79,7 @@ export default class DripsHubClient {
 				await validateClientSigner(signer);
 
 				if (!signer.provider) {
+					// eslint-disable-next-line no-param-reassign
 					signer = signer.connect(provider);
 				}
 			}

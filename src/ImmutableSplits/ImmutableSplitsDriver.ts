@@ -1,5 +1,6 @@
 import type { Provider } from '@ethersproject/providers';
 import type { SplitsReceiverStruct, UserMetadata } from 'src/common/types';
+import type { Signer } from 'ethers';
 import { DripsErrors } from '../common/DripsError';
 import type { ImmutableSplitsDriver } from '../../contracts/ImmutableSplitsDriver';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
@@ -11,7 +12,6 @@ import {
 	validateSplitsReceivers
 } from '../common/validators';
 import { createFromStrings } from '../common/internals';
-import { Signer } from 'ethers';
 
 /**
  * A client for creating immutable splits configurations.
@@ -73,6 +73,7 @@ export default class ImmutableSplitsDriverClient {
 			await validateClientSigner(signer);
 
 			if (!signer.provider) {
+				// eslint-disable-next-line no-param-reassign
 				signer = signer.connect(provider);
 			}
 
