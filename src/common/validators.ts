@@ -1,9 +1,9 @@
-import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
+import type { BigNumberish, Signer } from 'ethers';
 import { ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct, UserMetadataStruct, DripsHistoryStruct } from './types';
+import type { DripsReceiverConfig, SplitsReceiverStruct, DripsHistoryStruct, UserMetadata } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -149,9 +149,9 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 };
 
 /** @internal */
-export const validateClientProvider = async (provider: JsonRpcProvider, supportedChains: readonly number[]) => {
+export const validateClientProvider = async (provider: Provider, supportedChains: readonly number[]) => {
 	if (!provider) {
-		throw DripsErrors.argumentMissingError(`'${nameOf({ provider })}' is missing.`, nameOf({ provider }));
+		throw DripsErrors.argumentError(`'${nameOf({ provider })}' is missing.`);
 	}
 
 	const network = await provider.getNetwork();
@@ -164,14 +164,12 @@ export const validateClientProvider = async (provider: JsonRpcProvider, supporte
 };
 
 /** @internal */
-export const validateClientSigner = async (signer: JsonRpcSigner, supportedChains: readonly number[]) => {
+export const validateClientSigner = async (signer: Signer) => {
 	if (!signer) {
-		throw DripsErrors.argumentMissingError(`'${nameOf({ signer })}' is missing.`, nameOf({ signer }));
+		throw DripsErrors.argumentError(`'${nameOf({ signer })}' is missing.`);
 	}
 
-	const { provider } = signer;
-
-	await validateClientProvider(provider, supportedChains);
+	validateAddress(await signer.getAddress());
 };
 
 /** @internal */
@@ -201,28 +199,20 @@ export const validateSetDripsInput = (
 };
 
 /** @internal */
-export const validateEmitUserMetadataInput = (metadata: UserMetadataStruct[]) => {
+export const validateEmitUserMetadataInput = (metadata: UserMetadata[]) => {
 	if (!metadata) {
-		throw DripsErrors.argumentError(
-			`Invalid user metadata: '${nameOf({ metadata })}' is missing.`,
-			nameOf({ metadata }),
-			metadata
-		);
+		throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ metadata })}' is missing.`);
 	}
 
-	metadata?.forEach((meta) => {
+	metadata.forEach((meta) => {
 		const { key, value } = meta;
 
-		if (isNullOrUndefined(key)) {
-			throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ key })}' is missing.`, nameOf({ key }), key);
+		if (!key) {
+			throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ key })}' is missing.`);
 		}
 
-		if (isNullOrUndefined(value)) {
-			throw DripsErrors.argumentError(
-				`Invalid user metadata: '${nameOf({ value })}' is missing.`,
-				nameOf({ value }),
-				value
-			);
+		if (!value) {
+			throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ value })}' is missing.`);
 		}
 	});
 };

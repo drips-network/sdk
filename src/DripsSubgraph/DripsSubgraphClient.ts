@@ -1,7 +1,7 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-await-in-loop */
 import type { BigNumberish, BytesLike } from 'ethers';
-import { ethers, BigNumber } from 'ethers';
+import { ethers } from 'ethers';
 import constants from '../constants';
 import { nameOf } from '../common/internals';
 import Utils from '../utils';
@@ -34,7 +34,8 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
-import type { DripsHistoryStruct } from '../common/types';
+import type { DripsHistoryStruct, DripsReceiverStruct, SqueezeArgs } from '../common/types';
+import { keyFromString } from '../common/internals';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -64,7 +65,7 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `chainId` is not supported.
 	 * @returns The new `DripsSubgraphClient` instance.
 	 */
-	public static create(chainId: number, customApiUrl: string | undefined = undefined): DripsSubgraphClient {
+	public static create(chainId: number, customApiUrl?: string): DripsSubgraphClient {
 		if (!chainId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not create a new 'DripsSubgraphClient': ${nameOf({ chainId })} is missing.`,
@@ -322,7 +323,7 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the history of user metadata updates for the given user.
 	 * @param  {string} userId The user ID.
-	 * @param  {BytesLike} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
 	 * @param  {number} first The number of database entries to take. Defaults to `100`.
 	 * @returns A `Promise` which resolves to the user's metadata.
@@ -331,7 +332,7 @@ export default class DripsSubgraphClient {
 	 */
 	public async getMetadataHistory(
 		userId: string,
-		key?: BytesLike,
+		key?: string,
 		skip: number = 0,
 		first: number = 100
 	): Promise<UserMetadataEntry[]> {
@@ -351,7 +352,7 @@ export default class DripsSubgraphClient {
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
 				userId,
-				key: `${BigNumber.from(key)}`,
+				key: `${keyFromString(key)}`,
 				skip,
 				first
 			});
@@ -367,17 +368,18 @@ export default class DripsSubgraphClient {
 	/**
 	 * Returns the latest metadata update for the given `userId`-`key` pair.
 	 * @param  {string} userId The user ID.
-	 * @param  {BytesLike} key The metadata key.
+	 * @param  {string} key The metadata key.
 	 * @returns A `Promise` which resolves to the user's metadata, or `null` if not found.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameter is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getLatestUserMetadata(userId: string, key: BytesLike): Promise<UserMetadataEntry | null> {
-		if (!userId || !key) {
-			throw DripsErrors.argumentMissingError(
-				`Could not get user metadata: '${nameOf({ userId })}' and '${nameOf({ key })}' are required.`,
-				userId ? nameOf({ userId }) : nameOf({ key })
-			);
+	public async getLatestUserMetadata(userId: string, key: string): Promise<UserMetadataEntry | null> {
+		if (!userId) {
+			throw DripsErrors.argumentError(`Could not get user metadata: '${nameOf({ key })}' is missing.`);
+		}
+
+		if (!key) {
+			throw DripsErrors.argumentError(`Could not get user metadata: '${nameOf({ key })}' is missing.`);
 		}
 
 		type QueryResponse = {
@@ -385,7 +387,7 @@ export default class DripsSubgraphClient {
 		};
 
 		const response = await this.query<QueryResponse>(gql.getLatestUserMetadata, {
-			id: `${userId}-${BigNumber.from(key)}`
+			id: `${userId}-${key}`
 		});
 
 		const userMetadataEvent = response?.data?.userMetadataByKey;
@@ -413,14 +415,18 @@ export default class DripsSubgraphClient {
 			nftsubAccounts: SubgraphTypes.NftSubAccount[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, { ownerAddress, skip, first });
+		const response = await this.query<QueryResponse>(gql.getNftSubAccountsByOwner, {
+			ownerAddress: ethers.utils.getAddress(ownerAddress),
+			skip,
+			first
+		});
 
 		const nftSubAccounts = response?.data?.nftsubAccounts;
 
 		return nftSubAccounts
 			? nftSubAccounts.map((s) => ({
 					tokenId: s.id,
-					ownerAddress: s.ownerAddress
+					ownerAddress: ethers.utils.getAddress(s.ownerAddress)
 			  }))
 			: [];
 	}
@@ -576,6 +582,37 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
+	 * Returns a list of `Split` events for the given receiver.
+	 * @param  {string} receiverUserId The receiver user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
+	 * @returns A `Promise` which resolves to the receiver's `Split` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getSplitEventsByReceiverUserId(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<SplitEvent[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentError(`Could not get 'split' events: ${nameOf({ receiverUserId })} is missing.`);
+		}
+
+		type QueryResponse = {
+			splitEvents: SubgraphTypes.SplitEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getSplitEventsByReceiverUserId, {
+			receiverUserId,
+			skip,
+			first
+		});
+
+		return response?.data?.splitEvents?.map(mapSplitEventToDto) || [];
+	}
+
+	/**
 	 * Returns a list of `ReceivedDrips` events for the given user.
 	 * @param  {string} userId The user ID.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
@@ -632,6 +669,37 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
+	 * Returns a list of `Given` events for the given receiver.
+	 * @param  {string} receiverUserId The receiver user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
+	 * @returns A `Promise` which resolves to the receiver's `Given` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getGivenEventsByReceiverUserId(
+		receiverUserId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<GivenEvent[]> {
+		if (!receiverUserId) {
+			throw DripsErrors.argumentError(`Could not get 'given' events: ${nameOf({ receiverUserId })} is missing.`);
+		}
+
+		type QueryResponse = {
+			givenEvents: SubgraphTypes.GivenEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getGivenEventsByReceiverUserId, {
+			receiverUserId,
+			skip,
+			first
+		});
+
+		return response?.data?.givenEvents?.map(mapGivenEventToDto) || [];
+	}
+
+	/**
 	 * Calculates the arguments for squeezing all Drips up to "now" for the given sender and token.
 	 *
 	 * **Important**: This method might fail if two Drips updates were performed in a single block.
@@ -641,21 +709,13 @@ export default class DripsSubgraphClient {
 	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 *
-	 * It must preserve amounts, so if some amount of tokens is transferred to
-	 * an address, then later the same amount must be transferrable from that address.
-	 * Tokens which rebase the holders' balances, collect taxes on transfers,
-	 * or impose any restrictions on holding or transferring tokens are not supported.
-	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the `DripsHubClient.squeezeDrips` arguments.
 	 */
 	public async getArgsForSqueezingAllDrips(
 		userId: string,
 		senderId: string,
 		tokenAddress: string
-	): Promise<
-		[userId: string, tokenAddress: string, senderId: string, historyHash: string, dripsHistory: DripsHistoryStruct[]]
-	> {
+	): Promise<SqueezeArgs> {
 		// Get all `DripsSet` events (drips configurations) for the sender.
 		const allDripsSetEvents: DripsSetEvent[] = [];
 		let skip = 0;
@@ -681,7 +741,7 @@ export default class DripsSubgraphClient {
 				return unique;
 			}, [])
 			// Filter only the events for the token-to-be-squeezed.
-			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(tokenAddress))
+			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(ethers.utils.getAddress(tokenAddress)))
 			// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
 			.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 
@@ -694,7 +754,7 @@ export default class DripsSubgraphClient {
 
 				// Keep the drips configurations of the current cycle.
 				const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
-				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp));
+				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp * 1000n));
 				if (eventTimestamp >= currentCycleStartDate) {
 					dripsSetEventsToSqueeze.push(dripsConfiguration);
 				}
@@ -748,7 +808,7 @@ export default class DripsSubgraphClient {
 			.reverse();
 
 		// Return the parameters required by the `squeezeDrips` methods.
-		return [userId, tokenAddress, senderId, historyHash, dripsHistory];
+		return { userId, tokenAddress, senderId, historyHash, dripsHistory };
 	}
 
 	/**
@@ -820,7 +880,93 @@ export default class DripsSubgraphClient {
 		return squeezableSenders;
 	}
 
-	/** @internal */
+	/**
+	 * Returns the current Drips receivers for the given configuration.
+	 * @param  {string} userId The user ID.
+	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @returns A `Promise` which resolves to the user's `Collected` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the current Drips receivers.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getCurrentDripsReceivers(userId: string, tokenAddress: string): Promise<DripsReceiverStruct[]> {
+		let dripsSetEvents: DripsSetEvent[] = [];
+		let skip = 0;
+		const first = 500;
+
+		// Get all `DripsSet` events.
+		while (true) {
+			const iterationDripsSetEvents = await this.getDripsSetEventsByUserId(userId, skip, first);
+
+			// Filter by asset.
+			const tokenDripsSetEvents = iterationDripsSetEvents.filter(
+				(e) => e.assetId == Utils.Asset.getIdFromAddress(tokenAddress)
+			);
+
+			dripsSetEvents.push(...tokenDripsSetEvents);
+
+			if (!iterationDripsSetEvents?.length || iterationDripsSetEvents.length < first) {
+				break;
+			}
+
+			skip += first;
+		}
+
+		if (!dripsSetEvents?.length) {
+			return [];
+		}
+
+		// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
+		dripsSetEvents = dripsSetEvents.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+
+		// Return the most recent event's receivers.
+		return dripsSetEvents[0].dripsReceiverSeenEvents.map((d) => ({
+			config: d.config,
+			userId: d.receiverUserId
+		}));
+	}
+
+	/**
+	 * Executes the given query against the Drips Subgraph.
+	 * @example <caption>Example usage for querying `Split` events.</caption>
+		type SplitEvent = {
+			id: string;
+			amount: bigint;
+			assetId: bigint;
+			blockTimestamp: bigint;
+			receiverId: string;
+			userId: string;
+		}
+
+ 	 	type QueryResponse = {
+			splitEvents: SplitEvent[];
+		};
+
+		export const getSplitEventsByUserId = `#graphql
+			query getSplitEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  			splitEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+					id
+					userId
+					receiverId
+					assetId
+					amt
+					blockTimestamp
+				}
+			}
+		`;
+
+		const userId = "1";
+		const skip = 0;
+		const first = 100;
+
+		const response = await dripsSubgraphClient.query<QueryResponse>(getSplitEventsByUserId, { userId, skip, first });
+
+		const events = response?.data?.splitEvents?.map(mapSplitEventToDto) || [];
+
+	 * @param  {string} query The GraphQL query.
+	 * @param  {unknown} variables The GraphQL query variables.
+	 * @returns A `Promise` which resolves to the expected data.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
 	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
 		const resp = await fetch(this.apiUrl, {
 			method: 'POST',

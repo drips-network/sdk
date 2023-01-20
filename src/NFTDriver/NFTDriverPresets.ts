@@ -6,11 +6,12 @@ import {
 	validateEmitUserMetadataInput,
 	validateReceiveDripsInput,
 	validateSetDripsInput,
-	validateSplitInput
+	validateSplitInput,
+	validateSqueezeDripsInput
 } from '../common/validators';
-import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import { createFromStrings, formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import { NFTDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
@@ -23,7 +24,7 @@ export namespace NFTDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		userMetadata: UserMetadataStruct[];
+		userMetadata: UserMetadata[];
 	};
 
 	export type CollectFlowPayload = {
@@ -35,6 +36,7 @@ export namespace NFTDriverPresets {
 		maxCycles: BigNumberish;
 		currentReceivers: SplitsReceiverStruct[];
 		transferToAddress: string;
+		squeezeArgs?: SqueezeArgs[];
 	};
 
 	/**
@@ -136,10 +138,15 @@ export namespace NFTDriverPresets {
 				])
 			};
 
+			const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [tokenId, userMetadata])
+				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
+					tokenId,
+					userMetadataAsBytes
+				])
 			};
 
 			return [setDrips, emitUserMetadata];
@@ -147,9 +154,10 @@ export namespace NFTDriverPresets {
 
 		/**
 		 * Creates a new batch with the following sequence of calls:
-		 * 1. `receiveDrips` (optional)
-		 * 2. `split` (optional)
-		 * 3. `collect`
+		 * 1. `squeezeDrips` (optional) for each provided sender
+		 * 2. `receiveDrips` (optional)
+		 * 3. `split` (optional)
+		 * 4. `collect`
 		 *
 		 * @see `NFTDriverClient` and `DripsHubClient`'s API for more details.
 		 * @param  {CollectFlowPayload} payload the flow's payload.
@@ -181,7 +189,8 @@ export namespace NFTDriverPresets {
 				tokenAddress,
 				maxCycles,
 				currentReceivers,
-				transferToAddress
+				transferToAddress,
+				squeezeArgs
 			} = payload;
 
 			if (isNullOrUndefined(tokenId)) {
@@ -193,6 +202,26 @@ export namespace NFTDriverPresets {
 			}
 
 			const flow: CallStruct[] = [];
+
+			squeezeArgs?.forEach((args) => {
+				const { userId, tokenAddress, senderId, historyHash, dripsHistory } = args;
+
+				validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
+
+				const squeeze: CallStruct = {
+					value: 0,
+					to: dripsHubAddress,
+					data: DripsHub__factory.createInterface().encodeFunctionData('squeezeDrips', [
+						userId,
+						tokenAddress,
+						senderId,
+						historyHash,
+						dripsHistory
+					])
+				};
+
+				flow.push(squeeze);
+			});
 
 			if (!skipReceive) {
 				validateReceiveDripsInput(userId, tokenAddress, maxCycles);

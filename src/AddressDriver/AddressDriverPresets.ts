@@ -6,11 +6,12 @@ import {
 	validateEmitUserMetadataInput,
 	validateReceiveDripsInput,
 	validateSetDripsInput,
-	validateSplitInput
+	validateSplitInput,
+	validateSqueezeDripsInput
 } from '../common/validators';
-import { formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import { createFromStrings, formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
@@ -22,7 +23,7 @@ export namespace AddressDriverPresets {
 		newReceivers: DripsReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		userMetadata: UserMetadataStruct[];
+		userMetadata: UserMetadata[];
 	};
 
 	export type CollectFlowPayload = {
@@ -33,6 +34,7 @@ export namespace AddressDriverPresets {
 		maxCycles: BigNumberish;
 		currentReceivers: SplitsReceiverStruct[];
 		transferToAddress: string;
+		squeezeArgs?: SqueezeArgs[];
 	};
 
 	/**
@@ -124,10 +126,12 @@ export namespace AddressDriverPresets {
 				])
 			};
 
+			const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadata])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadataAsBytes])
 			};
 
 			return [setDrips, emitUserMetadata];
@@ -135,9 +139,10 @@ export namespace AddressDriverPresets {
 
 		/**
 		 * Creates a new batch with the following sequence of calls:
-		 * 1. `receiveDrips` (optional)
-		 * 2. `split` (optional)
-		 * 3. `collect`
+		 * 1. `squeezeDrips` (optional) for each provided sender
+		 * 2. `receiveDrips` (optional)
+		 * 3. `split` (optional)
+		 * 4. `collect`
 		 *
 		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
 		 * @param  {CollectFlowPayload} payload the flow's payload.
@@ -161,10 +166,38 @@ export namespace AddressDriverPresets {
 				);
 			}
 
-			const { driverAddress, dripsHubAddress, userId, tokenAddress, maxCycles, currentReceivers, transferToAddress } =
-				payload;
+			const {
+				driverAddress,
+				dripsHubAddress,
+				userId,
+				tokenAddress,
+				maxCycles,
+				currentReceivers,
+				transferToAddress,
+				squeezeArgs
+			} = payload;
 
 			const flow: CallStruct[] = [];
+
+			squeezeArgs?.forEach((args) => {
+				const { userId, tokenAddress, senderId, historyHash, dripsHistory } = args;
+
+				validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
+
+				const squeeze: CallStruct = {
+					value: 0,
+					to: dripsHubAddress,
+					data: DripsHub__factory.createInterface().encodeFunctionData('squeezeDrips', [
+						userId,
+						tokenAddress,
+						senderId,
+						historyHash,
+						dripsHistory
+					])
+				};
+
+				flow.push(squeeze);
+			});
 
 			if (!skipReceive) {
 				validateReceiveDripsInput(userId, tokenAddress, maxCycles);

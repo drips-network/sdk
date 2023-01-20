@@ -2,23 +2,18 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import type { BytesLike, ContractReceipt, ContractTransaction, Event } from 'ethers';
+import type { ContractReceipt, ContractTransaction, Event } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
-import type { IERC20, NFTDriver } from '../../contracts';
-import { IERC20__factory, NFTDriver__factory } from '../../contracts';
+import { IERC20, IERC20__factory, NFTDriver } from '../../contracts';
+import { NFTDriver__factory } from '../../contracts';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as internals from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
-import type {
-	DripsReceiverStruct,
-	SplitsReceiverStruct,
-	DripsReceiver,
-	UserMetadataStruct
-} from '../../src/common/types';
+import type { DripsReceiverStruct, SplitsReceiverStruct, DripsReceiver, UserMetadata } from '../../src/common/types';
 
 describe('NFTDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -27,6 +22,7 @@ describe('NFTDriverClient', () => {
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let nftDriverContractStub: StubbedInstance<NFTDriver>;
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 
 	let testNftDriverClient: NFTDriverClient;
@@ -40,19 +36,21 @@ describe('NFTDriverClient', () => {
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
+
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		nftDriverContractStub = stubInterface<NFTDriver>();
 		sinon
 			.stub(NFTDriver__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerWithProviderStub)
 			.returns(nftDriverContractStub);
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
 		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
 
-		testNftDriverClient = await NFTDriverClient.create(providerStub);
+		testNftDriverClient = await NFTDriverClient.create(providerStub, signerStub);
 	});
 
 	afterEach(() => {
@@ -60,12 +58,26 @@ describe('NFTDriverClient', () => {
 	});
 
 	describe('create()', () => {
+		it('should validate the signer', async () => {
+			// Arrange
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
+
+			// Act
+			await NFTDriverClient.create(providerStub, signerStub);
+
+			// Assert
+			assert(
+				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			NFTDriverClient.create(providerStub);
+			await NFTDriverClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -74,12 +86,29 @@ describe('NFTDriverClient', () => {
 			);
 		});
 
+		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await NFTDriverClient.create(undefined as any, undefined as any);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should set the custom driver address when provided', async () => {
 			// Arrange
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await NFTDriverClient.create(providerStub, customDriverAddress);
+			const client = await NFTDriverClient.create(providerStub, signerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
@@ -87,14 +116,9 @@ describe('NFTDriverClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(testNftDriverClient.signer, signerStub);
+			assert.equal(testNftDriverClient.signer, signerWithProviderStub);
 			assert.equal(testNftDriverClient.provider, providerStub);
-			assert.equal(testNftDriverClient.provider.getSigner(), providerStub.getSigner());
-			assert.equal(await testNftDriverClient.signer.getAddress(), await signerStub.getAddress());
-			assert.equal(
-				await testNftDriverClient.provider.getSigner().getAddress(),
-				await providerStub.getSigner().getAddress()
-			);
+			assert.equal(testNftDriverClient.signer.provider, providerStub);
 			assert.equal(
 				testNftDriverClient.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_NFT_DRIVER
@@ -114,10 +138,7 @@ describe('NFTDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testNftDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testNftDriverClient.getAllowance(tokenAddress);
@@ -136,10 +157,7 @@ describe('NFTDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testNftDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			const allowance = await testNftDriverClient.getAllowance(tokenAddress);
@@ -148,7 +166,7 @@ describe('NFTDriverClient', () => {
 			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					await testNftDriverClient.provider.getSigner().getAddress(),
+					await signerWithProviderStub.getAddress(),
 					testNftDriverClient.driverAddress
 				),
 				'Expected method to be called with different arguments'
@@ -164,10 +182,7 @@ describe('NFTDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testNftDriverClient.approve(tokenAddress);
@@ -182,10 +197,7 @@ describe('NFTDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testNftDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testNftDriverClient.approve(tokenAddress);
@@ -201,7 +213,7 @@ describe('NFTDriverClient', () => {
 	describe('createAccount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadata[] = [];
 			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
@@ -221,8 +233,9 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the user metadata', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const waitFake = async () =>
@@ -230,7 +243,7 @@ describe('NFTDriverClient', () => {
 					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.mint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			// Act
 			await testNftDriverClient.createAccount(transferToAddress, undefined, metadata);
@@ -239,28 +252,10 @@ describe('NFTDriverClient', () => {
 			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
-		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
-			let threw = false;
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
-
-			const transferToAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testNftDriverClient.createAccount(transferToAddress, 'invalid BytesLike string', metadata);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
 			let threw = false;
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -269,7 +264,7 @@ describe('NFTDriverClient', () => {
 					events: []
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.mint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			try {
 				// Act
@@ -287,15 +282,16 @@ describe('NFTDriverClient', () => {
 		it('should return the expected token', async () => {
 			// Arrange
 			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.mint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			// Act
 			const actualTokenId = await testNftDriverClient.createAccount(transferToAddress, undefined, metadata);
@@ -303,7 +299,7 @@ describe('NFTDriverClient', () => {
 			// Assert
 			assert.equal(actualTokenId, expectedTokenId);
 			assert(
-				nftDriverContractStub.mint.calledOnceWithExactly(transferToAddress, metadata),
+				nftDriverContractStub.mint.calledOnceWithExactly(transferToAddress, metadataAsBytes),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -311,15 +307,15 @@ describe('NFTDriverClient', () => {
 		it('should not set an associated app metadata entry when an associated app is not provided', async () => {
 			// Arrange
 			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.mint.resolves(txResponse);
 
 			// Act
 			await testNftDriverClient.createAccount(transferToAddress, undefined, metadata);
@@ -328,40 +324,11 @@ describe('NFTDriverClient', () => {
 			assert(
 				nftDriverContractStub.mint.calledOnceWithExactly(
 					transferToAddress,
-					sinon.match((meta: UserMetadataStruct[]) => meta.length === 1 && meta[0].key === metadata[0].key)
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should set an associated app metadata entry when an associated app is provided', async () => {
-			// Arrange
-			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
-			const transferToAddress = Wallet.createRandom().address;
-
-			const waitFake = async () =>
-				Promise.resolve({
-					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
-				} as unknown as ContractReceipt);
-			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
-
-			// Act
-			await testNftDriverClient.createAccount(transferToAddress, ethers.utils.toUtf8Bytes('myApp'), metadata);
-
-			// Assert
-			assert(
-				nftDriverContractStub.mint.calledOnceWithExactly(
-					transferToAddress,
 					sinon.match(
-						(meta: UserMetadataStruct[]) =>
-							meta.length === 2 &&
-							meta[0].key === metadata[0].key &&
-							meta[0].value === metadata[0].value &&
-							meta[1].key === ethers.utils.formatBytes32String('associatedApp') &&
-							ethers.utils.toUtf8String(meta[1].value as BytesLike) ===
-								ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
+						(meta: UserMetadata[]) =>
+							meta.length === 1 &&
+							meta[0].key === ethers.utils.formatBytes32String(metadata[0].key) &&
+							meta[0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[0].value))
 					)
 				),
 				'Expected method to be called with different arguments'
@@ -371,7 +338,7 @@ describe('NFTDriverClient', () => {
 		it('should call the mint() of the NFTDriver contract', async () => {
 			// Arrange
 			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
 
 			const waitFake = async () =>
@@ -379,14 +346,24 @@ describe('NFTDriverClient', () => {
 					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.mint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.mint.resolves(txResponse);
 
 			// Act
-			await testNftDriverClient.createAccount(transferToAddress, undefined, metadata);
+			await testNftDriverClient.createAccount(transferToAddress, 'myApp', metadata);
 
 			// Assert
 			assert(
-				nftDriverContractStub.mint.calledOnceWithExactly(transferToAddress, metadata),
+				nftDriverContractStub.mint.calledOnceWithExactly(
+					transferToAddress,
+					sinon.match(
+						(meta: UserMetadata[]) =>
+							meta.length === 2 &&
+							meta[0].key === ethers.utils.formatBytes32String(metadata[0].key) &&
+							meta[0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[0].value)) &&
+							meta[1].key === ethers.utils.formatBytes32String(metadata[1].key) &&
+							meta[1].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[1].value))
+					)
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -395,16 +372,17 @@ describe('NFTDriverClient', () => {
 	describe('safeCreateAccount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadata[] = [];
 			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			// Act
 			await testNftDriverClient.safeCreateAccount(transferToAddress);
@@ -415,16 +393,17 @@ describe('NFTDriverClient', () => {
 
 		it('should validate the user metadata', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			// Act
 			await testNftDriverClient.safeCreateAccount(transferToAddress, undefined, metadata);
@@ -433,37 +412,18 @@ describe('NFTDriverClient', () => {
 			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
-		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
-			let threw = false;
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
-
-			const transferToAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testNftDriverClient.safeCreateAccount(transferToAddress, 'invalid BytesLike string', metadata);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should not set an associated app metadata entry when an associated app is not provided', async () => {
 			// Arrange
 			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.safeMint.resolves(txResponse);
 
 			// Act
 			await testNftDriverClient.safeCreateAccount(transferToAddress, undefined, metadata);
@@ -472,77 +432,29 @@ describe('NFTDriverClient', () => {
 			assert(
 				nftDriverContractStub.safeMint.calledOnceWithExactly(
 					transferToAddress,
-					sinon.match((meta: UserMetadataStruct[]) => meta.length === 1 && meta[0].key === metadata[0].key)
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should set an associated app metadata entry when an associated app is provided', async () => {
-			// Arrange
-			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
-			const transferToAddress = Wallet.createRandom().address;
-
-			const waitFake = async () =>
-				Promise.resolve({
-					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
-				} as unknown as ContractReceipt);
-			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
-
-			// Act
-			await testNftDriverClient.safeCreateAccount(transferToAddress, ethers.utils.toUtf8Bytes('myApp'), metadata);
-
-			// Assert
-			assert(
-				nftDriverContractStub.safeMint.calledOnceWithExactly(
-					transferToAddress,
 					sinon.match(
-						(meta: UserMetadataStruct[]) =>
-							meta.length === 2 &&
-							meta[0].key === metadata[0].key &&
-							meta[0].value === metadata[0].value &&
-							meta[1].key === ethers.utils.formatBytes32String('associatedApp') &&
-							ethers.utils.toUtf8String(meta[1].value as BytesLike) ===
-								ethers.utils.toUtf8String(ethers.utils.toUtf8Bytes('myApp'))
+						(meta: UserMetadata[]) =>
+							meta.length === 1 &&
+							meta[0].key === ethers.utils.formatBytes32String(metadata[0].key) &&
+							meta[0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[0].value))
 					)
 				),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should throw an argumentError when associatedApp is not BytesLike', async () => {
-			let threw = false;
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
-
-			const transferToAddress = Wallet.createRandom().address;
-
-			try {
-				// Act
-				await testNftDriverClient.createAccount(transferToAddress, 'invalid BytesLike string', metadata);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
 			let threw = false;
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
-
 			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: []
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			try {
 				// Act
@@ -560,15 +472,16 @@ describe('NFTDriverClient', () => {
 		it('should return the expected token', async () => {
 			// Arrange
 			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
 					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadataAsBytes).resolves(txResponse);
 
 			// Act
 			const actualTokenId = await testNftDriverClient.safeCreateAccount(transferToAddress, undefined, metadata);
@@ -581,7 +494,7 @@ describe('NFTDriverClient', () => {
 		it('should call the safeMint() of the NFTDriver contract', async () => {
 			// Arrange
 			const expectedTokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
 
 			const waitFake = async () =>
@@ -589,14 +502,24 @@ describe('NFTDriverClient', () => {
 					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
-			nftDriverContractStub.safeMint.withArgs(transferToAddress, metadata).resolves(txResponse);
+			nftDriverContractStub.safeMint.resolves(txResponse);
 
 			// Act
-			await testNftDriverClient.safeCreateAccount(transferToAddress, undefined, metadata);
+			await testNftDriverClient.safeCreateAccount(transferToAddress, 'myApp', metadata);
 
 			// Assert
 			assert(
-				nftDriverContractStub.safeMint.calledOnceWithExactly(transferToAddress, metadata),
+				nftDriverContractStub.safeMint.calledOnceWithExactly(
+					transferToAddress,
+					sinon.match(
+						(meta: UserMetadata[]) =>
+							meta.length === 2 &&
+							meta[0].key === ethers.utils.formatBytes32String(metadata[0].key) &&
+							meta[0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[0].value)) &&
+							meta[1].key === ethers.utils.formatBytes32String(metadata[1].key) &&
+							meta[1].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[1].value))
+					)
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1107,7 +1030,7 @@ describe('NFTDriverClient', () => {
 				await testNftDriverClient.emitUserMetadata(undefined as unknown as string, []);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -1118,14 +1041,15 @@ describe('NFTDriverClient', () => {
 		it('should call the emitUserMetadata() method of the NFTDriver contract', async () => {
 			// Arrange
 			const tokenId = '1';
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			// Act
 			await testNftDriverClient.emitUserMetadata(tokenId, metadata);
 
 			// Assert
 			assert(
-				nftDriverContractStub.emitUserMetadata.calledOnceWithExactly(tokenId, metadata),
+				nftDriverContractStub.emitUserMetadata.calledOnceWithExactly(tokenId, metadataAsBytes),
 				'Expected method to be called with different arguments'
 			);
 		});

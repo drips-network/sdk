@@ -1,62 +1,10 @@
-import type { BigNumberish, BytesLike } from 'ethers';
+import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
+import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
-	export namespace UserMetadata {
-		/**
-		 * Creates a user metadata key in the format the Drips protocol expects from the given `string`.
-		 * @param  {string} key The metadata key.
-		 * @returns The metadata key as BytesLike.
-		 */
-		export const keyFromString = (key: string): BytesLike => ethers.utils.formatBytes32String(key);
-
-		/**
-		 * Creates a user metadata value in the format the Drips protocol expects from the given `string`.
-		 * @param  {string} value The metadata key.
-		 * @returns The metadata value as BytesLike.
-		 */
-		export const valueFromString = (value: string): BytesLike => ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value));
-
-		/**
-		 * Creates a user metadata object in the format the Drips protocol expects from the given `string` inputs.
-		 *
-		 * @param  {string} key The metadata key.
-		 * @param  {string} value The metadata value.
-		 * @returns The user metadata.
-		 */
-		export const createFromStrings = (
-			key: string,
-			value: string
-		): {
-			key: BytesLike;
-			value: BytesLike;
-		} => ({
-			key: keyFromString(key),
-			value: valueFromString(value)
-		});
-
-		/**
-		 * Parses the properties of the given user metadata as `string`s.
-		 * @param  {UserMetadataStruct} userMetadata The user metadata.
-		 * @returns An object with the same properties as the `userMetadata` but with `string` properties instead of `BytesLike`.
-		 */
-		export const parseMetadataAsString = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
-			if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
-				throw DripsErrors.argumentError(
-					`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`
-				);
-			}
-
-			return {
-				key: ethers.utils.parseBytes32String(userMetadata.key),
-				value: ethers.utils.toUtf8String(userMetadata.value)
-			};
-		};
-	}
-
 	export namespace Network {
 		export const configs: Record<number, NetworkConfig> = {
 			5: {
@@ -155,7 +103,7 @@ namespace Utils {
 		export const getIdFromAddress = (tokenAddress: string): bigint => {
 			validateAddress(tokenAddress);
 
-			return BigNumber.from(tokenAddress).toBigInt();
+			return BigNumber.from(ethers.utils.getAddress(tokenAddress)).toBigInt();
 		};
 	}
 

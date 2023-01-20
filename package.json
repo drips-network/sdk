@@ -35,7 +35,8 @@
 		"dev": "nodemon --watch src -e ts,json --exec 'npm run build:lib-fast'",
 		"prepare": "npm run build",
 		"pretest": "tsup",
-		"test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'",
+		"test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts' --exclude 'tests/**/*.integration.tests.ts'",
+		"test:integration": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.integration.tests.ts'",
 		"test:coverage": "nyc npm run test",
 		"generate-graphql-types": "graphql-codegen --config graphql.codegen.yml"
 	},

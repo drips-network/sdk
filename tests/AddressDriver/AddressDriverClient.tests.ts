@@ -1,19 +1,12 @@
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
-import type { Provider } from '@ethersproject/providers';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import type { ethers } from 'ethers';
 import { BigNumber, constants, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import type {
-	SplitsReceiverStruct,
-	DripsReceiverStruct,
-	AddressDriverInterface,
-	UserMetadataStruct
-} from '../../src/common/types';
+import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadata } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
@@ -29,40 +22,34 @@ describe('AddressDriverClient', () => {
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
-	let addressDriverInterfaceStub: StubbedInstance<AddressDriverInterface>;
-	let addressDriverContractFactoryStub: sinon.SinonStub<
-		[address: string, signerOrProvider: Provider | ethers.Signer],
-		AddressDriver
-	>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 
 	let testAddressDriverClient: AddressDriverClient;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
+
 		signerStub = sinon.createStubInstance(JsonRpcSigner);
 		signerStub.getAddress.resolves(Wallet.createRandom().address);
 
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		providerStub = sinon.createStubInstance(JsonRpcProvider);
-		providerStub.getSigner.returns(signerStub);
 		providerStub.getNetwork.resolves(networkStub);
 
-		(signerStub as any).provider = providerStub;
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		addressDriverContractStub = stubInterface<AddressDriver>();
-		addressDriverInterfaceStub = stubInterface<AddressDriverInterface>();
-		addressDriverContractStub.interface = addressDriverInterfaceStub;
-
-		addressDriverContractFactoryStub = sinon.stub(AddressDriver__factory, 'connect');
-		addressDriverContractFactoryStub
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerStub)
+		sinon
+			.stub(AddressDriver__factory, 'connect')
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerWithProviderStub)
 			.returns(addressDriverContractStub);
 
 		dripsHubClientStub = stubInterface<DripsHubClient>();
 		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
 
-		testAddressDriverClient = await AddressDriverClient.create(signerStub);
+		testAddressDriverClient = await AddressDriverClient.create(providerStub, signerStub);
 	});
 
 	afterEach(() => {
@@ -75,51 +62,21 @@ describe('AddressDriverClient', () => {
 			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
 			// Act
-			await AddressDriverClient.create(signerStub);
+			await AddressDriverClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub, Utils.Network.SUPPORTED_CHAINS),
+				validateClientSignerStub.calledOnceWithExactly(signerStub),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should set the custom driver address when provided', async () => {
-			// Arrange
-			const customDriverAddress = Wallet.createRandom().address;
-
-			// Act
-			const client = await AddressDriverClient.create(signerStub, customDriverAddress);
-
-			// Assert
-			assert.equal(client.driverAddress, customDriverAddress);
-		});
-
-		it('should create a fully initialized client instance', async () => {
-			// Assert
-			assert.equal(testAddressDriverClient.signer, signerStub);
-			assert.equal(testAddressDriverClient.provider, signerStub.provider);
-			assert.equal(
-				testAddressDriverClient.driverAddress,
-				Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
-			);
-			assert(
-				addressDriverContractFactoryStub.calledOnceWithExactly(
-					Utils.Network.configs[(await signerStub.provider.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER,
-					signerStub
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-	});
-
-	describe('createReadonly()', () => {
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			await AddressDriverClient.createReadonly(providerStub);
+			await AddressDriverClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -128,34 +85,42 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
+		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await AddressDriverClient.create(undefined as any, undefined as any);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
 		it('should set the custom driver address when provided', async () => {
 			// Arrange
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await AddressDriverClient.createReadonly(providerStub, customDriverAddress);
+			const client = await AddressDriverClient.create(providerStub, signerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
-			// Act
-			const client = await AddressDriverClient.createReadonly(providerStub);
-
 			// Assert
-			assert.isUndefined(client.signer);
-			assert.equal(client.provider, providerStub);
+			assert.equal(testAddressDriverClient.signer, signerWithProviderStub);
+			assert.equal(testAddressDriverClient.provider, providerStub);
+			assert.equal(testAddressDriverClient.signer!.provider, providerStub);
 			assert.equal(
-				client.driverAddress,
+				testAddressDriverClient.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
-			);
-			assert(
-				addressDriverContractFactoryStub.calledWithExactly(
-					Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER,
-					providerStub
-				),
-				'Expected method to be called with different arguments'
 			);
 		});
 	});
@@ -172,10 +137,7 @@ describe('AddressDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testAddressDriverClient.getAllowance(tokenAddress);
@@ -198,10 +160,7 @@ describe('AddressDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testAddressDriverClient.getAllowance(tokenAddress);
@@ -220,10 +179,7 @@ describe('AddressDriverClient', () => {
 				.withArgs(await signerStub.getAddress(), testAddressDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			const allowance = await testAddressDriverClient.getAllowance(tokenAddress);
@@ -232,7 +188,7 @@ describe('AddressDriverClient', () => {
 			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
-					await testAddressDriverClient.provider.getSigner().getAddress(),
+					await signerWithProviderStub.getAddress(),
 					testAddressDriverClient.driverAddress
 				),
 				'Expected method to be called with different arguments'
@@ -248,10 +204,7 @@ describe('AddressDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testAddressDriverClient.approve(tokenAddress);
@@ -270,10 +223,7 @@ describe('AddressDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testAddressDriverClient.approve(tokenAddress);
@@ -288,10 +238,7 @@ describe('AddressDriverClient', () => {
 
 			const erc20ContractStub = stubInterface<IERC20>();
 
-			sinon
-				.stub(IERC20__factory, 'connect')
-				.withArgs(tokenAddress, testAddressDriverClient.provider.getSigner())
-				.returns(erc20ContractStub);
+			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
 			await testAddressDriverClient.approve(tokenAddress);
@@ -310,7 +257,7 @@ describe('AddressDriverClient', () => {
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
 			addressDriverContractStub.calcUserId
-				.withArgs(await testAddressDriverClient.provider.getSigner().getAddress())
+				.withArgs(await signerWithProviderStub.getAddress())
 				.resolves(BigNumber.from(111));
 
 			// Act
@@ -326,7 +273,7 @@ describe('AddressDriverClient', () => {
 		it('should call the calcUserId() method of the AddressDriver contract', async () => {
 			// Arrange
 			addressDriverContractStub.calcUserId
-				.withArgs(await testAddressDriverClient.provider.getSigner().getAddress())
+				.withArgs(await signerWithProviderStub.getAddress())
 				.resolves(BigNumber.from(111));
 
 			// Act
@@ -334,9 +281,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				addressDriverContractStub.calcUserId.calledOnceWithExactly(
-					await testAddressDriverClient.provider.getSigner().getAddress()
-				),
+				addressDriverContractStub.calcUserId.calledOnceWithExactly(await signerWithProviderStub.getAddress()),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -786,7 +731,7 @@ describe('AddressDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [];
+			const metadata: UserMetadata[] = [];
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			// Act
@@ -798,14 +743,15 @@ describe('AddressDriverClient', () => {
 
 		it('should call the emitUserMetadata() method of the AddressDriver contract', async () => {
 			// Arrange
-			const metadata: UserMetadataStruct[] = [{ key: 'key', value: 'value' }];
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
 			// Act
 			await testAddressDriverClient.emitUserMetadata(metadata);
 
 			// Assert
 			assert(
-				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadata),
+				addressDriverContractStub.emitUserMetadata.calledOnceWithExactly(metadataAsBytes),
 				'Expected method to be called with different arguments'
 			);
 		});

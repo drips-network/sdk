@@ -44,7 +44,7 @@
 
 			wallet.set({ provider });
 			dripsClients.set({
-				nftDriverClient: await NFTDriverClient.create(provider),
+				nftDriverClient: await NFTDriverClient.create(provider, provider.getSigner()),
 				subgraphClient: DripsSubgraphClient.create((await provider.getNetwork()).chainId)
 			});
 		} catch (error: any) {

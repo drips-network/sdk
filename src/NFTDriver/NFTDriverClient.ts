@@ -1,19 +1,26 @@
-import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
-import type { BigNumberish, BytesLike, ContractTransaction } from 'ethers';
-import { ethers, constants, BigNumber } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from '../common/types';
+import type { Provider } from '@ethersproject/providers';
+import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
+import { constants, BigNumber } from 'ethers';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import type { NFTDriver } from '../../contracts';
 import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 import {
 	validateAddress,
 	validateClientProvider,
+	validateClientSigner,
 	validateDripsReceivers,
 	validateEmitUserMetadataInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
-import { formatDripsReceivers, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import {
+	createFromStrings,
+	formatDripsReceivers,
+	formatSplitReceivers,
+	isNullOrUndefined,
+	nameOf
+} from '../common/internals';
 import dripsConstants from '../constants';
 /**
  * A client for managing Drips accounts identified by NFTs.
@@ -21,13 +28,13 @@ import dripsConstants from '../constants';
  */
 export default class NFTDriverClient {
 	#driver!: NFTDriver;
-	#signer!: JsonRpcSigner;
+	#signer!: Signer;
 	#signerAddress!: string;
 	#driverAddress!: string;
-	#provider!: JsonRpcProvider;
+	#provider!: Provider;
 
 	/** Returns the client's `provider`. */
-	public get provider(): JsonRpcProvider {
+	public get provider(): Provider {
 		return this.#provider;
 	}
 
@@ -36,7 +43,7 @@ export default class NFTDriverClient {
 	 *
 	 * The `signer` is the `provider`'s signer.
 	 */
-	public get signer(): JsonRpcSigner {
+	public get signer(): Signer {
 		return this.#signer;
 	}
 
@@ -50,40 +57,47 @@ export default class NFTDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `NFTDriverClient` instance.
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
-	 * The `provider` must have a `signer` associated with it, and cannot be changed after creation.
-	 *
-	 * The supported networks are:
+	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
+	 * @param  {Signer} signer The singer used to sign transactions. It cannot be changed after creation.
+	 *
+	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
-	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
 	 */
 	public static async create(
-		provider: JsonRpcProvider,
-		customDriverAddress: string | undefined = undefined
+		provider: Provider,
+		signer: Signer,
+		customDriverAddress?: string
 	): Promise<NFTDriverClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		try {
+			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+			await validateClientSigner(signer);
 
-		const signer = provider.getSigner();
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_NFT_DRIVER;
+			if (!signer.provider) {
+				signer = signer.connect(provider);
+			}
 
-		const client = new NFTDriverClient();
+			const network = await provider.getNetwork();
+			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_NFT_DRIVER;
 
-		client.#signer = signer;
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#signerAddress = await signer.getAddress();
-		client.#driver = NFTDriver__factory.connect(driverAddress, signer);
+			const client = new NFTDriverClient();
 
-		return client;
+			client.#signer = signer;
+			client.#provider = provider;
+			client.#driverAddress = driverAddress;
+			client.#signerAddress = await signer.getAddress();
+			client.#driver = NFTDriver__factory.connect(driverAddress, signer);
+
+			return client;
+		} catch (error: any) {
+			throw DripsErrors.clientInitializationError(`Could not create 'NFTDriverClient': ${error.message}`);
+		}
 	}
 
 	/**
@@ -143,12 +157,12 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @param  {BytesLike} associatedApp
+	 * @param  {string} associatedApp
 	 * The name/ID of the app that is associated with the new account.
 	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
 	 * - key: "associatedApp"
 	 * - value: `associatedApp`.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * @param  {UserMetadata[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
@@ -158,25 +172,19 @@ export default class NFTDriverClient {
 	 */
 	public async createAccount(
 		transferToAddress: string,
-		associatedApp?: BytesLike,
-		userMetadata: UserMetadataStruct[] = []
+		associatedApp?: string,
+		userMetadata: UserMetadata[] = []
 	): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
 
 		if (associatedApp) {
-			if (!ethers.utils.isBytesLike(associatedApp)) {
-				throw DripsErrors.argumentError(
-					`Could not collect '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
-					nameOf({ associatedApp }),
-					associatedApp
-				);
-			}
-
-			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY_BYTES, value: associatedApp });
+			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY, value: associatedApp });
 		}
 
-		const txResponse = await this.#driver.mint(transferToAddress, userMetadata);
+		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
+		const txResponse = await this.#driver.mint(transferToAddress, userMetadataAsBytes);
 
 		return this.#getTokenIdFromTxResponse(txResponse);
 	}
@@ -193,12 +201,12 @@ export default class NFTDriverClient {
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
 	 * @param  {string} transferToAddress The address to transfer the minted token to.
-	 * @param  {BytesLike} associatedApp
+	 * @param  {string} associatedApp
 	 * The name/ID of the app that is associated with the new account.
 	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
 	 * - key: "associatedApp"
 	 * - value: `associatedApp`.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * @param  {UserMetadata[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
@@ -208,25 +216,19 @@ export default class NFTDriverClient {
 	 */
 	public async safeCreateAccount(
 		transferToAddress: string,
-		associatedApp?: BytesLike,
-		userMetadata: UserMetadataStruct[] = []
+		associatedApp?: string,
+		userMetadata: UserMetadata[] = []
 	): Promise<string> {
 		validateAddress(transferToAddress);
 		validateEmitUserMetadataInput(userMetadata);
 
 		if (associatedApp) {
-			if (!ethers.utils.isBytesLike(associatedApp)) {
-				throw DripsErrors.argumentError(
-					`Could not collect '${nameOf({ associatedApp })}' is not a valid BytesLike object.`,
-					nameOf({ associatedApp }),
-					associatedApp
-				);
-			}
-
-			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY_BYTES, value: associatedApp });
+			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY, value: associatedApp });
 		}
 
-		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadata);
+		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
+		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadataAsBytes);
 
 		return this.#getTokenIdFromTxResponse(txResponse);
 	}
@@ -331,6 +333,8 @@ export default class NFTDriverClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
+	 *
+	 * **Tip**: you might want to use `DripsSubgraphClient.getCurrentDripsReceivers` to easily retrieve the list of current receivers.
 	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array  if you want to clear all receivers.
@@ -451,23 +455,22 @@ export default class NFTDriverClient {
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param  {string} tokenId The ID of the token representing the emitting account.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * @param  {UserMetadata[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 */
-	public emitUserMetadata(tokenId: string, userMetadata: UserMetadataStruct[]): Promise<ContractTransaction> {
-		if (isNullOrUndefined(tokenId)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not emit user metadata: '${nameOf({ tokenId })}' is missing.`,
-				nameOf({ tokenId })
-			);
+	public emitUserMetadata(tokenId: string, userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+		if (!tokenId) {
+			throw DripsErrors.argumentError(`Could not emit user metadata: '${nameOf({ tokenId })}' is missing.`);
 		}
 
 		validateEmitUserMetadataInput(userMetadata);
 
-		return this.#driver.emitUserMetadata(tokenId, userMetadata);
+		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
+		return this.#driver.emitUserMetadata(tokenId, userMetadataAsBytes);
 	}
 
 	async #getTokenIdFromTxResponse(txResponse: ContractTransaction) {

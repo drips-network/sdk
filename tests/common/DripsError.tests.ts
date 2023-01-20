@@ -16,6 +16,20 @@ describe('DripsErrors', () => {
 		assert.equal(uniqueCodes.length, methods.length);
 	});
 
+	describe('clientInitializationError()', () => {
+		it('should return expected error details', () => {
+			// Arrange
+			const expectedMessage = 'Error';
+
+			// Act
+			const { code, message } = DripsErrors.clientInitializationError(expectedMessage);
+
+			// Assert
+			assert.equal(message, expectedMessage);
+			assert.equal(code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+		});
+	});
+
 	describe('addressError()', () => {
 		it('should return expected error details', () => {
 			// Arrange

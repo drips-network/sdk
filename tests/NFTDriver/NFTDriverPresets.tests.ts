@@ -7,7 +7,7 @@ import type { NFTDriverInterface } from '../../contracts/NFTDriver';
 import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { NFTDriverPresets } from '../../src/NFTDriver/NFTDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { formatDripsReceivers } from '../../src/common/internals';
+import { formatDripsReceivers, keyFromString, valueFromString } from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 
@@ -226,8 +226,8 @@ describe('NFTDriverPresets', () => {
 					sinon.match(
 						(values: any[]) =>
 							values[0] === payload.tokenId &&
-							values[1][0].key === payload.userMetadata[0].key &&
-							values[1][0].value === payload.userMetadata[0].value
+							values[1][0].key === keyFromString(payload.userMetadata[0].key) &&
+							values[1][0].value === valueFromString(payload.userMetadata[0].value)
 					)
 				)
 				.returns('emitUserMetadata');
@@ -277,6 +277,51 @@ describe('NFTDriverPresets', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
+		it('should validate the squeezeDrips input', async () => {
+			// Arrange
+			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
+
+			const payload: NFTDriverPresets.CollectFlowPayload = {
+				tokenId: '200',
+				userId: '1',
+				maxCycles: 1,
+				tokenAddress: Wallet.createRandom().address,
+				driverAddress: Wallet.createRandom().address,
+				dripsHubAddress: Wallet.createRandom().address,
+				transferToAddress: Wallet.createRandom().address,
+				currentReceivers: [
+					{
+						userId: 1n,
+						weight: 1n
+					}
+				],
+				squeezeArgs: [
+					{
+						userId: '1',
+						senderId: '1',
+						tokenAddress: Wallet.createRandom().address,
+						historyHash: '0x00',
+						dripsHistory: []
+					}
+				]
+			};
+
+			// Act
+			NFTDriverPresets.Presets.createCollectFlow(payload);
+
+			// Assert
+			assert(
+				validateSqueezeDripsInputStub.calledOnceWithExactly(
+					payload.squeezeArgs![0].userId,
+					payload.squeezeArgs![0].tokenAddress,
+					payload.squeezeArgs![0].senderId,
+					payload.squeezeArgs![0].historyHash,
+					payload.squeezeArgs![0].dripsHistory
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+
 		it('should validate the receiveDrips input', async () => {
 			// Arrange
 			const validateReceiveDripsInputStub = sinon.stub(validators, 'validateReceiveDripsInput');
@@ -293,6 +338,15 @@ describe('NFTDriverPresets', () => {
 					{
 						userId: 1n,
 						weight: 1n
+					}
+				],
+				squeezeArgs: [
+					{
+						userId: '1',
+						senderId: '1',
+						tokenAddress: Wallet.createRandom().address,
+						historyHash: '0x00',
+						dripsHistory: []
 					}
 				]
 			};
@@ -324,6 +378,15 @@ describe('NFTDriverPresets', () => {
 						userId: 1n,
 						weight: 1n
 					}
+				],
+				squeezeArgs: [
+					{
+						userId: '1',
+						senderId: '1',
+						tokenAddress: Wallet.createRandom().address,
+						historyHash: '0x00',
+						dripsHistory: []
+					}
 				]
 			};
 
@@ -354,6 +417,15 @@ describe('NFTDriverPresets', () => {
 						userId: 1n,
 						weight: 1n
 					}
+				],
+				squeezeArgs: [
+					{
+						userId: '1',
+						senderId: '1',
+						tokenAddress: Wallet.createRandom().address,
+						historyHash: '0x00',
+						dripsHistory: []
+					}
 				]
 			};
 
@@ -372,6 +444,7 @@ describe('NFTDriverPresets', () => {
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
 			sinon.stub(validators, 'validateReceiveDripsInput');
+			sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				tokenId: '200',
@@ -386,8 +459,31 @@ describe('NFTDriverPresets', () => {
 						userId: 1n,
 						weight: 1n
 					}
+				],
+				squeezeArgs: [
+					{
+						userId: '1',
+						senderId: '1',
+						tokenAddress: Wallet.createRandom().address,
+						historyHash: '0x00',
+						dripsHistory: []
+					},
+					{
+						userId: '2',
+						senderId: '2',
+						tokenAddress: Wallet.createRandom().address,
+						historyHash: '0x00',
+						dripsHistory: []
+					}
 				]
 			};
+
+			dripsHubInterfaceStub.encodeFunctionData
+				.withArgs(
+					sinon.match((s: string) => s === 'squeezeDrips'),
+					sinon.match.array
+				)
+				.returns('squeezeDrips');
 
 			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
@@ -414,10 +510,12 @@ describe('NFTDriverPresets', () => {
 			const preset = NFTDriverPresets.Presets.createCollectFlow(payload);
 
 			// Assert
-			assert.equal(preset.length, 3);
-			assert.equal(preset[0].data, 'receiveDrips');
-			assert.equal(preset[1].data, 'split');
-			assert.equal(preset[2].data, 'collect');
+			assert.equal(preset.length, 5);
+			assert.equal(preset[0].data, 'squeezeDrips');
+			assert.equal(preset[1].data, 'squeezeDrips');
+			assert.equal(preset[2].data, 'receiveDrips');
+			assert.equal(preset[3].data, 'split');
+			assert.equal(preset[4].data, 'collect');
 		});
 
 		it('should return the expected preset when skip receiveDrips is true', () => {
@@ -425,6 +523,7 @@ describe('NFTDriverPresets', () => {
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
 			sinon.stub(validators, 'validateReceiveDripsInput');
+			sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				tokenId: '200',
@@ -470,6 +569,7 @@ describe('NFTDriverPresets', () => {
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
 			sinon.stub(validators, 'validateReceiveDripsInput');
+			sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				tokenId: '200',

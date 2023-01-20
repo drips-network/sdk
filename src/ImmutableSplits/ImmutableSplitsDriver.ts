@@ -1,11 +1,17 @@
-import type { JsonRpcProvider } from '@ethersproject/providers';
-import type { SplitsReceiverStruct } from 'contracts/ImmutableSplitsDriver';
-import type { UserMetadataStruct } from 'src/common/types';
+import type { Provider } from '@ethersproject/providers';
+import type { SplitsReceiverStruct, UserMetadata } from 'src/common/types';
 import { DripsErrors } from '../common/DripsError';
 import type { ImmutableSplitsDriver } from '../../contracts/ImmutableSplitsDriver';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import Utils from '../utils';
-import { validateClientProvider, validateEmitUserMetadataInput, validateSplitsReceivers } from '../common/validators';
+import {
+	validateClientProvider,
+	validateClientSigner,
+	validateEmitUserMetadataInput,
+	validateSplitsReceivers
+} from '../common/validators';
+import { createFromStrings } from '../common/internals';
+import { Signer } from 'ethers';
 
 /**
  * A client for creating immutable splits configurations.
@@ -16,15 +22,25 @@ import { validateClientProvider, validateEmitUserMetadataInput, validateSplitsRe
  */
 export default class ImmutableSplitsDriverClient {
 	#driverAddress!: string;
-	#provider!: JsonRpcProvider;
 	#driver!: ImmutableSplitsDriver;
 
-	/** Returns the `ImmutableSplitsDriverClient`'s `provider`. */
-	public get provider(): JsonRpcProvider {
+	#provider!: Provider;
+	/** Returns the client's `provider`. */
+	public get provider(): Provider {
 		return this.#provider;
 	}
 
-	/** Returns the `ImmutableSplitsDriver`'s address to which the `ImmutableSplitsDriverClient` is connected. */
+	#signer!: Signer;
+	/**
+	 * Returns the client's `signer`.
+	 *
+	 * The `signer` is the `provider`'s signer.
+	 */
+	public get signer(): Signer {
+		return this.#signer;
+	}
+
+	/** Returns the `ImmutableSplitsDriver` contract address to which the client is connected. */
 	public get driverAddress(): string {
 		return this.#driverAddress;
 	}
@@ -33,40 +49,48 @@ export default class ImmutableSplitsDriverClient {
 
 	// TODO: Update the supported chains documentation comments.
 	/**
-	 * Creates a new immutable instance of an `ImmutableSplitsDriverClient`.
-	 * @param  {JsonRpcProvider} provider The network provider.
+	 * Creates a new immutable `ImmutableSplitsDriverClient` instance.
+	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
-	 * The `provider` must have a `signer` associated with it.
-	 *
-	 * The supported networks are:
+	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {string|undefined} customDriverAddress Overrides the `ImmutableSplitsDriver`'s address.
+	 * @param  {Signer} signer The singer used to sign transactions. It cannot be changed after creation.
+	 *
+	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
+	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
-	 * @returns A `Promise` which resolves to the new `ImmutableSplitsDriverClient` instance.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `provider` is missing.
-	 * @throws {@link DripsErrors.addressError} if the `provider.signer`'s address is not valid.
-	 * @throws {@link DripsErrors.argumentError} if the `provider.signer` is missing.
-	 * @throws {@link DripsErrors.unsupportedNetworkError} if the `provider` is connected to an unsupported network.
+	 * @returns A `Promise` which resolves to the new client instance.
+	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
 	 */
 	public static async create(
-		provider: JsonRpcProvider,
-		customDriverAddress: string | undefined = undefined
+		provider: Provider,
+		signer: Signer,
+		customDriverAddress?: string
 	): Promise<ImmutableSplitsDriverClient> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		try {
+			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+			await validateClientSigner(signer);
 
-		const signer = provider.getSigner();
-		const network = await provider.getNetwork();
-		const driverAddress =
-			customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_IMMUTABLE_SPLITS_DRIVER;
+			if (!signer.provider) {
+				signer = signer.connect(provider);
+			}
 
-		const client = new ImmutableSplitsDriverClient();
+			const network = await provider.getNetwork();
+			const driverAddress =
+				customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_IMMUTABLE_SPLITS_DRIVER;
 
-		client.#provider = provider;
-		client.#driverAddress = driverAddress;
-		client.#driver = ImmutableSplitsDriver__factory.connect(driverAddress, signer);
+			const client = new ImmutableSplitsDriverClient();
 
-		return client;
+			client.#signer = signer;
+			client.#provider = provider;
+			client.#driverAddress = driverAddress;
+			client.#driver = ImmutableSplitsDriver__factory.connect(driverAddress, signer);
+
+			return client;
+		} catch (error: any) {
+			throw DripsErrors.clientInitializationError(`Could not create 'ImmutableSplitsDriverClient': ${error.message}`);
+		}
 	}
 
 	/**
@@ -74,7 +98,7 @@ export default class ImmutableSplitsDriverClient {
 	 * The configuration is immutable and nobody can control the user ID after its creation.
 	 * Calling this function is the only way and the only chance to emit metadata for that user.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
-	 * @param  {UserMetadataStruct[]} userMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
+	 * @param  {UserMetadata[]} userMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the new user ID.
@@ -82,11 +106,13 @@ export default class ImmutableSplitsDriverClient {
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
 	 */
-	public async createSplits(receivers: SplitsReceiverStruct[], userMetadata: UserMetadataStruct[]): Promise<string> {
+	public async createSplits(receivers: SplitsReceiverStruct[], userMetadata: UserMetadata[]): Promise<string> {
 		validateSplitsReceivers(receivers);
 		validateEmitUserMetadataInput(userMetadata);
 
-		const txResponse = await this.#driver.createSplits(receivers, userMetadata);
+		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+
+		const txResponse = await this.#driver.createSplits(receivers, userMetadataAsBytes);
 
 		const txReceipt = await txResponse.wait();
 
