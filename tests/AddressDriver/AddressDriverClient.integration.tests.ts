@@ -16,7 +16,7 @@ describe('AddressDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-	it.skip('should update WETH Drips configuration', async () => {
+	it('should update WETH Drips configuration', async () => {
 		const provider = new InfuraProvider('goerli');
 		const account1 = process.env.ACCOUNT_1 as string;
 		const account2 = process.env.ACCOUNT_2 as string;
@@ -95,7 +95,7 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it.skip('should update Splits configuration', async () => {
+	it('should update Splits configuration', async () => {
 		const provider = new InfuraProvider('goerli');
 		const account1 = process.env.ACCOUNT_1 as string;
 		const account2 = process.env.ACCOUNT_2 as string;
@@ -157,7 +157,7 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it.skip('should emit user metadata', async () => {
+	it('should emit user metadata', async () => {
 		const provider = new InfuraProvider('goerli');
 		const account2 = process.env.ACCOUNT_2 as string;
 
@@ -213,7 +213,7 @@ describe('AddressDriver integration tests', () => {
 		assert.equal(expectedMetadata.id, `${userId2}-${key}`);
 	}).timeout(THREE_MINS);
 
-	it.skip('should give to another address', async () => {
+	it('should give to another address', async () => {
 		const provider = new InfuraProvider('goerli');
 
 		const giveAccount = process.env.ACCOUNT_1 as string;

@@ -1,13 +1,13 @@
 import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import { assert } from 'chai';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import { assert } from 'chai';
 import { expect } from '../../src/common/internals';
-import { UserAssetConfig } from '../../src/DripsSubgraph/types';
+import type { UserAssetConfig } from '../../src/DripsSubgraph/types';
 import constants from '../../src/constants';
 
 dotenv.config();
@@ -16,7 +16,7 @@ describe('DripsHubClient integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-	it.skip('should squeeze', async () => {
+	it('should squeeze', async () => {
 		const provider = new InfuraProvider('goerli');
 		const receiverAccount = process.env.ACCOUNT_1 as string;
 		const senderAccount = process.env.ACCOUNT_2 as string;
@@ -31,15 +31,24 @@ describe('DripsHubClient integration tests', () => {
 		const receiverUserId = await senderAddressDriverClient.getUserIdByAddress(receiverAccount);
 
 		console.log(`Squeezing funds for user ID '${receiverUserId}' to set squeezable balance to 0`);
+		const argsBefore = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
 		await dripsHubClient.squeezeDrips(
-			...(await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH))
+			argsBefore.userId,
+			argsBefore.tokenAddress,
+			argsBefore.senderId,
+			argsBefore.historyHash,
+			argsBefore.dripsHistory
 		);
 
 		console.log(`Awaiting for the blockchain to update...`);
 		const squeezableBalanceBefore = (await expect(
 			async () =>
 				dripsHubClient.getSqueezableBalance(
-					...(await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH))
+					argsBefore.userId,
+					argsBefore.tokenAddress,
+					argsBefore.senderId,
+					argsBefore.historyHash,
+					argsBefore.dripsHistory
 				),
 			(balance) => {
 				const found = balance === 0n;
@@ -123,10 +132,15 @@ describe('DripsHubClient integration tests', () => {
 
 		assert.equal(expectedConfig.dripsEntries[0].userId, receiverUserId);
 
+		const argsAfter = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
 		const squeezableBalanceAfter = (await expect(
 			async () =>
 				dripsHubClient.getSqueezableBalance(
-					...(await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH))
+					argsAfter.userId,
+					argsAfter.tokenAddress,
+					argsAfter.senderId,
+					argsAfter.historyHash,
+					argsAfter.dripsHistory
 				),
 			(balance) => {
 				const found = balance > 0;

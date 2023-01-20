@@ -45,12 +45,42 @@
 	},
 	{
 		"anonymous": false,
+		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "Paused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
+			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+		],
+		"name": "PauserGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
+			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+		],
+		"name": "PauserRevoked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "from", "type": "address" },
 			{ "indexed": true, "internalType": "address", "name": "to", "type": "address" },
 			{ "indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256" }
 		],
 		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "Unpaused",
 		"type": "event"
 	},
 	{
@@ -63,6 +93,13 @@
 		"inputs": [],
 		"name": "admin",
 		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "allPausers",
+		"outputs": [{ "internalType": "address[]", "name": "pausersList", "type": "address[]" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -160,12 +197,26 @@
 		"type": "function"
 	},
 	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "grantPauser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{ "internalType": "address", "name": "owner", "type": "address" },
 			{ "internalType": "address", "name": "operator", "type": "address" }
 		],
 		"name": "isApprovedForAll",
 		"outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "isPauser",
+		"outputs": [{ "internalType": "bool", "name": "isAddrPauser", "type": "bool" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -215,11 +266,26 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [{ "internalType": "bool", "name": "isPaused", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
 	{
 		"inputs": [],
 		"name": "proxiableUUID",
 		"outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "revokePauser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -296,8 +362,8 @@
 				"name": "newReceivers",
 				"type": "tuple[]"
 			},
-			{ "internalType": "uint32", "name": "maxEndTip1", "type": "uint32" },
-			{ "internalType": "uint32", "name": "maxEndTip2", "type": "uint32" },
+			{ "internalType": "uint32", "name": "maxEndHint1", "type": "uint32" },
+			{ "internalType": "uint32", "name": "maxEndHint2", "type": "uint32" },
 			{ "internalType": "address", "name": "transferTo", "type": "address" }
 		],
 		"name": "setDrips",
@@ -355,6 +421,7 @@
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "newImplementation", "type": "address" }],
 		"name": "upgradeTo",

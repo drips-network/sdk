@@ -18,7 +18,14 @@
 		"type": "event"
 	},
 	{
-		"inputs": [{ "internalType": "address", "name": "authorized", "type": "address" }],
+		"inputs": [{ "internalType": "address", "name": "sender", "type": "address" }],
+		"name": "allAuthorized",
+		"outputs": [{ "internalType": "address[]", "name": "authorized", "type": "address[]" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
 		"name": "authorize",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -69,11 +76,11 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "address", "name": "", "type": "address" },
-			{ "internalType": "address", "name": "", "type": "address" }
+			{ "internalType": "address", "name": "sender", "type": "address" },
+			{ "internalType": "address", "name": "user", "type": "address" }
 		],
 		"name": "isAuthorized",
-		"outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+		"outputs": [{ "internalType": "bool", "name": "authorized", "type": "bool" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -92,7 +99,7 @@
 		"type": "function"
 	},
 	{
-		"inputs": [{ "internalType": "address", "name": "unauthorized", "type": "address" }],
+		"inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
 		"name": "unauthorize",
 		"outputs": [],
 		"stateMutability": "nonpayable",

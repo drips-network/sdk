@@ -14,7 +14,7 @@ dotenv.config();
 describe('ImmutableSplitsDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 
-	it.skip('should create immutable splits', async () => {
+	it('should create immutable splits', async () => {
 		const provider = new InfuraProvider('goerli');
 		const account1 = process.env.ACCOUNT_1 as string;
 		const account2 = process.env.ACCOUNT_2 as string;

@@ -33,6 +33,36 @@
 	},
 	{
 		"anonymous": false,
+		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "Paused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
+			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+		],
+		"name": "PauserGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
+			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+		],
+		"name": "PauserRevoked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "Unpaused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
 		"inputs": [{ "indexed": true, "internalType": "address", "name": "implementation", "type": "address" }],
 		"name": "Upgraded",
 		"type": "event"
@@ -41,6 +71,13 @@
 		"inputs": [],
 		"name": "admin",
 		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "allPausers",
+		"outputs": [{ "internalType": "address[]", "name": "pausersList", "type": "address[]" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -92,9 +129,31 @@
 		"type": "function"
 	},
 	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "grantPauser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "isPauser",
+		"outputs": [{ "internalType": "bool", "name": "isAddrPauser", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "nextUserId",
 		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [{ "internalType": "bool", "name": "isPaused", "type": "bool" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -106,12 +165,20 @@
 		"type": "function"
 	},
 	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "revokePauser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "totalSplitsWeight",
 		"outputs": [{ "internalType": "uint32", "name": "", "type": "uint32" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "newImplementation", "type": "address" }],
 		"name": "upgradeTo",

@@ -1,9 +1,6 @@
 [
 	{
-		"inputs": [
-			{ "internalType": "uint32", "name": "cycleSecs_", "type": "uint32" },
-			{ "internalType": "contract IReserve", "name": "reserve_", "type": "address" }
-		],
+		"inputs": [{ "internalType": "uint32", "name": "cycleSecs_", "type": "uint32" }],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -97,8 +94,26 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "caller", "type": "address" }],
+		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Paused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
+			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+		],
+		"name": "PauserGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
+			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+		],
+		"name": "PauserRevoked",
 		"type": "event"
 	},
 	{
@@ -156,7 +171,7 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "caller", "type": "address" }],
+		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Unpaused",
 		"type": "event"
 	},
@@ -229,6 +244,13 @@
 		"inputs": [],
 		"name": "admin",
 		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "allPausers",
+		"outputs": [{ "internalType": "address[]", "name": "pausersList", "type": "address[]" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -340,6 +362,13 @@
 		"type": "function"
 	},
 	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "grantPauser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"components": [
@@ -383,6 +412,13 @@
 		"name": "hashSplits",
 		"outputs": [{ "internalType": "bytes32", "name": "receiversHash", "type": "bytes32" }],
 		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "isPauser",
+		"outputs": [{ "internalType": "bool", "name": "isAddrPauser", "type": "bool" }],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -447,10 +483,10 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "reserve",
-		"outputs": [{ "internalType": "contract IReserve", "name": "", "type": "address" }],
-		"stateMutability": "view",
+		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
+		"name": "revokePauser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -476,8 +512,8 @@
 				"name": "newReceivers",
 				"type": "tuple[]"
 			},
-			{ "internalType": "uint32", "name": "maxEndTip1", "type": "uint32" },
-			{ "internalType": "uint32", "name": "maxEndTip2", "type": "uint32" }
+			{ "internalType": "uint32", "name": "maxEndHint1", "type": "uint32" },
+			{ "internalType": "uint32", "name": "maxEndHint2", "type": "uint32" }
 		],
 		"name": "setDrips",
 		"outputs": [{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }],
