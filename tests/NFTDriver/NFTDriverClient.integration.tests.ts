@@ -144,7 +144,7 @@ describe('NFTDriver integration tests', () => {
 
 		assert.equal(expectedConfig.dripsEntries[0].userId, receiverSubAccount.tokenId);
 
-		console.log(`Clearing WETH configuration receivers for stop dripping...`);
+		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await account2NftDriverClient.setDrips(
 			senderSubAccount.tokenId,
 			WETH,

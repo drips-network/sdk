@@ -89,7 +89,7 @@ describe('AddressDriver integration tests', () => {
 
 		assert.equal(expectedConfig.dripsEntries[0].userId, userId1);
 
-		console.log(`Clearing WETH configuration receivers for stop dripping...`);
+		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await account2AddressDriverClient.setDrips(
 			WETH,
 			await subgraphClient.getCurrentDripsReceivers(userId2, WETH),
@@ -209,7 +209,7 @@ describe('AddressDriver integration tests', () => {
 		assert.equal(receiver, account2);
 
 		console.log(
-			`Will give WETH (${WETH}) from ${giver} (userId: ${giverUserId}) to ${receiver} (userId: ${receiverUserId}).`
+			`Will give WETH (${WETH}) from ${giver} (userId: ${giverUserId}) to ${receiver} (user ID: ${receiverUserId}).`
 		);
 
 		await giveClient.approve(WETH);

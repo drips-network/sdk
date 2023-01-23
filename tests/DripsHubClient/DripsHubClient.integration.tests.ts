@@ -36,7 +36,11 @@ describe('DripsHubClient integration tests', () => {
 		);
 		await receiverAddressDriverClient.approve(WETH);
 
-		console.log(`Squeezing funds for user ID '${receiverUserId}' to set squeezable balance to 0`);
+		console.log(
+			`Will squeeze WETH (${WETH}) funds for ${receiverAccount} (user ID ${receiverUserId}) from ${senderAccount} (user ID: ${senderUserId}).`
+		);
+
+		console.log(`Squeezing funds to set receiver's squeezable balance to 0...`);
 		const argsBefore = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
 		await dripsHubClient.squeezeDrips(
 			argsBefore.userId,
@@ -46,7 +50,7 @@ describe('DripsHubClient integration tests', () => {
 			argsBefore.dripsHistory
 		);
 
-		console.log(`Awaiting for the blockchain to update...`);
+		console.log("Querying the Subgraph until receiver's squeezable balance is 0...");
 		const squeezableBalanceBefore = (await expect(
 			async () =>
 				dripsHubClient.getSqueezableBalance(
@@ -60,11 +64,10 @@ describe('DripsHubClient integration tests', () => {
 				const found = balance === 0n;
 
 				if (!found) {
-					console.log(`Expected squeezable balance to be 0 but was ${balance}`);
+					console.log(`Expected squeezable amount to be 0 but was ${balance}.`);
 				} else {
-					console.log(`Test condition met! Found ${balance} squeezable balance.`);
+					console.log(`Expected squeezable amount is ${balance}!`);
 				}
-
 				return found;
 			},
 			60000,
@@ -73,18 +76,18 @@ describe('DripsHubClient integration tests', () => {
 
 		assert.equal(squeezableBalanceBefore, 0n);
 
-		console.log(
-			`Will update WETH ('${WETH}') Drips configuration for account '${senderAccount}' (user ID: '${senderUserId}').`
-		);
+		console.log(`Will update WETH (${WETH}) Drips configuration for ${senderAccount} (user ID: ${senderUserId}).`);
 
 		const wEthConfigurationBefore = await subgraphClient.getUserAssetConfigById(
 			senderUserId,
 			Utils.Asset.getIdFromAddress(WETH)
 		);
 		console.log(
-			`Drips receivers before updating are: ${wEthConfigurationBefore?.dripsEntries.map(
-				(d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`
-			)}`
+			`Current WETH Drips configuration has the following receivers: ${
+				wEthConfigurationBefore?.dripsEntries.length
+					? wEthConfigurationBefore?.dripsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
+					: '[no receivers or no configuration found]'
+			}`
 		);
 
 		const config = Utils.DripsReceiverConfiguration.toUint256({
@@ -93,10 +96,6 @@ describe('DripsHubClient integration tests', () => {
 			amountPerSec: BigInt(1 * constants.AMT_PER_SEC_MULTIPLIER),
 			dripId: BigInt(Math.floor(Math.random() * 1_000_000_000))
 		});
-
-		console.log(
-			`New WETH configuration will be dripping to receiver '${receiverAccount}' (user ID: '${receiverUserId}').`
-		);
 
 		console.log(`Updating Drips configuration...`);
 		await senderAddressDriverClient.setDrips(
@@ -107,10 +106,10 @@ describe('DripsHubClient integration tests', () => {
 			})) || [],
 			[{ config, userId: receiverUserId }],
 			senderAccount,
-			'10000000000000000'
+			'10000000000000000' // 0.01 ETH
 		);
 
-		console.log(`Querying the subgraph until it's updated...`);
+		console.log(`Querying the Subgraph until the new WETH Drips configuration is the expected...`);
 		const expectedConfig = (await expect(
 			() => subgraphClient.getUserAssetConfigById(senderUserId, Utils.Asset.getIdFromAddress(WETH)),
 			(configuration) => {
@@ -120,14 +119,9 @@ describe('DripsHubClient integration tests', () => {
 					configuration.dripsEntries[0].userId === receiverUserId;
 
 				if (!found) {
-					console.log(
-						`Retrieved configuration receivers \r\n${configuration?.dripsEntries.map(
-							(d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`
-						)}
-						\r\n do not match the expected receiver.`
-					);
+					console.log('New Drips configuration not found yet.');
 				} else {
-					console.log('Test condition met!');
+					console.log('New Drips configuration found!');
 				}
 
 				return found;
@@ -138,6 +132,7 @@ describe('DripsHubClient integration tests', () => {
 
 		assert.equal(expectedConfig.dripsEntries[0].userId, receiverUserId);
 
+		console.log("Querying the Subgraph until receiver's squeezable balance is greater than 0...");
 		const argsAfter = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
 		const squeezableBalanceAfter = (await expect(
 			async () =>
@@ -154,7 +149,7 @@ describe('DripsHubClient integration tests', () => {
 				if (!found) {
 					console.log(`Expected squeezable balance to be greater than 0 but was ${balance}`);
 				} else {
-					console.log(`Test condition met! Found ${balance} squeezable balance.`);
+					console.log(`Squeezable balance greater than 0 found (${balance})!`);
 				}
 
 				return found;
@@ -165,7 +160,7 @@ describe('DripsHubClient integration tests', () => {
 
 		assert.isTrue(squeezableBalanceAfter > 0);
 
-		console.log(`Clearing WETH configuration receivers...`);
+		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await senderAddressDriverClient.setDrips(
 			WETH,
 			expectedConfig.dripsEntries.map((d) => ({
