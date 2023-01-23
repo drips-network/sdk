@@ -1,13 +1,13 @@
 import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import { assert } from 'chai';
 import ImmutableSplitsDriver from '../../src/ImmutableSplits/ImmutableSplitsDriver';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import { assert } from 'chai';
-import { SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
+import type { SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
 import { expect } from '../../src/common/internals';
-import { SplitsEntry, UserMetadataEntry } from '../../src/DripsSubgraph/types';
+import type { SplitsEntry, UserMetadataEntry } from '../../src/DripsSubgraph/types';
 
 dotenv.config();
 
@@ -51,20 +51,20 @@ describe('ImmutableSplitsDriver integration tests', () => {
 
 		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
 
-		console.log(`Querying the subgraph until it's updated...`);
+		console.log('Querying the Subgraph until the new Immutable Splits configuration is found...');
 		const immutableSplits = (await expect(
 			() => subgraphClient.getSplitsConfigByUserId(newUserId),
-			(immutableSplits) => {
+			(currentImmutableSplits) => {
 				const found =
-					immutableSplits.length === 1 &&
-					immutableSplits[0].senderId === newUserId &&
-					immutableSplits[0].userId === userId2 &&
-					immutableSplits[0].weight === 1000000n;
+					currentImmutableSplits.length === 1 &&
+					currentImmutableSplits[0].senderId === newUserId &&
+					currentImmutableSplits[0].userId === userId2 &&
+					currentImmutableSplits[0].weight === 1000000n;
 
 				if (!found) {
 					console.log(`Did not found the expected Immutable Splits configuration.`);
 				} else {
-					console.log('Found.');
+					console.log('Expected Immutable Splits configuration found!');
 				}
 
 				return found;
@@ -72,19 +72,21 @@ describe('ImmutableSplitsDriver integration tests', () => {
 			60000,
 			5000
 		)) as SplitsEntry[];
+
+		console.log(`Querying the subgraph until the new metadata is found...`);
 		const latestMetadata = (await expect(
 			() => subgraphClient.getLatestUserMetadata(newUserId, 'key'),
-			(latestMetadata) => {
+			(currentLatestMetadata) => {
 				const found =
-					latestMetadata?.key === metadata[0].key &&
-					latestMetadata.value === metadata[0].value &&
-					latestMetadata.userId === newUserId &&
-					latestMetadata.id === `${newUserId}-${metadata[0].key}`;
+					currentLatestMetadata?.key === metadata[0].key &&
+					currentLatestMetadata.value === metadata[0].value &&
+					currentLatestMetadata.userId === newUserId &&
+					currentLatestMetadata.id === `${newUserId}-${metadata[0].key}`;
 
 				if (!found) {
-					console.log(`Did not found the expected Immutable Splits configuration.`);
+					console.log('Emitted metadata not found yet.');
 				} else {
-					console.log('Found.');
+					console.log('Emitted metadata found!');
 				}
 
 				return found;
