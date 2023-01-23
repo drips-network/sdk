@@ -345,7 +345,9 @@ describe('NFTDriver integration tests', () => {
 			5000
 		)) as CollectableBalance;
 
-		console.log(`Giving...`);
+		console.log(
+			`Giving from ${giveSubAccount.tokenId} (owner: ${giveSubAccount.ownerAddress}) to ${receiveSubAccount.tokenId} (owner: ${receiveSubAccount.ownerAddress})...`
+		);
 		await giveClient.give(giveSubAccount.tokenId, receiveSubAccount.tokenId, WETH, 1);
 		console.log('Successfully gave...');
 		console.log('Awaiting for the Subgraph to update...');

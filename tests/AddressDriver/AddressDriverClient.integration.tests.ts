@@ -15,28 +15,40 @@ dotenv.config();
 describe('AddressDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
+	const provider = new InfuraProvider('goerli');
+	const account1 = process.env.ACCOUNT_1 as string;
+	const account2 = process.env.ACCOUNT_2 as string;
+	const account1AsSigner = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
+	const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
 
-	it('should update WETH Drips configuration', async () => {
-		const provider = new InfuraProvider('goerli');
-		const account1 = process.env.ACCOUNT_1 as string;
-		const account2 = process.env.ACCOUNT_2 as string;
+	let dripsHubClient: DripsHubClient;
+	let subgraphClient: DripsSubgraphClient;
+	let account1AddressDriverClient: AddressDriverClient;
+	let account2AddressDriverClient: AddressDriverClient;
 
-		const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
+	beforeEach(async () => {
+		dripsHubClient = await DripsHubClient.create(provider, account1AsSigner);
+		subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
+		account1AddressDriverClient = await AddressDriverClient.create(provider, account1AsSigner);
+		account2AddressDriverClient = await AddressDriverClient.create(provider, account2AsSigner);
+	});
 
-		const account2AddressDriverClient = await AddressDriverClient.create(provider, account2AsSigner);
-		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
+	it('should set Drips configuration', async () => {
+		console.log(`Will update WETH (${WETH}) Drips configuration for ${account2}.`);
 
-		const userId2 = await account2AddressDriverClient.getUserIdByAddress(account2);
-		console.log(`Will update WETH ('${WETH}') Drips configuration for account '${account2}' (user ID: '${userId2}').`);
+		const userId1 = await account2AddressDriverClient.getUserId();
+		const userId2 = await account2AddressDriverClient.getUserId();
 
 		const wEthConfigurationBefore = await subgraphClient.getUserAssetConfigById(
 			userId2,
 			Utils.Asset.getIdFromAddress(WETH)
 		);
 		console.log(
-			`Drips receivers before updating are: ${wEthConfigurationBefore?.dripsEntries.map(
-				(d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`
-			)}`
+			`Current WETH Drips configuration has the following receivers: ${
+				wEthConfigurationBefore?.dripsEntries.length
+					? wEthConfigurationBefore?.dripsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
+					: '[no receivers or no configuration found]'
+			}`
 		);
 
 		const config = Utils.DripsReceiverConfiguration.toUint256({
@@ -46,9 +58,6 @@ describe('AddressDriver integration tests', () => {
 			dripId: BigInt(Math.floor(Math.random() * 1_000_000_000))
 		});
 
-		const userId1 = await account2AddressDriverClient.getUserIdByAddress(account1);
-		console.log(`New WETH configuration will be dripping to receiver '${account1}' (user ID: '${userId1}').`);
-
 		console.log(`Updating Drips configuration...`);
 		await account2AddressDriverClient.setDrips(
 			WETH,
@@ -57,7 +66,7 @@ describe('AddressDriver integration tests', () => {
 			account2
 		);
 
-		console.log(`Querying the subgraph until it's updated...`);
+		console.log(`Querying the Subgraph until the new WETH Drips configuration is the expected...`);
 		const expectedConfig = (await expect(
 			() => subgraphClient.getUserAssetConfigById(userId2, Utils.Asset.getIdFromAddress(WETH)),
 			(configuration) => {
@@ -67,14 +76,9 @@ describe('AddressDriver integration tests', () => {
 					configuration.dripsEntries[0].userId === userId1;
 
 				if (!found) {
-					console.log(
-						`Retrieved configuration receivers \r\n${configuration?.dripsEntries.map(
-							(d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`
-						)}
-						\r\n do not match the expected receiver.`
-					);
+					console.log('New Drips configuration not found yet.');
 				} else {
-					console.log('Test condition met!');
+					console.log('New Drips configuration found!');
 				}
 
 				return found;
@@ -85,7 +89,7 @@ describe('AddressDriver integration tests', () => {
 
 		assert.equal(expectedConfig.dripsEntries[0].userId, userId1);
 
-		console.log(`Clearing WETH configuration receivers...`);
+		console.log(`Clearing WETH configuration receivers for stop dripping...`);
 		await account2AddressDriverClient.setDrips(
 			WETH,
 			await subgraphClient.getCurrentDripsReceivers(userId2, WETH),
@@ -95,28 +99,22 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
-	it('should update Splits configuration', async () => {
-		const provider = new InfuraProvider('goerli');
-		const account1 = process.env.ACCOUNT_1 as string;
-		const account2 = process.env.ACCOUNT_2 as string;
+	it('should set Splits configuration', async () => {
+		console.log(`Will update Splits configuration for ${account2}.`);
 
-		const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
-
-		const account2AddressDriverClient = await AddressDriverClient.create(provider, account2AsSigner);
-		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
-
-		const userId2 = await account2AddressDriverClient.getUserIdByAddress(account2);
-		console.log(`Will update Splits configuration for account '${account2}' (user ID: '${userId2}').`);
+		const userId1 = await account1AddressDriverClient.getUserId();
+		const userId2 = await account2AddressDriverClient.getUserId();
 
 		const splitsConfigurationBefore = await subgraphClient.getSplitsConfigByUserId(userId2);
 		console.log(
-			`Current Splits configuration receivers: ${splitsConfigurationBefore.map(
-				(d) => `id: ${d.id}, userId: ${d.userId}, senderId: ${d.senderId}, weight: ${d.weight}`
-			)}`
+			`Current Splits configuration has the following receivers: ${
+				splitsConfigurationBefore?.length
+					? splitsConfigurationBefore.map(
+							(d) => `id: ${d.id}, userId: ${d.userId}, senderId: ${d.senderId}, weight: ${d.weight}`
+					  )
+					: '[no receivers or no configuration found]'
+			}`
 		);
-
-		const userId1 = await account2AddressDriverClient.getUserIdByAddress(account1);
-		console.log(`New Splits configuration will be splitting to receiver '${account1}' (user ID: '${userId1}').`);
 
 		console.log(`Updating Splits configuration...`);
 		await account2AddressDriverClient.setSplits([
@@ -126,7 +124,7 @@ describe('AddressDriver integration tests', () => {
 			}
 		]);
 
-		console.log(`Querying the subgraph until it's updated...`);
+		console.log(`Querying the Subgraph until the new Splits configuration is the expected...`);
 		const expectedConfig = (await expect(
 			() => subgraphClient.getSplitsConfigByUserId(userId2),
 			(configuration) => {
@@ -134,14 +132,9 @@ describe('AddressDriver integration tests', () => {
 					configuration?.length === 1 && configuration[0].weight === 1n && configuration[0].userId === userId1;
 
 				if (!found) {
-					console.log(
-						`Retrieved configuration receivers \r\n${configuration?.map(
-							(d) => `id: ${d.id}, userId: ${d.userId}, weight: ${d.weight}`
-						)}
-						\r\n do not match the expected receiver.`
-					);
+					console.log('New Splits configuration not found yet.');
 				} else {
-					console.log('Test condition met!');
+					console.log('New Splits configuration found!');
 				}
 
 				return found;
@@ -152,21 +145,14 @@ describe('AddressDriver integration tests', () => {
 
 		assert.equal(expectedConfig[0].userId, userId1);
 
-		console.log(`Clearing Splits configuration receivers...`);
+		console.log(`Clearing Splits configuration receivers for stop splitting...`);
 		await account2AddressDriverClient.setSplits([]);
 		console.log(`Done.`);
 	}).timeout(THREE_MINS);
 
 	it('should emit user metadata', async () => {
-		const provider = new InfuraProvider('goerli');
-		const account2 = process.env.ACCOUNT_2 as string;
+		const userId2 = await account2AddressDriverClient.getUserId();
 
-		const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
-
-		const account2AddressDriverClient = await AddressDriverClient.create(provider, account2AsSigner);
-		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
-
-		const userId2 = await account2AddressDriverClient.getUserIdByAddress(account2);
 		console.log(`Will emit user metadata for account '${account2}' (user ID: '${userId2}').`);
 
 		const key = BigInt(Math.floor(Math.random() * 1_000_000_000)).toString();
@@ -186,7 +172,7 @@ describe('AddressDriver integration tests', () => {
 		]);
 		console.log('Emitted.');
 
-		console.log(`Querying the subgraph until it's updated...`);
+		console.log(`Querying the subgraph until the new metadata is found...`);
 		const expectedMetadata = (await expect(
 			() => subgraphClient.getLatestUserMetadata(userId2, key),
 			(latestMetadataEntry) => {
@@ -197,11 +183,9 @@ describe('AddressDriver integration tests', () => {
 					latestMetadataEntry.id === `${userId2}-${key}`;
 
 				if (!found) {
-					console.log(
-						`Retrieved 'latestMetadataEntry' (id: ${latestMetadataEntry?.id}, key: ${latestMetadataEntry?.key}, value: ${latestMetadataEntry?.value}, userId: ${latestMetadataEntry?.userId}, lastUpdatedBlockTimestamp: ${latestMetadataEntry?.lastUpdatedBlockTimestamp}) does not match the expected.`
-					);
+					console.log('Emitted metadata not found yet.');
 				} else {
-					console.log('Test condition met!');
+					console.log('Emitted metadata found!');
 				}
 
 				return found;
@@ -214,24 +198,18 @@ describe('AddressDriver integration tests', () => {
 	}).timeout(THREE_MINS);
 
 	it('should give to another address', async () => {
-		const provider = new InfuraProvider('goerli');
-
-		const giveAccount = process.env.ACCOUNT_1 as string;
-		const receiver = process.env.ACCOUNT_2 as string;
-
-		const account1AsSigner = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
-		const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
-
-		const giveClient = await AddressDriverClient.create(provider, account1AsSigner);
-		const giveAccountUserId = await giveClient.getUserId();
-
-		const receiverClient = await AddressDriverClient.create(provider, account2AsSigner);
+		const giveClient = account1AddressDriverClient;
+		const giver = await giveClient.signer!.getAddress();
+		const giverUserId = await giveClient.getUserId();
+		const receiverClient = account2AddressDriverClient;
 		const receiverUserId = await receiverClient.getUserId();
+		const receiver = await receiverClient.signer!.getAddress();
 
-		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
+		assert.equal(giver, account1);
+		assert.equal(receiver, account2);
 
 		console.log(
-			`Will give from WETH ('${WETH}') ${giveAccount}' (user ID: '${giveAccountUserId}') to '${receiver}' (user ID: '${receiverUserId}').`
+			`Will give WETH (${WETH}) from ${giver} (userId: ${giverUserId}) to ${receiver} (userId: ${receiverUserId}).`
 		);
 
 		await giveClient.approve(WETH);
@@ -239,7 +217,7 @@ describe('AddressDriver integration tests', () => {
 		console.log('Setting splits to empty array for the receiver...');
 		await receiverClient.setSplits([]);
 
-		console.log('Awaiting for the blockchain to update...');
+		console.log("Querying the Subgraph until receiver's Splits are cleared...");
 		(await expect(
 			() => subgraphClient.getSplitsConfigByUserId(receiverUserId),
 			(configuration) => configuration.length === 0,
@@ -250,18 +228,16 @@ describe('AddressDriver integration tests', () => {
 		console.log("Collecting for receiver to reset receiver's collectable amount to 0...");
 		await receiverClient.collect(WETH, receiver);
 
-		const dripsHub = await DripsHubClient.create(provider, account1AsSigner);
-
-		console.log('Awaiting for the blockchain to update...');
+		console.log("Querying the Subgraph until receiver's collectable amount is 0...");
 		(await expect(
-			() => dripsHub.getCollectableBalanceForUser(receiverUserId, WETH),
+			() => dripsHubClient.getCollectableBalanceForUser(receiverUserId, WETH),
 			(collectable) => {
 				const found = collectable.collectableAmount === 0n;
 
 				if (!found) {
 					console.log(`Expected collectable amount to be 0 but was ${collectable.collectableAmount}.`);
 				} else {
-					console.log('Found.');
+					console.log(`Expected collectable amount is ${collectable.collectableAmount}!`);
 				}
 
 				return found;
@@ -270,7 +246,7 @@ describe('AddressDriver integration tests', () => {
 			5000
 		)) as CollectableBalance;
 
-		console.log(`Giving...`);
+		console.log(`Giving from ${account1} to ${account2}...`);
 		await giveClient.give(receiverUserId, WETH, 1);
 		console.log('Successfully gave...');
 		console.log('Awaiting for the blockchain to update...');
@@ -284,7 +260,7 @@ describe('AddressDriver integration tests', () => {
 		const receiverSplitConfig = await subgraphClient.getSplitsConfigByUserId(receiverUserId);
 
 		console.log('Splitting before collecting...');
-		await dripsHub.split(
+		await dripsHubClient.split(
 			receiverUserId,
 			WETH,
 			receiverSplitConfig.map((r) => ({
@@ -293,16 +269,16 @@ describe('AddressDriver integration tests', () => {
 			}))
 		);
 
-		console.log('Awaiting for the blockchain to update...');
+		console.log("Querying the Subgraph until receiver's collectable amount is the expected...");
 		const expectedCollectable = (await expect(
-			() => dripsHub.getCollectableBalanceForUser(receiverUserId, WETH),
+			() => dripsHubClient.getCollectableBalanceForUser(receiverUserId, WETH),
 			(collectable) => {
 				const found = collectable.collectableAmount === 1n;
 
 				if (!found) {
 					console.log(`Expected collectable amount to be 1 but was ${collectable.collectableAmount}.`);
 				} else {
-					console.log('Found.');
+					console.log(`Expected collectable amount is ${collectable.collectableAmount}!`);
 				}
 
 				return found;
@@ -311,7 +287,7 @@ describe('AddressDriver integration tests', () => {
 			5000
 		)) as CollectableBalance;
 
-		const collectableAfter = await dripsHub.getCollectableBalanceForUser(receiverUserId, WETH);
+		const collectableAfter = await dripsHubClient.getCollectableBalanceForUser(receiverUserId, WETH);
 		console.log(`Collectable amount after receiving is ${collectableAfter.collectableAmount}`);
 
 		assert.equal(expectedCollectable.collectableAmount, 1n);
