@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
 	import type { ContractReceipt, ContractTransaction } from 'ethers';
-	import { Utils, type NFTDriverClient, type UserMetadataStruct } from 'radicle-drips';
+	import type { NFTDriverClient, UserMetadata } from 'radicle-drips';
 
 	export let nftDriverClient: NFTDriverClient | undefined;
 
@@ -26,7 +26,7 @@
 	let errorMessage: string | undefined;
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
-	let metadata: UserMetadataStruct[];
+	let metadata: UserMetadata[];
 
 	async function emitUserMetadata(tokenId: string) {
 		tx = undefined;
@@ -37,7 +37,7 @@
 		try {
 			metadata = metadataInputs
 				.filter((m) => m.key && m.value)
-				.map((m) => Utils.UserMetadata.createFromStrings(m.key as string, m.value as string));
+				.map((m) => ({ key: m.key, value: m.value })) as UserMetadata[];
 
 			tx = await nftDriverClient?.emitUserMetadata(tokenId, metadata);
 			console.log(tx);
@@ -101,8 +101,8 @@
 					<ol>
 						{#each metadata as m}
 							<li>
-								<p>Key ('{Utils.UserMetadata.parseMetadataAsString(m).key}'): {m.key}</p>
-								<p>Key ('{Utils.UserMetadata.parseMetadataAsString(m).value}'): {m.value}</p>
+								<p>Key: {m.key}</p>
+								<p>Value: {m.value}</p>
 							</li>
 						{/each}
 					</ol>

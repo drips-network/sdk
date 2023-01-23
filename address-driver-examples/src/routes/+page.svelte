@@ -2,7 +2,7 @@
 	import ConnectionDetails from './ConnectionDetails.svelte';
 	import { isConnected } from '$lib/stores';
 
-	console.log("SDK version: 2.0.0-alpha.1")
+	console.log("SDK version: 2.0.0-beta.0")
 </script>
 
 <svelte:head>

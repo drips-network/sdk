@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { isConnected } from '$lib/stores';
-	import { ethers } from 'ethers';
 	import type { DripsSubgraphClient } from 'radicle-drips';
 
 	export let subgraphClient: DripsSubgraphClient | undefined;
@@ -14,9 +13,7 @@
 			accounts = undefined;
 			errorMessage = undefined;
 
-			const appIdBytes = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(app));
-
-			accounts = (await subgraphClient!.getNftSubAccountIdsByApp(appIdBytes)) ?? [];
+			accounts = (await subgraphClient!.getNftSubAccountIdsByApp(app)) ?? [];
 		} catch (error: any) {
 			console.error(error);
 			errorMessage = error.message;

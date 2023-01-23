@@ -9,7 +9,17 @@ const config = {
 
 	kit: {
 		adapter: adapter()
-	}
+	},
+
+	build: {
+    target: 'es2020',
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2020',
+    },
+  },
+
 };
 
 export default config;

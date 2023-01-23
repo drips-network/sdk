@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { constants, Utils, type DripsSubgraphClient, type NFTDriverClient } from 'radicle-drips';
+	import { Utils, type DripsSubgraphClient, type NFTDriverClient } from 'radicle-drips';
 	import { isConnected } from '$lib/stores';
-	import { BigNumber, type ContractReceipt, type ContractTransaction } from 'ethers';
+	import type { ContractReceipt, ContractTransaction } from 'ethers';
 
 	export let nftDriverClient: NFTDriverClient | undefined;
 	export let subgraphClient: DripsSubgraphClient | undefined;
@@ -14,21 +14,6 @@
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
-	async function getCurrentReceivers() {
-		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
-		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(configuredUserId, assetId);
-
-		return (
-			userAssetConfig?.dripsEntries.map((d) => ({
-				config: d.config,
-				userId: d.userId
-			})) ||
-			// If the configuration is new (or the configuration does not exist), the query will return `null`.
-			// In this case we should pass an empty array per API docs.
-			[]
-		);
-	}
-
 	async function setDrips() {
 		tx = undefined;
 		settingDrips = true;
@@ -36,7 +21,10 @@
 		errorMessage = undefined;
 
 		try {
-			const currentReceivers = await getCurrentReceivers();
+			const currentReceivers = await subgraphClient!.getCurrentDripsReceivers(
+				configuredUserId,
+				tokenAddress
+			);
 
 			const newReceivers = currentReceivers;
 

@@ -4,7 +4,6 @@
 	import Emit from './Emit.svelte';
 
 	$: nftDriverClient = $dripsClients?.nftDriverClient;
-	$: subgraphClient = $dripsClients?.subgraphClient;
 </script>
 
 <svelte:head>

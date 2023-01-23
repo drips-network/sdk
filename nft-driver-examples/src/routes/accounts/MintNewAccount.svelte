@@ -16,16 +16,12 @@
 
 	async function mint(transferToAddress: string, associatedApp: string) {
 		try {
-			const associatedAppBytes: BytesLike | undefined = associatedApp
-				? ethers.utils.toUtf8Bytes(associatedApp)
-				: undefined;
-
 			console.log('Minting...');
 
 			minting = true;
 			errorMessage = undefined;
 
-			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress, associatedAppBytes);
+			mintedToken = await nftDriverClient?.safeCreateAccount(transferToAddress, associatedApp);
 
 			console.log('Minted account token ID: ' + mintedToken);
 

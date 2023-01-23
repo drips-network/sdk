@@ -47,21 +47,6 @@
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
-	async function getCurrentReceivers() {
-		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
-		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(configuredUserId, assetId);
-
-		return (
-			userAssetConfig?.dripsEntries.map((d) => ({
-				config: d.config,
-				userId: d.userId
-			})) ||
-			// If the configuration is new (or the configuration does not exist), the query will return `null`.
-			// In this case we should pass an empty array per API docs.
-			[]
-		);
-	}
-
 	async function setDrips() {
 		tx = undefined;
 		settingDrips = true;
@@ -71,7 +56,10 @@
 		try {
 			const balanceDelta = 0; // Configure the user asset config without updating the balance.
 
-			const currentReceivers = await getCurrentReceivers();
+			const currentReceivers = await subgraphClient!.getCurrentDripsReceivers(
+				configuredUserId,
+				tokenAddress
+			);
 
 			const newReceivers: DripsReceiverStruct[] = await Promise.all(
 				dripsInputs
