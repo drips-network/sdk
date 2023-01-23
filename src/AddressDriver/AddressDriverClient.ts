@@ -83,6 +83,7 @@ export default class AddressDriverClient {
 				await validateClientSigner(signer);
 
 				if (!signer.provider) {
+					// eslint-disable-next-line no-param-reassign
 					signer = signer.connect(provider);
 				}
 			}

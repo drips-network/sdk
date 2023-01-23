@@ -30,6 +30,12 @@ describe('DripsHubClient integration tests', () => {
 		const senderUserId = await senderAddressDriverClient.getUserId();
 		const receiverUserId = await senderAddressDriverClient.getUserIdByAddress(receiverAccount);
 
+		const receiverAddressDriverClient = await AddressDriverClient.create(
+			provider,
+			new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string)
+		);
+		await receiverAddressDriverClient.approve(WETH);
+
 		console.log(`Squeezing funds for user ID '${receiverUserId}' to set squeezable balance to 0`);
 		const argsBefore = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
 		await dripsHubClient.squeezeDrips(

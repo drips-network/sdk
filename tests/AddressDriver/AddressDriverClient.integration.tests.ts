@@ -1,14 +1,14 @@
 import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import { assert } from 'chai';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import { assert } from 'chai';
 import { createFromStrings, expect } from '../../src/common/internals';
-import { SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
-import { CollectableBalance } from '../../src/DripsHub/types';
+import type { SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
+import type { CollectableBalance } from '../../src/DripsHub/types';
 
 dotenv.config();
 
@@ -180,8 +180,8 @@ describe('AddressDriver integration tests', () => {
 		);
 		await account2AddressDriverClient.emitUserMetadata([
 			{
-				key: key,
-				value: value
+				key,
+				value
 			}
 		]);
 		console.log('Emitted.');
@@ -242,9 +242,7 @@ describe('AddressDriver integration tests', () => {
 		console.log('Awaiting for the blockchain to update...');
 		(await expect(
 			() => subgraphClient.getSplitsConfigByUserId(receiverUserId),
-			(configuration) => {
-				return configuration.length === 0;
-			},
+			(configuration) => configuration.length === 0,
 			60000,
 			5000
 		)) as SplitsEntry[];

@@ -80,6 +80,7 @@ export default class NFTDriverClient {
 			await validateClientSigner(signer);
 
 			if (!signer.provider) {
+				// eslint-disable-next-line no-param-reassign
 				signer = signer.connect(provider);
 			}
 
