@@ -7,7 +7,7 @@ import type { AddressDriverInterface } from '../../contracts/AddressDriver';
 import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { AddressDriverPresets } from '../../src/AddressDriver/AddressDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { formatDripsReceivers, keyFromString, valueFromString } from '../../src/common/internals';
+import { formatDripsReceivers, formatSplitReceivers, keyFromString, valueFromString } from '../../src/common/internals';
 import type { UserMetadataStruct } from '../../src/common/types';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
@@ -389,6 +389,10 @@ describe('AddressDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
+						userId: 2n,
+						weight: 2n
+					},
+					{
 						userId: 1n,
 						weight: 1n
 					}
@@ -428,7 +432,11 @@ describe('AddressDriverPresets', () => {
 			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'split'),
-					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.currentReceivers])
+					sinon.match.array.deepEquals([
+						payload.userId,
+						payload.tokenAddress,
+						formatSplitReceivers(payload.currentReceivers)
+					])
 				)
 				.returns('split');
 

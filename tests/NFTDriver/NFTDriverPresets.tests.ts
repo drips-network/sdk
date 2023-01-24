@@ -7,7 +7,7 @@ import type { NFTDriverInterface } from '../../contracts/NFTDriver';
 import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { NFTDriverPresets } from '../../src/NFTDriver/NFTDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { formatDripsReceivers, keyFromString, valueFromString } from '../../src/common/internals';
+import { formatDripsReceivers, formatSplitReceivers, keyFromString, valueFromString } from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 
@@ -456,6 +456,10 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
+						userId: 2n,
+						weight: 2n
+					},
+					{
 						userId: 1n,
 						weight: 1n
 					}
@@ -495,7 +499,11 @@ describe('NFTDriverPresets', () => {
 			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'split'),
-					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.currentReceivers])
+					sinon.match.array.deepEquals([
+						payload.userId,
+						payload.tokenAddress,
+						formatSplitReceivers(payload.currentReceivers)
+					])
 				)
 				.returns('split');
 

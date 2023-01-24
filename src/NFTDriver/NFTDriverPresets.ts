@@ -9,7 +9,13 @@ import {
 	validateSplitInput,
 	validateSqueezeDripsInput
 } from '../common/validators';
-import { createFromStrings, formatDripsReceivers, isNullOrUndefined, nameOf } from '../common/internals';
+import {
+	createFromStrings,
+	formatDripsReceivers,
+	formatSplitReceivers,
+	isNullOrUndefined,
+	nameOf
+} from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
@@ -246,7 +252,7 @@ export namespace NFTDriverPresets {
 					data: DripsHub__factory.createInterface().encodeFunctionData('split', [
 						userId,
 						tokenAddress,
-						currentReceivers
+						formatSplitReceivers(currentReceivers)
 					])
 				};
 
