@@ -3,8 +3,8 @@ import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
-import type { BigNumberish } from 'ethers';
-import { ethers, BigNumber, Wallet } from 'ethers';
+import type { BigNumberish, ethers } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import type { DripsHub } from '../../contracts';
 import { DripsHub__factory } from '../../contracts';
@@ -722,8 +722,8 @@ describe('DripsHubClient', () => {
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 1 },
-				{ userId: 2, weight: 2 }
+				{ userId: 2, weight: 2 },
+				{ userId: 1, weight: 1 }
 			];
 
 			// Act
@@ -731,7 +731,11 @@ describe('DripsHubClient', () => {
 
 			// Assert
 			assert(
-				dripsHubContractStub.split.calledOnceWithExactly(userId, tokenAddress, receivers),
+				dripsHubContractStub.split.calledOnceWithExactly(
+					userId,
+					tokenAddress,
+					internals.formatSplitReceivers(receivers)
+				),
 				'Expected method to be called with different arguments'
 			);
 		});

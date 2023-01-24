@@ -2,7 +2,7 @@ import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { BigNumber } from 'ethers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
-import { ensureSignerExists, isNullOrUndefined, nameOf } from '../common/internals';
+import { ensureSignerExists, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import {
 	validateAddress,
 	validateClientProvider,
@@ -434,7 +434,7 @@ export default class DripsHubClient {
 		ensureSignerExists(this.#signer);
 		validateSplitInput(userId, tokenAddress, currentReceivers);
 
-		return this.#driver.split(userId, tokenAddress, currentReceivers);
+		return this.#driver.split(userId, tokenAddress, formatSplitReceivers(currentReceivers));
 	}
 
 	/**

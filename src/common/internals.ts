@@ -1,6 +1,7 @@
 /* eslint-disable no-nested-ternary */
 
-import { BigNumber, BytesLike, ethers, Signer } from 'ethers';
+import type { BytesLike, Signer } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from './types';
 
