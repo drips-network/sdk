@@ -44,7 +44,7 @@
 
 			wallet.set({ provider });
 			dripsClients.set({
-				addressDriverClient: await AddressDriverClient.create(provider.getSigner()),
+				addressDriverClient: await AddressDriverClient.create(provider, provider.getSigner()),
 				subgraphClient: DripsSubgraphClient.create((await provider.getNetwork()).chainId)
 			});
 		} catch (error: any) {

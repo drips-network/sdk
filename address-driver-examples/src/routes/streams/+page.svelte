@@ -12,7 +12,7 @@
 
 <svelte:head>
 	<title>Drips & Splits</title>
-	<meta name="description" content="Mint a new sub account token" />
+	<meta name="description" content="Drips & Splits" />
 </svelte:head>
 
 <div class="container">

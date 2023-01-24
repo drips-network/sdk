@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { BigNumberish } from 'ethers';
 	import { AddressDriverClient } from 'radicle-drips';
 	import { isConnected } from '$lib/stores';
 

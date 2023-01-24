@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { BigNumberish } from 'ethers';
-	import { Utils, type DripsReceiverConfig } from 'radicle-drips';
+	import { Utils } from 'radicle-drips';
 	import { isConnected } from '$lib/stores';
 
 	let assetId: bigint;

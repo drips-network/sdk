@@ -13,26 +13,6 @@
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
-	async function getCurrentReceivers() {
-		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
-		const userId = await addressDriverClient!.getUserId();
-		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(userId, assetId);
-
-		console.log(assetId);
-		console.log(userId);
-		console.log(userAssetConfig);
-
-		return (
-			userAssetConfig?.dripsEntries.map((d) => ({
-				config: d.config,
-				userId: d.userId
-			})) ||
-			// If the configuration is new (or the configuration does not exist), the query will return `null`.
-			// In this case we should pass an empty array per API docs.
-			[]
-		);
-	}
-
 	async function setDrips() {
 		tx = undefined;
 		settingDrips = true;
@@ -40,17 +20,19 @@
 		errorMessage = undefined;
 
 		try {
-			const currentReceivers = await getCurrentReceivers();
+			const userId = await addressDriverClient!.getUserId();
+
+			const currentReceivers = await subgraphClient!.getCurrentDripsReceivers(userId, tokenAddress);
 
 			const newReceivers = currentReceivers;
 
-			const tranferTo = await addressDriverClient!.signer!.getAddress();
+			const transferTo = await addressDriverClient!.signer!.getAddress();
 
 			tx = await addressDriverClient?.setDrips(
 				tokenAddress,
 				currentReceivers,
 				newReceivers,
-				tranferTo,
+				transferTo,
 				amount
 			);
 			console.log(tx);

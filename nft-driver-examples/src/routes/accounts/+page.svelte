@@ -11,7 +11,7 @@
 
 <svelte:head>
 	<title>Accounts</title>
-	<meta name="description" content="Mint a new sub account token" />
+	<meta name="description" content="Manage SubAccounts" />
 </svelte:head>
 
 <div class="container">

@@ -45,22 +45,6 @@
 	let tx: ContractTransaction | undefined;
 	let txReceipt: ContractReceipt | undefined;
 
-	async function getCurrentReceivers() {
-		const assetId = Utils.Asset.getIdFromAddress(tokenAddress);
-		const userId = await addressDriverClient!.getUserId();
-		const userAssetConfig = await subgraphClient?.getUserAssetConfigById(userId, assetId);
-
-		return (
-			userAssetConfig?.dripsEntries.map((d) => ({
-				config: d.config,
-				userId: d.userId
-			})) ||
-			// If the configuration is new (or the configuration does not exist), the query will return `null`.
-			// In this case we should pass an empty array per API docs.
-			[]
-		);
-	}
-
 	async function setDrips() {
 		tx = undefined;
 		settingDrips = true;
@@ -70,7 +54,9 @@
 		try {
 			const balanceDelta = 0; // Configure the user asset config without updating the balance.
 
-			const currentReceivers = await getCurrentReceivers();
+			const userId = await addressDriverClient!.getUserId();
+
+			const currentReceivers = await subgraphClient!.getCurrentDripsReceivers(userId, tokenAddress);
 
 			const newReceivers = await Promise.all(
 				dripsInputs
@@ -96,13 +82,13 @@
 					})
 			);
 
-			const tranferTo = await addressDriverClient!.signer!.getAddress();
+			const transferTo = await addressDriverClient!.signer!.getAddress();
 
 			tx = await addressDriverClient!.setDrips(
 				tokenAddress,
 				currentReceivers,
 				newReceivers,
-				tranferTo,
+				transferTo,
 				balanceDelta
 			);
 			console.log(tx);
@@ -138,10 +124,14 @@
 			{#each dripsInputs as dripInput, i}
 				<div class="input-row form-group">
 					<span>{i + 1}# Drips Receiver:</span>
-					<input type="text" placeholder="Receiver user ID" bind:value={dripInput.receiverUserId} />
 					<input
 						type="text"
-						placeholder="Amount per second"
+						placeholder="e.g., 846959513016227493489143736695218182523669298507"
+						bind:value={dripInput.receiverUserId}
+					/>
+					<input
+						type="text"
+						placeholder="Amount per second (in the smallest unit, e.g., Wei)"
 						bind:value={dripInput.config.amountPerSec}
 					/>
 					<input
@@ -193,9 +183,3 @@
 </form>
 
 <hr />
-
-<style>
-	p strong {
-		color: var(--error-color);
-	}
-</style>

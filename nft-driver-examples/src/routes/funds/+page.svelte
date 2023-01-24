@@ -9,7 +9,7 @@
 
 <svelte:head>
 	<title>Send & Receive</title>
-	<meta name="description" content="Mint a new sub account token" />
+	<meta name="description" content="Give & Collect" />
 </svelte:head>
 
 <div class="container">

@@ -2,7 +2,7 @@
 	import ConnectionDetails from './ConnectionDetails.svelte';
 	import { isConnected } from '$lib/stores';
 
-	console.log("SDK version: 2.0.0-beta.0")
+	console.log('SDK version: 2.0.0-beta.0');
 </script>
 
 <svelte:head>
@@ -78,10 +78,6 @@
 
 	h1 {
 		width: 100%;
-	}
-
-	.btn-group {
-		padding: var(--global-line-height);
 	}
 
 	p {
