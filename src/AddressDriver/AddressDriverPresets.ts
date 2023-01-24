@@ -186,9 +186,7 @@ export namespace AddressDriverPresets {
 			const flow: CallStruct[] = [];
 
 			squeezeArgs?.forEach((args) => {
-				const { userId, tokenAddress, senderId, historyHash, dripsHistory } = args;
-
-				validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
+				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.dripsHistory);
 
 				const squeeze: CallStruct = {
 					value: 0,
@@ -196,9 +194,9 @@ export namespace AddressDriverPresets {
 					data: DripsHub__factory.createInterface().encodeFunctionData('squeezeDrips', [
 						userId,
 						tokenAddress,
-						senderId,
-						historyHash,
-						dripsHistory
+						args.senderId,
+						args.historyHash,
+						args.dripsHistory
 					])
 				};
 
