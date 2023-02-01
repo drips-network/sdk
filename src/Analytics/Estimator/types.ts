@@ -2,14 +2,23 @@ import type { DripsReceiverConfig } from 'src/common/types';
 
 export type Millis = number;
 
+export type User = {
+	userId: string;
+};
+
 export interface StreamEstimate {
 	id: string;
 	totalStreamed: bigint;
 	currentAmountPerSecond: bigint;
 	runsOutOfFunds?: Date;
-	receiverId: string;
-	senderId: string;
+	receiver: User;
+	sender: User;
 	tokenAddress: string;
+}
+
+export interface AssetConfigEstimates {
+	total: AssetConfigEstimate;
+	currentCycle: AssetConfigEstimate;
 }
 
 export interface AssetConfigEstimate {
@@ -21,35 +30,29 @@ export interface AssetConfigEstimate {
 	};
 }
 
-export interface AssetConfigEstimates {
-	total: AssetConfigEstimate;
-	currentCycle: AssetConfigEstimate;
+export interface Cycle {
+	start: Date;
+	duration: Millis;
+}
+
+export interface TimeWindow {
+	from: Millis;
+	to: Millis;
 }
 
 export type AccountEstimate = { [tokenAddress: string]: AssetConfigEstimates };
 
-export interface Account {
-	userId: string;
-	name?: string;
-	description?: string;
-	emoji?: string;
-	assetConfigs: AssetConfig[];
-	lastUpdated?: Date;
-	lastUpdatedByAddress?: string;
-	lastIpfsHash?: string;
-}
-
 export interface Stream {
 	id: string;
-	senderId: string;
-	receiverId: string;
+	sender: User;
+	receiver: User;
 	dripsConfig: DripsReceiverConfig;
 }
 
 export interface Receiver {
 	streamId: string;
 	dripsConfig?: DripsReceiverConfig;
-	receiverId: string;
+	receiver: User;
 }
 
 export interface AssetConfigHistoryItem {
@@ -67,7 +70,7 @@ export interface AssetConfig {
 	history: AssetConfigHistoryItem[];
 }
 
-export interface TimeWindow {
-	from: Millis;
-	to: Millis;
+export interface Account {
+	user: User;
+	assetConfigs: AssetConfig[];
 }

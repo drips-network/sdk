@@ -32,6 +32,8 @@ import {
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
 import {
+	User,
+	Cycle,
 	Stream,
 	Millis,
 	Account,
@@ -79,6 +81,8 @@ export * as estimator from './Analytics/Estimator/estimator';
 
 // Types
 export {
+	User,
+	Cycle,
 	Preset,
 	Stream,
 	Millis,
