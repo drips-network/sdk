@@ -50,6 +50,8 @@ export default class AccountEstimator {
 		const [accountService, estimatorEngine] = dependencyFactory(chainId);
 
 		const estimator = new AccountEstimator();
+		estimator.#userId = userId;
+		estimator.#chainId = chainId;
 		estimator.#accountService = accountService;
 		estimator.#estimatorEngine = estimatorEngine;
 		await estimator.refreshAccount();

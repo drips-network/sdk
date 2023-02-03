@@ -144,7 +144,7 @@ export default class AccountService implements IAccountService {
 		dripsSetEvents: { [tokenAddress: string]: DripsSetEventWithFullReceivers[] }
 	): AssetConfig[] {
 		return Object.entries(dripsSetEvents).reduce<AssetConfig[]>((acc, [tokenAddress, assetConfigDripsSetEvents]) => {
-			if (assetConfigDripsSetEvents && assetConfigDripsSetEvents.length > 0) {
+			if (!(assetConfigDripsSetEvents && assetConfigDripsSetEvents.length > 0)) {
 				throw new Error(`Unable to find dripsSet events for asset config with token address ${tokenAddress}`);
 			}
 
