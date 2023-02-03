@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 /* eslint-disable no-await-in-loop */
 import type { DripsSetEvent } from 'src/DripsSubgraph/types';
 import Utils from '../utils';

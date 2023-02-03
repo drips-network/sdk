@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-
 import type { SqueezedDripsEvent } from 'src/DripsSubgraph/types';
 import Utils from '../../utils';
 import { DripsErrors } from '../../common/DripsError';
@@ -29,10 +27,10 @@ export default class AccountEstimator {
 	}
 	#chainId!: number;
 
+	#account!: Account;
 	public get account(): Account | undefined {
 		return this.#account;
 	}
-	#account!: Account;
 
 	private constructor() {}
 
@@ -49,11 +47,11 @@ export default class AccountEstimator {
 			throw DripsErrors.clientInitializationError(`Could not create 'Estimator': chain ID is required.`);
 		}
 
-		const estimator = new AccountEstimator();
 		const [accountService, estimatorEngine] = dependencyFactory(chainId);
+
+		const estimator = new AccountEstimator();
 		estimator.#accountService = accountService;
 		estimator.#estimatorEngine = estimatorEngine;
-
 		await estimator.refreshAccount();
 
 		return estimator;
