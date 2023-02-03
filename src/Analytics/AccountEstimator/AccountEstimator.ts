@@ -2,7 +2,6 @@ import type { SqueezedDripsEvent } from 'src/DripsSubgraph/types';
 import Utils from '../../utils';
 import { DripsErrors } from '../../common/DripsError';
 import AccountService from '../AccountService';
-import type { IAccountService } from '../AccountService';
 import type { Account } from '../common/types';
 import type { IEstimatorEngine } from './EstimatorEngine';
 import EstimatorEngine from './EstimatorEngine';
@@ -14,7 +13,7 @@ const defaultDependencyFactory = (chainId: number): [AccountService, EstimatorEn
 ];
 
 export default class AccountEstimator {
-	#accountService!: IAccountService;
+	#accountService!: AccountService;
 	#estimatorEngine!: IEstimatorEngine;
 
 	public get userId(): string {
