@@ -31,21 +31,16 @@ import {
 	ReceivedDripsEvent,
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
+import { Account, AssetConfig, Stream, AssetConfigHistoryItem } from './Analytics/common/types';
 import {
-	User,
-	Cycle,
-	Stream,
 	Millis,
-	Account,
-	Receiver,
 	TimeWindow,
-	AssetConfig,
 	StreamEstimate,
 	AccountEstimate,
 	AssetConfigEstimate,
 	AssetConfigEstimates,
-	AssetConfigHistoryItem
-} from './Analytics/Estimator/types';
+	DripsSetEventWithFullReceivers
+} from './Analytics/AccountEstimator/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
@@ -77,27 +72,24 @@ export { default as constants } from './constants';
 export { default as Utils } from './utils';
 
 // Analytics
-export * as estimator from './Analytics/Estimator/estimator';
+export * as estimator from './Analytics/AccountEstimator/EstimatorEngine';
 
 // Types
 export {
-	User,
-	Cycle,
 	Preset,
+	Account,
 	Stream,
 	Millis,
-	Account,
-	Receiver,
 	CycleInfo,
 	TimeWindow,
 	SplitEvent,
 	CallStruct,
 	DripsState,
 	GivenEvent,
+	AssetConfig,
 	SqueezeArgs,
 	SplitResult,
 	SplitsEntry,
-	AssetConfig,
 	UserMetadata,
 	NftSubAccount,
 	DripsSetEvent,
@@ -125,8 +117,9 @@ export {
 	AddressDriverPresets,
 	SplitsReceiverStruct,
 	AssetConfigEstimates,
-	AssetConfigHistoryItem,
 	DripsReceiverSeenEvent,
+	AssetConfigHistoryItem,
 	AddressDriverInterface,
+	DripsSetEventWithFullReceivers,
 	ImmutableSplitsDriverInterface
 };
