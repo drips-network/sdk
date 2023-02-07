@@ -1,23 +1,22 @@
 /* eslint-disable no-restricted-syntax */
 import type { CycleInfo } from 'src/common/types';
 import type { SqueezedDripsEvent } from 'src/DripsSubgraph/types';
-import type { Account, AssetConfig, AssetConfigHistoryItem, Stream } from '../common/types';
+import { calcScheduledEnd, minMax } from '../internals';
 import type {
+	Account,
+	AssetConfig,
+	AssetConfigHistoryItem,
+	Stream,
 	AccountEstimate,
 	AssetConfigEstimate,
 	AssetConfigEstimates,
 	Millis,
 	StreamEstimate,
 	TimeWindow
-} from './types';
+} from '../types';
 
 /** @internal */
-export interface IEstimatorEngine {
-	estimateAccount(account: Account, currentCycle: CycleInfo, excludingSqueezes?: SqueezedDripsEvent[]): AccountEstimate;
-}
-
-/** @internal */
-export default class EstimatorEngine implements IEstimatorEngine {
+export default class EstimatorEngine {
 	public estimateAccount(
 		account: Account,
 		currentCycle: CycleInfo,
@@ -209,10 +208,10 @@ export default class EstimatorEngine implements IEstimatorEngine {
 			? Number(squeezedAtBlockTimestamp) * 1000
 			: undefined;
 
-		const streamingFrom = this.#minMax('max', timestamp, start, window.from, squeezedAt);
-		const scheduledToEndAt = this.#calcScheduledEnd(streamingFrom, start, duration);
-		const streamingUntil = this.#minMax('min', runsOutOfFunds, scheduledToEndAt, nextTimestamp, window.to);
-		const validForMillis = this.#minMax('max', streamingUntil - streamingFrom, 0);
+		const streamingFrom = minMax('max', timestamp, start, window.from, squeezedAt);
+		const scheduledToEndAt = calcScheduledEnd(streamingFrom, start, duration);
+		const streamingUntil = minMax('min', runsOutOfFunds, scheduledToEndAt, nextTimestamp, window.to);
+		const validForMillis = minMax('max', streamingUntil - streamingFrom, 0);
 
 		const streamed = (BigInt(validForMillis) * amountPerSecond) / 1000n;
 		const currentAmountPerSecond =
@@ -227,15 +226,5 @@ export default class EstimatorEngine implements IEstimatorEngine {
 	#sumEstimates(mode: 'totalStreamed' | 'currentAmountPerSecond', streamEstimates: StreamEstimate[]): bigint {
 		const res = streamEstimates.reduce<bigint>((acc, streamEstimate) => acc + streamEstimate[mode], 0n);
 		return res;
-	}
-
-	#calcScheduledEnd(timestamp: Millis, start?: Millis, duration?: Millis): Millis | undefined {
-		return duration ? (start ?? timestamp) + duration : undefined;
-	}
-
-	#minMax(mode: 'min' | 'max', ...args: (number | undefined)[]) {
-		const filtered: number[] = args.filter((a): a is number => a !== undefined);
-
-		return Math[mode](...filtered);
 	}
 }

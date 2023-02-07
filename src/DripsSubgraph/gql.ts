@@ -82,6 +82,26 @@ query getDripsSetEventsByUserId($userId: String!, $skip: Int, $first: Int) {
 }
 `;
 
+export const getDripsSetEventsByReceiverUserId = `#graphql
+query getDripsSetEventsByUserId($receiverUserId: String!, $skip: Int, $first: Int) {
+  dripsSetEvents(skip: $skip, first: $first) {
+		id
+    userId
+    assetId
+		receiversHash
+    dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}){
+			id
+      receiverUserId
+			config
+    }
+    dripsHistoryHash
+		balance
+    blockTimestamp
+		maxEnd
+  }
+}
+`;
+
 export const getDripsReceiverSeenEventsByReceiverId = `#graphql
 query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!, $skip: Int, $first: Int) {
   dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}, skip: $skip, first: $first) {

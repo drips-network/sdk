@@ -1,7 +1,7 @@
 import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-import AccountEstimator from '../../src/Analytics/AccountEstimator/AccountEstimator';
+import AccountEstimator from '../../src/Metrics/AccountEstimator';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 
 dotenv.config();

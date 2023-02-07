@@ -1,43 +1,34 @@
-import Utils from '../utils';
-import constants from '../constants';
-import type { DripsSetEventWithFullReceivers } from './AccountEstimator/types';
-import type { Account, AssetConfig, AssetConfigHistoryItem, Stream } from './common/types';
+import Utils from '../../utils';
+import constants from '../../constants';
 import DripsSetEventService from './DripsSetEventService';
-
-const defaultDependencyFactory = (chainId: number): DripsSetEventService => new DripsSetEventService(chainId);
+import type { Account, AssetConfig, AssetConfigHistoryItem, DripsSetEventWithFullReceivers, Stream } from '../types';
 
 export default class AccountService {
-	#chainId: number;
-	#dripsSetEventService: DripsSetEventService;
+	private readonly _dripsSetEventService: DripsSetEventService;
 
-	get chainId() {
-		return this.#chainId;
+	public readonly chainId: number;
+
+	public constructor(chainId: number);
+	public constructor(chainId: number, dripsSetEventService?: DripsSetEventService);
+	public constructor(chainId: number, dripsSetEventService: DripsSetEventService = new DripsSetEventService(chainId)) {
+		if (chainId !== dripsSetEventService.chainId) {
+			throw new Error(`Chain ID mismatch: ${chainId} !== ${dripsSetEventService.chainId}`);
+		}
+
+		this.chainId = chainId;
+		this._dripsSetEventService = dripsSetEventService || new DripsSetEventService(chainId);
 	}
 
-	public constructor(
-		chainId: number,
-		dependencyFactory: (chainId: number) => DripsSetEventService = defaultDependencyFactory
-	) {
-		this.#chainId = chainId;
-		this.#dripsSetEventService = dependencyFactory(chainId);
-	}
-
-	async fetchAccount(userId: string, chainId: number): Promise<Account> {
+	public async fetchAccount(userId: string): Promise<Account> {
 		try {
-			const dripsSetEvents = await this.#dripsSetEventService.getAllDripsSetEvents(userId);
 			if (!userId) {
-				throw new Error(`Could fetch account: user ID is required.`);
+				throw new Error(`Could not fetch account: user ID is required.`);
 			}
 
-			if (!chainId) {
-				throw new Error(`Could fetch account: chain ID is required.`);
-			}
-
-			const dripsSetEventsWithFullReceivers = this.#dripsSetEventService.reconcileDripsSetReceivers(dripsSetEvents);
-			const dripsSetEventsByTokenAddress = this.#dripsSetEventService.separateDripsSetEvents(
-				dripsSetEventsWithFullReceivers
-			);
-			const assetConfigs = this.#buildAssetConfigsForUser(userId, dripsSetEventsByTokenAddress) || [];
+			const dripsSetEvents = await this._dripsSetEventService.getAllDripsSetEventsByUserId(userId);
+			const dripsSetEventsWithFullReceivers = DripsSetEventService.reconcileDripsSetReceivers(dripsSetEvents);
+			const dripsSetEventsByTokenAddress = DripsSetEventService.groupByTokenAddress(dripsSetEventsWithFullReceivers);
+			const assetConfigs = this._buildAssetConfigsForUser(userId, dripsSetEventsByTokenAddress) || [];
 
 			return {
 				userId,
@@ -48,7 +39,7 @@ export default class AccountService {
 		}
 	}
 
-	#buildAssetConfigsForUser(
+	private _buildAssetConfigsForUser(
 		userId: string,
 		dripsSetEvents: { [tokenAddress: string]: DripsSetEventWithFullReceivers[] }
 	): AssetConfig[] {

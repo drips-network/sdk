@@ -31,16 +31,19 @@ import {
 	ReceivedDripsEvent,
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
-import { Account, AssetConfig, Stream, AssetConfigHistoryItem } from './Analytics/common/types';
 import {
+	Stream,
+	Account,
 	Millis,
 	TimeWindow,
+	AssetConfig,
 	StreamEstimate,
 	AccountEstimate,
 	AssetConfigEstimate,
 	AssetConfigEstimates,
+	AssetConfigHistoryItem,
 	DripsSetEventWithFullReceivers
-} from './Analytics/AccountEstimator/types';
+} from './Metrics/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
@@ -71,8 +74,12 @@ export { default as constants } from './constants';
 // Utils
 export { default as Utils } from './utils';
 
-// Analytics
-export * as estimator from './Analytics/AccountEstimator/EstimatorEngine';
+// Metrics
+export { default as Metrics } from './Metrics/Metrics';
+export { default as AccountEstimator } from './Metrics/AccountEstimator';
+export { default as AccountService } from './Metrics/Services/AccountService';
+export { default as DripsSetEventService } from './Metrics/Services/DripsSetEventService';
+export { default as SplitsSetEventService } from './Metrics/Services/SplitsSetEventService';
 
 // Types
 export {
