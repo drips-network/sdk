@@ -1,4 +1,4 @@
-import { isAddress } from 'ethers/lib/utils';
+import { ethers } from 'ethers';
 import type { Millis } from './types';
 
 /** @internal */
@@ -16,7 +16,7 @@ const numericTest = /^\d+$/;
 
 /** @internal */
 export const makeStreamId = (senderUserId: string, tokenAddress: string, dripId: string): string => {
-	if (!(numericTest.test(senderUserId) && numericTest.test(dripId) && isAddress(tokenAddress))) {
+	if (!(numericTest.test(senderUserId) && numericTest.test(dripId) && ethers.utils.isAddress(tokenAddress))) {
 		throw new Error('Invalid values');
 	}
 
@@ -43,7 +43,13 @@ export const decodeStreamId = (
 		dripId: parts[2]
 	};
 
-	if (!(numericTest.test(values.senderUserId) && numericTest.test(values.dripId) && isAddress(values.tokenAddress))) {
+	if (
+		!(
+			numericTest.test(values.senderUserId) &&
+			numericTest.test(values.dripId) &&
+			ethers.utils.isAddress(values.tokenAddress)
+		)
+	) {
 		throw new Error('Invalid stream ID');
 	}
 
