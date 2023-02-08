@@ -4,11 +4,11 @@ import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
 import AccountService from './Services/AccountService';
 import type { Account, AccountEstimate, UserId } from './types';
-import EstimatorEngine from './Services/EstimatorEngine';
+import EstimatorService from './Services/EstimatorService';
 
 export default class AccountEstimator {
 	private readonly _accountService: AccountService;
-	private readonly _estimatorEngine: EstimatorEngine;
+	private readonly _estimatorEngine: EstimatorService;
 
 	public readonly userId: string;
 	public readonly chainId: number;
@@ -20,13 +20,13 @@ export default class AccountEstimator {
 		chainId: number,
 		account: Account,
 		accountService: AccountService,
-		estimatorEngine: EstimatorEngine
+		estimatorService: EstimatorService
 	) {
 		this.userId = userId;
 		this.chainId = chainId;
 		this.account = account;
 		this._accountService = accountService;
-		this._estimatorEngine = estimatorEngine;
+		this._estimatorEngine = estimatorService;
 	}
 
 	public static async create(userId: string, chainId: number): Promise<AccountEstimator>;
@@ -34,13 +34,13 @@ export default class AccountEstimator {
 		userId: string,
 		chainId: number,
 		accountService?: AccountService,
-		estimatorEngine?: EstimatorEngine
+		estimatorService?: EstimatorService
 	): Promise<AccountEstimator>;
 	public static async create(
 		userId: string,
 		chainId: number,
 		accountService: AccountService = new AccountService(chainId),
-		estimatorEngine: EstimatorEngine = new EstimatorEngine()
+		estimatorService: EstimatorService = new EstimatorService()
 	): Promise<AccountEstimator> {
 		if (chainId !== accountService.chainId) {
 			throw new Error(`Chain ID mismatch: ${chainId} !== ${accountService.chainId}`);
@@ -55,7 +55,7 @@ export default class AccountEstimator {
 		}
 
 		const account = await accountService.fetchAccount(userId);
-		const estimator = new AccountEstimator(userId, chainId, account, accountService, estimatorEngine);
+		const estimator = new AccountEstimator(userId, chainId, account, accountService, estimatorService);
 
 		return estimator;
 	}

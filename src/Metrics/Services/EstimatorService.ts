@@ -15,8 +15,7 @@ import type {
 	TimeWindow
 } from '../types';
 
-/** @internal */
-export default class EstimatorEngine {
+export default class EstimatorService {
 	public estimateAccount(
 		account: Account,
 		currentCycle: CycleInfo,
