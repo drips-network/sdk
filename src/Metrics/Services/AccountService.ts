@@ -16,7 +16,7 @@ export default class AccountService {
 		}
 
 		this.chainId = chainId;
-		this._dripsSetEventService = dripsSetEventService || new DripsSetEventService(chainId);
+		this._dripsSetEventService = dripsSetEventService;
 	}
 
 	public async fetchAccount(userId: string): Promise<Account> {

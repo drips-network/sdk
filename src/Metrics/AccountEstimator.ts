@@ -13,16 +13,18 @@ export default class AccountEstimator {
 	public readonly userId: string;
 	public readonly chainId: number;
 
-	public account!: Account;
+	public account: Account;
 
 	private constructor(
 		userId: UserId,
 		chainId: number,
+		account: Account,
 		accountService: AccountService,
 		estimatorEngine: EstimatorEngine
 	) {
 		this.userId = userId;
 		this.chainId = chainId;
+		this.account = account;
 		this._accountService = accountService;
 		this._estimatorEngine = estimatorEngine;
 	}
@@ -52,8 +54,8 @@ export default class AccountEstimator {
 			throw DripsErrors.clientInitializationError(`Could not create 'Estimator': chain ID is required.`);
 		}
 
-		const estimator = new AccountEstimator(userId, chainId, accountService, estimatorEngine);
-		await estimator.refreshAccount();
+		const account = await accountService.fetchAccount(userId);
+		const estimator = new AccountEstimator(userId, chainId, account, accountService, estimatorEngine);
 
 		return estimator;
 	}

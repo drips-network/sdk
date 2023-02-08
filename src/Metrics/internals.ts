@@ -1,4 +1,4 @@
-import type { Millis } from './AccountEstimator/types';
+import type { Millis } from './types';
 
 export const calcScheduledEnd = (timestamp: Millis, start?: Millis, duration?: Millis): Millis | undefined =>
 	duration ? (start ?? timestamp) + duration : undefined;

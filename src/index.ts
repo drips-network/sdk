@@ -75,7 +75,7 @@ export { default as constants } from './constants';
 export { default as Utils } from './utils';
 
 // Metrics
-export { default as Metrics } from './Metrics/Metrics';
+export { default as Metrics } from './Metrics/ReceiverMetrics';
 export { default as AccountEstimator } from './Metrics/AccountEstimator';
 export { default as AccountService } from './Metrics/Services/AccountService';
 export { default as DripsSetEventService } from './Metrics/Services/DripsSetEventService';

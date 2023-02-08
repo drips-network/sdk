@@ -1,32 +1,60 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-dupe-class-members */
+
+import type { SqueezedDripsEvent } from 'src/DripsSubgraph/types';
 import Utils from '../utils';
 import { minMax } from './internals';
+import AccountEstimator from './AccountEstimator';
 import DripsSetEventService from './Services/DripsSetEventService';
 import SplitsSetEventService from './Services/SplitsSetEventService';
-import type { ActiveSupporters, TotalSupporters, UserId } from './types';
+import type { Account, ActiveSupporters, TotalSupporters, UserId } from './types';
 
-export default class Metrics {
+export default class ReceiverMetrics {
+	private readonly _accountEstimator: AccountEstimator;
 	private readonly _dripsSetEventService: DripsSetEventService;
 	private readonly _splitSetEventService: SplitsSetEventService;
 
-	constructor(chainId: number);
-	public constructor(
+	private constructor(
 		chainId: number,
-		dripsSetEventService?: DripsSetEventService,
-		splitsSetEventService?: SplitsSetEventService
-	);
-	public constructor(
-		chainId: number,
-		dripsSetEventService: DripsSetEventService = new DripsSetEventService(chainId),
-		splitsSetEventService: SplitsSetEventService = new SplitsSetEventService(chainId)
+		accountEstimator: AccountEstimator,
+		dripsSetEventService: DripsSetEventService,
+		splitsSetEventService: SplitsSetEventService
 	) {
-		if (chainId !== dripsSetEventService.chainId || chainId !== splitsSetEventService.chainId) {
-			throw new Error(
-				`Chain ID mismatch: ${chainId} !== ${dripsSetEventService.chainId} !== ${splitsSetEventService.chainId}`
-			);
-		}
-
+		this._accountEstimator = accountEstimator;
 		this._dripsSetEventService = dripsSetEventService;
 		this._splitSetEventService = splitsSetEventService;
+	}
+
+	public static async create(userId: UserId, chainId: number): Promise<ReceiverMetrics>;
+	public static async create(
+		userId: UserId,
+		chainId: number,
+		accountEstimator?: AccountEstimator,
+		dripsSetEventService?: DripsSetEventService,
+		splitsSetEventService?: SplitsSetEventService
+	): Promise<ReceiverMetrics>;
+	public static async create(
+		userId: UserId,
+		chainId: number,
+		accountEstimator?: AccountEstimator,
+		dripsSetEventService?: DripsSetEventService,
+		splitsSetEventService?: SplitsSetEventService
+	): Promise<ReceiverMetrics> {
+		dripsSetEventService = dripsSetEventService || new DripsSetEventService(chainId);
+		splitsSetEventService = splitsSetEventService || new SplitsSetEventService(chainId);
+		accountEstimator = accountEstimator || (await AccountEstimator.create(userId, chainId));
+
+		if (
+			chainId !== accountEstimator.chainId ||
+			chainId !== dripsSetEventService.chainId ||
+			chainId !== splitsSetEventService.chainId
+		) {
+			throw new Error(`Could not create 'Metrics': all services must be initialized with the same chain ID.`);
+		}
+
+		const metrics = new ReceiverMetrics(chainId, accountEstimator, dripsSetEventService, splitsSetEventService);
+
+		return metrics;
 	}
 
 	public async getActiveSupporters(userId: string): Promise<ActiveSupporters> {
@@ -113,8 +141,12 @@ export default class Metrics {
 		}
 	}
 
-	getIncomingStreamsValue(): Promise<any> {
-		throw new Error('Method not implemented.');
+	public async getIncomingStreamsValue(account: Account, excludingSqueezes?: SqueezedDripsEvent[]): Promise<any> {
+		const estimate = await this._accountEstimator.estimate(excludingSqueezes);
+
+		Object.entries(estimate).forEach(([tokenAddress, tokenEstimates]) => {
+			const { currentCycle, total } = tokenEstimates;
+		});
 	}
 
 	getTotalValueRaised(): Promise<bigint> {
