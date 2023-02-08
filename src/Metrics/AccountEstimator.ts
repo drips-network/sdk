@@ -64,7 +64,7 @@ export default class AccountEstimator {
 		this.account = await this._accountService.fetchAccount(this.userId);
 	}
 
-	public async estimate(excludingSqueezes?: SqueezedDripsEvent[]): Promise<AccountEstimate> {
+	public estimate(excludingSqueezes?: SqueezedDripsEvent[]): AccountEstimate {
 		const currentCycle = Utils.Cycle.getInfo(this.chainId);
 
 		return this._estimatorEngine.estimateAccount(this.account, currentCycle, excludingSqueezes);
