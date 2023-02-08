@@ -1,66 +1,10 @@
 import type { BigNumberish } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
-import { isAddress } from 'ethers/lib/utils';
 import { DripsErrors } from './common/DripsError';
 import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
-	export namespace Stream {
-		const numericTest = /^\d+$/;
-
-		/**
-		 * Create a globally unique Stream ID string, including the stream's sender user ID and the associated receiver's
-		 * dripId, as well as the token address.
-		 * @param senderUserId The stream sender's userId.
-		 * @param tokenAddress The token address of the currency the stream is in.
-		 * @param dripId The dripId of the stream's associated receiver.
-		 * @returns The stream ID string.
-		 */
-		export const makeStreamId = (senderUserId: string, tokenAddress: string, dripId: string): string => {
-			if (!(numericTest.test(senderUserId) && numericTest.test(dripId) && isAddress(tokenAddress))) {
-				throw new Error('Invalid values');
-			}
-
-			return `${senderUserId}-${tokenAddress}-${dripId}`;
-		};
-
-		/**
-		 * Given a stream ID created with `makeStreamId`, decode it into its three parts; the sender's user ID, the token
-		 * address and the dripId of the on-chain receiver.
-		 * @param streamId The stream ID to decode.
-		 * @returns An object including the stream's sender user ID, the token address of the token the stream is streaming,
-		 * and the on-chain dripId.
-		 */
-		export const decodeStreamId = (
-			streamId: string
-		): {
-			senderUserId: string;
-			tokenAddress: string;
-			dripId: string;
-		} => {
-			const parts = streamId.split('-');
-
-			if (parts.length === 3) {
-				throw new Error('Invalid stream ID');
-			}
-
-			const values = {
-				senderUserId: parts[0],
-				tokenAddress: parts[1],
-				dripId: parts[2]
-			};
-
-			if (
-				!(numericTest.test(values.senderUserId) && numericTest.test(values.dripId) && isAddress(values.tokenAddress))
-			) {
-				throw new Error('Invalid stream ID');
-			}
-
-			return values;
-		};
-	}
-
 	export namespace Network {
 		export const configs: Record<number, NetworkConfig> = {
 			5: {

@@ -2,6 +2,7 @@ import Utils from '../../utils';
 import constants from '../../constants';
 import DripsSetEventService from './DripsSetEventService';
 import type { Account, AssetConfig, AssetConfigHistoryItem, DripsSetEventWithFullReceivers, Stream } from '../types';
+import { makeStreamId } from '../internals';
 
 export default class AccountService {
 	private readonly _dripsSetEventService: DripsSetEventService;
@@ -56,7 +57,7 @@ export default class AccountService {
 				dripsSetEvent.currentReceivers.forEach((dripsReceiverSeenEvent) => {
 					const dripsConfig = Utils.DripsReceiverConfiguration.fromUint256(dripsReceiverSeenEvent.config);
 
-					const streamId = Utils.Stream.makeStreamId(userId, tokenAddress, dripsConfig.dripId.toString());
+					const streamId = makeStreamId(userId, tokenAddress, dripsConfig.dripId.toString());
 
 					assetConfigHistoryItemStreams.push({
 						id: streamId,
