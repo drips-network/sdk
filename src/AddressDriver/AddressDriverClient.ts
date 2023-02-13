@@ -372,15 +372,24 @@ export default class AddressDriverClient {
 	 * @returns The user's address.
 	 */
 	public static getUserAddress = (userId: string): string => {
-		if (userId === '0') {
-			return ethers.constants.AddressZero;
+		if (!userId || typeof userId !== 'string') {
+			throw DripsErrors.argumentError('Could not get user address: user ID must be a non-empty string.');
 		}
 
-		const userIdAsBN = BigNumber.from(userId);
+		const uint256Max = ethers.BigNumber.from(2).pow(256).sub(1);
+		const number = ethers.BigNumber.from(userId);
 
-		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
-		const userAddress = userIdAsBN.and(mask);
+		if (number.lt(0) || number.gt(uint256Max)) {
+			throw DripsErrors.argumentError(
+				`Invalid input: ${userId} is not a valid positive number within the range of a uint256.`
+			);
+		}
 
-		return ethers.utils.getAddress(userAddress.toHexString());
+		const mask = ethers.BigNumber.from(2).pow(160).sub(1);
+		const address = number.and(mask).toHexString();
+
+		const paddedAddress = ethers.utils.hexZeroPad(address, 20);
+
+		return ethers.utils.getAddress(paddedAddress);
 	};
 }

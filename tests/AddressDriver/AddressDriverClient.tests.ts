@@ -702,23 +702,60 @@ describe('AddressDriverClient', () => {
 	});
 
 	describe('getUserAddress', () => {
-		it('should return zero address when user ID is 0', () => {
-			// Act
-			const actualAddress = AddressDriverClient.getUserAddress('0');
-
-			// Assert
-			assert.equal(actualAddress, ethers.constants.AddressZero);
+		it('should return the correct Ethereum address for valid inputs', () => {
+			assert.equal(AddressDriverClient.getUserAddress('0'), ethers.constants.AddressZero);
+			assert.equal(AddressDriverClient.getUserAddress('1'), '0x0000000000000000000000000000000000000001');
+			assert.equal(
+				AddressDriverClient.getUserAddress('12345678901234567890'),
+				'0x000000000000000000000000AB54a98CeB1F0AD2'
+			);
+			assert.equal(
+				AddressDriverClient.getUserAddress('998697365313809816557299962230702436787341785997'),
+				'0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D'
+			);
 		});
 
-		it('should return the expected result', () => {
-			const expectedAddress = '0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D';
-			const userId = '998697365313809816557299962230702436787341785997';
+		it('should throw an error for a negative user ID', () => {
+			const invalidUserId = '-1234';
 
-			// Act
-			const actualAddress = AddressDriverClient.getUserAddress(userId);
+			try {
+				AddressDriverClient.getUserAddress(invalidUserId);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
 
-			// Assert
-			assert.equal(actualAddress, expectedAddress);
+		it('should throw an error for an out-of-bounds user ID', () => {
+			const invalidUserId =
+				'12324123241234123412342123241232412341234123421232412324123412341234212324123241234123412342';
+
+			try {
+				AddressDriverClient.getUserAddress(invalidUserId);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error for a non-numeric user ID', () => {
+			const invalidUserId = 'notanumber';
+
+			try {
+				AddressDriverClient.getUserAddress(invalidUserId);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error if userId is not a string', () => {
+			try {
+				AddressDriverClient.getUserAddress(123 as any);
+				assert.fail('Expected an error to be thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
 		});
 	});
 
