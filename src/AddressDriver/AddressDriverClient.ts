@@ -372,6 +372,10 @@ export default class AddressDriverClient {
 	 * @returns The user's address.
 	 */
 	public static getUserAddress = (userId: string): string => {
+		if (userId === '0') {
+			return ethers.constants.AddressZero;
+		}
+
 		const userIdAsBN = BigNumber.from(userId);
 
 		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));

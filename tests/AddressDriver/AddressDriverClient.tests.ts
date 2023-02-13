@@ -3,7 +3,7 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import { BigNumber, constants, Wallet } from 'ethers';
+import { BigNumber, constants, ethers, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadata } from '../../src/common/types';
@@ -701,7 +701,15 @@ describe('AddressDriverClient', () => {
 		});
 	});
 
-	describe('getAddressByUserId', () => {
+	describe('getUserAddress', () => {
+		it('should return zero address when user ID is 0', () => {
+			// Act
+			const actualAddress = AddressDriverClient.getUserAddress('0');
+
+			// Assert
+			assert.equal(actualAddress, ethers.constants.AddressZero);
+		});
+
 		it('should return the expected result', () => {
 			const expectedAddress = '0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D';
 			const userId = '998697365313809816557299962230702436787341785997';
