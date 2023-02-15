@@ -381,7 +381,7 @@ export default class AddressDriverClient {
 
 		if (number.lt(0) || number.gt(uint256Max)) {
 			throw DripsErrors.argumentError(
-				`Invalid input: ${userId} is not a valid positive number within the range of a uint256.`
+				`Could not get user address: : ${userId} is not a valid positive number within the range of a uint256.`
 			);
 		}
 
