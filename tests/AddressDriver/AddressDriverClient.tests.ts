@@ -706,12 +706,18 @@ describe('AddressDriverClient', () => {
 			assert.equal(AddressDriverClient.getUserAddress('0'), ethers.constants.AddressZero);
 			assert.equal(AddressDriverClient.getUserAddress('1'), '0x0000000000000000000000000000000000000001');
 			assert.equal(
+				AddressDriverClient.getUserAddress(
+					BigNumber.from('0x000000000000000000000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').toString()
+				),
+				'0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa'
+			);
+			assert.equal(
 				AddressDriverClient.getUserAddress('12345678901234567890'),
 				'0x000000000000000000000000AB54a98CeB1F0AD2'
 			);
 			assert.equal(
-				AddressDriverClient.getUserAddress('998697365313809816557299962230702436787341785997'),
-				'0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D'
+				AddressDriverClient.getUserAddress('846959513016227493489143736695218182523669298507'),
+				'0x945AFA63507e56748368D3F31ccC35043efDbd4b'
 			);
 		});
 
@@ -736,6 +742,25 @@ describe('AddressDriverClient', () => {
 			} catch (error: any) {
 				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
 			}
+		});
+
+		it('should throw an error for an invalid user ID', () => {
+			try {
+				AddressDriverClient.getUserAddress(
+					BigNumber.from('0xBBBBBBBB0000009990000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').toString()
+				);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+
+			assert.doesNotThrow(
+				() =>
+					AddressDriverClient.getUserAddress(
+						BigNumber.from('0xBBBBBBBB0000000000000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').toString()
+					),
+				'Error was thrown'
+			);
 		});
 
 		it('should throw an error for a non-numeric user ID', () => {
