@@ -384,9 +384,9 @@ export default class AddressDriverClient {
 			);
 		}
 
-		const first96BitsMask = ethers.BigNumber.from(2).pow(96).sub(1).shl(160);
+		const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
 
-		if (!userIdAsBn.and(first96BitsMask).isZero()) {
+		if (!userIdAsBn.and(mid64BitsMask).isZero()) {
 			throw DripsErrors.argumentError('Could not get user address: first 96 bits must be 0');
 		}
 
