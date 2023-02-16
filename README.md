@@ -4,7 +4,7 @@ The JavaScript SDK for 💦 [drips.network](https://drips.network/).
 
 Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drips) and splitting funding streams among multiple recipients. With Drips, no 💸 commissions, predatory 👔 middle-men, or 🏦 banks are involved.
 
-Drips is a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [docs](https://v2.docs.drips.network/docs/whats-a-drip.html) for more details about the Drips protocol and and its use.
+Drips is a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [docs](https://v2.docs.drips.network/docs/whats-a-drip.html) for more details about the Drips protocol and its use.
 
 ## Alpha Version
 

@@ -3,7 +3,7 @@ import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { assert } from 'chai';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
-import { BigNumber, constants, Wallet } from 'ethers';
+import { BigNumber, constants, ethers, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadata } from '../../src/common/types';
@@ -701,16 +701,86 @@ describe('AddressDriverClient', () => {
 		});
 	});
 
-	describe('getAddressByUserId', () => {
-		it('should return the expected result', () => {
-			const expectedAddress = '0xAEeF2381C4Ca788a7bc53421849d73e61ec47B8D';
-			const userId = '998697365313809816557299962230702436787341785997';
+	describe('getUserAddress', () => {
+		it('should return the correct Ethereum address for valid inputs', () => {
+			assert.equal(AddressDriverClient.getUserAddress('0'), ethers.constants.AddressZero);
+			assert.equal(AddressDriverClient.getUserAddress('1'), '0x0000000000000000000000000000000000000001');
+			assert.equal(
+				AddressDriverClient.getUserAddress(
+					BigNumber.from('0x000000000000000000000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').toString()
+				),
+				'0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa'
+			);
+			assert.equal(
+				AddressDriverClient.getUserAddress('12345678901234567890'),
+				'0x000000000000000000000000AB54a98CeB1F0AD2'
+			);
+			assert.equal(
+				AddressDriverClient.getUserAddress('846959513016227493489143736695218182523669298507'),
+				'0x945AFA63507e56748368D3F31ccC35043efDbd4b'
+			);
+		});
 
-			// Act
-			const actualAddress = AddressDriverClient.getUserAddress(userId);
+		it('should throw an error for a negative user ID', () => {
+			const invalidUserId = '-1234';
 
-			// Assert
-			assert.equal(actualAddress, expectedAddress);
+			try {
+				AddressDriverClient.getUserAddress(invalidUserId);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error for an out-of-bounds user ID', () => {
+			const invalidUserId =
+				'12324123241234123412342123241232412341234123421232412324123412341234212324123241234123412342';
+
+			try {
+				AddressDriverClient.getUserAddress(invalidUserId);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error for an invalid user ID', () => {
+			try {
+				AddressDriverClient.getUserAddress(
+					BigNumber.from('0xBBBBBBBB0000009990000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').toString()
+				);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+
+			assert.doesNotThrow(
+				() =>
+					AddressDriverClient.getUserAddress(
+						BigNumber.from('0xBBBBBBBB0000000000000000AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA').toString()
+					),
+				'Error was thrown'
+			);
+		});
+
+		it('should throw an error for a non-numeric user ID', () => {
+			const invalidUserId = 'notanumber';
+
+			try {
+				AddressDriverClient.getUserAddress(invalidUserId);
+				assert.fail('Error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error if userId is not a string', () => {
+			try {
+				AddressDriverClient.getUserAddress(123 as any);
+				assert.fail('Expected an error to be thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
 		});
 	});
 

@@ -372,11 +372,29 @@ export default class AddressDriverClient {
 	 * @returns The user's address.
 	 */
 	public static getUserAddress = (userId: string): string => {
-		const userIdAsBN = BigNumber.from(userId);
+		if (!userId || typeof userId !== 'string') {
+			throw DripsErrors.argumentError(`Could not get user address: : ${userId} is not a valid string.`);
+		}
 
-		const mask = BigNumber.from(1).shl(160).sub(BigNumber.from(1));
-		const userAddress = userIdAsBN.and(mask);
+		const userIdAsBn = ethers.BigNumber.from(userId);
 
-		return ethers.utils.getAddress(userAddress.toHexString());
+		if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
+			throw DripsErrors.argumentError(
+				`Could not get user address: ${userId} is not a valid positive number within the range of a uint256.`
+			);
+		}
+
+		const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
+
+		if (!userIdAsBn.and(mid64BitsMask).isZero()) {
+			throw DripsErrors.argumentError('Could not get user address: first 64 (after first 32) bits must be 0');
+		}
+
+		const mask = ethers.BigNumber.from(2).pow(160).sub(1);
+		const address = userIdAsBn.and(mask).toHexString();
+
+		const paddedAddress = ethers.utils.hexZeroPad(address, 20);
+
+		return ethers.utils.getAddress(paddedAddress);
 	};
 }
