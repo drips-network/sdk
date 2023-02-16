@@ -387,7 +387,7 @@ export default class AddressDriverClient {
 		const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
 
 		if (!userIdAsBn.and(mid64BitsMask).isZero()) {
-			throw DripsErrors.argumentError('Could not get user address: first 96 bits must be 0');
+			throw DripsErrors.argumentError('Could not get user address: first 64 (after first 32) bits must be 0');
 		}
 
 		const mask = ethers.BigNumber.from(2).pow(160).sub(1);
