@@ -1,10 +1,8 @@
 import { assert } from 'chai';
 import { BigNumber, Wallet } from 'ethers';
-import type { StubbedInstance } from 'ts-sinon';
-import sinon, { stubInterface } from 'ts-sinon';
-import { AddressDriver__factory, DripsHub__factory } from '../../contracts';
-import type { AddressDriverInterface } from '../../contracts/AddressDriver';
-import type { DripsHubInterface } from '../../contracts/DripsHub';
+import { Interface } from 'ethers/lib/utils';
+import sinon from 'ts-sinon';
+import AddressDriverEncoder from '../../src/AddressDriver/AddressDriverEncoder';
 import { AddressDriverPresets } from '../../src/AddressDriver/AddressDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import { formatDripsReceivers, formatSplitReceivers, keyFromString, valueFromString } from '../../src/common/internals';
@@ -13,17 +11,6 @@ import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 
 describe('AddressDriverPresets', () => {
-	let dripsHubInterfaceStub: StubbedInstance<DripsHubInterface>;
-	let addressDriverInterfaceStub: StubbedInstance<AddressDriverInterface>;
-
-	beforeEach(async () => {
-		dripsHubInterfaceStub = stubInterface<DripsHubInterface>();
-		addressDriverInterfaceStub = stubInterface<AddressDriverInterface>();
-
-		sinon.stub(AddressDriver__factory, 'createInterface').returns(addressDriverInterfaceStub);
-		sinon.stub(DripsHub__factory, 'createInterface').returns(dripsHubInterfaceStub);
-	});
-
 	afterEach(() => {
 		sinon.restore();
 	});
@@ -187,7 +174,9 @@ describe('AddressDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address
 			};
 
-			addressDriverInterfaceStub.encodeFunctionData
+			const stub = sinon.stub(AddressDriverEncoder.prototype, 'encodeFunctionData');
+
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'setDrips'),
 					sinon.match.array.deepEquals([
@@ -200,9 +189,9 @@ describe('AddressDriverPresets', () => {
 						payload.transferToAddress
 					])
 				)
-				.returns('setDrips');
+				.callsFake(() => 'setDrips');
 
-			addressDriverInterfaceStub.encodeFunctionData
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'emitUserMetadata'),
 					sinon.match(
@@ -212,7 +201,7 @@ describe('AddressDriverPresets', () => {
 					)
 				)
 
-				.returns('emitUserMetadata');
+				.callsFake(() => 'emitUserMetadata');
 
 			// Act
 			const preset = AddressDriverPresets.Presets.createNewStreamFlow(payload);
@@ -269,6 +258,8 @@ describe('AddressDriverPresets', () => {
 					}
 				]
 			};
+
+			sinon.stub(Interface.prototype, 'encodeFunctionData');
 
 			// Act
 			AddressDriverPresets.Presets.createCollectFlow(payload);
@@ -415,21 +406,23 @@ describe('AddressDriverPresets', () => {
 				]
 			};
 
-			dripsHubInterfaceStub.encodeFunctionData
+			const stub = sinon.stub(Interface.prototype, 'encodeFunctionData');
+
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'squeezeDrips'),
 					sinon.match.array
 				)
-				.returns('squeezeDrips');
+				.callsFake(() => 'squeezeDrips');
 
-			dripsHubInterfaceStub.encodeFunctionData
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'receiveDrips'),
 					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
 				)
 				.returns('receiveDrips');
 
-			dripsHubInterfaceStub.encodeFunctionData
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'split'),
 					sinon.match.array.deepEquals([
@@ -438,14 +431,14 @@ describe('AddressDriverPresets', () => {
 						formatSplitReceivers(payload.currentReceivers)
 					])
 				)
-				.returns('split');
+				.callsFake(() => 'split');
 
-			addressDriverInterfaceStub.encodeFunctionData
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
 				)
-				.returns('collect');
+				.callsFake(() => 'collect');
 
 			// Act
 			const preset = AddressDriverPresets.Presets.createCollectFlow(payload);
@@ -481,19 +474,21 @@ describe('AddressDriverPresets', () => {
 				]
 			};
 
-			dripsHubInterfaceStub.encodeFunctionData
+			const stub = sinon.stub(Interface.prototype, 'encodeFunctionData');
+
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'split'),
 					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.currentReceivers])
 				)
-				.returns('split');
+				.callsFake(() => 'split');
 
-			addressDriverInterfaceStub.encodeFunctionData
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
 				)
-				.returns('collect');
+				.callsFake(() => 'collect');
 
 			// Act
 			const preset = AddressDriverPresets.Presets.createCollectFlow(payload, true, false);
@@ -526,19 +521,21 @@ describe('AddressDriverPresets', () => {
 				]
 			};
 
-			dripsHubInterfaceStub.encodeFunctionData
+			const stub = sinon.stub(Interface.prototype, 'encodeFunctionData');
+
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'receiveDrips'),
 					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
 				)
-				.returns('receiveDrips');
+				.callsFake(() => 'receiveDrips');
 
-			addressDriverInterfaceStub.encodeFunctionData
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
 				)
-				.returns('collect');
+				.callsFake(() => 'collect');
 
 			// Act
 			const preset = AddressDriverPresets.Presets.createCollectFlow(payload, false, true);
@@ -571,12 +568,14 @@ describe('AddressDriverPresets', () => {
 				]
 			};
 
-			addressDriverInterfaceStub.encodeFunctionData
+			const stub = sinon.stub(Interface.prototype, 'encodeFunctionData');
+
+			stub
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenAddress, payload.transferToAddress])
 				)
-				.returns('collect');
+				.callsFake(() => 'collect');
 
 			// Act
 			const preset = AddressDriverPresets.Presets.createCollectFlow(payload, true, true);

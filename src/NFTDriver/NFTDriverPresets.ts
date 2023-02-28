@@ -1,6 +1,7 @@
 import type { CallStruct } from 'contracts/Caller';
 import type { BigNumberish } from 'ethers';
 import { BigNumber } from 'ethers';
+import DripsHubEncoder from '../DripsHub/DripsHubEncoder';
 import {
 	validateCollectInput,
 	validateEmitUserMetadataInput,
@@ -19,7 +20,7 @@ import {
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
-import { NFTDriver__factory, DripsHub__factory } from '../../contracts/factories';
+import NFTDriverEncoder from './NFTDriverEncoder';
 
 export namespace NFTDriverPresets {
 	export type NewStreamFlowPayload = {
@@ -129,10 +130,12 @@ export namespace NFTDriverPresets {
 			);
 			validateEmitUserMetadataInput(userMetadata);
 
+			const nftDriverEncoder = new NFTDriverEncoder();
+
 			const setDrips: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: NFTDriver__factory.createInterface().encodeFunctionData('setDrips', [
+				data: nftDriverEncoder.encodeFunctionData('setDrips', [
 					tokenId,
 					tokenAddress,
 					formatDripsReceivers(currentReceivers),
@@ -149,10 +152,7 @@ export namespace NFTDriverPresets {
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: NFTDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [
-					tokenId,
-					userMetadataAsBytes
-				])
+				data: nftDriverEncoder.encodeFunctionData('emitUserMetadata', [tokenId, userMetadataAsBytes])
 			};
 
 			return [setDrips, emitUserMetadata];
@@ -215,7 +215,7 @@ export namespace NFTDriverPresets {
 				const squeeze: CallStruct = {
 					value: 0,
 					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('squeezeDrips', [
+					data: new DripsHubEncoder().encodeFunctionData('squeezeDrips', [
 						userId,
 						tokenAddress,
 						args.senderId,
@@ -227,16 +227,14 @@ export namespace NFTDriverPresets {
 				flow.push(squeeze);
 			});
 
+			const dripsHubEncoder = new DripsHubEncoder();
+
 			if (!skipReceive) {
 				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 				const receive: CallStruct = {
 					value: 0,
 					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [
-						userId,
-						tokenAddress,
-						maxCycles
-					])
+					data: dripsHubEncoder.encodeFunctionData('receiveDrips', [userId, tokenAddress, maxCycles])
 				};
 
 				flow.push(receive);
@@ -247,7 +245,7 @@ export namespace NFTDriverPresets {
 				const split: CallStruct = {
 					value: 0,
 					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('split', [
+					data: dripsHubEncoder.encodeFunctionData('split', [
 						userId,
 						tokenAddress,
 						formatSplitReceivers(currentReceivers)
@@ -261,11 +259,7 @@ export namespace NFTDriverPresets {
 			const collect: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: NFTDriver__factory.createInterface().encodeFunctionData('collect', [
-					tokenId,
-					tokenAddress,
-					transferToAddress
-				])
+				data: new NFTDriverEncoder().encodeFunctionData('collect', [tokenId, tokenAddress, transferToAddress])
 			};
 
 			flow.push(collect);
