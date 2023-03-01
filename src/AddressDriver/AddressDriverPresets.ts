@@ -1,7 +1,6 @@
 import type { CallStruct } from 'contracts/Caller';
 import type { BigNumberish } from 'ethers';
 import { BigNumber } from 'ethers';
-import DripsHubEncoder from '../DripsHub/DripsHubEncoder';
 import {
 	validateCollectInput,
 	validateEmitUserMetadataInput,
@@ -20,7 +19,7 @@ import {
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
-import AddressDriverEncoder from './AddressDriverEncoder';
+import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
 
 export namespace AddressDriverPresets {
 	export type NewStreamFlowPayload = {
@@ -119,12 +118,10 @@ export namespace AddressDriverPresets {
 			);
 			validateEmitUserMetadataInput(userMetadata);
 
-			const addressDriverEncoder = new AddressDriverEncoder();
-
 			const setDrips: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: addressDriverEncoder.encodeFunctionData('setDrips', [
+				data: AddressDriver__factory.createInterface().encodeFunctionData('setDrips', [
 					tokenAddress,
 					formatDripsReceivers(currentReceivers),
 					balanceDelta,
@@ -140,7 +137,7 @@ export namespace AddressDriverPresets {
 			const emitUserMetadata: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: addressDriverEncoder.encodeFunctionData('emitUserMetadata', [userMetadataAsBytes])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadataAsBytes])
 			};
 
 			return [setDrips, emitUserMetadata];
@@ -194,7 +191,7 @@ export namespace AddressDriverPresets {
 				const squeeze: CallStruct = {
 					value: 0,
 					to: dripsHubAddress,
-					data: new DripsHubEncoder().encodeFunctionData('squeezeDrips', [
+					data: DripsHub__factory.createInterface().encodeFunctionData('squeezeDrips', [
 						userId,
 						tokenAddress,
 						args.senderId,
@@ -206,14 +203,16 @@ export namespace AddressDriverPresets {
 				flow.push(squeeze);
 			});
 
-			const dripsHubEncoder = new DripsHubEncoder();
-
 			if (!skipReceive) {
 				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 				const receive: CallStruct = {
 					value: 0,
 					to: dripsHubAddress,
-					data: dripsHubEncoder.encodeFunctionData('receiveDrips', [userId, tokenAddress, maxCycles])
+					data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [
+						userId,
+						tokenAddress,
+						maxCycles
+					])
 				};
 
 				flow.push(receive);
@@ -224,7 +223,7 @@ export namespace AddressDriverPresets {
 				const split: CallStruct = {
 					value: 0,
 					to: dripsHubAddress,
-					data: dripsHubEncoder.encodeFunctionData('split', [
+					data: DripsHub__factory.createInterface().encodeFunctionData('split', [
 						userId,
 						tokenAddress,
 						formatSplitReceivers(currentReceivers)
@@ -238,7 +237,7 @@ export namespace AddressDriverPresets {
 			const collect: CallStruct = {
 				value: 0,
 				to: driverAddress,
-				data: new AddressDriverEncoder().encodeFunctionData('collect', [tokenAddress, transferToAddress])
+				data: AddressDriver__factory.createInterface().encodeFunctionData('collect', [tokenAddress, transferToAddress])
 			};
 
 			flow.push(collect);
