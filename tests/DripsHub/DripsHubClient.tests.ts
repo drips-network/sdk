@@ -110,7 +110,7 @@ describe('DripsHubClient', () => {
 			const client = await DripsHubClient.create(providerStub, signerStub, customDriverAddress);
 
 			// Assert
-			assert.equal(client.driverAddress, customDriverAddress);
+			assert.equal(client.contractAddress, customDriverAddress);
 		});
 
 		it('should create a fully initialized client instance', async () => {
@@ -119,7 +119,7 @@ describe('DripsHubClient', () => {
 			assert.equal(testDripsHubClient.provider, providerStub);
 			assert.equal(testDripsHubClient.signer!.provider, providerStub);
 			assert.equal(
-				testDripsHubClient.driverAddress,
+				testDripsHubClient.contractAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB
 			);
 		});

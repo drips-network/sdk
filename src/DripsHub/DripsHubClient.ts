@@ -24,7 +24,7 @@ import type { CollectableBalance, DripsState, ReceivableBalance, SplitResult, Sp
  */
 export default class DripsHubClient {
 	#driver!: DripsHub;
-	#driverAddress!: string;
+	#contractAddress!: string;
 	#provider!: Provider;
 	#signer: Signer | undefined;
 
@@ -45,8 +45,8 @@ export default class DripsHubClient {
 	}
 
 	/** Returns the `DripsHub`'s address to which the `DripsHubClient` is connected. */
-	public get driverAddress(): string {
-		return this.#driverAddress;
+	public get contractAddress(): string {
+		return this.#contractAddress;
 	}
 
 	private constructor() {}
@@ -85,14 +85,14 @@ export default class DripsHubClient {
 			}
 
 			const network = await provider.getNetwork();
-			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
+			const contractAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
 
 			const client = new DripsHubClient();
 
 			client.#signer = signer;
 			client.#provider = provider;
-			client.#driverAddress = driverAddress;
-			client.#driver = DripsHub__factory.connect(driverAddress, signer ?? provider);
+			client.#contractAddress = contractAddress;
+			client.#driver = DripsHub__factory.connect(contractAddress, signer ?? provider);
 			return client;
 		} catch (error: any) {
 			throw DripsErrors.clientInitializationError(`Could not create 'DripsHubClient': ${error.message}`);

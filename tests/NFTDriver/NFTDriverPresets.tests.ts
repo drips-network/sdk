@@ -1,16 +1,28 @@
 import { assert } from 'chai';
 import { BigNumber, Wallet } from 'ethers';
-import sinon from 'ts-sinon';
-import { Interface } from 'ethers/lib/utils';
+import type { StubbedInstance } from 'ts-sinon';
+import sinon, { stubInterface } from 'ts-sinon';
+import { NFTDriver__factory, DripsHub__factory } from '../../contracts';
+import type { NFTDriverInterface } from '../../contracts/NFTDriver';
+import type { DripsHubInterface } from '../../contracts/DripsHub';
 import { NFTDriverPresets } from '../../src/NFTDriver/NFTDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import { formatDripsReceivers, formatSplitReceivers, keyFromString, valueFromString } from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
-import NFTDriverEncoder from '../../src/NFTDriver/NFTDriverEncoder';
-import DripsHubEncoder from '../../src/DripsHub/DripsHubEncoder';
 
 describe('NFTDriverPresets', () => {
+	let dripsHubInterfaceStub: StubbedInstance<DripsHubInterface>;
+	let nftDriverInterfaceStub: StubbedInstance<NFTDriverInterface>;
+
+	beforeEach(async () => {
+		dripsHubInterfaceStub = stubInterface<DripsHubInterface>();
+		nftDriverInterfaceStub = stubInterface<NFTDriverInterface>();
+
+		sinon.stub(NFTDriver__factory, 'createInterface').returns(nftDriverInterfaceStub);
+		sinon.stub(DripsHub__factory, 'createInterface').returns(dripsHubInterfaceStub);
+	});
+
 	afterEach(() => {
 		sinon.restore();
 	});
@@ -192,9 +204,7 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address
 			};
 
-			const stub = sinon.stub(NFTDriverEncoder.prototype, 'encodeFunctionData');
-
-			stub
+			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'setDrips'),
 					sinon.match.array.deepEquals([
@@ -208,9 +218,9 @@ describe('NFTDriverPresets', () => {
 						payload.transferToAddress
 					])
 				)
-				.callsFake(() => 'setDrips');
+				.returns('setDrips');
 
-			stub
+			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'emitUserMetadata'),
 					sinon.match(
@@ -220,7 +230,7 @@ describe('NFTDriverPresets', () => {
 							values[1][0].value === valueFromString(payload.userMetadata[0].value)
 					)
 				)
-				.callsFake(() => 'emitUserMetadata');
+				.returns('emitUserMetadata');
 
 			// Act
 			const preset = NFTDriverPresets.Presets.createNewStreamFlow(payload);
@@ -296,8 +306,6 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			sinon.stub(Interface.prototype, 'encodeFunctionData');
-
 			// Act
 			NFTDriverPresets.Presets.createCollectFlow(payload);
 
@@ -343,8 +351,6 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			sinon.stub(Interface.prototype, 'encodeFunctionData');
-
 			// Act
 			NFTDriverPresets.Presets.createCollectFlow(payload);
 
@@ -384,8 +390,6 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			sinon.stub(Interface.prototype, 'encodeFunctionData');
-
 			// Act
 			NFTDriverPresets.Presets.createCollectFlow(payload);
 
@@ -424,8 +428,6 @@ describe('NFTDriverPresets', () => {
 					}
 				]
 			};
-
-			sinon.stub(Interface.prototype, 'encodeFunctionData');
 
 			// Act
 			NFTDriverPresets.Presets.createCollectFlow(payload);
@@ -480,23 +482,21 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			const stub = sinon.stub(Interface.prototype, 'encodeFunctionData');
-
-			stub
+			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'squeezeDrips'),
 					sinon.match.array
 				)
-				.callsFake(() => 'squeezeDrips');
+				.returns('squeezeDrips');
 
-			stub
+			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'receiveDrips'),
 					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
 				)
-				.callsFake(() => 'receiveDrips');
+				.returns('receiveDrips');
 
-			stub
+			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'split'),
 					sinon.match.array.deepEquals([
@@ -505,14 +505,14 @@ describe('NFTDriverPresets', () => {
 						formatSplitReceivers(payload.currentReceivers)
 					])
 				)
-				.callsFake(() => 'split');
+				.returns('split');
 
-			stub
+			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
 				)
-				.callsFake(() => 'collect');
+				.returns('collect');
 
 			// Act
 			const preset = NFTDriverPresets.Presets.createCollectFlow(payload);
@@ -549,21 +549,19 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			sinon
-				.stub(DripsHubEncoder.prototype, 'encodeFunctionData')
+			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'split'),
 					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.currentReceivers])
 				)
-				.callsFake(() => 'split');
+				.returns('split');
 
-			sinon
-				.stub(NFTDriverEncoder.prototype, 'encodeFunctionData')
+			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
 				)
-				.callsFake(() => 'collect');
+				.returns('collect');
 
 			// Act
 			const preset = NFTDriverPresets.Presets.createCollectFlow(payload, true, false);
@@ -597,21 +595,19 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			sinon
-				.stub(DripsHubEncoder.prototype, 'encodeFunctionData')
+			dripsHubInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'receiveDrips'),
 					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
 				)
-				.callsFake(() => 'receiveDrips');
+				.returns('receiveDrips');
 
-			sinon
-				.stub(NFTDriverEncoder.prototype, 'encodeFunctionData')
+			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
 				)
-				.callsFake(() => 'collect');
+				.returns('collect');
 
 			// Act
 			const preset = NFTDriverPresets.Presets.createCollectFlow(payload, false, true);
@@ -644,13 +640,12 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			sinon
-				.stub(NFTDriverEncoder.prototype, 'encodeFunctionData')
+			nftDriverInterfaceStub.encodeFunctionData
 				.withArgs(
 					sinon.match((s: string) => s === 'collect'),
 					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
 				)
-				.callsFake(() => 'collect');
+				.returns('collect');
 
 			// Act
 			const preset = NFTDriverPresets.Presets.createCollectFlow(payload, true, true);
