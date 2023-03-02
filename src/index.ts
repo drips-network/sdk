@@ -35,6 +35,7 @@ import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
 // Encoders
+export { default as ERC20TxFactory } from './ERC20/ERC20TxFactory';
 export { default as DripsHubEncoder } from './DripsHub/DripsHubEncoder';
 export { default as NFTDriverEncoder } from './NFTDriver/NFTDriverEncoder';
 export { default as AddressDriverTxFactory } from './AddressDriver/AddressDriverTxFactory';
