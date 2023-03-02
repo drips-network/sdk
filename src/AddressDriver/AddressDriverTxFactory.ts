@@ -9,17 +9,16 @@ import type {
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish } from 'ethers';
 import { AddressDriver__factory } from '../../contracts/factories';
-import { DripsErrors } from '../common/DripsError';
 import { validateClientProvider } from '../common/validators';
 import Utils from '../utils';
 
-interface IAddressDriverEncoder
+interface IAddressDriverTxFactory
 	extends Pick<
 		AddressDriver['populateTransaction'],
 		'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
 	> {}
 
-export default class AddressDriverTxFactory implements IAddressDriverEncoder {
+export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 	#driver!: AddressDriver;
 	#driverAddress!: string;
 
@@ -28,22 +27,18 @@ export default class AddressDriverTxFactory implements IAddressDriverEncoder {
 	}
 
 	public static async create(provider: Provider, customDriverAddress?: string): Promise<AddressDriverTxFactory> {
-		try {
-			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
-			const network = await provider.getNetwork();
-			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
+		const network = await provider.getNetwork();
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
 
-			const client = new AddressDriverTxFactory();
+		const client = new AddressDriverTxFactory();
 
-			client.#driverAddress = driverAddress;
+		client.#driverAddress = driverAddress;
 
-			client.#driver = AddressDriver__factory.connect(driverAddress, provider);
+		client.#driver = AddressDriver__factory.connect(driverAddress, provider);
 
-			return client;
-		} catch (error: any) {
-			throw DripsErrors.clientInitializationError(`Could not create 'AddressDriverTxFactory': ${error.message}`);
-		}
+		return client;
 	}
 
 	collect(erc20: PromiseOrValue<string>, transferTo: PromiseOrValue<string>): Promise<PopulatedTransaction> {

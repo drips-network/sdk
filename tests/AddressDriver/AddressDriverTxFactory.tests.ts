@@ -8,7 +8,6 @@ import type { AddressDriver } from '../../contracts';
 import { AddressDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
-import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadataStruct } from '../../src/common/types';
 
@@ -53,23 +52,6 @@ describe('AddressDriverTxFactory', () => {
 				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
-		});
-
-		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await AddressDriverTxFactory.create(undefined as any);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
 		it('should set the custom driver address when provided', async () => {
