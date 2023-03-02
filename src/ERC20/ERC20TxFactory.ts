@@ -1,7 +1,7 @@
 /* eslint-disable no-dupe-class-members */
-import type { IERC20 } from 'contracts';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer } from 'ethers';
+import type { IERC20 } from '../../contracts';
 import { IERC20__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 
