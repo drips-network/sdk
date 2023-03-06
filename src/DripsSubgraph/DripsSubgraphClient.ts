@@ -248,6 +248,37 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
+	 * Returns a list of `DripsSet` events for the given receiver.
+	 * @param  {string} receiverId The receiver's user ID.
+	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
+	 * @param  {number} first The number of database entries to take. Defaults to `100`.
+	 * @returns A `Promise` which resolves to the user's `DripsSet` events.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getDripsSetEventsByReceiverUserId(
+		receiverId: string,
+		skip: number = 0,
+		first: number = 100
+	): Promise<DripsSetEvent[]> {
+		if (!receiverId) {
+			throw DripsErrors.argumentError(`Could not get 'DripSet' events: ${nameOf({ receiverId })} is missing.`);
+		}
+
+		type QueryResponse = {
+			dripsSetEvents: SubgraphTypes.DripsSetEvent[];
+		};
+
+		const response = await this.query<QueryResponse>(gql.getDripsSetEventsByReceiverUserId, {
+			receiverId,
+			skip,
+			first
+		});
+
+		return response?.data?.dripsSetEvents?.map(mapDripsSetEventToDto) || [];
+	}
+
+	/**
 	 * Returns a list of `DripsReceiverSeen` events for the given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
@@ -874,7 +905,7 @@ export default class DripsSubgraphClient {
 
 			// Filter by asset.
 			const tokenDripsSetEvents = iterationDripsSetEvents.filter(
-				(e) => e.assetId == Utils.Asset.getIdFromAddress(tokenAddress)
+				(e) => e.assetId === Utils.Asset.getIdFromAddress(tokenAddress)
 			);
 
 			dripsSetEvents.push(...tokenDripsSetEvents);

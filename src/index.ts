@@ -31,6 +31,19 @@ import {
 	ReceivedDripsEvent,
 	DripsReceiverSeenEvent
 } from './DripsSubgraph/types';
+import {
+	Stream,
+	Account,
+	Millis,
+	TimeWindow,
+	AssetConfig,
+	StreamEstimate,
+	AccountEstimate,
+	AssetConfigEstimate,
+	AssetConfigEstimates,
+	AssetConfigHistoryItem,
+	DripsSetEventWithFullReceivers
+} from './Metrics/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
@@ -67,14 +80,26 @@ export { default as constants } from './constants';
 // Utils
 export { default as Utils } from './utils';
 
+// Metrics
+export { default as Metrics } from './Metrics/ReceiverMetrics';
+export { default as AccountEstimator } from './Metrics/AccountEstimator';
+export { default as AccountService } from './Metrics/Services/AccountService';
+export { default as DripsSetEventService } from './Metrics/Services/DripsSetEventService';
+export { default as SplitsSetEventService } from './Metrics/Services/SplitsSetEventService';
+
 // Types
 export {
 	Preset,
+	Account,
+	Stream,
+	Millis,
 	CycleInfo,
+	TimeWindow,
 	SplitEvent,
 	CallStruct,
 	DripsState,
 	GivenEvent,
+	AssetConfig,
 	SqueezeArgs,
 	SplitResult,
 	SplitsEntry,
@@ -83,7 +108,9 @@ export {
 	DripsSetEvent,
 	NetworkConfig,
 	DripsReceiver,
+	StreamEstimate,
 	CollectedEvent,
+	AccountEstimate,
 	UserAssetConfig,
 	CallerInterface,
 	NFTDriverPresets,
@@ -97,11 +124,15 @@ export {
 	SqueezedDripsEvent,
 	DripsHistoryStruct,
 	CollectableBalance,
+	AssetConfigEstimate,
 	DripsReceiverStruct,
 	DripsReceiverConfig,
 	AddressDriverPresets,
 	SplitsReceiverStruct,
+	AssetConfigEstimates,
 	DripsReceiverSeenEvent,
+	AssetConfigHistoryItem,
 	AddressDriverInterface,
+	DripsSetEventWithFullReceivers,
 	ImmutableSplitsDriverInterface
 };

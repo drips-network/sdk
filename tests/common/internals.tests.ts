@@ -1,10 +1,11 @@
 import { assert } from 'chai';
 import sinon from 'ts-sinon';
+import type { BytesLike } from 'ethers';
+import { ethers } from 'ethers';
 import * as internals from '../../src/common/internals';
 import Utils from '../../src/utils';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { BytesLike, ethers } from 'ethers';
 
 describe('internals', () => {
 	afterEach(() => {
