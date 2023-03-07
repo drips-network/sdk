@@ -32,7 +32,7 @@
 				id="config"
 				name="config"
 				type="text"
-				placeholder="e.g., 269599466671506397946670150870196306736371444226143594574070383902750000"
+				placeholder="e.g., 846959513016227493489143736695218182523669298507"
 				bind:value={userIdInput}
 			/>
 		</div>
