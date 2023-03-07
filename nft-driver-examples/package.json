@@ -35,6 +35,7 @@
 	"dependencies": {
 		"@walletconnect/web3-provider": "^1.2.2",
 		"ethers": "^5.7.2",
+		"radicle-drips": "github:radicle-dev/drips-js-sdk",
 		"svelte-json-tree": "^1.0.0",
 		"web3modal": "^1.9.9"
 	}
