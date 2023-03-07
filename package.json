@@ -38,7 +38,8 @@
 		"test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts' --exclude 'tests/**/*.integration.tests.ts'",
 		"test:integration": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.integration.tests.ts'",
 		"test:coverage": "nyc npm run test",
-		"generate-graphql-types": "graphql-codegen --config graphql.codegen.yml"
+		"generate-graphql-types": "graphql-codegen --config graphql.codegen.yml",
+		"commit": "npx cz"
 	},
 	"devDependencies": {
 		"@ethersproject/providers": "^5.6.8",
