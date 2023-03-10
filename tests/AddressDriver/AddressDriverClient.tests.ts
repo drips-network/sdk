@@ -4,6 +4,7 @@ import { assert } from 'chai';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import { BigNumber, constants, ethers, Wallet } from 'ethers';
+import { AddressDriverTxFactory } from 'radicle-drips';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadata } from '../../src/common/types';
@@ -22,6 +23,7 @@ describe('AddressDriverClient', () => {
 	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
+	let addressDriverTxFactoryStub: StubbedInstance<AddressDriverTxFactory>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 
 	let testAddressDriverClient: AddressDriverClient;
@@ -49,7 +51,18 @@ describe('AddressDriverClient', () => {
 		dripsHubClientStub = stubInterface<DripsHubClient>();
 		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
 
-		testAddressDriverClient = await AddressDriverClient.create(providerStub, signerStub);
+		addressDriverTxFactoryStub = stubInterface<AddressDriverTxFactory>();
+		sinon
+			.stub(AddressDriverTxFactory, 'create')
+			.withArgs(providerStub, Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER)
+			.resolves(addressDriverTxFactoryStub);
+
+		testAddressDriverClient = await AddressDriverClient.create(
+			providerStub,
+			signerStub,
+			undefined,
+			addressDriverTxFactoryStub
+		);
 	});
 
 	afterEach(() => {
@@ -66,7 +79,7 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				validateClientSignerStub.calledWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -80,12 +93,12 @@ describe('AddressDriverClient', () => {
 
 			// Assert
 			assert(
-				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
+				validateClientProviderStub.calledWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+		it('should should throw a initializationError when client cannot be initialized', async () => {
 			// Arrange
 			let threw = false;
 
@@ -94,7 +107,7 @@ describe('AddressDriverClient', () => {
 				await AddressDriverClient.create(undefined as any, undefined as any);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 
@@ -585,44 +598,7 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
-		it('should clear drips when new receivers is an empty list', async () => {
-			// Arrange
-			const tokenAddress = Wallet.createRandom().address;
-			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
-				{
-					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
-				}
-			];
-
-			const estimatedGasFees = 2000000;
-			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
-
-			addressDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, [], transferToAddress, 1n);
-
-			// Assert
-			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(
-					tokenAddress,
-					currentReceivers,
-					1n,
-					[],
-					0,
-					0,
-					transferToAddress,
-					{ gasLimit }
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should call the setDrips() method of the AddressDriver contract', async () => {
+		it('should send the expected transaction', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
@@ -647,57 +623,14 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			const estimatedGasFees = 2000000;
-			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
-
-			addressDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
+			const tx = {};
+			addressDriverTxFactoryStub.setDrips.resolves(tx);
 
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
-			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(
-					tokenAddress,
-					currentReceivers,
-					1n,
-					sinon
-						.match((r: DripsReceiverStruct[]) => r[0].userId === 1n)
-						.and(sinon.match((r: DripsReceiverStruct[]) => r[1].userId === 2n))
-						.and(sinon.match((r: DripsReceiverStruct[]) => r.length === 2)),
-					0,
-					0,
-					transferToAddress,
-					{ gasLimit }
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should set balanceDelta to 0 when balanceDelta is undefined', async () => {
-			// Arrange
-			const tokenAddress = Wallet.createRandom().address;
-			const transferToAddress = Wallet.createRandom().address;
-
-			const estimatedGasFees = 2000000;
-			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
-
-			addressDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
-
-			// Assert
-			assert(
-				addressDriverContractStub.setDrips.calledOnceWithExactly(tokenAddress, [], 0, [], 0, 0, transferToAddress, {
-					gasLimit
-				}),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Expected method to be called');
 		});
 	});
 

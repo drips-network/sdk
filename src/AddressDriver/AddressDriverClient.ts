@@ -1,3 +1,4 @@
+/* eslint-disable no-dupe-class-members */
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
@@ -18,11 +19,12 @@ import { IERC20__factory, AddressDriver__factory } from '../../contracts';
 import {
 	nameOf,
 	isNullOrUndefined,
-	formatDripsReceivers,
 	formatSplitReceivers,
 	ensureSignerExists,
 	createFromStrings
 } from '../common/internals';
+import type { IAddressDriverTxFactory } from './AddressDriverTxFactory';
+import AddressDriverTxFactory from './AddressDriverTxFactory';
 
 /**
  * A client for managing Drips accounts identified by Ethereum addresses.
@@ -33,6 +35,7 @@ export default class AddressDriverClient {
 	#driverAddress!: string;
 	#provider!: Provider;
 	#signer: Signer | undefined;
+	#addressDriverTxFactory!: IAddressDriverTxFactory;
 
 	/** Returns the client's `provider`. */
 	public get provider(): Provider {
@@ -66,41 +69,55 @@ export default class AddressDriverClient {
 	 * @param  {Signer} signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
 	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
-	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
+	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
-	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
+	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
 	 */
 	public static async create(
 		provider: Provider,
 		signer?: Signer,
 		customDriverAddress?: string
+	): Promise<AddressDriverClient>;
+	public static async create(
+		provider: Provider,
+		signer?: Signer,
+		customDriverAddress?: string,
+		addressDriverTxFactory?: IAddressDriverTxFactory
+	): Promise<AddressDriverClient>;
+	public static async create(
+		provider: Provider,
+		signer?: Signer,
+		customDriverAddress?: string,
+		addressDriverTxFactory?: IAddressDriverTxFactory
 	): Promise<AddressDriverClient> {
-		try {
-			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
-			if (signer) {
-				await validateClientSigner(signer);
-
-				if (!signer.provider) {
-					// eslint-disable-next-line no-param-reassign
-					signer = signer.connect(provider);
-				}
+		if (signer) {
+			if (!signer.provider) {
+				// eslint-disable-next-line no-param-reassign
+				signer = signer.connect(provider);
 			}
 
-			const network = await provider.getNetwork();
-			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
-
-			const client = new AddressDriverClient();
-
-			client.#signer = signer;
-			client.#provider = provider;
-			client.#driverAddress = driverAddress;
-			client.#driver = AddressDriver__factory.connect(driverAddress, signer ?? provider);
-			return client;
-		} catch (error: any) {
-			throw DripsErrors.clientInitializationError(`Could not create 'AddressDriverClient': ${error.message}`);
+			await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 		}
+
+		const network = await provider.getNetwork();
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
+
+		const client = new AddressDriverClient();
+
+		client.#signer = signer;
+		client.#provider = provider;
+		client.#driverAddress = driverAddress;
+		client.#driver = AddressDriver__factory.connect(driverAddress, signer ?? provider);
+
+		if (signer) {
+			client.#addressDriverTxFactory =
+				addressDriverTxFactory || (await AddressDriverTxFactory.create(signer, customDriverAddress));
+		}
+
+		return client;
 	}
 
 	/**
@@ -302,6 +319,7 @@ export default class AddressDriverClient {
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
+
 		validateSetDripsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
@@ -316,35 +334,17 @@ export default class AddressDriverClient {
 			balanceDelta
 		);
 
-		const formattedCurrentReceivers = formatDripsReceivers(currentReceivers);
-		const formattedNewReceivers = formatDripsReceivers(newReceivers);
-
-		const estimatedGasFees = (
-			await this.#driver.estimateGas.setDrips(
-				tokenAddress,
-				formattedCurrentReceivers,
-				balanceDelta,
-				formattedNewReceivers,
-				0,
-				0,
-				transferToAddress
-			)
-		).toNumber();
-
-		const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
-
-		return this.#driver.setDrips(
+		const tx = await this.#addressDriverTxFactory.setDrips(
 			tokenAddress,
-			formattedCurrentReceivers,
+			currentReceivers,
 			balanceDelta,
-			formattedNewReceivers,
+			newReceivers,
 			0,
 			0,
-			transferToAddress,
-			{
-				gasLimit
-			}
+			transferToAddress
 		);
+
+		return this.#signer.sendTransaction(tx);
 	}
 
 	/**

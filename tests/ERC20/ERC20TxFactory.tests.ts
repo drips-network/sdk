@@ -1,30 +1,46 @@
-import { JsonRpcSigner } from '@ethersproject/providers';
+import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import { assert } from 'chai';
 import type { StubbedInstance } from 'ts-sinon';
-import sinon, { stubInterface } from 'ts-sinon';
+import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { Wallet } from 'ethers';
+import type { Network } from '@ethersproject/networks';
 import type { IERC20 } from '../../contracts';
 import { IERC20__factory } from '../../contracts';
 import ERC20TxFactory from '../../src/ERC20/ERC20TxFactory';
 import * as validators from '../../src/common/validators';
+import Utils from '../../src/utils';
 
 describe('ERC20TxFactory', () => {
 	const TOKEN_ADDRESS = Wallet.createRandom().address;
 
-	let signerStub: sinon.SinonStubbedInstance<JsonRpcSigner>;
+	let networkStub: StubbedInstance<Network>;
 	let IERC20ContractStub: StubbedInstance<IERC20>;
+	let signerStub: sinon.SinonStubbedInstance<JsonRpcSigner>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 
 	let testERC20TxFactory: ERC20TxFactory;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
+		const TEST_CHAIN_ID = 5; // Goerli.
+
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
+
 		signerStub = sinon.createStubInstance(JsonRpcSigner);
 		signerStub.getAddress.resolves(Wallet.createRandom().address);
 
-		IERC20ContractStub = stubInterface<IERC20>();
-		sinon.stub(IERC20__factory, 'connect').withArgs(TOKEN_ADDRESS, signerStub).returns(IERC20ContractStub);
+		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 
-		testERC20TxFactory = await ERC20TxFactory.create(signerStub, TOKEN_ADDRESS);
+		providerStub.getNetwork.resolves(networkStub);
+
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
+
+		IERC20ContractStub = stubInterface<IERC20>();
+		sinon.stub(IERC20__factory, 'connect').withArgs(TOKEN_ADDRESS, signerWithProviderStub).returns(IERC20ContractStub);
+
+		testERC20TxFactory = await ERC20TxFactory.create(signerWithProviderStub, TOKEN_ADDRESS);
 	});
 
 	afterEach(() => {
@@ -37,11 +53,11 @@ describe('ERC20TxFactory', () => {
 			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
 			// Act
-			await ERC20TxFactory.create(signerStub, TOKEN_ADDRESS);
+			await ERC20TxFactory.create(signerWithProviderStub, TOKEN_ADDRESS);
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				validateClientSignerStub.calledOnceWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});

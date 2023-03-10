@@ -1,20 +1,23 @@
 import type { Network } from '@ethersproject/networks';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import { assert } from 'chai';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
-import { Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import type { AddressDriver } from '../../contracts';
 import { AddressDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
 import * as validators from '../../src/common/validators';
 import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadataStruct } from '../../src/common/types';
+import { formatDripsReceivers } from '../../src/common/internals';
 
 describe('AddressDriverTxFactory', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
 
 	let networkStub: StubbedInstance<Network>;
+	let signerStub: StubbedInstance<JsonRpcSigner>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 
@@ -23,16 +26,24 @@ describe('AddressDriverTxFactory', () => {
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
 		providerStub = sinon.createStubInstance(JsonRpcProvider);
+
+		signerStub = sinon.createStubInstance(JsonRpcSigner);
+		signerStub.getAddress.resolves(Wallet.createRandom().address);
+
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
+
 		providerStub.getNetwork.resolves(networkStub);
+
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		addressDriverContractStub = stubInterface<AddressDriver>();
 		sinon
 			.stub(AddressDriver__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, providerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerWithProviderStub)
 			.returns(addressDriverContractStub);
 
-		testAddressDriverTxFactory = await AddressDriverTxFactory.create(providerStub);
+		testAddressDriverTxFactory = await AddressDriverTxFactory.create(signerWithProviderStub);
 	});
 
 	afterEach(() => {
@@ -40,16 +51,16 @@ describe('AddressDriverTxFactory', () => {
 	});
 
 	describe('create', async () => {
-		it('should validate the provider', async () => {
+		it('should validate the signer', async () => {
 			// Arrange
-			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
 			// Act
-			await AddressDriverTxFactory.create(providerStub);
+			await AddressDriverTxFactory.create(signerWithProviderStub);
 
 			// Assert
 			assert(
-				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
+				validateClientSignerStub.calledOnceWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -59,7 +70,7 @@ describe('AddressDriverTxFactory', () => {
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await AddressDriverTxFactory.create(providerStub, customDriverAddress);
+			const client = await AddressDriverTxFactory.create(signerWithProviderStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
@@ -122,14 +133,27 @@ describe('AddressDriverTxFactory', () => {
 			// Arrange
 			const stub = sinon.stub();
 			addressDriverContractStub.populateTransaction.setDrips = stub;
-			const currReceivers = [] as DripsReceiverStruct[];
-			const newReceivers = [] as DripsReceiverStruct[];
+			const currReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
+			const newReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
+
+			addressDriverContractStub.estimateGas.setDrips = sinon.stub().resolves(BigNumber.from(100));
 
 			// Act
-			await testAddressDriverTxFactory.setDrips('0x1234', currReceivers, '0x5678', newReceivers, '0x9abc');
+			await testAddressDriverTxFactory.setDrips('0x1234', currReceivers, '0x5678', newReceivers, 0, 0, '0x9abc');
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', currReceivers, '0x5678', newReceivers, 0, 0, '0x9abc'));
+			assert(
+				stub.calledOnceWithExactly(
+					'0x1234',
+					formatDripsReceivers(currReceivers),
+					'0x5678',
+					formatDripsReceivers(newReceivers),
+					0,
+					0,
+					'0x9abc',
+					{ gasLimit: 120 }
+				)
+			);
 		});
 	});
 

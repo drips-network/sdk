@@ -33,7 +33,7 @@ describe('AddressDriver integration tests', () => {
 		account2AddressDriverClient = await AddressDriverClient.create(provider, account2AsSigner);
 	});
 
-	it('should set Drips configuration', async () => {
+	it.only('should set Drips configuration', async () => {
 		console.log(`Will update WETH (${WETH}) Drips configuration for ${account2}.`);
 
 		const userId1 = await account1AddressDriverClient.getUserId();

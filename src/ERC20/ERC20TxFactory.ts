@@ -1,6 +1,7 @@
 /* eslint-disable no-dupe-class-members */
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer } from 'ethers';
+import { Utils } from 'radicle-drips';
 import type { IERC20 } from '../../contracts';
 import { IERC20__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
@@ -16,7 +17,7 @@ export default class ERC20TxFactory implements IERC20TxFactory {
 	}
 
 	public static async create(singer: Signer, tokenAddress: string): Promise<ERC20TxFactory> {
-		await validateClientSigner(singer);
+		await validateClientSigner(singer, Utils.Network.SUPPORTED_CHAINS);
 
 		const client = new ERC20TxFactory();
 
