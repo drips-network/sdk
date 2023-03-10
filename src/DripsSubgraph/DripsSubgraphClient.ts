@@ -3,7 +3,7 @@
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import constants from '../constants';
-import { nameOf, valueFromString, keyFromString } from '../common/internals';
+import { nameOf, valueFromString, keyFromString, formatDripsReceivers } from '../common/internals';
 import Utils from '../utils';
 import { validateAddress } from '../common/validators';
 import { DripsErrors } from '../common/DripsError';
@@ -878,7 +878,7 @@ export default class DripsSubgraphClient {
 
 			// Filter by asset.
 			const tokenDripsSetEvents = iterationDripsSetEvents.filter(
-				(e) => e.assetId == Utils.Asset.getIdFromAddress(tokenAddress)
+				(e) => e.assetId === Utils.Asset.getIdFromAddress(tokenAddress)
 			);
 
 			dripsSetEvents.push(...tokenDripsSetEvents);
@@ -897,11 +897,13 @@ export default class DripsSubgraphClient {
 		// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
 		dripsSetEvents = dripsSetEvents.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 
-		// Return the most recent event's receivers.
-		return dripsSetEvents[0].dripsReceiverSeenEvents.map((d) => ({
-			config: d.config,
-			userId: d.receiverUserId
-		}));
+		// Return the most recent event's receivers formatted as expected by the protocol.
+		return formatDripsReceivers(
+			dripsSetEvents[0].dripsReceiverSeenEvents.map((d) => ({
+				config: d.config,
+				userId: d.receiverUserId
+			}))
+		);
 	}
 
 	/**
