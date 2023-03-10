@@ -151,25 +151,39 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 /** @internal */
 export const validateClientProvider = async (provider: Provider, supportedChains: readonly number[]) => {
 	if (!provider) {
-		throw DripsErrors.argumentError(`'${nameOf({ provider })}' is missing.`);
+		throw DripsErrors.initializationError(`The provider is missing.`);
 	}
 
 	const network = await provider.getNetwork();
 	if (!supportedChains.includes(network?.chainId)) {
-		throw DripsErrors.unsupportedNetworkError(
-			`The provider is connected to an unsupported network with chain ID '${network?.chainId}' ('${network?.name}'). Supported chain IDs are: ${supportedChains}.`,
-			network?.chainId
+		throw DripsErrors.initializationError(
+			`The provider is connected to an unsupported network with chain ID '${network?.chainId}' ('${network?.name}'). Supported chain IDs are: ${supportedChains}.`
 		);
 	}
 };
 
 /** @internal */
-export const validateClientSigner = async (signer: Signer) => {
+export const validateClientSigner = async (signer: Signer, supportedChains: readonly number[]) => {
 	if (!signer) {
-		throw DripsErrors.argumentError(`'${nameOf({ signer })}' is missing.`);
+		throw DripsErrors.initializationError(`The singer is missing.`);
 	}
 
-	validateAddress(await signer.getAddress());
+	const address = await signer.getAddress();
+	if (!ethers.utils.isAddress(address)) {
+		throw DripsErrors.initializationError(`Signer's address ('${address}') is not valid.`);
+	}
+
+	const { provider } = signer;
+	if (!provider) {
+		throw DripsErrors.initializationError(`The signer has no provider.`);
+	}
+
+	const network = await provider.getNetwork();
+	if (!supportedChains.includes(network?.chainId)) {
+		throw DripsErrors.initializationError(
+			`The signer's provider is connected to an unsupported network with chain ID '${network?.chainId}' ('${network?.name}'). Supported chain IDs are: ${supportedChains}.`
+		);
+	}
 };
 
 /** @internal */

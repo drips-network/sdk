@@ -61,7 +61,7 @@ export default class ImmutableSplitsDriverClient {
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
-	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
+	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
 	 */
 	public static async create(
 		provider: Provider,
@@ -70,12 +70,13 @@ export default class ImmutableSplitsDriverClient {
 	): Promise<ImmutableSplitsDriverClient> {
 		try {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
-			await validateClientSigner(signer);
 
 			if (!signer.provider) {
 				// eslint-disable-next-line no-param-reassign
 				signer = signer.connect(provider);
 			}
+
+			await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
 			const network = await provider.getNetwork();
 			const driverAddress =
@@ -90,7 +91,7 @@ export default class ImmutableSplitsDriverClient {
 
 			return client;
 		} catch (error: any) {
-			throw DripsErrors.clientInitializationError(`Could not create 'ImmutableSplitsDriverClient': ${error.message}`);
+			throw DripsErrors.initializationError(`Could not create 'ImmutableSplitsDriverClient': ${error.message}`);
 		}
 	}
 

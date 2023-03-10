@@ -11,8 +11,8 @@ export enum DripsErrorCode {
 	UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
 	SUBGRAPH_QUERY_ERROR = 'SUBGRAPH_QUERY_ERROR',
 	INVALID_DRIPS_RECEIVER = 'INVALID_DRIPS_RECEIVER',
+	INITIALIZATION_FAILURE = 'INITIALIZATION_FAILURE',
 	INVALID_SPLITS_RECEIVER = 'INVALID_SPLITS_RECEIVER',
-	CLIENT_INITIALIZATION_FAILURE = 'CLIENT_INITIALIZATION_FAILURE',
 	INVALID_DRIPS_RECEIVER_CONFIG = 'INVALID_DRIPS_RECEIVER_CONFIG'
 }
 
@@ -29,8 +29,7 @@ export class DripsError extends Error {
 }
 
 export class DripsErrors {
-	static clientInitializationError = (message: string) =>
-		new DripsError(DripsErrorCode.CLIENT_INITIALIZATION_FAILURE, message);
+	static initializationError = (message: string) => new DripsError(DripsErrorCode.INITIALIZATION_FAILURE, message);
 
 	static addressError = (message: string, address: string) =>
 		new DripsError(DripsErrorCode.INVALID_ADDRESS, message, {
@@ -44,7 +43,7 @@ export class DripsErrors {
 		});
 
 	static signerMissingError = (
-		message: string = 'Tried to perform an operation that requires a signer, but a signer was not found. Did you create a read-only client instance?'
+		message: string = 'Tried to perform an operation that requires a signer but a signer was not found.'
 	) => new DripsError(DripsErrorCode.MISSING_SIGNER, message);
 
 	static argumentMissingError = (message: string, argName: string) =>

@@ -65,7 +65,7 @@ export default class DripsHubClient {
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
-	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
+	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
 	 */
 	public static async create(
 		provider: Provider,
@@ -76,12 +76,12 @@ export default class DripsHubClient {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 			if (signer) {
-				await validateClientSigner(signer);
-
 				if (!signer.provider) {
 					// eslint-disable-next-line no-param-reassign
 					signer = signer.connect(provider);
 				}
+
+				await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 			}
 
 			const network = await provider.getNetwork();
@@ -95,7 +95,7 @@ export default class DripsHubClient {
 			client.#driver = DripsHub__factory.connect(contractAddress, signer ?? provider);
 			return client;
 		} catch (error: any) {
-			throw DripsErrors.clientInitializationError(`Could not create 'DripsHubClient': ${error.message}`);
+			throw DripsErrors.initializationError(`Could not create 'DripsHubClient': ${error.message}`);
 		}
 	}
 

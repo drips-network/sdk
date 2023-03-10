@@ -57,7 +57,7 @@ export { default as DripsHubClient } from './DripsHub/DripsHubClient';
 export { default as DripsSubgraphClient } from './DripsSubgraph/DripsSubgraphClient';
 
 // ImmutableSplitsDriver
-export { default as ImmutableSplitsDriverClient } from './ImmutableSplits/ImmutableSplitsDriver';
+export { default as ImmutableSplitsDriverClient } from './ImmutableSplits/ImmutableSplitsDriverClient';
 
 // NFTDriver
 export { default as NFTDriverClient } from './NFTDriver/NFTDriverClient';

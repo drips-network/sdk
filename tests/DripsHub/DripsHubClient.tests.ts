@@ -66,7 +66,7 @@ describe('DripsHubClient', () => {
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				validateClientSignerStub.calledOnceWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -85,7 +85,7 @@ describe('DripsHubClient', () => {
 			);
 		});
 
-		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+		it('should should throw a initializationError when client cannot be initialized', async () => {
 			// Arrange
 			let threw = false;
 
@@ -94,7 +94,7 @@ describe('DripsHubClient', () => {
 				await DripsHubClient.create(undefined as any, undefined as any);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 

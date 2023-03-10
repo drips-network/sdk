@@ -8,7 +8,7 @@ import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import type { ImmutableSplitsDriver, SplitsReceiverStruct } from '../../contracts/ImmutableSplitsDriver';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriver';
+import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriverClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
 import type { UserMetadata } from '../../src/common/types';
@@ -67,7 +67,7 @@ describe('ImmutableSplitsDriverClient', () => {
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				validateClientSignerStub.calledOnceWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -86,7 +86,7 @@ describe('ImmutableSplitsDriverClient', () => {
 			);
 		});
 
-		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+		it('should should throw a initializationError when client cannot be initialized', async () => {
 			// Arrange
 			let threw = false;
 
@@ -95,7 +95,7 @@ describe('ImmutableSplitsDriverClient', () => {
 				await ImmutableSplitsDriverClient.create(undefined as any, undefined as any);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 

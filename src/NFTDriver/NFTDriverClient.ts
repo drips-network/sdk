@@ -68,7 +68,7 @@ export default class NFTDriverClient {
 	 * @param  {string|undefined} customDriverAddress Overrides the `NFTDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
-	 * @throws {@link DripsErrors.clientInitializationError} if the client initialization fails.
+	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
 	 */
 	public static async create(
 		provider: Provider,
@@ -77,12 +77,13 @@ export default class NFTDriverClient {
 	): Promise<NFTDriverClient> {
 		try {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
-			await validateClientSigner(signer);
 
 			if (!signer.provider) {
 				// eslint-disable-next-line no-param-reassign
 				signer = signer.connect(provider);
 			}
+
+			await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
 			const network = await provider.getNetwork();
 			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_NFT_DRIVER;
@@ -97,7 +98,7 @@ export default class NFTDriverClient {
 
 			return client;
 		} catch (error: any) {
-			throw DripsErrors.clientInitializationError(`Could not create 'NFTDriverClient': ${error.message}`);
+			throw DripsErrors.initializationError(`Could not create 'NFTDriverClient': ${error.message}`);
 		}
 	}
 

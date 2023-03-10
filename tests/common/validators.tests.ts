@@ -691,7 +691,7 @@ describe('validators', () => {
 				await validators.validateClientProvider(undefined as unknown as JsonRpcProvider, []);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 
@@ -714,7 +714,7 @@ describe('validators', () => {
 				await validators.validateClientProvider(providerStub, [5]);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 
@@ -730,10 +730,10 @@ describe('validators', () => {
 
 			try {
 				// Act
-				await validators.validateClientSigner(undefined as unknown as JsonRpcSigner);
+				await validators.validateClientSigner(undefined as unknown as JsonRpcSigner, Utils.Network.SUPPORTED_CHAINS);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 

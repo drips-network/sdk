@@ -5,8 +5,8 @@ import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import type { ContractReceipt, ContractTransaction, Event } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
-import { IERC20, IERC20__factory, NFTDriver } from '../../contracts';
-import { NFTDriver__factory } from '../../contracts';
+import type { IERC20, NFTDriver } from '../../contracts';
+import { IERC20__factory, NFTDriver__factory } from '../../contracts';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
@@ -67,7 +67,7 @@ describe('NFTDriverClient', () => {
 
 			// Assert
 			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerStub),
+				validateClientSignerStub.calledOnceWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -86,7 +86,7 @@ describe('NFTDriverClient', () => {
 			);
 		});
 
-		it('should should throw a clientInitializationError when client cannot be initialized', async () => {
+		it('should should throw a initializationError when client cannot be initialized', async () => {
 			// Arrange
 			let threw = false;
 
@@ -95,7 +95,7 @@ describe('NFTDriverClient', () => {
 				await NFTDriverClient.create(undefined as any, undefined as any);
 			} catch (error: any) {
 				// Assert
-				assert.equal(error.code, DripsErrorCode.CLIENT_INITIALIZATION_FAILURE);
+				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
 				threw = true;
 			}
 
