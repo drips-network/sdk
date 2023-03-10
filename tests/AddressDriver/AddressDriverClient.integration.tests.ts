@@ -36,7 +36,7 @@ describe('AddressDriver integration tests', () => {
 	it('should set Drips configuration', async () => {
 		console.log(`Will update WETH (${WETH}) Drips configuration for ${account2}.`);
 
-		const userId1 = await account2AddressDriverClient.getUserId();
+		const userId1 = await account1AddressDriverClient.getUserId();
 		const userId2 = await account2AddressDriverClient.getUserId();
 
 		const wEthConfigurationBefore = await subgraphClient.getUserAssetConfigById(

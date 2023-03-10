@@ -29,7 +29,8 @@ import {
 	UserMetadataEntry,
 	SqueezedDripsEvent,
 	ReceivedDripsEvent,
-	DripsReceiverSeenEvent
+	DripsReceiverSeenEvent,
+	DripsSetEventWithFullReceivers
 } from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
@@ -103,5 +104,6 @@ export {
 	SplitsReceiverStruct,
 	DripsReceiverSeenEvent,
 	AddressDriverInterface,
-	ImmutableSplitsDriverInterface
+	ImmutableSplitsDriverInterface,
+	DripsSetEventWithFullReceivers
 };

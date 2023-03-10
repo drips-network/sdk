@@ -104,3 +104,11 @@ export type NftSubAccount = {
 	tokenId: string;
 	ownerAddress: string;
 };
+
+export type DripsSetEventWithFullReceivers = {
+	currentReceivers: {
+		id: string;
+		receiverUserId: string;
+		config: bigint;
+	}[];
+} & DripsSetEvent;

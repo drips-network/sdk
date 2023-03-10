@@ -20,7 +20,8 @@ import type {
 	ReceivedDripsEvent,
 	GivenEvent,
 	CollectedEvent,
-	SqueezedDripsEvent
+	SqueezedDripsEvent,
+	DripsSetEventWithFullReceivers
 } from './types';
 import {
 	mapCollectedEventToDto,
@@ -35,6 +36,7 @@ import {
 	mapUserMetadataEventToDto
 } from './mappers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SqueezeArgs } from '../common/types';
+import { reconcileDripsSetReceivers } from './utils';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -707,7 +709,7 @@ export default class DripsSubgraphClient {
 			skip += first;
 		}
 
-		const squeezableDripsSetEvents = allDripsSetEvents
+		const filtered = allDripsSetEvents
 			// Remove any duplicates (limitation of skip-first pagination).
 			.reduce((unique: DripsSetEvent[], o: DripsSetEvent) => {
 				if (!unique.some((ev: DripsSetEvent) => ev.id === o.id)) {
@@ -716,11 +718,15 @@ export default class DripsSubgraphClient {
 				return unique;
 			}, [])
 			// Filter only the events for the token-to-be-squeezed.
-			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(ethers.utils.getAddress(tokenAddress)))
-			// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
-			.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(ethers.utils.getAddress(tokenAddress)));
 
-		const dripsSetEventsToSqueeze: DripsSetEvent[] = [];
+		const squeezableDripsSetEvents: DripsSetEventWithFullReceivers[] =
+			// Add the `receivers` field to each event.
+			reconcileDripsSetReceivers(filtered)
+				// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
+				.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+
+		const dripsSetEventsToSqueeze: DripsSetEventWithFullReceivers[] = [];
 
 		// Iterate over all events.
 		if (squeezableDripsSetEvents?.length) {
@@ -743,9 +749,7 @@ export default class DripsSubgraphClient {
 
 		// The last (oldest) event added, provides the hash prior to the DripsHistory (or 0, if there was only one event).
 		const historyHash =
-			dripsSetEventsToSqueeze?.length > 1
-				? dripsSetEventsToSqueeze[dripsSetEventsToSqueeze.length - 1].dripsHistoryHash
-				: ethers.constants.HashZero;
+			dripsSetEventsToSqueeze[dripsSetEventsToSqueeze.length - 1]?.dripsHistoryHash || ethers.constants.HashZero;
 
 		// Transform the events into `DripsHistory` objects.
 		const dripsHistory: DripsHistoryStruct[] = dripsSetEventsToSqueeze
@@ -753,9 +757,9 @@ export default class DripsSubgraphClient {
 				// By default a configuration should *not* be squeezed.
 				let shouldSqueeze = false;
 
-				// Iterate over all event's `DripsReceiverSeen` events (receivers).
-				for (let i = 0; i < dripsSetEvent.dripsReceiverSeenEvents.length; i++) {
-					const receiver = dripsSetEvent.dripsReceiverSeenEvents[i];
+				// Iterate over all event's receivers.
+				for (let i = 0; i < dripsSetEvent.currentReceivers.length; i++) {
+					const receiver = dripsSetEvent.currentReceivers[i];
 
 					// Mark as squeezable only the events that drip to the `userId`; the others should not be squeezed.
 					if (receiver.receiverUserId === userId) {
@@ -768,7 +772,7 @@ export default class DripsSubgraphClient {
 				const historyItem: DripsHistoryStruct = {
 					dripsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
 					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
-						? dripsSetEvent.dripsReceiverSeenEvents.map((r) => ({
+						? dripsSetEvent.currentReceivers.map((r) => ({
 								userId: r.receiverUserId,
 								config: r.config
 						  }))
