@@ -1,13 +1,16 @@
 /* eslint-disable no-dupe-class-members */
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer } from 'ethers';
-import { Utils } from 'radicle-drips';
+import Utils from '../utils';
 import type { IERC20 } from '../../contracts';
 import { IERC20__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 
 interface IERC20TxFactory extends Pick<IERC20['populateTransaction'], 'approve'> {}
 
+/**
+ * A factory for creating `IERC20` contract transactions.
+ */
 export default class ERC20TxFactory implements IERC20TxFactory {
 	#erc20!: IERC20;
 	#tokenAddress!: string;

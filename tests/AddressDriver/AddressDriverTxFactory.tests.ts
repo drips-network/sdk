@@ -82,6 +82,7 @@ describe('AddressDriverTxFactory', () => {
 				testAddressDriverTxFactory.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
 			);
+			assert.equal(testAddressDriverTxFactory.signer, signerWithProviderStub);
 		});
 	});
 

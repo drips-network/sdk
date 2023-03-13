@@ -16,13 +16,7 @@ import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
 import type { AddressDriver } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import {
-	nameOf,
-	isNullOrUndefined,
-	formatSplitReceivers,
-	ensureSignerExists,
-	createFromStrings
-} from '../common/internals';
+import { nameOf, isNullOrUndefined, ensureSignerExists, createFromStrings } from '../common/internals';
 import type { IAddressDriverTxFactory } from './AddressDriverTxFactory';
 import AddressDriverTxFactory from './AddressDriverTxFactory';
 
@@ -31,11 +25,11 @@ import AddressDriverTxFactory from './AddressDriverTxFactory';
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} contract.
  */
 export default class AddressDriverClient {
+	#provider!: Provider;
 	#driver!: AddressDriver;
 	#driverAddress!: string;
-	#provider!: Provider;
 	#signer: Signer | undefined;
-	#addressDriverTxFactory!: IAddressDriverTxFactory;
+	#txFactory!: IAddressDriverTxFactory;
 
 	/** Returns the client's `provider`. */
 	public get provider(): Provider {
@@ -61,15 +55,15 @@ export default class AddressDriverClient {
 	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `AddressDriverClient` instance.
-	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
+	 * @param provider The network provider. It cannot be changed after creation.
 	 *
 	 * The `provider` must be connected to one of the following supported networks:
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
-	 * @param  {Signer} signer The singer used to sign transactions. It cannot be changed after creation.
+	 * @param signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
 	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
-	 * @param  {string|undefined} customDriverAddress Overrides the `AddressDriver` contract address.
+	 * @param customDriverAddress Overrides the `AddressDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
 	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
@@ -83,13 +77,13 @@ export default class AddressDriverClient {
 		provider: Provider,
 		signer?: Signer,
 		customDriverAddress?: string,
-		addressDriverTxFactory?: IAddressDriverTxFactory
+		txFactory?: IAddressDriverTxFactory
 	): Promise<AddressDriverClient>;
 	public static async create(
 		provider: Provider,
 		signer?: Signer,
 		customDriverAddress?: string,
-		addressDriverTxFactory?: IAddressDriverTxFactory
+		txFactory?: IAddressDriverTxFactory
 	): Promise<AddressDriverClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
@@ -113,8 +107,7 @@ export default class AddressDriverClient {
 		client.#driver = AddressDriver__factory.connect(driverAddress, signer ?? provider);
 
 		if (signer) {
-			client.#addressDriverTxFactory =
-				addressDriverTxFactory || (await AddressDriverTxFactory.create(signer, customDriverAddress));
+			client.#txFactory = txFactory || (await AddressDriverTxFactory.create(signer, customDriverAddress));
 		}
 
 		return client;
@@ -122,7 +115,7 @@ export default class AddressDriverClient {
 
 	/**
 	 * Returns the remaining number of tokens the `AddressDriver` contract is allowed to spend on behalf of the user for the given ERC20 token.
-	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
 	 * an address, then later the same amount must be transferrable from that address.
@@ -148,7 +141,7 @@ export default class AddressDriverClient {
 
 	/**
 	 * Sets the maximum allowance value for the `AddressDriver` contract over the user's tokens for the given ERC20 token.
-	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
 	 * an address, then later the same amount must be transferrable from that address.
@@ -187,7 +180,7 @@ export default class AddressDriverClient {
 
 	/**
 	 * Returns the user ID for a given address.
-	 * @param  {string} userAddress The user address.
+	 * @param userAddress The user address.
 	 * @returns A `Promise` which resolves to the user ID.
 	 * @throws {@link DripsErrors.addressError} if the `userAddress` address is not valid.
 	 */
@@ -201,14 +194,14 @@ export default class AddressDriverClient {
 
 	/**
 	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
-	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
 	 * an address, then later the same amount must be transferrable from that address.
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @param  {string} transferToAddress The address to send collected funds to.
+	 * @param transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
@@ -217,29 +210,31 @@ export default class AddressDriverClient {
 		ensureSignerExists(this.#signer);
 		validateCollectInput(tokenAddress, transferToAddress);
 
-		return this.#driver.collect(tokenAddress, transferToAddress);
+		const tx = await this.#txFactory.collect(tokenAddress, transferToAddress);
+
+		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `DripsHub` contract.
-	 * @param  {string} receiverUserId The receiver user ID.
-	 * @param  {string} tokenAddress The ERC20 token address.
+	 * @param receiverUserId The receiver user ID.
+	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
 	 * an address, then later the same amount must be transferrable from that address.
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @param  {BigNumberish} amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
+	 * @param amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public give(receiverUserId: string, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public async give(receiverUserId: string, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 
 		if (isNullOrUndefined(receiverUserId)) {
@@ -259,12 +254,14 @@ export default class AddressDriverClient {
 			);
 		}
 
-		return this.#driver.give(receiverUserId, tokenAddress, amount);
+		const tx = await this.#txFactory.give(receiverUserId, tokenAddress, amount);
+
+		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
 	 * Sets the Splits configuration.
-	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers (max `200`).
+	 * @param receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array if you want to clear all receivers.
@@ -274,11 +271,13 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
+	public async setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		validateSplitsReceivers(receivers);
 
-		return this.#driver.setSplits(formatSplitReceivers(receivers));
+		const tx = await this.#txFactory.setSplits(receivers);
+
+		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
@@ -291,15 +290,15 @@ export default class AddressDriverClient {
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @param  {DripsReceiverStruct[]} currentReceivers The drips receivers that were set in the last drips update.
+	 * @param currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
 	 *
 	 * **Tip**: you might want to use `DripsSubgraphClient.getCurrentDripsReceivers` to easily retrieve the list of current receivers.
-	 * @param  {DripsReceiverStruct[]} newReceivers The new drips receivers (max `100`).
+	 * @param newReceivers The new drips receivers (max `100`).
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array if you want to clear all receivers.
-	 * @param  {string} transferToAddress The address to send funds to in case of decreasing balance.
-	 * @param  {BigNumberish} balanceDelta The drips balance change to be applied:
+	 * @param transferToAddress The address to send funds to in case of decreasing balance.
+	 * @param balanceDelta The drips balance change to be applied:
 	 * - Positive to add funds to the drips balance.
 	 * - Negative to remove funds from the drips balance.
 	 * - `0` to leave drips balance as is (default value).
@@ -319,7 +318,6 @@ export default class AddressDriverClient {
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
-
 		validateSetDripsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
@@ -334,7 +332,7 @@ export default class AddressDriverClient {
 			balanceDelta
 		);
 
-		const tx = await this.#addressDriverTxFactory.setDrips(
+		const tx = await this.#txFactory.setDrips(
 			tokenAddress,
 			currentReceivers,
 			balanceDelta,
@@ -350,25 +348,27 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param  {UserMetadata[]} userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public emitUserMetadata(userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+	public async emitUserMetadata(userMetadata: UserMetadata[]): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(userMetadata);
 
 		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
 
-		return this.#driver.emitUserMetadata(userMetadataAsBytes);
+		const tx = await this.#txFactory.emitUserMetadata(userMetadataAsBytes);
+
+		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
 	 * Returns a user's address given a user ID.
-	 * @param  {string} userId The user ID.
+	 * @param userId The user ID.
 	 * @returns The user's address.
 	 */
 	public static getUserAddress = (userId: string): string => {

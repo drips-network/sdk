@@ -7,7 +7,7 @@ import type {
 } from 'contracts/AddressDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Overrides, Signer } from 'ethers';
-import { formatDripsReceivers } from '../common/internals';
+import { formatDripsReceivers, formatSplitReceivers } from '../common/internals';
 import { AddressDriver__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
@@ -65,11 +65,14 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		return client;
 	}
 
-	collect(erc20: PromiseOrValue<string>, transferTo: PromiseOrValue<string>): Promise<PopulatedTransaction> {
+	public async collect(
+		erc20: PromiseOrValue<string>,
+		transferTo: PromiseOrValue<string>
+	): Promise<PopulatedTransaction> {
 		return this.#driver.populateTransaction.collect(erc20, transferTo);
 	}
 
-	give(
+	public async give(
 		receiver: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		amt: PromiseOrValue<BigNumberish>
@@ -77,8 +80,8 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		return this.#driver.populateTransaction.give(receiver, erc20, amt);
 	}
 
-	setSplits(receivers: SplitsReceiverStruct[]): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.setSplits(receivers);
+	public async setSplits(receivers: SplitsReceiverStruct[]): Promise<PopulatedTransaction> {
+		return this.#driver.populateTransaction.setSplits(formatSplitReceivers(receivers));
 	}
 
 	public async setDrips(
@@ -120,7 +123,7 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		);
 	}
 
-	emitUserMetadata(userMetadata: UserMetadataStruct[]): Promise<PopulatedTransaction> {
+	public async emitUserMetadata(userMetadata: UserMetadataStruct[]): Promise<PopulatedTransaction> {
 		return this.#driver.populateTransaction.emitUserMetadata(userMetadata);
 	}
 }
