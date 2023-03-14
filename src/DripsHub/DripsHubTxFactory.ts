@@ -39,6 +39,7 @@ export default class DripsHubTxFactory implements IDripsHubTxFactory {
 	): Promise<PopulatedTransaction> {
 		return this.#driver.populateTransaction.receiveDrips(userId, erc20, maxCycles);
 	}
+
 	squeezeDrips(
 		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
@@ -48,6 +49,7 @@ export default class DripsHubTxFactory implements IDripsHubTxFactory {
 	): Promise<PopulatedTransaction> {
 		return this.#driver.populateTransaction.squeezeDrips(userId, erc20, senderId, historyHash, dripsHistory);
 	}
+
 	split(
 		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,

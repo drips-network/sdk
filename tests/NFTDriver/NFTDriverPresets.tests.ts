@@ -1,26 +1,46 @@
 import { assert } from 'chai';
+import type { BytesLike, PopulatedTransaction } from 'ethers';
 import { BigNumber, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
-import sinon, { stubInterface } from 'ts-sinon';
-import { NFTDriver__factory, DripsHub__factory } from '../../contracts';
-import type { NFTDriverInterface } from '../../contracts/NFTDriver';
-import type { DripsHubInterface } from '../../contracts/DripsHub';
+import sinon, { stubObject, stubInterface } from 'ts-sinon';
+import type { Network } from '@ethersproject/networks';
+import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import { NFTDriverPresets } from '../../src/NFTDriver/NFTDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { formatDripsReceivers, formatSplitReceivers, keyFromString, valueFromString } from '../../src/common/internals';
+import { keyFromString, valueFromString } from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
+import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
+import DripsHubTxFactory from '../../src/DripsHub/DripsHubTxFactory';
 
 describe('NFTDriverPresets', () => {
-	let dripsHubInterfaceStub: StubbedInstance<DripsHubInterface>;
-	let nftDriverInterfaceStub: StubbedInstance<NFTDriverInterface>;
+	const TEST_CHAIN_ID = 5; // Goerli.
+
+	let networkStub: StubbedInstance<Network>;
+	let signerStub: StubbedInstance<JsonRpcSigner>;
+	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
+	let dripsHubTxFactoryStub: StubbedInstance<DripsHubTxFactory>;
+	let nftDriverFactoryStub: StubbedInstance<NFTDriverTxFactory>;
 
 	beforeEach(async () => {
-		dripsHubInterfaceStub = stubInterface<DripsHubInterface>();
-		nftDriverInterfaceStub = stubInterface<NFTDriverInterface>();
+		dripsHubTxFactoryStub = stubInterface<DripsHubTxFactory>();
+		nftDriverFactoryStub = stubInterface<NFTDriverTxFactory>();
 
-		sinon.stub(NFTDriver__factory, 'createInterface').returns(nftDriverInterfaceStub);
-		sinon.stub(DripsHub__factory, 'createInterface').returns(dripsHubInterfaceStub);
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
+
+		signerStub = sinon.createStubInstance(JsonRpcSigner);
+		signerStub.getAddress.resolves(Wallet.createRandom().address);
+
+		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
+
+		providerStub.getNetwork.resolves(networkStub);
+
+		signerWithProviderStub = { ...signerStub, provider: providerStub };
+		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
+
+		sinon.stub(NFTDriverTxFactory, 'create').resolves(nftDriverFactoryStub);
+		sinon.stub(DripsHubTxFactory, 'create').resolves(dripsHubTxFactoryStub);
 	});
 
 	afterEach(() => {
@@ -34,10 +54,29 @@ describe('NFTDriverPresets', () => {
 
 			try {
 				// Act
-				NFTDriverPresets.Presets.createNewStreamFlow(undefined as unknown as NFTDriverPresets.NewStreamFlowPayload);
+				await NFTDriverPresets.Presets.createNewStreamFlow(
+					undefined as unknown as NFTDriverPresets.NewStreamFlowPayload
+				);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it("it should throw an argumentError when signer's provider is missing", async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await NFTDriverPresets.Presets.createNewStreamFlow({ tokenId: '1' } as NFTDriverPresets.NewStreamFlowPayload);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -51,7 +90,7 @@ describe('NFTDriverPresets', () => {
 
 			try {
 				// Act
-				NFTDriverPresets.Presets.createNewStreamFlow({} as NFTDriverPresets.NewStreamFlowPayload);
+				await NFTDriverPresets.Presets.createNewStreamFlow({} as NFTDriverPresets.NewStreamFlowPayload);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -67,6 +106,7 @@ describe('NFTDriverPresets', () => {
 			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userMetadata: [],
 				balanceDelta: 1,
@@ -98,7 +138,7 @@ describe('NFTDriverPresets', () => {
 			};
 
 			// Act
-			NFTDriverPresets.Presets.createNewStreamFlow(payload);
+			await NFTDriverPresets.Presets.createNewStreamFlow(payload);
 
 			// Assert
 			assert(
@@ -128,6 +168,7 @@ describe('NFTDriverPresets', () => {
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userMetadata: [],
 				balanceDelta: 1,
@@ -159,7 +200,7 @@ describe('NFTDriverPresets', () => {
 			};
 
 			// Act
-			NFTDriverPresets.Presets.createNewStreamFlow(payload);
+			await NFTDriverPresets.Presets.createNewStreamFlow(payload);
 
 			// Assert
 			assert(
@@ -168,12 +209,13 @@ describe('NFTDriverPresets', () => {
 			);
 		});
 
-		it('should return the expected preset', () => {
+		it('should return the expected preset', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSetDripsInput');
 			sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userMetadata: [{ key: 'key', value: 'value' }],
 				balanceDelta: 1,
@@ -204,36 +246,37 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address
 			};
 
-			nftDriverInterfaceStub.encodeFunctionData
+			nftDriverFactoryStub.setDrips
 				.withArgs(
-					sinon.match((s: string) => s === 'setDrips'),
-					sinon.match.array.deepEquals([
-						payload.tokenId,
-						payload.tokenAddress,
-						formatDripsReceivers(payload.currentReceivers),
-						payload.balanceDelta,
-						formatDripsReceivers(payload.newReceivers),
-						0,
-						0,
-						payload.transferToAddress
-					])
+					payload.tokenId,
+					payload.tokenAddress,
+					payload.currentReceivers,
+					payload.balanceDelta,
+					payload.newReceivers,
+					0,
+					0,
+					payload.transferToAddress
 				)
-				.returns('setDrips');
+				.resolves({ data: 'setDrips' } as PopulatedTransaction);
 
-			nftDriverInterfaceStub.encodeFunctionData
+			nftDriverFactoryStub.emitUserMetadata
 				.withArgs(
-					sinon.match((s: string) => s === 'emitUserMetadata'),
+					payload.tokenId,
 					sinon.match(
-						(values: any[]) =>
-							values[0] === payload.tokenId &&
-							values[1][0].key === keyFromString(payload.userMetadata[0].key) &&
-							values[1][0].value === valueFromString(payload.userMetadata[0].value)
+						(
+							userMetadataAsBytes: {
+								key: BytesLike;
+								value: BytesLike;
+							}[]
+						) =>
+							userMetadataAsBytes[0].key === keyFromString(payload.userMetadata[0].key) &&
+							userMetadataAsBytes[0].value === valueFromString(payload.userMetadata[0].value)
 					)
 				)
-				.returns('emitUserMetadata');
+				.resolves({ data: 'emitUserMetadata' } as PopulatedTransaction);
 
 			// Act
-			const preset = NFTDriverPresets.Presets.createNewStreamFlow(payload);
+			const preset = await NFTDriverPresets.Presets.createNewStreamFlow(payload);
 
 			// Assert
 			assert.equal(preset.length, 2);
@@ -249,10 +292,27 @@ describe('NFTDriverPresets', () => {
 
 			try {
 				// Act
-				NFTDriverPresets.Presets.createCollectFlow(undefined as unknown as NFTDriverPresets.CollectFlowPayload);
+				await NFTDriverPresets.Presets.createCollectFlow(undefined as unknown as NFTDriverPresets.CollectFlowPayload);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it("it should throw an argumentError when signer's provider is missing", async () => {
+			// Arrange
+			let threw = false;
+
+			try {
+				// Act
+				await NFTDriverPresets.Presets.createCollectFlow({ tokenId: '1' } as NFTDriverPresets.CollectFlowPayload);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
 				threw = true;
 			}
 
@@ -266,7 +326,7 @@ describe('NFTDriverPresets', () => {
 
 			try {
 				// Act
-				NFTDriverPresets.Presets.createCollectFlow({} as NFTDriverPresets.CollectFlowPayload);
+				await NFTDriverPresets.Presets.createCollectFlow({} as NFTDriverPresets.CollectFlowPayload);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -282,6 +342,7 @@ describe('NFTDriverPresets', () => {
 			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -307,7 +368,7 @@ describe('NFTDriverPresets', () => {
 			};
 
 			// Act
-			NFTDriverPresets.Presets.createCollectFlow(payload);
+			await NFTDriverPresets.Presets.createCollectFlow(payload);
 
 			// Assert
 			assert(
@@ -327,6 +388,7 @@ describe('NFTDriverPresets', () => {
 			const validateReceiveDripsInputStub = sinon.stub(validators, 'validateReceiveDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -352,7 +414,7 @@ describe('NFTDriverPresets', () => {
 			};
 
 			// Act
-			NFTDriverPresets.Presets.createCollectFlow(payload);
+			await NFTDriverPresets.Presets.createCollectFlow(payload);
 
 			// Assert
 			assert(
@@ -366,6 +428,7 @@ describe('NFTDriverPresets', () => {
 			const validateSplitInputStub = sinon.stub(validators, 'validateSplitInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -391,7 +454,7 @@ describe('NFTDriverPresets', () => {
 			};
 
 			// Act
-			NFTDriverPresets.Presets.createCollectFlow(payload);
+			await NFTDriverPresets.Presets.createCollectFlow(payload);
 
 			// Assert
 			assert(
@@ -405,6 +468,7 @@ describe('NFTDriverPresets', () => {
 			const validateCollectInputStub = sinon.stub(validators, 'validateCollectInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -430,7 +494,7 @@ describe('NFTDriverPresets', () => {
 			};
 
 			// Act
-			NFTDriverPresets.Presets.createCollectFlow(payload);
+			await NFTDriverPresets.Presets.createCollectFlow(payload);
 
 			// Assert
 			assert(
@@ -439,7 +503,7 @@ describe('NFTDriverPresets', () => {
 			);
 		});
 
-		it('should return the expected preset', () => {
+		it('should return the expected preset', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
@@ -447,6 +511,7 @@ describe('NFTDriverPresets', () => {
 			sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -482,40 +547,22 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			dripsHubInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'squeezeDrips'),
-					sinon.match.array
-				)
-				.returns('squeezeDrips');
+			dripsHubTxFactoryStub.squeezeDrips.resolves({ data: 'squeezeDrips' } as PopulatedTransaction);
 
-			dripsHubInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'receiveDrips'),
-					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
-				)
-				.returns('receiveDrips');
+			dripsHubTxFactoryStub.receiveDrips
+				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
+				.resolves({ data: 'receiveDrips' } as PopulatedTransaction);
 
-			dripsHubInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'split'),
-					sinon.match.array.deepEquals([
-						payload.userId,
-						payload.tokenAddress,
-						formatSplitReceivers(payload.currentReceivers)
-					])
-				)
-				.returns('split');
+			dripsHubTxFactoryStub.split
+				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
+				.resolves({ data: 'split' } as PopulatedTransaction);
 
-			nftDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'collect'),
-					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
-				)
-				.returns('collect');
+			nftDriverFactoryStub.collect
+				.withArgs(payload.tokenId, payload.tokenAddress, payload.transferToAddress)
+				.resolves({ data: 'collect' } as PopulatedTransaction);
 
 			// Act
-			const preset = NFTDriverPresets.Presets.createCollectFlow(payload);
+			const preset = await NFTDriverPresets.Presets.createCollectFlow(payload);
 
 			// Assert
 			assert.equal(preset.length, 5);
@@ -526,7 +573,7 @@ describe('NFTDriverPresets', () => {
 			assert.equal(preset[4].data, 'collect');
 		});
 
-		it('should return the expected preset when skip receiveDrips is true', () => {
+		it('should return the expected preset when skip receiveDrips is true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
@@ -534,6 +581,7 @@ describe('NFTDriverPresets', () => {
 			sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -549,22 +597,15 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			dripsHubInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'split'),
-					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.currentReceivers])
-				)
-				.returns('split');
-
-			nftDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'collect'),
-					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
-				)
-				.returns('collect');
+			dripsHubTxFactoryStub.split
+				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
+				.resolves({ data: 'split' } as PopulatedTransaction);
+			nftDriverFactoryStub.collect
+				.withArgs(payload.tokenId, payload.tokenAddress, payload.transferToAddress)
+				.resolves({ data: 'collect' } as PopulatedTransaction);
 
 			// Act
-			const preset = NFTDriverPresets.Presets.createCollectFlow(payload, true, false);
+			const preset = await NFTDriverPresets.Presets.createCollectFlow(payload, true, false);
 
 			// Assert
 			assert.equal(preset.length, 2);
@@ -572,7 +613,7 @@ describe('NFTDriverPresets', () => {
 			assert.equal(preset[1].data, 'collect');
 		});
 
-		it('should return the expected preset when skip split is true', () => {
+		it('should return the expected preset when skip split is true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
@@ -580,6 +621,7 @@ describe('NFTDriverPresets', () => {
 			sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -595,22 +637,16 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			dripsHubInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'receiveDrips'),
-					sinon.match.array.deepEquals([payload.userId, payload.tokenAddress, payload.maxCycles])
-				)
-				.returns('receiveDrips');
+			dripsHubTxFactoryStub.receiveDrips
+				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
+				.resolves({ data: 'receiveDrips' } as PopulatedTransaction);
 
-			nftDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'collect'),
-					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
-				)
-				.returns('collect');
+			nftDriverFactoryStub.collect
+				.withArgs(payload.tokenId, payload.tokenAddress, payload.transferToAddress)
+				.resolves({ data: 'collect' } as PopulatedTransaction);
 
 			// Act
-			const preset = NFTDriverPresets.Presets.createCollectFlow(payload, false, true);
+			const preset = await NFTDriverPresets.Presets.createCollectFlow(payload, false, true);
 
 			// Assert
 			assert.equal(preset.length, 2);
@@ -618,13 +654,14 @@ describe('NFTDriverPresets', () => {
 			assert.equal(preset[1].data, 'collect');
 		});
 
-		it('should return the expected preset when skip receiveDrips and split are true', () => {
+		it('should return the expected preset when skip receiveDrips and split are true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
 			sinon.stub(validators, 'validateReceiveDripsInput');
 
 			const payload: NFTDriverPresets.CollectFlowPayload = {
+				signer: signerWithProviderStub,
 				tokenId: '200',
 				userId: '1',
 				maxCycles: 1,
@@ -640,15 +677,12 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			nftDriverInterfaceStub.encodeFunctionData
-				.withArgs(
-					sinon.match((s: string) => s === 'collect'),
-					sinon.match.array.deepEquals([payload.tokenId, payload.tokenAddress, payload.transferToAddress])
-				)
-				.returns('collect');
+			nftDriverFactoryStub.collect
+				.withArgs(payload.tokenId, payload.tokenAddress, payload.transferToAddress)
+				.resolves({ data: 'collect' } as PopulatedTransaction);
 
 			// Act
-			const preset = NFTDriverPresets.Presets.createCollectFlow(payload, true, true);
+			const preset = await NFTDriverPresets.Presets.createCollectFlow(payload, true, true);
 
 			// Assert
 			assert.equal(preset.length, 1);

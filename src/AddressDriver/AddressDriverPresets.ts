@@ -1,6 +1,6 @@
-import type { CallStruct } from 'contracts/Caller';
-import type { BigNumberish } from 'ethers';
+import type { BigNumberish, PopulatedTransaction, Signer } from 'ethers';
 import { BigNumber } from 'ethers';
+import DripsHubTxFactory from '../DripsHub/DripsHubTxFactory';
 import {
 	validateCollectInput,
 	validateEmitUserMetadataInput,
@@ -9,20 +9,15 @@ import {
 	validateSplitInput,
 	validateSqueezeDripsInput
 } from '../common/validators';
-import {
-	createFromStrings,
-	formatDripsReceivers,
-	formatSplitReceivers,
-	isNullOrUndefined,
-	nameOf
-} from '../common/internals';
+import { createFromStrings, isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
-import { AddressDriver__factory, DripsHub__factory } from '../../contracts/factories';
+import AddressDriverTxFactory from './AddressDriverTxFactory';
 
 export namespace AddressDriverPresets {
 	export type NewStreamFlowPayload = {
+		signer: Signer;
 		driverAddress: string;
 		tokenAddress: string;
 		currentReceivers: DripsReceiverStruct[];
@@ -33,6 +28,7 @@ export namespace AddressDriverPresets {
 	};
 
 	export type CollectFlowPayload = {
+		signer: Signer;
 		driverAddress: string;
 		dripsHubAddress: string;
 		userId: string;
@@ -85,7 +81,7 @@ export namespace AddressDriverPresets {
 		 * @throws {@link DripsErrors.dripsReceiverError} if any of the `payload.currentReceivers` or the `payload.newReceivers` is not valid.
 		 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 		 */
-		public static createNewStreamFlow(payload: NewStreamFlowPayload): Preset {
+		public static async createNewStreamFlow(payload: NewStreamFlowPayload): Promise<Preset> {
 			if (isNullOrUndefined(payload)) {
 				throw DripsErrors.argumentMissingError(
 					`Could not create stream flow: '${nameOf({ payload })}' is missing.`,
@@ -94,6 +90,7 @@ export namespace AddressDriverPresets {
 			}
 
 			const {
+				signer,
 				userMetadata,
 				tokenAddress,
 				driverAddress,
@@ -102,6 +99,10 @@ export namespace AddressDriverPresets {
 				currentReceivers,
 				transferToAddress
 			} = payload;
+
+			if (!signer?.provider) {
+				throw DripsErrors.argumentError(`Could not create collect flow: signer is not connected to a provider.`);
+			}
 
 			validateSetDripsInput(
 				tokenAddress,
@@ -118,29 +119,23 @@ export namespace AddressDriverPresets {
 			);
 			validateEmitUserMetadataInput(userMetadata);
 
-			const setDrips: CallStruct = {
-				value: 0,
-				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('setDrips', [
-					tokenAddress,
-					formatDripsReceivers(currentReceivers),
-					balanceDelta,
-					formatDripsReceivers(newReceivers),
-					0,
-					0,
-					transferToAddress
-				])
-			};
+			const addressDriverTxFactory = await AddressDriverTxFactory.create(signer, driverAddress);
+
+			const setDripsTx = await addressDriverTxFactory.setDrips(
+				tokenAddress,
+				currentReceivers,
+				balanceDelta,
+				newReceivers,
+				0,
+				0,
+				transferToAddress
+			);
 
 			const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
 
-			const emitUserMetadata: CallStruct = {
-				value: 0,
-				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('emitUserMetadata', [userMetadataAsBytes])
-			};
+			const emitUserMetadataTx = await addressDriverTxFactory.emitUserMetadata(userMetadataAsBytes);
 
-			return [setDrips, emitUserMetadata];
+			return [setDripsTx, emitUserMetadataTx];
 		}
 
 		/**
@@ -160,11 +155,11 @@ export namespace AddressDriverPresets {
 		 * @throws {@link DripsErrors.argumentError} if `payload.maxCycles` or `payload.currentReceivers` is not valid.
 		 * @throws {@link DripsErrors.splitsReceiverError} if any of the `payload.currentReceivers` is not valid.
 		 */
-		public static createCollectFlow(
+		public static async createCollectFlow(
 			payload: CollectFlowPayload,
 			skipReceive: boolean = false,
 			skipSplit: boolean = false
-		): Preset {
+		): Promise<Preset> {
 			if (isNullOrUndefined(payload)) {
 				throw DripsErrors.argumentMissingError(
 					`Could not create collect flow: '${nameOf({ payload })}' is missing.`,
@@ -173,6 +168,7 @@ export namespace AddressDriverPresets {
 			}
 
 			const {
+				signer,
 				driverAddress,
 				dripsHubAddress,
 				userId,
@@ -183,64 +179,51 @@ export namespace AddressDriverPresets {
 				squeezeArgs
 			} = payload;
 
-			const flow: CallStruct[] = [];
+			if (!signer?.provider) {
+				throw DripsErrors.argumentError(`Could not create collect flow: signer is not connected to a provider.`);
+			}
 
-			squeezeArgs?.forEach((args) => {
+			const flow: PopulatedTransaction[] = [];
+
+			const dripsHubTxFactory = await DripsHubTxFactory.create(signer.provider, dripsHubAddress);
+
+			squeezeArgs?.forEach(async (args) => {
 				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.dripsHistory);
 
-				const squeeze: CallStruct = {
-					value: 0,
-					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('squeezeDrips', [
-						userId,
-						tokenAddress,
-						args.senderId,
-						args.historyHash,
-						args.dripsHistory
-					])
-				};
+				const squeezeTx = await dripsHubTxFactory.squeezeDrips(
+					userId,
+					tokenAddress,
+					args.senderId,
+					args.historyHash,
+					args.dripsHistory
+				);
 
-				flow.push(squeeze);
+				flow.push(squeezeTx);
 			});
 
 			if (!skipReceive) {
 				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
-				const receive: CallStruct = {
-					value: 0,
-					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('receiveDrips', [
-						userId,
-						tokenAddress,
-						maxCycles
-					])
-				};
 
-				flow.push(receive);
+				const receiveTx = await dripsHubTxFactory.receiveDrips(userId, tokenAddress, maxCycles);
+
+				flow.push(receiveTx);
 			}
 
 			if (!skipSplit) {
 				validateSplitInput(userId, tokenAddress, currentReceivers);
-				const split: CallStruct = {
-					value: 0,
-					to: dripsHubAddress,
-					data: DripsHub__factory.createInterface().encodeFunctionData('split', [
-						userId,
-						tokenAddress,
-						formatSplitReceivers(currentReceivers)
-					])
-				};
 
-				flow.push(split);
+				const splitTx = await dripsHubTxFactory.split(userId, tokenAddress, currentReceivers);
+
+				flow.push(splitTx);
 			}
 
 			validateCollectInput(tokenAddress, transferToAddress);
-			const collect: CallStruct = {
-				value: 0,
-				to: driverAddress,
-				data: AddressDriver__factory.createInterface().encodeFunctionData('collect', [tokenAddress, transferToAddress])
-			};
 
-			flow.push(collect);
+			const addressDriverTxFactory = await AddressDriverTxFactory.create(signer, driverAddress);
+
+			const collectTx = await addressDriverTxFactory.collect(tokenAddress, transferToAddress);
+
+			flow.push(collectTx);
 
 			return flow;
 		}

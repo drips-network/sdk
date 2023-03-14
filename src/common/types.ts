@@ -1,4 +1,4 @@
-import type { CallStruct } from '../../contracts/Caller';
+import type { PopulatedTransaction } from 'ethers';
 import type { DripsHistoryStruct } from '../../contracts/DripsHub';
 
 export {
@@ -54,7 +54,7 @@ export type CycleInfo = {
 
 export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
 
-export type Preset = CallStruct[];
+export type Preset = PopulatedTransaction[];
 
 export type UserMetadata = {
 	key: string;

@@ -5,7 +5,6 @@ import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import type { ContractReceipt, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
-import { DripsErrorCode } from 'radicle-drips';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
@@ -14,6 +13,7 @@ import type { IERC20, NFTDriver } from '../../contracts';
 import { NFTDriver__factory, IERC20__factory } from '../../contracts';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
 import * as internals from '../../src/common/internals';
+import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('NFTDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
