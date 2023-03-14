@@ -1,19 +1,20 @@
 /* eslint-disable no-dupe-class-members */
-import type { Provider } from '@ethersproject/providers';
 import type { NFTDriver, DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/NFTDriver';
 import type { PromiseOrValue } from 'contracts/common';
-import type { PopulatedTransaction, BigNumberish } from 'ethers';
+import type { PopulatedTransaction, BigNumberish, Signer, Overrides } from 'ethers';
+import { formatDripsReceivers, formatSplitReceivers } from '../common/internals';
 import { NFTDriver__factory } from '../../contracts/factories';
-import { validateClientProvider } from '../common/validators';
+import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
 
-interface INFTDriverTxFactory
+export interface INFTDriverTxFactory
 	extends Pick<
 		NFTDriver['populateTransaction'],
-		'safeMint' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
+		'mint' | 'safeMint' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
 	> {}
 
 export default class NFTDriverTxFactory implements INFTDriverTxFactory {
+	#signer!: Signer;
 	#driver!: NFTDriver;
 	#driverAddress!: string;
 
@@ -21,70 +22,131 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		return this.#driverAddress;
 	}
 
-	public static async create(provider: Provider, customDriverAddress?: string): Promise<NFTDriverTxFactory> {
-		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
+	public get signer(): Signer | undefined {
+		return this.#signer;
+	}
 
-		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
+	// TODO: Update the supported chains documentation comments.
+	/**
+	 * Creates a new immutable `NFTDriverTxFactory` instance.
+	 *
+	 * @param signer The signer that will be used to sign the generated transactions.
+	 *
+	 * The `singer` must be connected to a provider.
+	 *
+	 * The supported networks are:
+	 * - 'goerli': chain ID `5`
+	 * - 'polygon-mumbai': chain ID `80001`
+	 * @param customDriverAddress Overrides the `NFTDriver` contract address.
+	 * If it's `undefined` (default value), the address will be automatically selected based on the `signer.provider`'s network.
+	 * @returns A `Promise` which resolves to the new client instance.
+	 * @throws {@link DripsErrors.initializationError} if the initialization fails.
+	 */
+	public static async create(signer: Signer, customDriverAddress?: string): Promise<NFTDriverTxFactory> {
+		await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
+
+		const { chainId } = await signer.provider!.getNetwork(); // If the validation passed we know that the signer is connected to a provider.
+
+		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].CONTRACT_NFT_DRIVER;
 
 		const client = new NFTDriverTxFactory();
-
+		client.#signer = signer;
 		client.#driverAddress = driverAddress;
-
-		client.#driver = NFTDriver__factory.connect(driverAddress, provider);
+		client.#driver = NFTDriver__factory.connect(driverAddress, signer);
 
 		return client;
 	}
 
-	safeMint(to: PromiseOrValue<string>, userMetadata: UserMetadataStruct[]): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.safeMint(to, userMetadata);
+	public async mint(
+		to: PromiseOrValue<string>,
+		userMetadata: UserMetadataStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return this.#driver.populateTransaction.mint(to, userMetadata, overrides);
 	}
 
-	collect(
+	public async safeMint(
+		to: PromiseOrValue<string>,
+		userMetadata: UserMetadataStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return this.#driver.populateTransaction.safeMint(to, userMetadata, overrides);
+	}
+
+	public async collect(
 		tokenId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
-		transferTo: PromiseOrValue<string>
+		transferTo: PromiseOrValue<string>,
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.collect(tokenId, erc20, transferTo);
+		return this.#driver.populateTransaction.collect(tokenId, erc20, transferTo, overrides);
 	}
 
-	give(
+	public async give(
 		tokenId: PromiseOrValue<BigNumberish>,
 		receiver: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
-		amt: PromiseOrValue<BigNumberish>
+		amt: PromiseOrValue<BigNumberish>,
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.give(tokenId, receiver, erc20, amt);
+		return this.#driver.populateTransaction.give(tokenId, receiver, erc20, amt, overrides);
 	}
 
-	setSplits(tokenId: PromiseOrValue<BigNumberish>, receivers: SplitsReceiverStruct[]): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.setSplits(tokenId, receivers);
+	public async setSplits(
+		tokenId: PromiseOrValue<BigNumberish>,
+		receivers: SplitsReceiverStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return this.#driver.populateTransaction.setSplits(tokenId, formatSplitReceivers(receivers), overrides);
 	}
 
-	setDrips(
+	public async setDrips(
 		tokenId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		currReceivers: DripsReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
 		newReceivers: DripsReceiverStruct[],
-		transferTo: PromiseOrValue<string>
+		maxEndHint1: PromiseOrValue<BigNumberish>,
+		maxEndHint2: PromiseOrValue<BigNumberish>,
+		transferTo: PromiseOrValue<string>,
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
+		if (!overrides.gasLimit) {
+			const gasEstimation = await this.#driver.estimateGas.setDrips(
+				tokenId,
+				erc20,
+				formatDripsReceivers(currReceivers),
+				balanceDelta,
+				formatDripsReceivers(newReceivers),
+				maxEndHint1,
+				maxEndHint2,
+				transferTo,
+				overrides
+			);
+
+			const gasLimit = Math.ceil(gasEstimation.toNumber() * 1.2);
+			// eslint-disable-next-line no-param-reassign
+			overrides = { ...overrides, gasLimit };
+		}
+
 		return this.#driver.populateTransaction.setDrips(
 			tokenId,
 			erc20,
-			currReceivers,
+			formatDripsReceivers(currReceivers),
 			balanceDelta,
-			newReceivers,
-			0,
-			0,
-			transferTo
+			formatDripsReceivers(newReceivers),
+			maxEndHint1,
+			maxEndHint2,
+			transferTo,
+			overrides
 		);
 	}
 
-	emitUserMetadata(
+	public async emitUserMetadata(
 		tokenId: PromiseOrValue<BigNumberish>,
-		userMetadata: UserMetadataStruct[]
+		userMetadata: UserMetadataStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.emitUserMetadata(tokenId, userMetadata);
+		return this.#driver.populateTransaction.emitUserMetadata(tokenId, userMetadata, overrides);
 	}
 }

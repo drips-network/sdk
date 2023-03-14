@@ -2,18 +2,18 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import type { ContractReceipt, ContractTransaction, Event } from 'ethers';
+import type { ContractReceipt, ContractTransaction } from 'ethers';
 import { ethers, BigNumber, constants, Wallet } from 'ethers';
 import { assert } from 'chai';
-import type { IERC20, NFTDriver } from '../../contracts';
-import { IERC20__factory, NFTDriver__factory } from '../../contracts';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import { DripsErrorCode } from 'radicle-drips';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
-import { DripsErrorCode } from '../../src/common/DripsError';
-import * as internals from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
-import type { DripsReceiverStruct, SplitsReceiverStruct, DripsReceiver, UserMetadata } from '../../src/common/types';
+import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
+import type { IERC20, NFTDriver } from '../../contracts';
+import { NFTDriver__factory, IERC20__factory } from '../../contracts';
+import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
+import * as internals from '../../src/common/internals';
 
 describe('NFTDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -21,9 +21,9 @@ describe('NFTDriverClient', () => {
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let nftDriverContractStub: StubbedInstance<NFTDriver>;
-	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
+	let nftDriverTxFactoryStub: StubbedInstance<NFTDriverTxFactory>;
 
 	let testNftDriverClient: NFTDriverClient;
 
@@ -41,16 +41,19 @@ describe('NFTDriverClient', () => {
 		signerWithProviderStub = { ...signerStub, provider: providerStub };
 		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
+		nftDriverTxFactoryStub = stubInterface<NFTDriverTxFactory>();
+		sinon
+			.stub(NFTDriverTxFactory, 'create')
+			.withArgs(signerWithProviderStub, Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER)
+			.resolves(nftDriverTxFactoryStub);
+
 		nftDriverContractStub = stubInterface<NFTDriver>();
 		sinon
 			.stub(NFTDriver__factory, 'connect')
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerWithProviderStub)
 			.returns(nftDriverContractStub);
 
-		dripsHubClientStub = stubInterface<DripsHubClient>();
-		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
-
-		testNftDriverClient = await NFTDriverClient.create(providerStub, signerStub);
+		testNftDriverClient = await NFTDriverClient.create(providerStub, signerStub, undefined, nftDriverTxFactoryStub);
 	});
 
 	afterEach(() => {
@@ -58,20 +61,6 @@ describe('NFTDriverClient', () => {
 	});
 
 	describe('create()', () => {
-		it('should validate the signer', async () => {
-			// Arrange
-			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
-
-			// Act
-			await NFTDriverClient.create(providerStub, signerStub);
-
-			// Assert
-			assert(
-				validateClientSignerStub.calledOnceWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
-				'Expected method to be called with different arguments'
-			);
-		});
-
 		it('should validate the provider', async () => {
 			// Arrange
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
@@ -81,26 +70,23 @@ describe('NFTDriverClient', () => {
 
 			// Assert
 			assert(
-				validateClientProviderStub.calledOnceWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
+				validateClientProviderStub.calledWithExactly(providerStub, Utils.Network.SUPPORTED_CHAINS),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should should throw a initializationError when client cannot be initialized', async () => {
+		it('should validate the signer', async () => {
 			// Arrange
-			let threw = false;
+			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
-			try {
-				// Act
-				await NFTDriverClient.create(undefined as any, undefined as any);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
-				threw = true;
-			}
+			// Act
+			await NFTDriverClient.create(providerStub, signerStub);
 
 			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
+			assert(
+				validateClientSignerStub.calledWithExactly(signerWithProviderStub, Utils.Network.SUPPORTED_CHAINS),
+				'Expected method to be called with different arguments'
+			);
 		});
 
 		it('should set the custom driver address when provided', async () => {
@@ -118,7 +104,7 @@ describe('NFTDriverClient', () => {
 			// Assert
 			assert.equal(testNftDriverClient.signer, signerWithProviderStub);
 			assert.equal(testNftDriverClient.provider, providerStub);
-			assert.equal(testNftDriverClient.signer.provider, providerStub);
+			assert.equal(testNftDriverClient.signer!.provider, providerStub);
 			assert.equal(
 				testNftDriverClient.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_NFT_DRIVER
@@ -565,20 +551,20 @@ describe('NFTDriverClient', () => {
 			);
 		});
 
-		it('should call the collect() method of the NFTDriver contract', async () => {
+		it('should send the expected transaction', async () => {
 			// Arrange
 			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
+			const tx = {};
+			nftDriverTxFactoryStub.collect.withArgs(tokenId, tokenAddress, transferToAddress).resolves(tx);
+
 			// Act
 			await testNftDriverClient.collect(tokenId, tokenAddress, transferToAddress);
 
 			// Assert
-			assert(
-				nftDriverContractStub.collect.calledOnceWithExactly(tokenId, tokenAddress, transferToAddress),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
 		});
 	});
 
@@ -650,21 +636,21 @@ describe('NFTDriverClient', () => {
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should call the give() method of the NFTDriver contract', async () => {
+		it('should send the expected transaction', async () => {
 			// Arrange
 			const tokenId = '1';
-			const amount = 100;
+			const amount = 100n;
 			const receiverUserId = '1';
 			const tokenAddress = Wallet.createRandom().address;
+
+			const tx = {};
+			nftDriverTxFactoryStub.give.withArgs(tokenId, receiverUserId, tokenAddress, amount).resolves(tx);
 
 			// Act
 			await testNftDriverClient.give(tokenId, receiverUserId, tokenAddress, amount);
 
 			// Assert
-			assert(
-				nftDriverContractStub.give.calledOnceWithExactly(tokenId, receiverUserId, tokenAddress, amount),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
 		});
 	});
 
@@ -688,48 +674,7 @@ describe('NFTDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should validate the ERC20 address', async () => {
-			// Arrange
-			const tokenId = '1';
-			const tokenAddress = Wallet.createRandom().address;
-			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
-				{
-					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
-				}
-			];
-			const receivers: DripsReceiverStruct[] = [
-				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
-				},
-				{
-					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
-				},
-				{
-					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
-				}
-			];
-
-			const estimatedGasFees = 2000000;
-
-			nftDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-
-			// Act
-			await testNftDriverClient.setDrips(tokenId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
-
-			// Assert
-			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
-		});
-
-		it('should validate the drips receivers', async () => {
+		it('should validate the input', async () => {
 			// Arrange
 			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
@@ -756,145 +701,35 @@ describe('NFTDriverClient', () => {
 				}
 			];
 
-			const estimatedGasFees = 2000000;
-
-			nftDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
 			// Act
 			await testNftDriverClient.setDrips(tokenId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
-				validateDripsReceiversStub.calledWithExactly(
-					sinon.match(
-						(r: DripsReceiver[]) =>
-							r[0].userId === receivers[0].userId &&
-							r[1].userId === receivers[1].userId &&
-							r[2].userId === receivers[2].userId
-					)
-				),
-				'Expected method to be called with different arguments'
-			);
-			assert(
-				validateDripsReceiversStub.calledWithExactly(
-					sinon.match((r: DripsReceiver[]) => r[0].userId === currentReceivers[0].userId)
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should throw argumentMissingError when current drips transferToAddress are missing', async () => {
-			// Arrange
-			let threw = false;
-
-			// Act
-			try {
-				await testNftDriverClient.setDrips(
-					'1',
-					Wallet.createRandom().address,
-					[],
-					[],
-					undefined as unknown as string,
-					0n
-				);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
-		it('should clear drips when new receivers is an empty list', async () => {
-			// Arrange
-			const tokenId = '1';
-			const tokenAddress = Wallet.createRandom().address;
-			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
-				{
-					userId: 3,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
-				}
-			];
-
-			const estimatedGasFees = 2000000;
-			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
-
-			nftDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			// Act
-			await testNftDriverClient.setDrips(tokenId, tokenAddress, currentReceivers, [], transferToAddress, 1n);
-
-			// Assert
-			assert(
-				nftDriverContractStub.setDrips.calledOnceWithExactly(
-					tokenId,
+				validateSetDripsInputStub.calledOnceWithExactly(
 					tokenAddress,
-					currentReceivers,
-					1n,
-					[],
-					0,
-					0,
+					sinon.match.array.deepEquals(
+						currentReceivers?.map((r) => ({
+							userId: r.userId.toString(),
+							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+						}))
+					),
+					sinon.match.array.deepEquals(
+						receivers?.map((r) => ({
+							userId: r.userId.toString(),
+							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+						}))
+					),
 					transferToAddress,
-					{
-						gasLimit
-					}
+					1n
 				),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should set balanceDelta to the default value of 0 when balanceDelta is not provided', async () => {
-			// Arrange
-			const tokenId = '1';
-			const tokenAddress = Wallet.createRandom().address;
-			const transferToAddress = Wallet.createRandom().address;
-
-			const estimatedGasFees = 2000000;
-			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
-
-			nftDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			// Act
-			await testNftDriverClient.setDrips(
-				tokenId,
-				tokenAddress,
-				[],
-				[],
-				transferToAddress,
-				undefined as unknown as bigint
-			);
-
-			// Assert
-			assert(
-				nftDriverContractStub.setDrips.calledOnceWithExactly(
-					tokenId,
-					tokenAddress,
-					[],
-					0,
-					[],
-					0,
-					0,
-					transferToAddress,
-					{
-						gasLimit
-					}
-				),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should call the setDrips() method of the NFTDriver contract', async () => {
+		it('should send the expected transaction', async () => {
 			// Arrange
 			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
@@ -905,7 +740,7 @@ describe('NFTDriverClient', () => {
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const newReceivers: DripsReceiverStruct[] = [
+			const receivers: DripsReceiverStruct[] = [
 				{
 					userId: 2n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -920,40 +755,25 @@ describe('NFTDriverClient', () => {
 				}
 			];
 
-			const estimatedGasFees = 2000000;
-			const gasLimit = Math.ceil(estimatedGasFees + estimatedGasFees * 0.2);
+			const balance = 1n;
 
-			nftDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
-
-			sinon
-				.stub(internals, 'formatDripsReceivers')
-				.onFirstCall()
-				.returns(currentReceivers)
-				.onSecondCall()
-				.returns(newReceivers);
+			const tx = {};
+			nftDriverTxFactoryStub.setDrips
+				.withArgs(tokenId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
+				.resolves(tx);
 
 			// Act
-			await testNftDriverClient.setDrips(tokenId, tokenAddress, currentReceivers, newReceivers, transferToAddress, 1);
+			await testNftDriverClient.setDrips(
+				tokenId,
+				tokenAddress,
+				currentReceivers,
+				receivers,
+				transferToAddress,
+				balance
+			);
 
 			// Assert
-			assert(
-				nftDriverContractStub.setDrips.calledOnceWithExactly(
-					tokenId,
-					tokenAddress,
-					currentReceivers,
-					1,
-					newReceivers,
-					0,
-					0,
-					transferToAddress,
-					{
-						gasLimit
-					}
-				),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
 		});
 	});
 
@@ -993,8 +813,7 @@ describe('NFTDriverClient', () => {
 			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
 		});
 
-		it('should call the setSplits() method of the NFTDriver contract', async () => {
-			// Arrange
+		it('should send the expected transaction', async () => {
 			const tokenId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
@@ -1003,20 +822,14 @@ describe('NFTDriverClient', () => {
 				{ userId: 1, weight: 1 }
 			];
 
+			const tx = {};
+			nftDriverTxFactoryStub.setSplits.withArgs(tokenId, receivers).resolves(tx);
+
 			// Act
 			await testNftDriverClient.setSplits(tokenId, receivers);
 
 			// Assert
-			assert(
-				nftDriverContractStub.setSplits.calledOnceWithExactly(
-					tokenId,
-					sinon
-						.match((r: SplitsReceiverStruct[]) => r.length === 2)
-						.and(sinon.match((r: SplitsReceiverStruct[]) => r[0].userId === 1))
-						.and(sinon.match((r: SplitsReceiverStruct[]) => r[1].userId === 2))
-				),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
 		});
 	});
 
@@ -1038,20 +851,19 @@ describe('NFTDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should call the emitUserMetadata() method of the NFTDriver contract', async () => {
+		it('should send the expected transaction', async () => {
 			// Arrange
-			const tokenId = '1';
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
 
+			const tx = {};
+			nftDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);
+
 			// Act
-			await testNftDriverClient.emitUserMetadata(tokenId, metadata);
+			await testNftDriverClient.emitUserMetadata('1', metadata);
 
 			// Assert
-			assert(
-				nftDriverContractStub.emitUserMetadata.calledOnceWithExactly(tokenId, metadataAsBytes),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
 		});
 	});
 });

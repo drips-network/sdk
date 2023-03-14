@@ -91,12 +91,13 @@ describe('AddressDriverTxFactory', () => {
 			// Arrange
 			const stub = sinon.stub();
 			addressDriverContractStub.populateTransaction.collect = stub;
+			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.collect('0x1234', '0x5678');
+			await testAddressDriverTxFactory.collect('0x1234', '0x5678', overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', '0x5678'));
+			assert(stub.calledOnceWithExactly('0x1234', '0x5678', overrides));
 		});
 	});
 
@@ -105,12 +106,13 @@ describe('AddressDriverTxFactory', () => {
 			// Arrange
 			const stub = sinon.stub();
 			addressDriverContractStub.populateTransaction.give = stub;
+			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.give('0x1234', '0x5678', '0x9abc');
+			await testAddressDriverTxFactory.give('0x1234', '0x5678', '0x9abc', overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc'));
+			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', overrides));
 		});
 	});
 
@@ -120,12 +122,13 @@ describe('AddressDriverTxFactory', () => {
 			const stub = sinon.stub();
 			addressDriverContractStub.populateTransaction.setSplits = stub;
 			const receivers = [] as SplitsReceiverStruct[];
+			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.setSplits(receivers);
+			await testAddressDriverTxFactory.setSplits(receivers, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(receivers));
+			assert(stub.calledOnceWithExactly(receivers, overrides));
 		});
 	});
 
@@ -164,12 +167,13 @@ describe('AddressDriverTxFactory', () => {
 			const stub = sinon.stub();
 			addressDriverContractStub.populateTransaction.emitUserMetadata = stub;
 			const userMetadata = [] as UserMetadataStruct[];
+			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.emitUserMetadata(userMetadata);
+			await testAddressDriverTxFactory.emitUserMetadata(userMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(userMetadata));
+			assert(stub.calledOnceWithExactly(userMetadata, overrides));
 		});
 	});
 });

@@ -67,21 +67,26 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 
 	public async collect(
 		erc20: PromiseOrValue<string>,
-		transferTo: PromiseOrValue<string>
+		transferTo: PromiseOrValue<string>,
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.collect(erc20, transferTo);
+		return this.#driver.populateTransaction.collect(erc20, transferTo, overrides);
 	}
 
 	public async give(
 		receiver: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
-		amt: PromiseOrValue<BigNumberish>
+		amt: PromiseOrValue<BigNumberish>,
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.give(receiver, erc20, amt);
+		return this.#driver.populateTransaction.give(receiver, erc20, amt, overrides);
 	}
 
-	public async setSplits(receivers: SplitsReceiverStruct[]): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.setSplits(formatSplitReceivers(receivers));
+	public async setSplits(
+		receivers: SplitsReceiverStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return this.#driver.populateTransaction.setSplits(formatSplitReceivers(receivers), overrides);
 	}
 
 	public async setDrips(
@@ -123,7 +128,10 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		);
 	}
 
-	public async emitUserMetadata(userMetadata: UserMetadataStruct[]): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.emitUserMetadata(userMetadata);
+	public async emitUserMetadata(
+		userMetadata: UserMetadataStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return this.#driver.populateTransaction.emitUserMetadata(userMetadata, overrides);
 	}
 }

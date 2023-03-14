@@ -11,7 +11,6 @@ import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import * as internals from '../../src/common/internals';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
 
@@ -20,7 +19,6 @@ describe('AddressDriverClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let addressDriverContractStub: StubbedInstance<AddressDriver>;
 	let addressDriverTxFactoryStub: StubbedInstance<AddressDriverTxFactory>;
@@ -47,9 +45,6 @@ describe('AddressDriverClient', () => {
 			.stub(AddressDriver__factory, 'connect')
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerWithProviderStub)
 			.returns(addressDriverContractStub);
-
-		dripsHubClientStub = stubInterface<DripsHubClient>();
-		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
 
 		addressDriverTxFactoryStub = stubInterface<AddressDriverTxFactory>();
 		sinon
@@ -500,11 +495,6 @@ describe('AddressDriverClient', () => {
 			const transferToAddress = Wallet.createRandom().address;
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
-			const estimatedGasFees = 2000000;
-
-			addressDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
 
@@ -542,12 +532,6 @@ describe('AddressDriverClient', () => {
 			];
 
 			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
-
-			const estimatedGasFees = 2000000;
-
-			addressDriverContractStub.estimateGas = {
-				setDrips: () => BigNumber.from(estimatedGasFees) as any
-			} as any;
 
 			// Act
 			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
