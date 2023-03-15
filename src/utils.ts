@@ -33,7 +33,7 @@ namespace Utils {
 				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x9e30F316D1F9CC07CD17E9DAB41e71f7aD51DBA8',
 				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/jtourkos/drips-v2-on-goerli'
 			},
 			// Mumbai
 			80001: {
