@@ -46,7 +46,7 @@ describe('DripsHubClient', () => {
 		dripsHubContractStub = stubInterface<DripsHub>();
 		sinon
 			.stub(DripsHub__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_DRIPS_HUB, signerWithProviderStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].DRIPS_HUB, signerWithProviderStub)
 			.returns(dripsHubContractStub);
 
 		testDripsHubClient = await DripsHubClient.create(providerStub, signerStub);
@@ -120,7 +120,7 @@ describe('DripsHubClient', () => {
 			assert.equal(testDripsHubClient.signer!.provider, providerStub);
 			assert.equal(
 				testDripsHubClient.contractAddress,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_DRIPS_HUB
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].DRIPS_HUB
 			);
 		});
 	});

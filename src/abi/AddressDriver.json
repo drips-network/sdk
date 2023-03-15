@@ -25,7 +25,16 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "currentAdmin", "type": "address" },
+			{ "indexed": true, "internalType": "address", "name": "newAdmin", "type": "address" }
+		],
+		"name": "NewAdminProposed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Paused",
 		"type": "event"
 	},
@@ -33,7 +42,7 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
-			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+			{ "indexed": true, "internalType": "address", "name": "admin", "type": "address" }
 		],
 		"name": "PauserGranted",
 		"type": "event"
@@ -42,14 +51,14 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
-			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+			{ "indexed": true, "internalType": "address", "name": "admin", "type": "address" }
 		],
 		"name": "PauserRevoked",
 		"type": "event"
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Unpaused",
 		"type": "event"
 	},
@@ -59,6 +68,7 @@
 		"name": "Upgraded",
 		"type": "event"
 	},
+	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [],
 		"name": "admin",
@@ -78,13 +88,6 @@
 		"name": "calcUserId",
 		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
-		"name": "changeAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -147,6 +150,20 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "implementation",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isPaused",
+		"outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "isPauser",
 		"outputs": [{ "internalType": "bool", "name": "isAddrPauser", "type": "bool" }],
@@ -162,9 +179,16 @@
 	},
 	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
+		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
+		"name": "proposeNewAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
-		"name": "paused",
-		"outputs": [{ "internalType": "bool", "name": "isPaused", "type": "bool" }],
+		"name": "proposedAdmin",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -175,6 +199,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",

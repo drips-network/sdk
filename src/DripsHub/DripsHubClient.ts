@@ -85,7 +85,7 @@ export default class DripsHubClient {
 			}
 
 			const network = await provider.getNetwork();
-			const contractAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_DRIPS_HUB;
+			const contractAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].DRIPS_HUB;
 
 			const client = new DripsHubClient();
 

@@ -39,7 +39,7 @@ describe('NFTDriverTxFactory', () => {
 		nftDriverContractStub = stubInterface<NFTDriver>();
 		sinon
 			.stub(NFTDriver__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_NFT_DRIVER, signerWithProviderStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].NFT_DRIVER, signerWithProviderStub)
 			.returns(nftDriverContractStub);
 
 		testNftDriverTxFactory = await NFTDriverTxFactory.create(signerWithProviderStub);
@@ -79,7 +79,7 @@ describe('NFTDriverTxFactory', () => {
 			// Assert
 			assert.equal(
 				testNftDriverTxFactory.driverAddress,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_NFT_DRIVER
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].NFT_DRIVER
 			);
 			assert.equal(testNftDriverTxFactory.signer, signerWithProviderStub);
 		});

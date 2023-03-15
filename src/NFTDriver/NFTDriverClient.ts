@@ -95,7 +95,7 @@ export default class NFTDriverClient {
 		await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
 		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_NFT_DRIVER;
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].NFT_DRIVER;
 
 		const client = new NFTDriverClient();
 

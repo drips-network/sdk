@@ -55,7 +55,7 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 
 		const { chainId } = await signer.provider!.getNetwork(); // If the validation passed we know that the signer is connected to a provider.
 
-		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].CONTRACT_ADDRESS_DRIVER;
+		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].ADDRESS_DRIVER;
 
 		const client = new AddressDriverTxFactory();
 		client.#signer = signer;

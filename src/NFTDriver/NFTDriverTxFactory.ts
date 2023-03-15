@@ -47,7 +47,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 
 		const { chainId } = await signer.provider!.getNetwork(); // If the validation passed we know that the signer is connected to a provider.
 
-		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].CONTRACT_NFT_DRIVER;
+		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].NFT_DRIVER;
 
 		const client = new NFTDriverTxFactory();
 		client.#signer = signer;

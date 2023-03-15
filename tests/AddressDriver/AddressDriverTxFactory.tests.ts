@@ -40,7 +40,7 @@ describe('AddressDriverTxFactory', () => {
 		addressDriverContractStub = stubInterface<AddressDriver>();
 		sinon
 			.stub(AddressDriver__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, signerWithProviderStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].ADDRESS_DRIVER, signerWithProviderStub)
 			.returns(addressDriverContractStub);
 
 		testAddressDriverTxFactory = await AddressDriverTxFactory.create(signerWithProviderStub);
@@ -80,7 +80,7 @@ describe('AddressDriverTxFactory', () => {
 			// Assert
 			assert.equal(
 				testAddressDriverTxFactory.driverAddress,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].ADDRESS_DRIVER
 			);
 			assert.equal(testAddressDriverTxFactory.signer, signerWithProviderStub);
 		});

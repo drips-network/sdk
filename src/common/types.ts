@@ -28,21 +28,30 @@ export type DripsReceiverConfig = {
 };
 
 export type NetworkConfig = {
-	readonly CYCLE_SECS: string;
-	readonly NETWORK_NAME: string;
-	readonly SUBGRAPH_URL: string;
-	readonly CONTRACT_CALLER: string;
-	readonly CONTRACT_DRIPS_HUB: string;
-	readonly CONTRACT_NFT_DRIVER: string;
-	readonly CONTRACT_NFT_DRIVER_ID: string;
-	readonly CONTRACT_ADDRESS_DRIVER: string;
-	readonly CONTRACT_DRIPS_HUB_LOGIC: string;
-	readonly CONTRACT_ADDRESS_DRIVER_ID: string;
-	readonly CONTRACT_NFT_DRIVER_LOGIC: string;
-	readonly CONTRACT_ADDRESS_DRIVER_LOGIC: string;
-	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER: string;
-	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER_ID: string;
-	readonly CONTRACT_IMMUTABLE_SPLITS_DRIVER_LOGIC: string;
+	CHAIN: string;
+	DEPLOYMENT_TIME: string;
+	COMMIT_HASH: string;
+	WALLET: string;
+	WALLET_NONCE: string;
+	DEPLOYER: string;
+	DRIPS_HUB: string;
+	DRIPS_HUB_CYCLE_SECONDS: string;
+	DRIPS_HUB_LOGIC: string;
+	DRIPS_HUB_ADMIN: string;
+	CALLER: string;
+	ADDRESS_DRIVER: string;
+	ADDRESS_DRIVER_LOGIC: string;
+	ADDRESS_DRIVER_ADMIN: string;
+	ADDRESS_DRIVER_ID: string;
+	NFT_DRIVER: string;
+	NFT_DRIVER_LOGIC: string;
+	NFT_DRIVER_ADMIN: string;
+	NFT_DRIVER_ID: string;
+	IMMUTABLE_SPLITS_DRIVER: string;
+	IMMUTABLE_SPLITS_DRIVER_LOGIC: string;
+	IMMUTABLE_SPLITS_DRIVER_ADMIN: string;
+	IMMUTABLE_SPLITS_DRIVER_ID: string;
+	SUBGRAPH_URL: string;
 };
 
 export type CycleInfo = {

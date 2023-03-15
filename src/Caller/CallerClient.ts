@@ -65,7 +65,7 @@ export default class CallerClient {
 			await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
 			const network = await provider.getNetwork();
-			const callerAddress = customCallerAddress ?? Utils.Network.configs[network.chainId].CONTRACT_CALLER;
+			const callerAddress = customCallerAddress ?? Utils.Network.configs[network.chainId].CALLER;
 
 			const client = new CallerClient();
 

@@ -29,7 +29,7 @@ describe('DripsHubTxFactory', () => {
 		dripsHubContractStub = stubInterface<DripsHub>();
 		sinon
 			.stub(DripsHub__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_ADDRESS_DRIVER, providerStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].ADDRESS_DRIVER, providerStub)
 			.returns(dripsHubContractStub);
 
 		testDripsHubTxFactory = await DripsHubTxFactory.create(providerStub);
@@ -69,7 +69,7 @@ describe('DripsHubTxFactory', () => {
 			// Assert
 			assert.equal(
 				testDripsHubTxFactory.driverAddress,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_ADDRESS_DRIVER
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].ADDRESS_DRIVER
 			);
 		});
 	});

@@ -21,7 +21,7 @@ export default class DripsHubTxFactory implements IDripsHubTxFactory {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_ADDRESS_DRIVER;
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].ADDRESS_DRIVER;
 
 		const client = new DripsHubTxFactory();
 

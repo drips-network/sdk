@@ -45,7 +45,16 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "currentAdmin", "type": "address" },
+			{ "indexed": true, "internalType": "address", "name": "newAdmin", "type": "address" }
+		],
+		"name": "NewAdminProposed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Paused",
 		"type": "event"
 	},
@@ -53,7 +62,7 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
-			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+			{ "indexed": true, "internalType": "address", "name": "admin", "type": "address" }
 		],
 		"name": "PauserGranted",
 		"type": "event"
@@ -62,7 +71,7 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
-			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+			{ "indexed": true, "internalType": "address", "name": "admin", "type": "address" }
 		],
 		"name": "PauserRevoked",
 		"type": "event"
@@ -79,7 +88,7 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Unpaused",
 		"type": "event"
 	},
@@ -89,6 +98,7 @@
 		"name": "Upgraded",
 		"type": "event"
 	},
+	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [],
 		"name": "admin",
@@ -128,10 +138,13 @@
 		"type": "function"
 	},
 	{
-		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
-		"name": "changeAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"inputs": [
+			{ "internalType": "address", "name": "minter", "type": "address" },
+			{ "internalType": "uint64", "name": "salt", "type": "uint64" }
+		],
+		"name": "calcTokenIdWithSalt",
+		"outputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -204,6 +217,13 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "implementation",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{ "internalType": "address", "name": "owner", "type": "address" },
 			{ "internalType": "address", "name": "operator", "type": "address" }
@@ -214,9 +234,26 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "isPaused",
+		"outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "isPauser",
 		"outputs": [{ "internalType": "bool", "name": "isAddrPauser", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "address", "name": "minter", "type": "address" },
+			{ "internalType": "uint64", "name": "salt", "type": "uint64" }
+		],
+		"name": "isSaltUsed",
+		"outputs": [{ "internalType": "bool", "name": "isUsed", "type": "bool" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -246,10 +283,29 @@
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{ "internalType": "uint64", "name": "salt", "type": "uint64" },
+			{ "internalType": "address", "name": "to", "type": "address" },
+			{
+				"components": [
+					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
+					{ "internalType": "bytes", "name": "value", "type": "bytes" }
+				],
+				"internalType": "struct UserMetadata[]",
+				"name": "userMetadata",
+				"type": "tuple[]"
+			}
+		],
+		"name": "mintWithSalt",
+		"outputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "name",
 		"outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-		"stateMutability": "view",
+		"stateMutability": "pure",
 		"type": "function"
 	},
 	{
@@ -268,9 +324,16 @@
 	},
 	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
+		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
+		"name": "proposeNewAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
-		"name": "paused",
-		"outputs": [{ "internalType": "bool", "name": "isPaused", "type": "bool" }],
+		"name": "proposedAdmin",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -281,6 +344,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",
@@ -302,6 +366,25 @@
 			}
 		],
 		"name": "safeMint",
+		"outputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "uint64", "name": "salt", "type": "uint64" },
+			{ "internalType": "address", "name": "to", "type": "address" },
+			{
+				"components": [
+					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
+					{ "internalType": "bytes", "name": "value", "type": "bytes" }
+				],
+				"internalType": "struct UserMetadata[]",
+				"name": "userMetadata",
+				"type": "tuple[]"
+			}
+		],
+		"name": "safeMintWithSalt",
 		"outputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -400,7 +483,7 @@
 		"inputs": [],
 		"name": "symbol",
 		"outputs": [{ "internalType": "string", "name": "", "type": "string" }],
-		"stateMutability": "view",
+		"stateMutability": "pure",
 		"type": "function"
 	},
 	{

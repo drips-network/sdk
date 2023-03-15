@@ -94,7 +94,16 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"inputs": [
+			{ "indexed": true, "internalType": "address", "name": "currentAdmin", "type": "address" },
+			{ "indexed": true, "internalType": "address", "name": "newAdmin", "type": "address" }
+		],
+		"name": "NewAdminProposed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Paused",
 		"type": "event"
 	},
@@ -102,7 +111,7 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
-			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+			{ "indexed": true, "internalType": "address", "name": "admin", "type": "address" }
 		],
 		"name": "PauserGranted",
 		"type": "event"
@@ -111,7 +120,7 @@
 		"anonymous": false,
 		"inputs": [
 			{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" },
-			{ "indexed": false, "internalType": "address", "name": "admin", "type": "address" }
+			{ "indexed": true, "internalType": "address", "name": "admin", "type": "address" }
 		],
 		"name": "PauserRevoked",
 		"type": "event"
@@ -171,7 +180,7 @@
 	},
 	{
 		"anonymous": false,
-		"inputs": [{ "indexed": false, "internalType": "address", "name": "pauser", "type": "address" }],
+		"inputs": [{ "indexed": true, "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "Unpaused",
 		"type": "event"
 	},
@@ -192,6 +201,16 @@
 		"type": "event"
 	},
 	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "contract IERC20", "name": "erc20", "type": "address" },
+			{ "indexed": true, "internalType": "address", "name": "receiver", "type": "address" },
+			{ "indexed": false, "internalType": "uint256", "name": "amt", "type": "uint256" }
+		],
+		"name": "Withdrawn",
+		"type": "event"
+	},
+	{
 		"inputs": [],
 		"name": "AMT_PER_SEC_EXTRA_DECIMALS",
 		"outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
@@ -201,7 +220,7 @@
 	{
 		"inputs": [],
 		"name": "AMT_PER_SEC_MULTIPLIER",
-		"outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+		"outputs": [{ "internalType": "uint160", "name": "", "type": "uint160" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -240,6 +259,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [],
 		"name": "admin",
@@ -264,7 +284,7 @@
 					{ "internalType": "DripsConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct DripsReceiver[]",
-				"name": "receivers",
+				"name": "currReceivers",
 				"type": "tuple[]"
 			},
 			{ "internalType": "uint32", "name": "timestamp", "type": "uint32" }
@@ -272,13 +292,6 @@
 		"name": "balanceAt",
 		"outputs": [{ "internalType": "uint128", "name": "balance", "type": "uint128" }],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
-		"name": "changeAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -304,7 +317,7 @@
 	{
 		"inputs": [],
 		"name": "cycleSecs",
-		"outputs": [{ "internalType": "uint32", "name": "cycleSecs_", "type": "uint32" }],
+		"outputs": [{ "internalType": "uint32", "name": "", "type": "uint32" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -415,9 +428,30 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "implementation",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isPaused",
+		"outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "isPauser",
 		"outputs": [{ "internalType": "bool", "name": "isAddrPauser", "type": "bool" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "minAmtPerSec",
+		"outputs": [{ "internalType": "uint160", "name": "", "type": "uint160" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -430,9 +464,16 @@
 	},
 	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
+		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
+		"name": "proposeNewAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
-		"name": "paused",
-		"outputs": [{ "internalType": "bool", "name": "isPaused", "type": "bool" }],
+		"name": "proposedAdmin",
+		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -482,6 +523,7 @@
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
+	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",
@@ -694,6 +736,17 @@
 		"name": "upgradeToAndCall",
 		"outputs": [],
 		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
+			{ "internalType": "address", "name": "receiver", "type": "address" },
+			{ "internalType": "uint256", "name": "amt", "type": "uint256" }
+		],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]

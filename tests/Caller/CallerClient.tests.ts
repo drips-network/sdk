@@ -40,7 +40,7 @@ describe('CallerClient', () => {
 		callerContractStub = stubInterface<Caller>();
 		sinon
 			.stub(Caller__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CONTRACT_CALLER, signerWithProviderStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].CALLER, signerWithProviderStub)
 			.returns(callerContractStub);
 
 		testCallerClient = await CallerClient.create(providerStub, signerStub);
@@ -114,7 +114,7 @@ describe('CallerClient', () => {
 			assert.equal(testCallerClient.signer.provider, providerStub);
 			assert.equal(
 				testCallerClient.callerAddress,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CONTRACT_CALLER
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].CALLER
 			);
 		});
 	});
@@ -124,7 +124,7 @@ describe('CallerClient', () => {
 			// Arrange
 			const calls: CallStruct[] = [
 				{
-					to: 'to',
+					target: 'target',
 					data: 'data',
 					value: 100
 				}

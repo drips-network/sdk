@@ -79,8 +79,7 @@ export default class ImmutableSplitsDriverClient {
 			await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
 			const network = await provider.getNetwork();
-			const driverAddress =
-				customDriverAddress ?? Utils.Network.configs[network.chainId].CONTRACT_IMMUTABLE_SPLITS_DRIVER;
+			const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].IMMUTABLE_SPLITS_DRIVER;
 
 			const client = new ImmutableSplitsDriverClient();
 
