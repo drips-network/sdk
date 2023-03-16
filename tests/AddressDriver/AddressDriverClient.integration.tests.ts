@@ -9,6 +9,7 @@ import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { createFromStrings, expect } from '../../src/common/internals';
 import type { SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance } from '../../src/DripsHub/types';
+import constants from '../../src/constants';
 
 dotenv.config();
 
@@ -54,7 +55,7 @@ describe('AddressDriver integration tests', () => {
 		const config = Utils.DripsReceiverConfiguration.toUint256({
 			start: BigInt(1),
 			duration: BigInt(2),
-			amountPerSec: BigInt(3),
+			amountPerSec: BigInt(3 * constants.AMT_PER_SEC_MULTIPLIER),
 			dripId: BigInt(Math.floor(Math.random() * 1_000_000_000))
 		});
 

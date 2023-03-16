@@ -9,6 +9,7 @@ import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { createFromStrings, expect } from '../../src/common/internals';
 import type { NftSubAccount, SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance } from '../../src/DripsHub/types';
+import constants from '../../src/constants';
 
 dotenv.config();
 
@@ -101,7 +102,7 @@ describe('NFTDriver integration tests', () => {
 		const config = Utils.DripsReceiverConfiguration.toUint256({
 			start: BigInt(1),
 			duration: BigInt(2),
-			amountPerSec: BigInt(3),
+			amountPerSec: BigInt(3 * constants.AMT_PER_SEC_MULTIPLIER),
 			dripId: BigInt(Math.floor(Math.random() * 1_000_000_000))
 		});
 
@@ -288,7 +289,7 @@ describe('NFTDriver integration tests', () => {
 		const subAccounts1 = await subgraphClient.getNftSubAccountsByOwner(account1);
 		if (!subAccounts1.length || subAccounts1.length < 2) {
 			assert.fail(
-				`Cannot run test: account ${account2} needs at least 2 sub-account for the test to run but found ${subAccounts1.length}.`
+				`Cannot run test: account ${account1} needs at least 2 sub-account for the test to run but found ${subAccounts1.length}.`
 			);
 		}
 
@@ -299,6 +300,7 @@ describe('NFTDriver integration tests', () => {
 		assert.equal(giveSubAccount.ownerAddress, account1);
 
 		await giveClient.approve(WETH);
+		await receiverClient.approve(WETH);
 
 		const subAccounts2 = await subgraphClient.getNftSubAccountsByOwner(account2);
 		if (!subAccounts2.length || subAccounts2.length < 2) {
