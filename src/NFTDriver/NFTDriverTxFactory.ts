@@ -2,7 +2,7 @@
 import type { NFTDriver, DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/NFTDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer, Overrides } from 'ethers';
-import { formatDripsReceivers, formatSplitReceivers } from '../common/internals';
+import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
 import { NFTDriver__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
@@ -62,7 +62,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		userMetadata: UserMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.mint(to, userMetadata, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.mint(to, userMetadata, overrides));
 	}
 
 	public async safeMint(
@@ -70,7 +70,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		userMetadata: UserMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.safeMint(to, userMetadata, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.safeMint(to, userMetadata, overrides));
 	}
 
 	public async collect(
@@ -79,7 +79,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.collect(tokenId, erc20, transferTo, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.collect(tokenId, erc20, transferTo, overrides));
 	}
 
 	public async give(
@@ -89,7 +89,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		amt: PromiseOrValue<BigNumberish>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.give(tokenId, receiver, erc20, amt, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.give(tokenId, receiver, erc20, amt, overrides));
 	}
 
 	public async setSplits(
@@ -97,7 +97,9 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		receivers: SplitsReceiverStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.setSplits(tokenId, formatSplitReceivers(receivers), overrides);
+		return safeDripsTx(
+			await this.#driver.populateTransaction.setSplits(tokenId, formatSplitReceivers(receivers), overrides)
+		);
 	}
 
 	public async setDrips(
@@ -129,16 +131,18 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 			overrides = { ...overrides, gasLimit };
 		}
 
-		return this.#driver.populateTransaction.setDrips(
-			tokenId,
-			erc20,
-			formatDripsReceivers(currReceivers),
-			balanceDelta,
-			formatDripsReceivers(newReceivers),
-			maxEndHint1,
-			maxEndHint2,
-			transferTo,
-			overrides
+		return safeDripsTx(
+			await this.#driver.populateTransaction.setDrips(
+				tokenId,
+				erc20,
+				formatDripsReceivers(currReceivers),
+				balanceDelta,
+				formatDripsReceivers(newReceivers),
+				maxEndHint1,
+				maxEndHint2,
+				transferTo,
+				overrides
+			)
 		);
 	}
 
@@ -147,6 +151,6 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		userMetadata: UserMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.emitUserMetadata(tokenId, userMetadata, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(tokenId, userMetadata, overrides));
 	}
 }

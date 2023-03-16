@@ -1,14 +1,27 @@
 import { assert } from 'chai';
 import sinon from 'ts-sinon';
+import type { BytesLike } from 'ethers';
+import { ethers } from 'ethers';
 import * as internals from '../../src/common/internals';
 import Utils from '../../src/utils';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { BytesLike, ethers } from 'ethers';
 
 describe('internals', () => {
 	afterEach(() => {
 		sinon.restore();
+	});
+
+	describe('safeDripsTx', () => {
+		it('should return the expected tx', () => {
+			// Act
+			const tx = internals.safeDripsTx({ to: 'to', data: 'data' });
+
+			// Assert
+			assert.isTrue(tx.to === 'to');
+			assert.isTrue(tx.data === 'data');
+			assert.isTrue(tx.value!.toNumber() === 0);
+		});
 	});
 
 	describe('keyFromString', () => {

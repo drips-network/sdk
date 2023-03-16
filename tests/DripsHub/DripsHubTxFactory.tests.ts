@@ -78,13 +78,16 @@ describe('DripsHubTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			dripsHubContractStub.populateTransaction.receiveDrips = stub;
+			const expectedTx = { from: '0x1234' };
+			dripsHubContractStub.populateTransaction.receiveDrips = stub.resolves(expectedTx);
 
 			// Act
-			await testDripsHubTxFactory.receiveDrips('0x1234', '0x5678', '0x9abc');
+			const tx = await testDripsHubTxFactory.receiveDrips('0x1234', '0x5678', '0x9abc');
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc'));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 
@@ -92,14 +95,17 @@ describe('DripsHubTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			dripsHubContractStub.populateTransaction.squeezeDrips = stub;
+			const expectedTx = { from: '0x1234' };
+			dripsHubContractStub.populateTransaction.squeezeDrips = stub.resolves(expectedTx);
 			const dripsHistory = [] as DripsHistoryStruct[];
 
 			// Act
-			await testDripsHubTxFactory.squeezeDrips('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory);
+			const tx = await testDripsHubTxFactory.squeezeDrips('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory);
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 
@@ -107,14 +113,17 @@ describe('DripsHubTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			dripsHubContractStub.populateTransaction.split = stub;
+			const expectedTx = { from: '0x1234' };
+			dripsHubContractStub.populateTransaction.split = stub.resolves(expectedTx);
 			const receivers = [] as SplitsReceiverStruct[];
 
 			// Act
-			await testDripsHubTxFactory.split('0x1234', '0x9abc', receivers);
+			const tx = await testDripsHubTxFactory.split('0x1234', '0x9abc', receivers);
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x9abc', receivers));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 });

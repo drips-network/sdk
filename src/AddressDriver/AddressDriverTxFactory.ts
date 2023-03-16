@@ -7,7 +7,7 @@ import type {
 } from 'contracts/AddressDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Overrides, Signer } from 'ethers';
-import { formatDripsReceivers, formatSplitReceivers } from '../common/internals';
+import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
 import { AddressDriver__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
@@ -70,7 +70,7 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.collect(erc20, transferTo, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.collect(erc20, transferTo, overrides));
 	}
 
 	public async give(
@@ -79,14 +79,14 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		amt: PromiseOrValue<BigNumberish>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.give(receiver, erc20, amt, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.give(receiver, erc20, amt, overrides));
 	}
 
 	public async setSplits(
 		receivers: SplitsReceiverStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.setSplits(formatSplitReceivers(receivers), overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.setSplits(formatSplitReceivers(receivers), overrides));
 	}
 
 	public async setDrips(
@@ -116,15 +116,17 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 			overrides = { ...overrides, gasLimit };
 		}
 
-		return this.#driver.populateTransaction.setDrips(
-			erc20,
-			formatDripsReceivers(currReceivers),
-			balanceDelta,
-			formatDripsReceivers(newReceivers),
-			maxEndHint1,
-			maxEndHint2,
-			transferTo,
-			overrides
+		return safeDripsTx(
+			await this.#driver.populateTransaction.setDrips(
+				erc20,
+				formatDripsReceivers(currReceivers),
+				balanceDelta,
+				formatDripsReceivers(newReceivers),
+				maxEndHint1,
+				maxEndHint2,
+				transferTo,
+				overrides
+			)
 		);
 	}
 
@@ -132,6 +134,6 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		userMetadata: UserMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.emitUserMetadata(userMetadata, overrides);
+		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(userMetadata, overrides));
 	}
 }

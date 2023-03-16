@@ -1,6 +1,7 @@
 /* eslint-disable no-dupe-class-members */
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer } from 'ethers';
+import { safeDripsTx } from '../common/internals';
 import Utils from '../utils';
 import type { IERC20 } from '../../contracts';
 import { IERC20__factory } from '../../contracts/factories';
@@ -31,7 +32,7 @@ export default class ERC20TxFactory implements IERC20TxFactory {
 		return client;
 	}
 
-	approve(spender: PromiseOrValue<string>, amount: PromiseOrValue<BigNumberish>): Promise<PopulatedTransaction> {
-		return this.#erc20.populateTransaction.approve(spender, amount);
+	async approve(spender: PromiseOrValue<string>, amount: PromiseOrValue<BigNumberish>): Promise<PopulatedTransaction> {
+		return safeDripsTx(await this.#erc20.populateTransaction.approve(spender, amount));
 	}
 }

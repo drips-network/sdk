@@ -90,14 +90,17 @@ describe('AddressDriverTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			addressDriverContractStub.populateTransaction.collect = stub;
+			const expectedTx = { from: '0x1234' };
+			addressDriverContractStub.populateTransaction.collect = stub.resolves(expectedTx);
 			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.collect('0x1234', '0x5678', overrides);
+			const tx = await await testAddressDriverTxFactory.collect('0x1234', '0x5678', overrides);
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x5678', overrides));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 
@@ -105,14 +108,17 @@ describe('AddressDriverTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			addressDriverContractStub.populateTransaction.give = stub;
+			const expectedTx = { from: '0x1234' };
+			addressDriverContractStub.populateTransaction.give = stub.resolves(expectedTx);
 			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.give('0x1234', '0x5678', '0x9abc', overrides);
+			const tx = await testAddressDriverTxFactory.give('0x1234', '0x5678', '0x9abc', overrides);
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', overrides));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 
@@ -120,15 +126,18 @@ describe('AddressDriverTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			addressDriverContractStub.populateTransaction.setSplits = stub;
+			const expectedTx = { from: '0x1234' };
+			addressDriverContractStub.populateTransaction.setSplits = stub.resolves(expectedTx);
 			const receivers = [] as SplitsReceiverStruct[];
 			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.setSplits(receivers, overrides);
+			const tx = await testAddressDriverTxFactory.setSplits(receivers, overrides);
 
 			// Assert
 			assert(stub.calledOnceWithExactly(receivers, overrides));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 
@@ -136,14 +145,23 @@ describe('AddressDriverTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			addressDriverContractStub.populateTransaction.setDrips = stub;
+			const expectedTx = { from: '0x1234' };
+			addressDriverContractStub.populateTransaction.setDrips = stub.resolves(expectedTx);
 			const currReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
 			const newReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
 
 			addressDriverContractStub.estimateGas.setDrips = sinon.stub().resolves(BigNumber.from(100));
 
 			// Act
-			await testAddressDriverTxFactory.setDrips('0x1234', currReceivers, '0x5678', newReceivers, 0, 0, '0x9abc');
+			const tx = await testAddressDriverTxFactory.setDrips(
+				'0x1234',
+				currReceivers,
+				'0x5678',
+				newReceivers,
+				0,
+				0,
+				'0x9abc'
+			);
 
 			// Assert
 			assert(
@@ -158,6 +176,8 @@ describe('AddressDriverTxFactory', () => {
 					{ gasLimit: 120 }
 				)
 			);
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 
@@ -165,15 +185,18 @@ describe('AddressDriverTxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			addressDriverContractStub.populateTransaction.emitUserMetadata = stub;
+			const expectedTx = { from: '0x1234' };
+			addressDriverContractStub.populateTransaction.emitUserMetadata = stub.resolves(expectedTx);
 			const userMetadata = [] as UserMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			await testAddressDriverTxFactory.emitUserMetadata(userMetadata, overrides);
+			const tx = await testAddressDriverTxFactory.emitUserMetadata(userMetadata, overrides);
 
 			// Assert
 			assert(stub.calledOnceWithExactly(userMetadata, overrides));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 });

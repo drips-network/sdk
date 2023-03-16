@@ -72,13 +72,16 @@ describe('ERC20TxFactory', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
-			IERC20ContractStub.populateTransaction.approve = stub;
+			const expectedTx = { from: '0x1234' };
+			IERC20ContractStub.populateTransaction.approve = stub.resolves(expectedTx);
 
 			// Act
-			await testERC20TxFactory.approve('0x1234', '0x5678');
+			const tx = await testERC20TxFactory.approve('0x1234', '0x5678');
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x5678'));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
 		});
 	});
 });

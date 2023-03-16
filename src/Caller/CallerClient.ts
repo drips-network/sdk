@@ -2,7 +2,6 @@
 import type { Provider } from '@ethersproject/providers';
 import type { PopulatedTransaction, ContractTransaction, Signer } from 'ethers';
 import type { Preset } from 'src/common/types';
-import { isNullOrUndefined } from '../common/internals';
 import { DripsErrors } from '../common/DripsError';
 import type { CallStruct, Caller } from '../../contracts/Caller';
 import { validateClientProvider, validateClientSigner } from '../common/validators';
@@ -132,7 +131,7 @@ export default class CallerClient {
 				transformedCalls = calls as CallStruct[];
 			} else if ('to' in firstCall) {
 				transformedCalls = (calls as PopulatedTransaction[]).map((populatedTransaction) => {
-					if (!populatedTransaction.to || !populatedTransaction.data || isNullOrUndefined(populatedTransaction.value)) {
+					if (!populatedTransaction.to || !populatedTransaction.data) {
 						throw DripsErrors.argumentError(
 							'Invalid PopulatedTransaction object. "to", "data", and "value" properties are required.'
 						);
@@ -141,7 +140,7 @@ export default class CallerClient {
 					return {
 						target: populatedTransaction.to,
 						data: populatedTransaction.data,
-						value: populatedTransaction.value!
+						value: populatedTransaction.value ?? 0
 					};
 				});
 			} else {
@@ -155,6 +154,10 @@ export default class CallerClient {
 			);
 		}
 
+		transformedCalls = transformedCalls.map((call) => ({
+			...call,
+			value: call.value ?? 0
+		}));
 		return this.#caller.callBatched(transformedCalls);
 	}
 }

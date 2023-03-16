@@ -3,6 +3,7 @@ import type { Provider } from '@ethersproject/providers';
 import type { DripsHistoryStruct, DripsHub, SplitsReceiverStruct } from 'contracts/DripsHub';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, BytesLike } from 'ethers';
+import { safeDripsTx } from '../common/internals';
 import { DripsHub__factory } from '../../contracts/factories';
 import { validateClientProvider } from '../common/validators';
 import Utils from '../utils';
@@ -32,29 +33,31 @@ export default class DripsHubTxFactory implements IDripsHubTxFactory {
 		return client;
 	}
 
-	receiveDrips(
+	async receiveDrips(
 		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		maxCycles: PromiseOrValue<BigNumberish>
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.receiveDrips(userId, erc20, maxCycles);
+		return safeDripsTx(await this.#driver.populateTransaction.receiveDrips(userId, erc20, maxCycles));
 	}
 
-	squeezeDrips(
+	async squeezeDrips(
 		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		senderId: PromiseOrValue<BigNumberish>,
 		historyHash: PromiseOrValue<BytesLike>,
 		dripsHistory: DripsHistoryStruct[]
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.squeezeDrips(userId, erc20, senderId, historyHash, dripsHistory);
+		return safeDripsTx(
+			await this.#driver.populateTransaction.squeezeDrips(userId, erc20, senderId, historyHash, dripsHistory)
+		);
 	}
 
-	split(
+	async split(
 		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		currReceivers: SplitsReceiverStruct[]
 	): Promise<PopulatedTransaction> {
-		return this.#driver.populateTransaction.split(userId, erc20, currReceivers);
+		return safeDripsTx(await this.#driver.populateTransaction.split(userId, erc20, currReceivers));
 	}
 }

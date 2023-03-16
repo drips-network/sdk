@@ -145,6 +145,21 @@ describe('CallerClient', () => {
 			assert(callerContractStub.callBatched.calledOnceWithExactly(input));
 		});
 
+		it('should set value to 0 when value is not provided', async () => {
+			const input: PopulatedTransaction[] = [
+				{
+					to: '0x111',
+					data: '0x222'
+				}
+			];
+
+			callerContractStub.callBatched.resolves({} as ContractTransaction);
+
+			await testCallerClient.callBatched(input);
+
+			assert(callerContractStub.callBatched.calledOnceWithExactly([{ target: '0x111', data: '0x222', value: 0 }]));
+		});
+
 		it('should call callBatched with the correct input for PopulatedTransaction[]', async () => {
 			const input: PopulatedTransaction[] = [
 				{

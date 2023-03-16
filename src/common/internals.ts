@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 
-import type { BytesLike, Signer } from 'ethers';
+import type { BytesLike, PopulatedTransaction, Signer } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from './types';
@@ -151,3 +151,13 @@ export async function expect<T extends (() => any) | (() => Promise<any>)>(
 		failed: true
 	};
 }
+
+/** @internal */
+export const safeDripsTx = (tx: PopulatedTransaction): PopulatedTransaction => {
+	if (isNullOrUndefined(tx.value)) {
+		// eslint-disable-next-line no-param-reassign
+		tx.value = BigNumber.from(0);
+	}
+
+	return tx;
+};
