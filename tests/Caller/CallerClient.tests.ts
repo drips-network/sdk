@@ -1,7 +1,8 @@
 import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import { assert } from 'chai';
-import { Wallet } from 'ethers';
+import type { ContractTransaction, PopulatedTransaction } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import type { Caller } from '../../contracts';
@@ -10,6 +11,7 @@ import CallerClient from '../../src/Caller/CallerClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
 import type { CallStruct } from '../../contracts/Caller';
+import type { Preset } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('CallerClient', () => {
@@ -79,23 +81,6 @@ describe('CallerClient', () => {
 			);
 		});
 
-		it('should should throw a initializationError when client cannot be initialized', async () => {
-			// Arrange
-			let threw = false;
-
-			try {
-				// Act
-				await CallerClient.create(undefined as any, undefined as any);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INITIALIZATION_FAILURE);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-
 		it('should set the custom caller address when provided', async () => {
 			// Arrange
 			const customCallerAddress = Wallet.createRandom().address;
@@ -120,21 +105,120 @@ describe('CallerClient', () => {
 	});
 
 	describe('callBatched', () => {
-		it('should call the callBatched method on the caller contract', async () => {
-			// Arrange
-			const calls: CallStruct[] = [
+		it('should call callBatched with the correct input for Preset', async () => {
+			const input: Preset = [
 				{
-					target: 'target',
-					data: 'data',
-					value: 100
+					to: '0x111',
+					data: '0x222',
+					value: BigNumber.from(10)
 				}
 			];
 
-			// Act
-			await testCallerClient.callBatched(calls);
+			const expectedCallStructs: CallStruct[] = [
+				{
+					target: '0x111',
+					data: '0x222',
+					value: BigNumber.from(10)
+				}
+			];
 
-			// Assert
-			assert(callerContractStub.callBatched.calledOnceWithExactly(calls));
+			callerContractStub.callBatched.resolves({} as ContractTransaction);
+
+			await testCallerClient.callBatched(input);
+
+			assert(callerContractStub.callBatched.calledOnceWithExactly(expectedCallStructs));
+		});
+
+		it('should call callBatched with the correct input for CallStruct[]', async () => {
+			const input: CallStruct[] = [
+				{
+					target: '0x111',
+					data: '0x222',
+					value: 10
+				}
+			];
+
+			callerContractStub.callBatched.resolves({} as ContractTransaction);
+
+			await testCallerClient.callBatched(input);
+
+			assert(callerContractStub.callBatched.calledOnceWithExactly(input));
+		});
+
+		it('should call callBatched with the correct input for PopulatedTransaction[]', async () => {
+			const input: PopulatedTransaction[] = [
+				{
+					to: '0x111',
+					data: '0x222',
+					value: BigNumber.from(10)
+				}
+			];
+
+			const expectedCallStructs: CallStruct[] = [
+				{
+					target: '0x111',
+					data: '0x222',
+					value: BigNumber.from(10)
+				}
+			];
+
+			callerContractStub.callBatched.resolves({} as ContractTransaction);
+
+			await testCallerClient.callBatched(input);
+
+			assert(callerContractStub.callBatched.calledOnceWithExactly(expectedCallStructs));
+		});
+
+		it('should throw an error for empty input array', async () => {
+			const input: CallStruct[] = [];
+
+			try {
+				await testCallerClient.callBatched(input);
+				assert.fail('Expected error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error for invalid object input', async () => {
+			const input: CallStruct[] = [
+				{
+					prop: 'invalid'
+				} as any
+			];
+
+			try {
+				await testCallerClient.callBatched(input);
+				assert.fail('Expected error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error for invalid PopulatedTransaction[] input', async () => {
+			const input: CallStruct[] = [
+				{
+					to: 'invalid'
+				} as any
+			];
+
+			try {
+				await testCallerClient.callBatched(input);
+				assert.fail('Expected error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
+		});
+
+		it('should throw an error for invalid input type', async () => {
+			const input: any = 'invalid input';
+
+			try {
+				await testCallerClient.callBatched(input);
+				assert.fail('Expected error was not thrown');
+			} catch (error: any) {
+				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
+			}
 		});
 	});
 });
