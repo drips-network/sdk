@@ -51,12 +51,12 @@ export default class DripsHubClient {
 
 	private constructor() {}
 
-	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `DripsHubClient` instance.
 	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
 	 * The `provider` must be connected to one of the following supported networks:
+	 * - 'mainnet': chain ID `1`
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param  {Provider|undefined} signer The singer used to sign transactions. It cannot be changed after creation.

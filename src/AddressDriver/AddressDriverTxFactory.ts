@@ -34,7 +34,6 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		return this.#signer;
 	}
 
-	// TODO: Update the supported chains documentation comments.
 	/**
 	 * Creates a new immutable `AddressDriverTxFactory` instance.
 	 *
@@ -43,6 +42,7 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 	 * The `singer` must be connected to a provider.
 	 *
 	 * The supported networks are:
+	 * - 'mainnet': chain ID `1`
 	 * - 'goerli': chain ID `5`
 	 * - 'polygon-mumbai': chain ID `80001`
 	 * @param customDriverAddress Overrides the `AddressDriver` contract address.
