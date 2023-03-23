@@ -100,6 +100,10 @@
 		width: 100%;
 	}
 
+	p {
+		font-size: 80%;
+	}
+
 	h2 {
 		padding-top: 2rem;
 	}
