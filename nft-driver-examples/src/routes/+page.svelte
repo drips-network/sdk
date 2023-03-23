@@ -2,7 +2,7 @@
 	import ConnectionDetails from './ConnectionDetails.svelte';
 	import { isConnected } from '$lib/stores';
 
-	console.log("SDK version: 2.0.0-beta.0")
+	console.log('SDK version: 2.0.0-beta.0');
 </script>
 
 <svelte:head>
@@ -68,6 +68,22 @@
 			</li>
 		</ul>
 	{:else}
+		<div class="terminal-card">
+			<div>
+				<p>Please read the <a href="/disclaimer">disclaimer</a>.</p>
+				<p>❌ This is <strong>not</strong> a production-ready application (and will not be).</p>
+				<p>❌ It <strong>cannot</strong> be used in any real-life financial context.</p>
+				<p>
+					❌ The code is <strong>not</strong> designed to demonstrate software engineering best practices
+					in building Svelte apps. 🤠
+				</p>
+				<p>
+					✅ The code <strong>is</strong> designed to provide examples of how you can start building
+					on Drips with the Drips JS SDK v2.0! 🤓
+				</p>
+			</div>
+		</div>
+
 		<h2>Connect to start</h2>
 	{/if}
 </div>
@@ -82,5 +98,9 @@
 
 	h1 {
 		width: 100%;
+	}
+
+	h2 {
+		padding-top: 2rem;
 	}
 </style>
