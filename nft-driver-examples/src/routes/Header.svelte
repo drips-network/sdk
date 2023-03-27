@@ -42,6 +42,10 @@
 			const walletProvider = await web3Modal.connect();
 			const provider = new providers.Web3Provider(walletProvider, 'any');
 
+			if ((await provider.getNetwork())?.chainId === 1) {
+				throw new Error('Please connect to a testnet.');
+			}
+
 			wallet.set({ provider });
 			dripsClients.set({
 				nftDriverClient: await NFTDriverClient.create(provider, provider.getSigner()),
