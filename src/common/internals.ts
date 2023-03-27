@@ -1,3 +1,6 @@
+/* eslint-disable no-promise-executor-return */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-nested-ternary */
 
 import type { BytesLike, PopulatedTransaction, Signer } from 'ethers';

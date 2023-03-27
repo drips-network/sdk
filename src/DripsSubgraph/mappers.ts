@@ -11,7 +11,7 @@ import type {
 	SqueezedDripsEvent
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
-import * as internals from '../../src/common/internals';
+import * as internals from '../common/internals';
 
 /** @internal */
 export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
