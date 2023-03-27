@@ -6,10 +6,6 @@ Drips is an 💎 Ethereum protocol for creating continuous funding streams (Drip
 
 Drips is a part of the [Radicle](https://radicle.xyz/) ecosystem of projects. See the [docs](https://v2.docs.drips.network/docs/whats-a-drip.html) for more details about the Drips protocol and its use.
 
-## Alpha Version
-
-The SDK is an alpha software. It may contain bugs or change significantly between patch versions. Reach out in the `#⛲️drips-dev` channel of our Discord for any questions!
-
 ## Installing
 
 To add the SDK into your project run:
