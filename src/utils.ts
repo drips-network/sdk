@@ -33,6 +33,10 @@ namespace Utils {
 				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x5BCeF0D71274b0623F1E5A354F3BADb60Fd4e29C',
 				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
+				GIT_DRIVER: '',
+				GIT_DRIVER_LOGIC: '',
+				GIT_DRIVER_ADMIN: '',
+				GIT_DRIVER_ID: '',
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/drips-network-dev/drips-v2-on-ethereum'
 			},
 			// Goerli
@@ -60,6 +64,10 @@ namespace Utils {
 				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x9e30F316D1F9CC07CD17E9DAB41e71f7aD51DBA8',
 				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
+				GIT_DRIVER: '',
+				GIT_DRIVER_LOGIC: '',
+				GIT_DRIVER_ADMIN: '',
+				GIT_DRIVER_ID: '',
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/jtourkos/drips-v2-on-goerli'
 			},
 			// Mumbai
@@ -87,6 +95,10 @@ namespace Utils {
 				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0xbe06FC324068323c19BD9264D731596706e1eccE',
 				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
+				GIT_DRIVER: '',
+				GIT_DRIVER_LOGIC: '',
+				GIT_DRIVER_ADMIN: '',
+				GIT_DRIVER_ID: '',
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/jtourkos/drips-v2-on-mumbai'
 			}
 		};

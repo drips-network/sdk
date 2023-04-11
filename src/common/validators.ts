@@ -1,6 +1,6 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, Signer } from 'ethers';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
 import type { DripsReceiverConfig, SplitsReceiverStruct, DripsHistoryStruct, UserMetadata } from './types';
@@ -137,7 +137,7 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 				);
 			}
 
-			if (weight <= 0) {
+			if (BigNumber.from(weight).lte(0)) {
 				throw DripsErrors.splitsReceiverError(
 					`Splits receiver config validation failed: : '${nameOf({ weight })}' must be greater than 0.`,
 					nameOf({ weight }),
@@ -242,7 +242,7 @@ export const validateReceiveDripsInput = (userId: string, tokenAddress: string, 
 		);
 	}
 
-	if (!maxCycles || maxCycles < 0) {
+	if (!maxCycles || BigNumber.from(maxCycles).lte(0)) {
 		throw DripsErrors.argumentError(
 			`Could not receive drips: '${nameOf({ maxCycles })}' must be greater than 0.`,
 			nameOf({ maxCycles }),

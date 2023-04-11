@@ -1,7 +1,7 @@
 /* eslint-disable no-dupe-class-members */
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
-import { ethers, BigNumber, constants } from 'ethers';
+import { BigNumber, constants } from 'ethers';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
 	validateAddress,
@@ -14,22 +14,22 @@ import {
 } from '../common/validators';
 import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
-import type { AddressDriver } from '../../contracts';
-import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import { nameOf, isNullOrUndefined, ensureSignerExists, createFromStrings } from '../common/internals';
-import type { IAddressDriverTxFactory } from './AddressDriverTxFactory';
-import AddressDriverTxFactory from './AddressDriverTxFactory';
+import type { GitDriver } from '../../contracts';
+import { IERC20__factory, GitDriver__factory } from '../../contracts';
+import { isNullOrUndefined, ensureSignerExists, createFromStrings } from '../common/internals';
+import type { IGitDriverTxFactory } from './GitDriverTxFactory';
+import GitDriverTxFactory from './GitDriverTxFactory';
 
 /**
  * A client for managing Drips accounts identified by Ethereum addresses.
- * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/AddressDriver.sol AddressDriver} contract.
+ * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/GitDriver.sol GitDriver} contract.
  */
-export default class AddressDriverClient {
+export default class GitDriverClient {
 	#provider!: Provider;
-	#driver!: AddressDriver;
+	#driver!: GitDriver;
 	#driverAddress!: string;
 	#signer: Signer | undefined;
-	#txFactory!: IAddressDriverTxFactory;
+	#txFactory!: IGitDriverTxFactory;
 
 	/** Returns the client's `provider`. */
 	public get provider(): Provider {
@@ -45,7 +45,7 @@ export default class AddressDriverClient {
 		return this.#signer;
 	}
 
-	/** Returns the `AddressDriver`'s address to which the `AddressDriverClient` is connected. */
+	/** Returns the `GitDriver`'s address to which the `GitDriverClient` is connected. */
 	public get driverAddress(): string {
 		return this.#driverAddress;
 	}
@@ -53,7 +53,7 @@ export default class AddressDriverClient {
 	private constructor() {}
 
 	/**
-	 * Creates a new immutable `AddressDriverClient` instance.
+	 * Creates a new immutable `GitDriverClient` instance.
 	 * @param provider The network provider. It cannot be changed after creation.
 	 *
 	 * The `provider` must be connected to one of the following supported networks:
@@ -63,7 +63,7 @@ export default class AddressDriverClient {
 	 * @param signer The singer used to sign transactions. It cannot be changed after creation.
 	 *
 	 * **Important**: If the `signer` is _not_ connected to a provider it will try to connect to the `provider`, else it will use the `signer.provider`.
-	 * @param customDriverAddress Overrides the `AddressDriver` contract address.
+	 * @param customDriverAddress Overrides the `GitDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
 	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
@@ -72,19 +72,19 @@ export default class AddressDriverClient {
 		provider: Provider,
 		signer?: Signer,
 		customDriverAddress?: string
-	): Promise<AddressDriverClient>;
+	): Promise<GitDriverClient>;
 	public static async create(
 		provider: Provider,
 		signer?: Signer,
 		customDriverAddress?: string,
-		txFactory?: IAddressDriverTxFactory
-	): Promise<AddressDriverClient>;
+		txFactory?: IGitDriverTxFactory
+	): Promise<GitDriverClient>;
 	public static async create(
 		provider: Provider,
 		signer?: Signer,
 		customDriverAddress?: string,
-		txFactory?: IAddressDriverTxFactory
-	): Promise<AddressDriverClient> {
+		txFactory?: IGitDriverTxFactory
+	): Promise<GitDriverClient> {
 		await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
 		if (signer) {
@@ -97,17 +97,17 @@ export default class AddressDriverClient {
 		}
 
 		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].ADDRESS_DRIVER;
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].GIT_DRIVER;
 
-		const client = new AddressDriverClient();
+		const client = new GitDriverClient();
 
 		client.#signer = signer;
 		client.#provider = provider;
 		client.#driverAddress = driverAddress;
-		client.#driver = AddressDriver__factory.connect(driverAddress, signer ?? provider);
+		client.#driver = GitDriver__factory.connect(driverAddress, signer ?? provider);
 
 		if (signer) {
-			client.#txFactory = txFactory || (await AddressDriverTxFactory.create(signer, customDriverAddress));
+			client.#txFactory = txFactory || (await GitDriverTxFactory.create(signer, customDriverAddress));
 		}
 
 		return client;
@@ -162,34 +162,18 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Returns the user ID.
-	 *
-	 * This is the user ID to which the `AddressDriverClient` is linked and manages Drips.
-	 * @returns A `Promise` which resolves to the user ID.
-	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
+	 * Returns the project ID for a given git URL.
+	 * @param gitUrl The git project URL.
+	 * @returns A `Promise` which resolves to the project ID.
 	 */
-	public async getUserId(): Promise<string> {
-		ensureSignerExists(this.#signer);
+	public async getProjectId(gitUrl: string): Promise<string> {
+		if (isNullOrUndefined(gitUrl)) {
+			throw DripsErrors.argumentError('Could not calculate project ID: gitUrl is missing.');
+		}
 
-		const signerAddress = await this.#signer.getAddress();
+		const projectId = await this.#driver.calcProjectId(gitUrl);
 
-		const userId = await this.#driver.calcUserId(signerAddress);
-
-		return userId.toString();
-	}
-
-	/**
-	 * Returns the user ID for a given address.
-	 * @param userAddress The user address.
-	 * @returns A `Promise` which resolves to the user ID.
-	 * @throws {@link DripsErrors.addressError} if the `userAddress` address is not valid.
-	 */
-	public async getUserIdByAddress(userAddress: string): Promise<string> {
-		validateAddress(userAddress);
-
-		const userId = await this.#driver.calcUserId(userAddress);
-
-		return userId.toString();
+		return projectId.toString();
 	}
 
 	/**
@@ -201,16 +185,25 @@ export default class AddressDriverClient {
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
+	 * @param projectId The project ID.
+	 * @param tokenAddress The ERC20 token address.
 	 * @param transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async collect(tokenAddress: string, transferToAddress: string): Promise<ContractTransaction> {
+	public async collect(
+		projectId: string,
+		tokenAddress: string,
+		transferToAddress: string
+	): Promise<ContractTransaction> {
+		if (isNullOrUndefined(projectId)) {
+			throw DripsErrors.argumentError('Could not collect: projectId is missing.');
+		}
 		ensureSignerExists(this.#signer);
 		validateCollectInput(tokenAddress, transferToAddress);
 
-		const tx = await this.#txFactory.collect(tokenAddress, transferToAddress);
+		const tx = await this.#txFactory.collect(projectId, tokenAddress, transferToAddress);
 
 		return this.#signer.sendTransaction(tx);
 	}
@@ -219,6 +212,7 @@ export default class AddressDriverClient {
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `DripsHub` contract.
+	 * @param projectId The project ID.
 	 * @param receiverUserId The receiver user ID.
 	 * @param tokenAddress The ERC20 token address.
 	 *
@@ -234,33 +228,35 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async give(receiverUserId: string, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public async give(
+		projectId: string,
+		receiverUserId: BigNumberish,
+		tokenAddress: string,
+		amount: BigNumberish
+	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 
-		if (isNullOrUndefined(receiverUserId)) {
-			throw DripsErrors.argumentMissingError(
-				`Could not give: '${nameOf({ receiverUserId })}' is missing.`,
-				nameOf({ receiverUserId })
-			);
+		if (isNullOrUndefined(projectId)) {
+			throw DripsErrors.argumentError('Could not give: projectId is missing.');
 		}
 
+		if (isNullOrUndefined(receiverUserId)) {
+			throw DripsErrors.argumentError(`Could not give: receiverUserId is missing.`);
+		}
 		validateAddress(tokenAddress);
 
-		if (!amount || amount < 0) {
-			throw DripsErrors.argumentError(
-				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
-				nameOf({ amount }),
-				amount
-			);
+		if (!amount || BigNumber.from(amount).lt(0)) {
+			throw DripsErrors.argumentError(`Could not give: amount must be greater than 0.`);
 		}
 
-		const tx = await this.#txFactory.give(receiverUserId, tokenAddress, amount);
+		const tx = await this.#txFactory.give(projectId, receiverUserId, tokenAddress, amount);
 
 		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
 	 * Sets the Splits configuration.
+	 * @param projectId The project ID.
 	 * @param receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
@@ -271,11 +267,14 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async setSplits(receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
+	public async setSplits(projectId: string, receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
+		if (isNullOrUndefined(projectId)) {
+			throw DripsErrors.argumentError('Could not setSplits: projectId is missing.');
+		}
 		ensureSignerExists(this.#signer);
 		validateSplitsReceivers(receivers);
 
-		const tx = await this.#txFactory.setSplits(receivers);
+		const tx = await this.#txFactory.setSplits(projectId, receivers);
 
 		return this.#signer.sendTransaction(tx);
 	}
@@ -283,6 +282,8 @@ export default class AddressDriverClient {
 	/**
 	 * Sets a Drips configuration.
 	 * Transfers funds from the user's wallet to the `DripsHub` contract to fulfill the change of the drips balance.
+	 * @param projectId The project ID.
+	 *
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -311,12 +312,16 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async setDrips(
+		projectId: string,
 		tokenAddress: string,
 		currentReceivers: DripsReceiverStruct[],
 		newReceivers: DripsReceiverStruct[],
 		transferToAddress: string,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
+		if (isNullOrUndefined(projectId)) {
+			throw DripsErrors.argumentError('Could not setSplits: projectId is missing.');
+		}
 		ensureSignerExists(this.#signer);
 		validateSetDripsInput(
 			tokenAddress,
@@ -333,6 +338,7 @@ export default class AddressDriverClient {
 		);
 
 		const tx = await this.#txFactory.setDrips(
+			projectId,
 			tokenAddress,
 			currentReceivers,
 			balanceDelta,
@@ -348,6 +354,7 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
+	 * @param projectId The project ID.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
@@ -355,46 +362,17 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async emitUserMetadata(userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+	public async emitUserMetadata(projectId: string, userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+		if (isNullOrUndefined(projectId)) {
+			throw DripsErrors.argumentError('Could not setSplits: projectId is missing.');
+		}
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(userMetadata);
 
 		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
 
-		const tx = await this.#txFactory.emitUserMetadata(userMetadataAsBytes);
+		const tx = await this.#txFactory.emitUserMetadata(projectId, userMetadataAsBytes);
 
 		return this.#signer.sendTransaction(tx);
 	}
-
-	/**
-	 * Returns a user's address given a user ID.
-	 * @param userId The user ID.
-	 * @returns The user's address.
-	 */
-	public static getUserAddress = (userId: string): string => {
-		if (isNullOrUndefined(userId)) {
-			throw DripsErrors.argumentError(`Could not get user address: userId is missing.`);
-		}
-
-		const userIdAsBn = ethers.BigNumber.from(userId);
-
-		if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
-			throw DripsErrors.argumentError(
-				`Could not get user address: ${userId} is not a valid positive number within the range of a uint256.`
-			);
-		}
-
-		const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
-
-		if (!userIdAsBn.and(mid64BitsMask).isZero()) {
-			throw DripsErrors.argumentError('Could not get user address: first 64 (after first 32) bits must be 0');
-		}
-
-		const mask = ethers.BigNumber.from(2).pow(160).sub(1);
-		const address = userIdAsBn.and(mask).toHexString();
-
-		const paddedAddress = ethers.utils.hexZeroPad(address, 20);
-
-		return ethers.utils.getAddress(paddedAddress);
-	};
 }

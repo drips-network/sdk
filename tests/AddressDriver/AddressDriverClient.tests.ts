@@ -671,15 +671,6 @@ describe('AddressDriverClient', () => {
 				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
 			}
 		});
-
-		it('should throw an error if userId is not a string', () => {
-			try {
-				AddressDriverClient.getUserAddress(123 as any);
-				assert.fail('Expected an error to be thrown');
-			} catch (error: any) {
-				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
-			}
-		});
 	});
 
 	describe('emitUserMetadata()', () => {

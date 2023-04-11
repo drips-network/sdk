@@ -316,7 +316,7 @@ export default class NFTDriverClient {
 			);
 		}
 
-		if (!amount || amount < 0) {
+		if (!amount || BigNumber.from(amount).lt(0)) {
 			throw DripsErrors.argumentError(
 				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
 				nameOf({ amount }),

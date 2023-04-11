@@ -51,6 +51,10 @@ export type NetworkConfig = {
 	IMMUTABLE_SPLITS_DRIVER_LOGIC: string;
 	IMMUTABLE_SPLITS_DRIVER_ADMIN: string;
 	IMMUTABLE_SPLITS_DRIVER_ID: string;
+	GIT_DRIVER: string;
+	GIT_DRIVER_LOGIC: string;
+	GIT_DRIVER_ADMIN: string;
+	GIT_DRIVER_ID: string;
 	SUBGRAPH_URL: string;
 };
 
