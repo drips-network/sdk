@@ -11,7 +11,6 @@ import {
 	validateEmitUserMetadataInput,
 	validateSplitsReceivers
 } from '../common/validators';
-import { createFromStrings } from '../common/internals';
 
 /**
  * A client for creating immutable splits configurations.
@@ -101,7 +100,6 @@ export default class ImmutableSplitsDriverClient {
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
 	 * @param  {UserMetadata[]} userMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
 	 *
-	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the new user ID.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receivers` are missing.
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
@@ -111,7 +109,7 @@ export default class ImmutableSplitsDriverClient {
 		validateSplitsReceivers(receivers);
 		validateEmitUserMetadataInput(userMetadata);
 
-		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 		const txResponse = await this.#driver.createSplits(receivers, userMetadataAsBytes);
 

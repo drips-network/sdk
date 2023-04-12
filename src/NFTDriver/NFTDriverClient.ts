@@ -15,7 +15,7 @@ import {
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
-import { createFromStrings, isNullOrUndefined, nameOf } from '../common/internals';
+import { isNullOrUndefined, nameOf } from '../common/internals';
 import dripsConstants from '../constants';
 import type { INFTDriverTxFactory } from './NFTDriverTxFactory';
 import NFTDriverTxFactory from './NFTDriverTxFactory';
@@ -174,7 +174,6 @@ export default class NFTDriverClient {
 	 * - value: `associatedApp`.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
-	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
@@ -192,7 +191,7 @@ export default class NFTDriverClient {
 			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY, value: associatedApp });
 		}
 
-		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 		const txResponse = await this.#driver.mint(transferToAddress, userMetadataAsBytes);
 
@@ -218,7 +217,6 @@ export default class NFTDriverClient {
 	 * - value: `associatedApp`.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
-	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
 	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
@@ -236,7 +234,7 @@ export default class NFTDriverClient {
 			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY, value: associatedApp });
 		}
 
-		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 		const txResponse = await this.#driver.safeMint(transferToAddress, userMetadataAsBytes);
 
@@ -316,7 +314,7 @@ export default class NFTDriverClient {
 			);
 		}
 
-		if (!amount || amount < 0) {
+		if (!amount || BigNumber.from(amount).lte(0)) {
 			throw DripsErrors.argumentError(
 				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
 				nameOf({ amount }),
@@ -444,7 +442,6 @@ export default class NFTDriverClient {
 	 * @param tokenId The ID of the token representing the emitting account.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
-	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 */
@@ -455,7 +452,7 @@ export default class NFTDriverClient {
 
 		validateEmitUserMetadataInput(userMetadata);
 
-		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 		const tx = await this.#txFactory.emitUserMetadata(tokenId, userMetadataAsBytes);
 

@@ -1,3 +1,4 @@
+import Utils from '../utils';
 import type {
 	DripsReceiverSeenEvent,
 	DripsSetEvent,
@@ -11,7 +12,6 @@ import type {
 	SqueezedDripsEvent
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
-import * as internals from '../common/internals';
 
 /** @internal */
 export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
@@ -122,7 +122,7 @@ export const mapDripsReceiverSeenEventToDto = (
 
 /** @internal */
 export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadataEntry => {
-	const { key, value } = internals.parseMetadataAsString(userMetadata);
+	const { key, value } = Utils.Metadata.convertMetadataBytesToString(userMetadata);
 
 	return {
 		key,

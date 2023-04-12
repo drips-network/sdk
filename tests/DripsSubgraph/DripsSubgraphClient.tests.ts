@@ -16,7 +16,6 @@ import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 import constants from '../../src/constants';
 import type { CycleInfo } from '../../src/common/types';
-import { keyFromString, valueFromString } from '../../src/common/internals';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 5;
@@ -713,8 +712,8 @@ describe('DripsSubgraphClient', () => {
 			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
 				{
 					id: '1',
-					key: keyFromString('key'),
-					value: valueFromString('value'),
+					key: Utils.Metadata.keyFromString('key'),
+					value: Utils.Metadata.valueFromString('value'),
 					userId: '5',
 					lastUpdatedBlockTimestamp: '5'
 				}
@@ -756,8 +755,8 @@ describe('DripsSubgraphClient', () => {
 			const userMetadataEvents: SubgraphTypes.UserMetadataEvent[] = [
 				{
 					id: '1',
-					key: keyFromString('key'),
-					value: valueFromString('value'),
+					key: Utils.Metadata.keyFromString('key'),
+					value: Utils.Metadata.valueFromString('value'),
 					userId: '5',
 					lastUpdatedBlockTimestamp: '5'
 				}
@@ -767,7 +766,7 @@ describe('DripsSubgraphClient', () => {
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByUserAndKey, {
 					userId: userMetadataEvents[0].userId,
-					key: keyFromString('key'),
+					key: Utils.Metadata.keyFromString('key'),
 					skip: 0,
 					first: 100
 				})
@@ -855,8 +854,8 @@ describe('DripsSubgraphClient', () => {
 			// Arrange
 			const userMetadataByKey: SubgraphTypes.UserMetadataEvent = {
 				id: '1',
-				key: keyFromString('key'),
-				value: valueFromString('value'),
+				key: Utils.Metadata.keyFromString('key'),
+				value: Utils.Metadata.valueFromString('value'),
 				userId: '4',
 				lastUpdatedBlockTimestamp: '5'
 			};
@@ -1015,7 +1014,7 @@ describe('DripsSubgraphClient', () => {
 				.stub(testSubgraphClient, 'query')
 				.withArgs(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
-					value: valueFromString(associatedApp),
+					value: Utils.Metadata.valueFromString(associatedApp),
 					skip: 0,
 					first: 100
 				})
@@ -1035,7 +1034,7 @@ describe('DripsSubgraphClient', () => {
 			assert(
 				clientStub.calledOnceWithExactly(gql.getMetadataHistoryByKeyAndValue, {
 					key: constants.ASSOCIATED_APP_KEY_BYTES,
-					value: valueFromString(associatedApp),
+					value: Utils.Metadata.valueFromString(associatedApp),
 					skip: 0,
 					first: 100
 				}),

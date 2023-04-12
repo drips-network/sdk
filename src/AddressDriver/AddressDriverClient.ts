@@ -16,7 +16,7 @@ import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
 import type { AddressDriver } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import { nameOf, isNullOrUndefined, ensureSignerExists, createFromStrings } from '../common/internals';
+import { nameOf, isNullOrUndefined, ensureSignerExists } from '../common/internals';
 import type { IAddressDriverTxFactory } from './AddressDriverTxFactory';
 import AddressDriverTxFactory from './AddressDriverTxFactory';
 
@@ -246,7 +246,7 @@ export default class AddressDriverClient {
 
 		validateAddress(tokenAddress);
 
-		if (!amount || amount < 0) {
+		if (!amount || BigNumber.from(amount).lte(0)) {
 			throw DripsErrors.argumentError(
 				`Could not give: '${nameOf({ amount })}' must be greater than 0.`,
 				nameOf({ amount }),
@@ -350,7 +350,6 @@ export default class AddressDriverClient {
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
-	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
@@ -359,7 +358,7 @@ export default class AddressDriverClient {
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(userMetadata);
 
-		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 		const tx = await this.#txFactory.emitUserMetadata(userMetadataAsBytes);
 

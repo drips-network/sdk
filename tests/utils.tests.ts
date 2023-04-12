@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import type { BytesLike } from 'ethers';
 import { BigNumber, ethers, Wallet } from 'ethers';
 import sinon from 'ts-sinon';
 import { DripsErrorCode } from '../src/common/DripsError';
@@ -10,6 +11,87 @@ import Utils from '../src/utils';
 describe('Utils', () => {
 	afterEach(() => {
 		sinon.restore();
+	});
+
+	describe('Metadata', () => {
+		describe('keyFromString', () => {
+			it('should return the expected result', () => {
+				// Act
+				const key = Utils.Metadata.keyFromString('key');
+
+				// Assert
+				assert.equal(key, ethers.utils.formatBytes32String('key'));
+			});
+		});
+
+		describe('valueFromString', () => {
+			it('should return the expected result', () => {
+				// Act
+				const value = Utils.Metadata.valueFromString('value');
+
+				// Assert
+				assert.equal(value, ethers.utils.hexlify(ethers.utils.toUtf8Bytes('value')));
+			});
+		});
+
+		describe('createFromStrings', () => {
+			it('should return the expected result', () => {
+				// Act
+				const metadata = Utils.Metadata.createFromStrings('key', 'value');
+
+				// Assert
+				assert.equal(metadata.key, Utils.Metadata.keyFromString('key'));
+				assert.equal(metadata.value, Utils.Metadata.valueFromString('value'));
+			});
+		});
+
+		describe('convertMetadataBytesToString', () => {
+			it('should throw argumentError user metadata key is not a valid BytesLike object', async () => {
+				// Arrange
+				let threw = false;
+
+				// Act
+				try {
+					Utils.Metadata.convertMetadataBytesToString({ key: undefined as unknown as string, value: 'value' });
+				} catch (error: any) {
+					// Assert
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+					threw = true;
+				}
+
+				// Assert
+				assert.isTrue(threw, 'Expected type of exception was not thrown');
+			});
+
+			it('should throw argumentError user metadata value is not a valid BytesLike object', async () => {
+				// Arrange
+				let threw = false;
+
+				// Act
+				try {
+					Utils.Metadata.convertMetadataBytesToString({ key: 'key', value: undefined as unknown as string });
+				} catch (error: any) {
+					// Assert
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+					threw = true;
+				}
+
+				// Assert
+				assert.isTrue(threw, 'Expected type of exception was not thrown');
+			});
+
+			it('should return the expected result', () => {
+				// Act
+				const key: BytesLike = Utils.Metadata.keyFromString('key');
+				const value: BytesLike = Utils.Metadata.valueFromString('value');
+
+				const metadata = Utils.Metadata.convertMetadataBytesToString({ key, value });
+
+				// Assert
+				assert.equal(metadata.key, 'key');
+				assert.equal(metadata.value, 'value');
+			});
+		});
 	});
 
 	describe('Cycle', () => {
