@@ -1,10 +1,65 @@
-import type { BigNumberish } from 'ethers';
+import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig } from './common/types';
+import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
 
 namespace Utils {
+	export namespace Metadata {
+		/**
+		 * Converts a `string` to a `BytesLike` representation.
+		 *
+		 * @param key - The `string` to be converted.
+		 * @returns The converted `BytesLike` representation of the `string`.
+		 */
+		export const keyFromString = (key: string): BytesLike => ethers.utils.formatBytes32String(key);
+
+		/**
+		 * Converts a `string` to a hex-encoded `BytesLike` representation.
+		 *
+		 * @param value - The `string` to be converted.
+		 * @returns The hex-encoded `BytesLike` representation of the `string`.
+		 */
+		export const valueFromString = (value: string): BytesLike => ethers.utils.hexlify(ethers.utils.toUtf8Bytes(value));
+
+		/**
+		 * Creates an object containing the `BytesLike` representations of the provided key and value `string`s.
+		 *
+		 * @param key - The `string` to be converted to a `BytesLike` key.
+		 * @param value - The `string` to be converted to a `BytesLike` value.
+		 * @returns An object containing the `BytesLike` representations of the key and value `string`s.
+		 */
+		export const createFromStrings = (
+			key: string,
+			value: string
+		): {
+			key: BytesLike;
+			value: BytesLike;
+		} => ({
+			key: keyFromString(key),
+			value: valueFromString(value)
+		});
+
+		/**
+		 * Parses the `UserMetadataStruct` and converts the key and value from `BytesLike` to `string` format.
+		 *
+		 * @param userMetadata - The `UserMetadataStruct` containing the key and value in `BytesLike` format.
+		 * @returns An `object` containing the key and value as `string`s.
+		 */
+		export const convertMetadataBytesToString = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
+			if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
+				throw DripsErrors.argumentError(
+					`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`
+				);
+			}
+
+			return {
+				key: ethers.utils.parseBytes32String(userMetadata.key),
+				value: ethers.utils.toUtf8String(userMetadata.value)
+			};
+		};
+	}
+
 	// TODO: Update the Subgraph URL after hosted service is shut down.
 	export namespace Network {
 		export const configs: Record<number, NetworkConfig> = {

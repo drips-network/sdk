@@ -3,7 +3,7 @@
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import constants from '../constants';
-import { nameOf, valueFromString, keyFromString, formatDripsReceivers } from '../common/internals';
+import { nameOf, formatDripsReceivers } from '../common/internals';
 import Utils from '../utils';
 import { validateAddress } from '../common/validators';
 import { DripsErrors } from '../common/DripsError';
@@ -353,7 +353,7 @@ export default class DripsSubgraphClient {
 		if (key) {
 			response = await this.query<QueryResponse>(gql.getMetadataHistoryByUserAndKey, {
 				userId,
-				key: `${keyFromString(key)}`,
+				key: `${Utils.Metadata.keyFromString(key)}`,
 				skip,
 				first
 			});
@@ -458,7 +458,7 @@ export default class DripsSubgraphClient {
 
 		const response = await this.query<QueryResponse>(gql.getMetadataHistoryByKeyAndValue, {
 			key: constants.ASSOCIATED_APP_KEY_BYTES,
-			value: valueFromString(associatedApp),
+			value: Utils.Metadata.valueFromString(associatedApp),
 			skip,
 			first
 		});

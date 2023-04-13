@@ -9,7 +9,7 @@ import {
 	validateSplitInput,
 	validateSqueezeDripsInput
 } from '../common/validators';
-import { createFromStrings, isNullOrUndefined, nameOf } from '../common/internals';
+import { isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
 import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
@@ -143,7 +143,7 @@ export namespace NFTDriverPresets {
 				transferToAddress
 			);
 
-			const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+			const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const emitUserMetadataTx = await nftDriverTxFactory.emitUserMetadata(tokenId, userMetadataAsBytes);
 

@@ -703,7 +703,7 @@ describe('AddressDriverClient', () => {
 		it('should send the expected transaction', async () => {
 			// Arrange
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const tx = {};
 			addressDriverTxFactoryStub.emitUserMetadata.withArgs(metadataAsBytes).resolves(tx);

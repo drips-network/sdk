@@ -11,7 +11,6 @@ import {
 	validateEmitUserMetadataInput,
 	validateSplitsReceivers
 } from '../common/validators';
-import { createFromStrings } from '../common/internals';
 
 /**
  * A client for creating immutable splits configurations.
@@ -110,7 +109,7 @@ export default class ImmutableSplitsDriverClient {
 		validateSplitsReceivers(receivers);
 		validateEmitUserMetadataInput(userMetadata);
 
-		const userMetadataAsBytes = userMetadata.map((m) => createFromStrings(m.key, m.value));
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 		const txResponse = await this.#driver.createSplits(receivers, userMetadataAsBytes);
 

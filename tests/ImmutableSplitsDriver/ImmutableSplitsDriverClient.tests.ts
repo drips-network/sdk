@@ -13,7 +13,6 @@ import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
 import type { UserMetadata } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import * as internals from '../../src/common/internals';
 
 describe('ImmutableSplitsDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
@@ -132,7 +131,7 @@ describe('ImmutableSplitsDriverClient', () => {
 			const expectedUserId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -155,7 +154,7 @@ describe('ImmutableSplitsDriverClient', () => {
 			const expectedUserId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -177,7 +176,7 @@ describe('ImmutableSplitsDriverClient', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [];
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -204,7 +203,7 @@ describe('ImmutableSplitsDriverClient', () => {
 			const expectedUserId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({

@@ -11,7 +11,6 @@ import GitDriverTxFactory from '../../src/GitDriver/GitDriverTxFactory';
 import type { IERC20, GitDriver } from '../../contracts';
 import { GitDriver__factory, IERC20__factory } from '../../contracts';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
-import * as internals from '../../src/common/internals';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('GitDriverClient', () => {
@@ -572,7 +571,7 @@ describe('GitDriverClient', () => {
 		it('should send the expected transaction', async () => {
 			// Arrange
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const tx = {};
 			gitDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);

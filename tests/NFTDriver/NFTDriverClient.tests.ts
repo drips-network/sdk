@@ -12,7 +12,6 @@ import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
 import type { IERC20, NFTDriver } from '../../contracts';
 import { NFTDriver__factory, IERC20__factory } from '../../contracts';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
-import * as internals from '../../src/common/internals';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('NFTDriverClient', () => {
@@ -221,7 +220,7 @@ describe('NFTDriverClient', () => {
 			// Arrange
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const waitFake = async () =>
@@ -241,7 +240,7 @@ describe('NFTDriverClient', () => {
 		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
 			let threw = false;
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -270,7 +269,7 @@ describe('NFTDriverClient', () => {
 			const expectedTokenId = '1';
 			const transferToAddress = Wallet.createRandom().address;
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -361,7 +360,7 @@ describe('NFTDriverClient', () => {
 			const metadata: UserMetadata[] = [];
 			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -382,7 +381,7 @@ describe('NFTDriverClient', () => {
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
 			const transferToAddress = Wallet.createRandom().address;
 			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -433,7 +432,7 @@ describe('NFTDriverClient', () => {
 			let threw = false;
 			const transferToAddress = Wallet.createRandom().address;
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -460,7 +459,7 @@ describe('NFTDriverClient', () => {
 			const expectedTokenId = '1';
 			const transferToAddress = Wallet.createRandom().address;
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
@@ -854,7 +853,7 @@ describe('NFTDriverClient', () => {
 		it('should send the expected transaction', async () => {
 			// Arrange
 			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
-			const metadataAsBytes = metadata.map((m) => internals.createFromStrings(m.key, m.value));
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const tx = {};
 			nftDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);

@@ -12,7 +12,7 @@ import {
 	mapUserMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
-import { keyFromString, valueFromString } from '../../src/common/internals';
+import Utils from '../../src/utils';
 
 describe('mappers', () => {
 	describe('mapCollectedEventToDto()', () => {
@@ -267,8 +267,8 @@ describe('mappers', () => {
 			const apiUserMetadataEvent: SubgraphTypes.UserMetadataEvent = {
 				id: '100',
 				userId: '1',
-				value: valueFromString('value'),
-				key: keyFromString('key'),
+				value: Utils.Metadata.valueFromString('value'),
+				key: Utils.Metadata.keyFromString('key'),
 				lastUpdatedBlockTimestamp: '4'
 			} as SubgraphTypes.UserMetadataEvent;
 

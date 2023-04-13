@@ -7,7 +7,6 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import { NFTDriverPresets } from '../../src/NFTDriver/NFTDriverPresets';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import { keyFromString, valueFromString } from '../../src/common/internals';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
@@ -269,8 +268,8 @@ describe('NFTDriverPresets', () => {
 								value: BytesLike;
 							}[]
 						) =>
-							userMetadataAsBytes[0].key === keyFromString(payload.userMetadata[0].key) &&
-							userMetadataAsBytes[0].value === valueFromString(payload.userMetadata[0].value)
+							userMetadataAsBytes[0].key === Utils.Metadata.keyFromString(payload.userMetadata[0].key) &&
+							userMetadataAsBytes[0].value === Utils.Metadata.valueFromString(payload.userMetadata[0].value)
 					)
 				)
 				.resolves({ data: 'emitUserMetadata' } as PopulatedTransaction);
