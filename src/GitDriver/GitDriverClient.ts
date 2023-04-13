@@ -21,8 +21,7 @@ import type { IGitDriverTxFactory } from './GitDriverTxFactory';
 import GitDriverTxFactory from './GitDriverTxFactory';
 
 /**
- * A client for managing Drips accounts identified by Ethereum addresses.
- * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/GitDriver.sol GitDriver} contract.
+ * A client for managing Drips accounts identified by Git URL.
  */
 export default class GitDriverClient {
 	#provider!: Provider;
@@ -357,7 +356,6 @@ export default class GitDriverClient {
 	 * @param projectId The project ID.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
-	 * **Tip**: you might want to use `Utils.UserMetadata.createFromStrings` to easily create metadata instances from `string` inputs.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
