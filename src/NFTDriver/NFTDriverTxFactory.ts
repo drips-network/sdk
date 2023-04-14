@@ -22,7 +22,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		return this.#driverAddress;
 	}
 
-	public get signer(): Signer | undefined {
+	public get signer(): Signer {
 		return this.#signer;
 	}
 
