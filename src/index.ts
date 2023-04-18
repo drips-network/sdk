@@ -39,6 +39,7 @@ import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 export { default as ERC20TxFactory } from './ERC20/ERC20TxFactory';
 export { default as DripsHubTxFactory } from './DripsHub/DripsHubTxFactory';
 export { default as NFTDriverTxFactory } from './NFTDriver/NFTDriverTxFactory';
+export { default as GitDriverTxFactory } from './GitDriver/GitDriverTxFactory';
 export { default as AddressDriverTxFactory } from './AddressDriver/AddressDriverTxFactory';
 
 // AddressDriver
@@ -61,6 +62,9 @@ export { default as ImmutableSplitsDriverClient } from './ImmutableSplits/Immuta
 
 // NFTDriver
 export { default as NFTDriverClient } from './NFTDriver/NFTDriverClient';
+
+// NFTDriver
+export { default as GitDriverClient } from './GitDriver/GitDriverClient';
 
 // constants
 export { default as constants } from './constants';
