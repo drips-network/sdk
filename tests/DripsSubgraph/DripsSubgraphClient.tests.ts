@@ -955,6 +955,57 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
+	describe('getNftSubAccountOwnerByTokenId()', () => {
+		it('should return null when no sub accounts found', async () => {
+			// Arrange
+			const tokenId = '1';
+
+			sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getNftSubAccountOwnerByTokenId, { tokenId })
+				.resolves({
+					data: {
+						nftsubAccount: null
+					}
+				});
+
+			// Act
+			const owner = await testSubgraphClient.getNftSubAccountOwnerByTokenId(tokenId);
+
+			// Assert
+			assert.isNull(owner);
+		});
+
+		it('should return the expected result', async () => {
+			// Arrange
+			const tokenId = '1';
+			const nftsubAccount: SubgraphTypes.NftSubAccount = {
+				id: tokenId,
+				ownerAddress: Wallet.createRandom().address
+			};
+
+			const clientStub = sinon
+				.stub(testSubgraphClient, 'query')
+				.withArgs(gql.getNftSubAccountOwnerByTokenId, { tokenId })
+				.resolves({
+					data: {
+						nftsubAccount
+					}
+				});
+
+			// Act
+			const result = await testSubgraphClient.getNftSubAccountOwnerByTokenId(tokenId);
+
+			// Assert
+			assert.equal(result!.tokenId, nftsubAccount.id);
+			assert.equal(result!.ownerAddress, nftsubAccount.ownerAddress);
+			assert(
+				clientStub.calledOnceWithExactly(gql.getNftSubAccountOwnerByTokenId, { tokenId }),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
 	describe('getNftSubAccountIdsByApp()', () => {
 		it('should throw an argumentError when associatedApp is missing', async () => {
 			let threw = false;

@@ -433,6 +433,31 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
+	 * Returns the NFT sub account owner for the given token ID.
+	 * @param  {string} tokenId The token ID.
+	 * @returns A `Promise` which resolves to the NFT sub account owner, or `null` if not found.
+	 * @throws {@link DripsErrors.argumentError} if the `tokenId` is missing.
+	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
+	 */
+	public async getNftSubAccountOwnerByTokenId(tokenId: string): Promise<NftSubAccount | null> {
+		if (!tokenId) {
+			throw DripsErrors.argumentError(`Could not get NFT sub account: tokenId is missing.`);
+		}
+
+		type QueryResponse = {
+			nftsubAccount: SubgraphTypes.NftSubAccount;
+		};
+
+		const response = await this.query<QueryResponse>(gql.getNftSubAccountOwnerByTokenId, { tokenId });
+
+		const nftSubAccount = response?.data?.nftsubAccount;
+
+		return nftSubAccount
+			? { tokenId: nftSubAccount.id, ownerAddress: ethers.utils.getAddress(nftSubAccount.ownerAddress) }
+			: null;
+	}
+
+	/**
 	 * Returns a list of token IDs that are associated with the given app.
 	 * @param  {string} associatedApp The name/ID of the app to retrieve accounts for.
 	 *
