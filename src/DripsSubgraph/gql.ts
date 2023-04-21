@@ -145,6 +145,15 @@ query getNftSubAccountsByOwner($ownerAddress: Bytes!, $skip: Int, $first: Int) {
 }
 `;
 
+export const getNftSubAccountOwnerByTokenId = `#graphql
+query getNftSubAccountOwnerByTokenId($tokenId: ID!) {
+	nftsubAccount(id: $tokenId) {
+		id
+		ownerAddress
+	}
+}
+`;
+
 export const getCollectedEventsByUserId = `#graphql
 query getCollectedEventsByUserId($userId: String!, $skip: Int, $first: Int) {
   collectedEvents(where: {user: $userId}, skip: $skip, first: $first) {

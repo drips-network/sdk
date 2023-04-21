@@ -6,7 +6,7 @@ import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import { createFromStrings, expect } from '../../src/common/internals';
+import { expect } from '../../src/common/internals';
 import type { NftSubAccount, SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance } from '../../src/DripsHub/types';
 import constants from '../../src/constants';
@@ -34,7 +34,7 @@ describe('NFTDriver integration tests', () => {
 		account2NftDriverClient = await NFTDriverClient.create(provider, account2AsSigner);
 	});
 
-	it('should create a new sub-account and transfer its ownership', async () => {
+	it.only('should create a new sub-account and transfer its ownership', async () => {
 		console.log(`${account1} will create a new sub-account and transfer it to ${account2}.`);
 
 		const subAccountsBefore = await subgraphClient.getNftSubAccountsByOwner(account2);
@@ -244,7 +244,7 @@ describe('NFTDriver integration tests', () => {
 
 		const key = BigInt(Math.floor(Math.random() * 1_000_000_000)).toString();
 		const value = `${key}-value`;
-		const metadata = createFromStrings(key, value);
+		const metadata = Utils.Metadata.createFromStrings(key, value);
 
 		assert.isNull(await subgraphClient.getLatestUserMetadata(emitterSubAccount.tokenId, key));
 

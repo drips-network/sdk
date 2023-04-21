@@ -6,7 +6,7 @@ import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import { createFromStrings, expect } from '../../src/common/internals';
+import { expect } from '../../src/common/internals';
 import type { SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
 import type { CollectableBalance } from '../../src/DripsHub/types';
 import constants from '../../src/constants';
@@ -158,7 +158,7 @@ describe('AddressDriver integration tests', () => {
 
 		const key = BigInt(Math.floor(Math.random() * 1_000_000_000)).toString();
 		const value = `${key}-value`;
-		const metadata = createFromStrings(key, value);
+		const metadata = Utils.Metadata.createFromStrings(key, value);
 
 		assert.isNull(await subgraphClient.getLatestUserMetadata(userId2, key));
 
