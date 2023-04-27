@@ -242,6 +242,52 @@ export default class NFTDriverClient {
 	}
 
 	/**
+	 * Creates a new Drips account.
+	 *
+	 * It will _safely_ mint a new NFT controlling a new Drips account and transfer its ownership to an address.
+	 * The token ID is deterministically derived from the caller's address and the salt.
+	 * Each caller can use each salt only once, to mint a single token.
+	 * It also emits user metadata for the new token.
+	 *
+	 * **Important**:
+	 * In Drips, an account "is" a **user ID** at the protocol level.
+	 * The minted NFT's ID (token ID) and the user ID controlled by it are always equal.
+	 *
+	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
+	 * @param transferToAddress The address to transfer the minted token to.
+	 * @param associatedApp
+	 * The name/ID of the app that is associated with the new account.
+	 * If provided, the following user metadata entry will be appended to the `userMetadata` list:
+	 * - key: "associatedApp"
+	 * - value: `associatedApp`.
+	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 *
+	 * @returns A `Promise` which resolves to minted token ID. It's equal to the user ID controlled by it.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `transferToAddress` is missing.
+	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
+	 * @throws {@link DripsErrors.addressError} if the `transferToAddress` is not valid.
+	 */
+	public async safeCreateAccountWithSalt(
+		salt: number,
+		transferToAddress: string,
+		associatedApp?: string,
+		userMetadata: UserMetadata[] = []
+	): Promise<string> {
+		validateAddress(transferToAddress);
+		validateEmitUserMetadataInput(userMetadata);
+
+		if (associatedApp) {
+			userMetadata.push({ key: dripsConstants.ASSOCIATED_APP_KEY, value: associatedApp });
+		}
+
+		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+
+		const txResponse = await this.#driver.safeMintWithSalt(salt, transferToAddress, userMetadataAsBytes);
+
+		return this.#getTokenIdFromTxResponse(txResponse);
+	}
+
+	/**
 	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
