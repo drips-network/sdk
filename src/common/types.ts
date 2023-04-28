@@ -86,3 +86,5 @@ export enum Forge {
 	GitHub,
 	GitLab
 }
+
+export type Address = string;

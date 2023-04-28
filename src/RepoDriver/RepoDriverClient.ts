@@ -2,7 +2,7 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { DripsReceiverStruct, Forge, SplitsReceiverStruct, UserMetadata } from '../common/types';
+import type { Address, DripsReceiverStruct, Forge, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
@@ -16,7 +16,6 @@ import Utils from '../utils';
 import { DripsErrors } from '../common/DripsError';
 import type { RepoDriver } from '../../contracts';
 import { IERC20__factory, RepoDriver__factory } from '../../contracts';
-import type { Address } from '../common/internals';
 import { isNullOrUndefined, ensureSignerExists } from '../common/internals';
 import type { IRepoDriverTxFactory } from './RepoDriverTxFactory';
 import RepoDriverTxFactory from './RepoDriverTxFactory';
