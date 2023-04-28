@@ -81,3 +81,8 @@ export type SqueezeArgs = {
 	historyHash: string;
 	dripsHistory: DripsHistoryStruct[];
 };
+
+export enum Forge {
+	GitHub,
+	GitLab
+}

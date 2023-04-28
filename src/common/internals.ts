@@ -9,6 +9,9 @@ import { DripsErrors } from './DripsError';
 import type { DripsReceiverStruct, SplitsReceiverStruct } from './types';
 
 /** @internal */
+export type Address = string;
+
+/** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];
 
 /** @internal */

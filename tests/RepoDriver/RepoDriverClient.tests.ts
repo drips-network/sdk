@@ -2,28 +2,29 @@ import type { Network } from '@ethersproject/networks';
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
-import { BigNumber, constants, Wallet } from 'ethers';
+import { BigNumber, constants, ethers, Wallet } from 'ethers';
 import { assert } from 'chai';
-import GitDriverClient from '../../src/GitDriver/GitDriverClient';
+import RepoDriverClient from '../../src/RepoDriver/RepoDriverClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
-import GitDriverTxFactory from '../../src/GitDriver/GitDriverTxFactory';
-import type { IERC20, GitDriver } from '../../contracts';
-import { GitDriver__factory, IERC20__factory } from '../../contracts';
+import RepoDriverTxFactory from '../../src/RepoDriver/RepoDriverTxFactory';
+import type { IERC20, RepoDriver } from '../../contracts';
+import { RepoDriver__factory, IERC20__factory } from '../../contracts';
 import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
+import { Forge } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
-describe('GitDriverClient', () => {
+describe('RepoDriverClient', () => {
 	const TEST_CHAIN_ID = 5; // Goerli.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let gitDriverContractStub: StubbedInstance<GitDriver>;
+	let repoDriverContractStub: StubbedInstance<RepoDriver>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let gitDriverTxFactoryStub: StubbedInstance<GitDriverTxFactory>;
+	let RepoDriverTxFactoryStub: StubbedInstance<RepoDriverTxFactory>;
 
-	let testGitDriverClient: GitDriverClient;
+	let testRepoDriverClient: RepoDriverClient;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
@@ -39,19 +40,19 @@ describe('GitDriverClient', () => {
 		signerWithProviderStub = { ...signerStub, provider: providerStub };
 		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
-		gitDriverTxFactoryStub = stubInterface<GitDriverTxFactory>();
+		RepoDriverTxFactoryStub = stubInterface<RepoDriverTxFactory>();
 		sinon
-			.stub(GitDriverTxFactory, 'create')
+			.stub(RepoDriverTxFactory, 'create')
 			.withArgs(signerWithProviderStub, Utils.Network.configs[TEST_CHAIN_ID].GIT_DRIVER)
-			.resolves(gitDriverTxFactoryStub);
+			.resolves(RepoDriverTxFactoryStub);
 
-		gitDriverContractStub = stubInterface<GitDriver>();
+		repoDriverContractStub = stubInterface<RepoDriver>();
 		sinon
-			.stub(GitDriver__factory, 'connect')
+			.stub(RepoDriver__factory, 'connect')
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].GIT_DRIVER, signerWithProviderStub)
-			.returns(gitDriverContractStub);
+			.returns(repoDriverContractStub);
 
-		testGitDriverClient = await GitDriverClient.create(providerStub, signerStub, undefined, gitDriverTxFactoryStub);
+		testRepoDriverClient = await RepoDriverClient.create(providerStub, signerStub, undefined, RepoDriverTxFactoryStub);
 	});
 
 	afterEach(() => {
@@ -64,7 +65,7 @@ describe('GitDriverClient', () => {
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			await GitDriverClient.create(providerStub, signerStub);
+			await RepoDriverClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -78,7 +79,7 @@ describe('GitDriverClient', () => {
 			const validateClientSignerStub = sinon.stub(validators, 'validateClientSigner');
 
 			// Act
-			await GitDriverClient.create(providerStub, signerStub);
+			await RepoDriverClient.create(providerStub, signerStub);
 
 			// Assert
 			assert(
@@ -92,7 +93,7 @@ describe('GitDriverClient', () => {
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await GitDriverClient.create(providerStub, signerStub, customDriverAddress);
+			const client = await RepoDriverClient.create(providerStub, signerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
@@ -100,11 +101,11 @@ describe('GitDriverClient', () => {
 
 		it('should create a fully initialized client instance', async () => {
 			// Assert
-			assert.equal(testGitDriverClient.signer, signerWithProviderStub);
-			assert.equal(testGitDriverClient.provider, providerStub);
-			assert.equal(testGitDriverClient.signer!.provider, providerStub);
+			assert.equal(testRepoDriverClient.signer, signerWithProviderStub);
+			assert.equal(testRepoDriverClient.provider, providerStub);
+			assert.equal(testRepoDriverClient.signer!.provider, providerStub);
 			assert.equal(
-				testGitDriverClient.driverAddress,
+				testRepoDriverClient.driverAddress,
 				Utils.Network.configs[(await providerStub.getNetwork()).chainId].GIT_DRIVER
 			);
 		});
@@ -119,13 +120,13 @@ describe('GitDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testGitDriverClient.driverAddress)
+				.withArgs(await signerStub.getAddress(), testRepoDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
 			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
-			await testGitDriverClient.getAllowance(tokenAddress);
+			await testRepoDriverClient.getAllowance(tokenAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -138,20 +139,20 @@ describe('GitDriverClient', () => {
 			const erc20ContractStub = stubInterface<IERC20>();
 
 			erc20ContractStub.allowance
-				.withArgs(await signerStub.getAddress(), testGitDriverClient.driverAddress)
+				.withArgs(await signerStub.getAddress(), testRepoDriverClient.driverAddress)
 				.resolves(BigNumber.from(1));
 
 			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
-			const allowance = await testGitDriverClient.getAllowance(tokenAddress);
+			const allowance = await testRepoDriverClient.getAllowance(tokenAddress);
 
 			// Assert
 			assert.equal(allowance, 1n);
 			assert(
 				erc20ContractStub.allowance.calledOnceWithExactly(
 					await signerWithProviderStub.getAddress(),
-					testGitDriverClient.driverAddress
+					testRepoDriverClient.driverAddress
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -169,7 +170,7 @@ describe('GitDriverClient', () => {
 			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
-			await testGitDriverClient.approve(tokenAddress);
+			await testRepoDriverClient.approve(tokenAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -184,40 +185,40 @@ describe('GitDriverClient', () => {
 			sinon.stub(IERC20__factory, 'connect').withArgs(tokenAddress, signerWithProviderStub).returns(erc20ContractStub);
 
 			// Act
-			await testGitDriverClient.approve(tokenAddress);
+			await testRepoDriverClient.approve(tokenAddress);
 
 			// Assert
 			assert(
-				erc20ContractStub.approve.calledOnceWithExactly(testGitDriverClient.driverAddress, constants.MaxUint256),
+				erc20ContractStub.approve.calledOnceWithExactly(testRepoDriverClient.driverAddress, constants.MaxUint256),
 				'Expected method to be called with different arguments'
 			);
 		});
 	});
 
 	describe('getUserId()', () => {
-		it('should call the calcProjectId() method of the GitDriver contract', async () => {
+		it('should call the calcUserId() method of the RepoDriver contract', async () => {
 			// Arrange
-			const gitUrl = 'http://project.com';
-			gitDriverContractStub.calcProjectId.withArgs(gitUrl).resolves(BigNumber.from(111));
+			const repoId = '1';
+			repoDriverContractStub.calcUserId.withArgs(repoId).resolves(BigNumber.from(111));
 
 			// Act
-			await testGitDriverClient.getProjectId(gitUrl);
+			await testRepoDriverClient.getUserId(repoId);
 
 			// Assert
 			assert(
-				gitDriverContractStub.calcProjectId.calledOnceWithExactly(gitUrl),
+				repoDriverContractStub.calcUserId.calledOnceWithExactly(repoId),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should throw argumentError when projectId is missing', async () => {
+		it('should throw argumentError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
-			gitDriverContractStub.calcProjectId.withArgs(undefined as unknown as string).resolves(BigNumber.from(111));
+			repoDriverContractStub.calcUserId.withArgs(undefined as unknown as string).resolves(BigNumber.from(111));
 
 			try {
 				// Act
-				await testGitDriverClient.getProjectId(undefined as unknown as string);
+				await testRepoDriverClient.getUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -228,15 +229,193 @@ describe('GitDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 	});
+
+	describe('getRepoId()', () => {
+		it('should call the calcRepoId() method of the RepoDriver contract', async () => {
+			// Arrange
+			const forge = Forge.GitHub;
+			const name = 'test';
+			repoDriverContractStub.calcRepoId
+				.withArgs(forge, ethers.utils.arrayify(ethers.utils.toUtf8Bytes(name)))
+				.resolves(BigNumber.from(111));
+
+			// Act
+			await testRepoDriverClient.getRepoId(forge, name);
+
+			// Assert
+			assert(
+				repoDriverContractStub.calcRepoId.calledOnceWithExactly(
+					forge,
+					ethers.utils.arrayify(ethers.utils.toUtf8Bytes(name))
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentError when repoId is missing', async () => {
+			// Arrange
+			const name = 'test';
+			let threw = false;
+			repoDriverContractStub.calcRepoId.withArgs(undefined as unknown as Forge, name).resolves(BigNumber.from(111));
+
+			try {
+				// Act
+				await testRepoDriverClient.getRepoId(undefined as unknown as Forge, name);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentError when repoId is missing', async () => {
+			// Arrange
+			const forge = Forge.GitHub;
+			let threw = false;
+			repoDriverContractStub.calcRepoId.withArgs(forge, undefined as unknown as string).resolves(BigNumber.from(111));
+
+			try {
+				// Act
+				await testRepoDriverClient.getRepoId(forge, undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('getRepoOwner()', () => {
+		it('should return the owner address when owner exists', async () => {
+			// Arrange
+			const repoId = '1';
+			const owner = Wallet.createRandom().address;
+			repoDriverContractStub.repoOwner.withArgs(repoId).resolves(owner);
+
+			// Act
+			const result = await testRepoDriverClient.getRepoOwner(repoId);
+
+			// Assert
+			assert.equal(result, owner);
+		});
+
+		it('should return null address when owner does not exist', async () => {
+			// Arrange
+			const repoId = '1';
+			repoDriverContractStub.repoOwner.withArgs(repoId).resolves(null as unknown as string);
+
+			// Act
+			const result = await testRepoDriverClient.getRepoOwner(repoId);
+
+			// Assert
+			assert.isNull(result);
+		});
+
+		it('should call the repoOwner() method of the RepoDriver contract', async () => {
+			// Arrange
+			const repoId = '1';
+			repoDriverContractStub.repoOwner.withArgs(repoId).resolves(Wallet.createRandom().address);
+
+			// Act
+			await testRepoDriverClient.getRepoOwner(repoId);
+
+			// Assert
+			assert(
+				repoDriverContractStub.repoOwner.calledOnceWithExactly(repoId),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentError when repoId is missing', async () => {
+			// Arrange
+			let threw = false;
+			repoDriverContractStub.repoOwner.withArgs(undefined as unknown as string).resolves(Wallet.createRandom().address);
+
+			try {
+				// Act
+				await testRepoDriverClient.getRepoOwner(undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
+	describe('triggerUpdateRepoOwnerRequest()', () => {
+		it('should call the repoOwner() method of the RepoDriver contract', async () => {
+			// Arrange
+			const forge = Forge.GitHub;
+			const name = 'test';
+			repoDriverContractStub.requestUpdateRepoOwner.withArgs(forge, name);
+
+			// Act
+			await testRepoDriverClient.triggerUpdateRepoOwnerRequest(forge, name);
+
+			// Assert
+			assert(
+				repoDriverContractStub.requestUpdateRepoOwner.calledOnceWithExactly(forge, name),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw argumentError when forge is missing', async () => {
+			// Arrange
+			let threw = false;
+			const name = 'test';
+			repoDriverContractStub.requestUpdateRepoOwner.withArgs(undefined as unknown as Forge, name).resolves();
+
+			try {
+				// Act
+				await testRepoDriverClient.triggerUpdateRepoOwnerRequest(undefined as unknown as Forge, name);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should throw argumentError when name is missing', async () => {
+			// Arrange
+			let threw = false;
+			const forge = Forge.GitHub;
+			repoDriverContractStub.requestUpdateRepoOwner.withArgs(forge, undefined as unknown as string).resolves();
+
+			try {
+				// Act
+				await testRepoDriverClient.triggerUpdateRepoOwnerRequest(forge, undefined as unknown as string);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+	});
+
 	describe('collect()', () => {
-		it('should throw argumentError when projectId is missing', async () => {
+		it('should throw argumentError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const testAddress = Wallet.createRandom().address;
 
 			try {
 				// Act
-				await testGitDriverClient.collect(undefined as unknown as string, testAddress, testAddress);
+				await testRepoDriverClient.collect(undefined as unknown as string, testAddress, testAddress);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -249,13 +428,13 @@ describe('GitDriverClient', () => {
 
 		it('should validate the ERC20 and transferTo addresses', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			await testGitDriverClient.collect(projectId, tokenAddress, transferToAddress);
+			await testRepoDriverClient.collect(repoId, tokenAddress, transferToAddress);
 
 			// Assert
 			assert(
@@ -270,15 +449,15 @@ describe('GitDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			gitDriverTxFactoryStub.collect.withArgs(projectId, tokenAddress, transferToAddress).resolves(tx);
+			RepoDriverTxFactoryStub.collect.withArgs(repoId, tokenAddress, transferToAddress).resolves(tx);
 
 			// Act
-			await testGitDriverClient.collect(projectId, tokenAddress, transferToAddress);
+			await testRepoDriverClient.collect(repoId, tokenAddress, transferToAddress);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -286,14 +465,14 @@ describe('GitDriverClient', () => {
 	});
 
 	describe('give()', () => {
-		it('should throw argumentError when projectId is missing', async () => {
+		it('should throw argumentError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
 
 			try {
 				// Act
-				await testGitDriverClient.give(undefined as unknown as string, '1', tokenAddress, 1);
+				await testRepoDriverClient.give(undefined as unknown as string, '1', tokenAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -311,7 +490,7 @@ describe('GitDriverClient', () => {
 
 			try {
 				// Act
-				await testGitDriverClient.give('1', undefined as unknown as string, tokenAddress, 1);
+				await testRepoDriverClient.give('1', undefined as unknown as string, tokenAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -329,7 +508,7 @@ describe('GitDriverClient', () => {
 
 			try {
 				// Act
-				await testGitDriverClient.give('1', ' 1', tokenAddress, -1);
+				await testRepoDriverClient.give('1', ' 1', tokenAddress, -1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -342,12 +521,12 @@ describe('GitDriverClient', () => {
 
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			await testGitDriverClient.give(projectId, ' 1', tokenAddress, 1);
+			await testRepoDriverClient.give(repoId, ' 1', tokenAddress, 1);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -355,16 +534,16 @@ describe('GitDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 			const amount = 100n;
 			const receiverUserId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			gitDriverTxFactoryStub.give.withArgs(projectId, receiverUserId, tokenAddress, amount).resolves(tx);
+			RepoDriverTxFactoryStub.give.withArgs(repoId, receiverUserId, tokenAddress, amount).resolves(tx);
 
 			// Act
-			await testGitDriverClient.give(projectId, receiverUserId, tokenAddress, amount);
+			await testRepoDriverClient.give(repoId, receiverUserId, tokenAddress, amount);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -372,7 +551,7 @@ describe('GitDriverClient', () => {
 	});
 
 	describe('setDrips()', () => {
-		it('should throw argumentError when projectId is missing', async () => {
+		it('should throw argumentError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -380,7 +559,7 @@ describe('GitDriverClient', () => {
 
 			try {
 				// Act
-				await testGitDriverClient.setDrips(undefined as unknown as string, tokenAddress, [], [], transferToAddress, 1);
+				await testRepoDriverClient.setDrips(undefined as unknown as string, tokenAddress, [], [], transferToAddress, 1);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -393,7 +572,7 @@ describe('GitDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -421,7 +600,7 @@ describe('GitDriverClient', () => {
 			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
 			// Act
-			await testGitDriverClient.setDrips(projectId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
+			await testRepoDriverClient.setDrips(repoId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
@@ -448,7 +627,7 @@ describe('GitDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
@@ -475,13 +654,13 @@ describe('GitDriverClient', () => {
 			const balance = 1n;
 
 			const tx = {};
-			gitDriverTxFactoryStub.setDrips
-				.withArgs(projectId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
+			RepoDriverTxFactoryStub.setDrips
+				.withArgs(repoId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
 				.resolves(tx);
 
 			// Act
-			await testGitDriverClient.setDrips(
-				projectId,
+			await testRepoDriverClient.setDrips(
+				repoId,
 				tokenAddress,
 				currentReceivers,
 				receivers,
@@ -495,13 +674,13 @@ describe('GitDriverClient', () => {
 	});
 
 	describe('setSplits()', () => {
-		it('should throw argumentError when projectId is missing', async () => {
+		it('should throw argumentError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				await testGitDriverClient.setSplits(undefined as unknown as string, []);
+				await testRepoDriverClient.setSplits(undefined as unknown as string, []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -514,7 +693,7 @@ describe('GitDriverClient', () => {
 
 		it('should validate the splits receivers', async () => {
 			// Arrange
-			const projectId = '1';
+			const repoId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 1, weight: 1 },
@@ -524,14 +703,14 @@ describe('GitDriverClient', () => {
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
-			await testGitDriverClient.setSplits(projectId, receivers);
+			await testRepoDriverClient.setSplits(repoId, receivers);
 
 			// Assert
 			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
 		});
 
 		it('should send the expected transaction', async () => {
-			const projectId = '1';
+			const repoId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 2, weight: 100 },
@@ -540,10 +719,10 @@ describe('GitDriverClient', () => {
 			];
 
 			const tx = {};
-			gitDriverTxFactoryStub.setSplits.withArgs(projectId, receivers).resolves(tx);
+			RepoDriverTxFactoryStub.setSplits.withArgs(repoId, receivers).resolves(tx);
 
 			// Act
-			await testGitDriverClient.setSplits(projectId, receivers);
+			await testRepoDriverClient.setSplits(repoId, receivers);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -551,13 +730,13 @@ describe('GitDriverClient', () => {
 	});
 
 	describe('emitUserMetadata()', () => {
-		it('should throw argumentMissingError when projectId is missing', async () => {
+		it('should throw argumentMissingError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				await testGitDriverClient.emitUserMetadata(undefined as unknown as string, []);
+				await testRepoDriverClient.emitUserMetadata(undefined as unknown as string, []);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -574,10 +753,10 @@ describe('GitDriverClient', () => {
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const tx = {};
-			gitDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);
+			RepoDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);
 
 			// Act
-			await testGitDriverClient.emitUserMetadata('1', metadata);
+			await testRepoDriverClient.emitUserMetadata('1', metadata);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');

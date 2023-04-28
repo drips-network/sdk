@@ -3,8 +3,7 @@
 		"inputs": [
 			{ "internalType": "contract DripsHub", "name": "_dripsHub", "type": "address" },
 			{ "internalType": "address", "name": "forwarder", "type": "address" },
-			{ "internalType": "uint32", "name": "_driverId", "type": "uint32" },
-			{ "internalType": "address", "name": "_oracle", "type": "address" }
+			{ "internalType": "uint32", "name": "_driverId", "type": "uint32" }
 		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
@@ -16,6 +15,16 @@
 			{ "indexed": false, "internalType": "address", "name": "newAdmin", "type": "address" }
 		],
 		"name": "AdminChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "contract OperatorInterface", "name": "operator", "type": "address" },
+			{ "indexed": true, "internalType": "bytes32", "name": "jobId", "type": "bytes32" },
+			{ "indexed": false, "internalType": "uint96", "name": "defaultFee", "type": "uint96" }
+		],
+		"name": "AnyApiOperatorUpdated",
 		"type": "event"
 	},
 	{
@@ -60,11 +69,20 @@
 	{
 		"anonymous": false,
 		"inputs": [
-			{ "indexed": true, "internalType": "string", "name": "gitUrl", "type": "string" },
-			{ "indexed": true, "internalType": "bytes32", "name": "projectId", "type": "bytes32" },
-			{ "indexed": true, "internalType": "address", "name": "owner", "type": "address" }
+			{ "indexed": true, "internalType": "uint224", "name": "repoId", "type": "uint224" },
+			{ "indexed": false, "internalType": "enum Forge", "name": "forge", "type": "uint8" },
+			{ "indexed": false, "internalType": "bytes", "name": "name", "type": "bytes" }
 		],
-		"name": "ProjectIdVerified",
+		"name": "RepoOwnerUpdateRequested",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{ "indexed": true, "internalType": "uint224", "name": "repoId", "type": "uint224" },
+			{ "indexed": false, "internalType": "address", "name": "owner", "type": "address" }
+		],
+		"name": "RepoOwnerUpdated",
 		"type": "event"
 	},
 	{
@@ -95,15 +113,36 @@
 		"type": "function"
 	},
 	{
-		"inputs": [{ "internalType": "string", "name": "gitUrl", "type": "string" }],
-		"name": "calcProjectId",
-		"outputs": [{ "internalType": "uint256", "name": "projectId", "type": "uint256" }],
+		"inputs": [],
+		"name": "anyApiOperator",
+		"outputs": [
+			{ "internalType": "contract OperatorInterface", "name": "operator", "type": "address" },
+			{ "internalType": "bytes32", "name": "jobId", "type": "bytes32" },
+			{ "internalType": "uint96", "name": "defaultFee", "type": "uint96" }
+		],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "projectId", "type": "uint256" },
+			{ "internalType": "enum Forge", "name": "forge", "type": "uint8" },
+			{ "internalType": "bytes", "name": "name", "type": "bytes" }
+		],
+		"name": "calcRepoId",
+		"outputs": [{ "internalType": "uint224", "name": "repoId", "type": "uint224" }],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [{ "internalType": "uint224", "name": "repoId", "type": "uint224" }],
+		"name": "calcUserId",
+		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "uint216", "name": "repoId", "type": "uint216" },
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{ "internalType": "address", "name": "transferTo", "type": "address" }
 		],
@@ -128,7 +167,7 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "projectId", "type": "uint256" },
+			{ "internalType": "uint216", "name": "repoId", "type": "uint216" },
 			{
 				"components": [
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
@@ -146,7 +185,7 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "projectId", "type": "uint256" },
+			{ "internalType": "uint216", "name": "repoId", "type": "uint216" },
 			{ "internalType": "uint256", "name": "receiver", "type": "uint256" },
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{ "internalType": "uint128", "name": "amt", "type": "uint128" }
@@ -193,19 +232,23 @@
 	},
 	{
 		"inputs": [],
-		"name": "oracle",
-		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+		"name": "linkToken",
+		"outputs": [{ "internalType": "contract LinkTokenInterface", "name": "", "type": "address" }],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "address", "name": "", "type": "address" },
+			{ "internalType": "uint256", "name": "amount", "type": "uint256" },
+			{ "internalType": "bytes", "name": "data", "type": "bytes" }
+		],
+		"name": "onTokenTransfer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-	{
-		"inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-		"name": "projectOwner",
-		"outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-		"stateMutability": "view",
-		"type": "function"
-	},
 	{
 		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
 		"name": "proposeNewAdmin",
@@ -229,6 +272,23 @@
 	},
 	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
+		"inputs": [{ "internalType": "uint224", "name": "repoId", "type": "uint224" }],
+		"name": "repoOwner",
+		"outputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "enum Forge", "name": "forge", "type": "uint8" },
+			{ "internalType": "bytes", "name": "name", "type": "bytes" }
+		],
+		"name": "requestUpdateRepoOwner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",
 		"outputs": [],
@@ -237,7 +297,7 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "projectId", "type": "uint256" },
+			{ "internalType": "uint216", "name": "repoId", "type": "uint216" },
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{
 				"components": [
@@ -269,7 +329,7 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "projectId", "type": "uint256" },
+			{ "internalType": "uint216", "name": "repoId", "type": "uint216" },
 			{
 				"components": [
 					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
@@ -287,6 +347,27 @@
 	},
 	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
+		"inputs": [
+			{ "internalType": "contract OperatorInterface", "name": "operator", "type": "address" },
+			{ "internalType": "bytes32", "name": "jobId", "type": "bytes32" },
+			{ "internalType": "uint96", "name": "defaultFee", "type": "uint96" }
+		],
+		"name": "updateAnyApiOperator",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "bytes32", "name": "requestId", "type": "bytes32" },
+			{ "internalType": "bytes", "name": "ownerRaw", "type": "bytes" }
+		],
+		"name": "updateRepoOwnerByAnyApi",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [{ "internalType": "address", "name": "newImplementation", "type": "address" }],
 		"name": "upgradeTo",
 		"outputs": [],
@@ -301,16 +382,6 @@
 		"name": "upgradeToAndCall",
 		"outputs": [],
 		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{ "internalType": "string", "name": "gitUrl", "type": "string" },
-			{ "internalType": "address", "name": "owner", "type": "address" }
-		],
-		"name": "verifyProjectId",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]

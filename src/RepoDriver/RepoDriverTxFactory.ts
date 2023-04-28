@@ -1,21 +1,24 @@
 /* eslint-disable no-dupe-class-members */
-import type { GitDriver, DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/GitDriver';
+import type { RepoDriver, DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/RepoDriver';
 import type { PromiseOrValue } from 'contracts/common';
-import type { PopulatedTransaction, BigNumberish, Overrides, Signer } from 'ethers';
+import type { PopulatedTransaction, BigNumberish, Overrides, Signer, BytesLike } from 'ethers';
 import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
-import { GitDriver__factory } from '../../contracts/factories';
+import { RepoDriver__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
 
-export interface IGitDriverTxFactory
-	extends Pick<GitDriver['populateTransaction'], 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'> {}
+export interface IRepoDriverTxFactory
+	extends Pick<
+		RepoDriver['populateTransaction'],
+		'requestUpdateRepoOwner' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
+	> {}
 
 /**
- * A factory for creating `GitDriver` contract transactions.
+ * A factory for creating `RepoDriver` contract transactions.
  */
-export default class GitDriverTxFactory implements IGitDriverTxFactory {
+export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 	#signer!: Signer;
-	#driver!: GitDriver;
+	#driver!: RepoDriver;
 	#driverAddress!: string;
 
 	public get driverAddress(): string {
@@ -28,7 +31,7 @@ export default class GitDriverTxFactory implements IGitDriverTxFactory {
 
 	// TODO: update supported networks.
 	/**
-	 * Creates a new immutable `GitDriverTxFactory` instance.
+	 * Creates a new immutable `RepoDriverTxFactory` instance.
 	 *
 	 * @param signer The signer that will be used to sign the generated transactions.
 	 *
@@ -36,54 +39,65 @@ export default class GitDriverTxFactory implements IGitDriverTxFactory {
 	 *
 	 * The supported networks are:
 	 * - 'goerli': chain ID `5`
-	 * @param customDriverAddress Overrides the `GitDriver` contract address.
+	 * @param customDriverAddress Overrides the `RepoDriver` contract address.
 	 * If it's `undefined` (default value), the address will be automatically selected based on the `signer.provider`'s network.
 	 * @returns A `Promise` which resolves to the new client instance.
 	 * @throws {@link DripsErrors.initializationError} if the initialization fails.
 	 */
-	public static async create(signer: Signer, customDriverAddress?: string): Promise<GitDriverTxFactory> {
+	public static async create(signer: Signer, customDriverAddress?: string): Promise<RepoDriverTxFactory> {
 		await validateClientSigner(signer, Utils.Network.SUPPORTED_CHAINS);
 
 		const { chainId } = await signer.provider!.getNetwork(); // If the validation passed we know that the signer is connected to a provider.
 
 		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].GIT_DRIVER;
 
-		const client = new GitDriverTxFactory();
+		const client = new RepoDriverTxFactory();
 		client.#signer = signer;
 		client.#driverAddress = driverAddress;
-		client.#driver = GitDriver__factory.connect(driverAddress, signer);
+		client.#driver = RepoDriver__factory.connect(driverAddress, signer);
 
 		return client;
 	}
 
-	async collect(
-		projectId: PromiseOrValue<BigNumberish>,
+	public async requestUpdateRepoOwner(
+		forge: PromiseOrValue<BigNumberish>,
+		name: PromiseOrValue<BytesLike>,
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return safeDripsTx(await this.#driver.populateTransaction.requestUpdateRepoOwner(forge, name, overrides));
+	}
+
+	public async collect(
+		repoId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.collect(projectId, erc20, transferTo, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.collect(repoId, erc20, transferTo, overrides));
 	}
-	async give(
-		projectId: PromiseOrValue<BigNumberish>,
+
+	public async give(
+		repoId: PromiseOrValue<BigNumberish>,
 		receiver: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		amt: PromiseOrValue<BigNumberish>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.give(projectId, receiver, erc20, amt, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.give(repoId, receiver, erc20, amt, overrides));
 	}
-	async setSplits(
-		projectId: PromiseOrValue<BigNumberish>,
+
+	public async setSplits(
+		repoId: PromiseOrValue<BigNumberish>,
 		receivers: SplitsReceiverStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
 		return safeDripsTx(
-			await this.#driver.populateTransaction.setSplits(projectId, formatSplitReceivers(receivers), overrides)
+			await this.#driver.populateTransaction.setSplits(repoId, formatSplitReceivers(receivers), overrides)
 		);
 	}
-	async setDrips(
-		projectId: PromiseOrValue<BigNumberish>,
+
+	public async setDrips(
+		repoId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		currReceivers: DripsReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
@@ -95,7 +109,7 @@ export default class GitDriverTxFactory implements IGitDriverTxFactory {
 	): Promise<PopulatedTransaction> {
 		if (!overrides.gasLimit) {
 			const gasEstimation = await this.#driver.estimateGas.setDrips(
-				projectId,
+				repoId,
 				erc20,
 				formatDripsReceivers(currReceivers),
 				balanceDelta,
@@ -113,7 +127,7 @@ export default class GitDriverTxFactory implements IGitDriverTxFactory {
 
 		return safeDripsTx(
 			await this.#driver.populateTransaction.setDrips(
-				projectId,
+				repoId,
 				erc20,
 				formatDripsReceivers(currReceivers),
 				balanceDelta,
@@ -125,11 +139,12 @@ export default class GitDriverTxFactory implements IGitDriverTxFactory {
 			)
 		);
 	}
-	async emitUserMetadata(
-		projectId: PromiseOrValue<BigNumberish>,
+
+	public async emitUserMetadata(
+		repoId: PromiseOrValue<BigNumberish>,
 		userMetadata: UserMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(projectId, userMetadata, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(repoId, userMetadata, overrides));
 	}
 }
