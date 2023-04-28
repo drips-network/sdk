@@ -41,7 +41,7 @@ describe('RepoDriverTxFactory', () => {
 		RepoDriverContractStub = stubInterface<RepoDriver>();
 		sinon
 			.stub(RepoDriver__factory, 'connect')
-			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].GIT_DRIVER, signerWithProviderStub)
+			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].REPO_DRIVER, signerWithProviderStub)
 			.returns(RepoDriverContractStub);
 
 		testRepoDriverTxFactory = await RepoDriverTxFactory.create(signerWithProviderStub);
@@ -81,7 +81,7 @@ describe('RepoDriverTxFactory', () => {
 			// Assert
 			assert.equal(
 				testRepoDriverTxFactory.driverAddress,
-				Utils.Network.configs[(await providerStub.getNetwork()).chainId].GIT_DRIVER
+				Utils.Network.configs[(await providerStub.getNetwork()).chainId].REPO_DRIVER
 			);
 			assert.equal(testRepoDriverTxFactory.signer, signerWithProviderStub);
 		});

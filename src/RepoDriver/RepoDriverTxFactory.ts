@@ -49,7 +49,7 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 
 		const { chainId } = await signer.provider!.getNetwork(); // If the validation passed we know that the signer is connected to a provider.
 
-		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].GIT_DRIVER;
+		const driverAddress = customDriverAddress || Utils.Network.configs[chainId].REPO_DRIVER;
 
 		const client = new RepoDriverTxFactory();
 		client.#signer = signer;

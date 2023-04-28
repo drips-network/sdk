@@ -98,7 +98,7 @@ export default class RepoDriverClient {
 		}
 
 		const network = await provider.getNetwork();
-		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].GIT_DRIVER;
+		const driverAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].REPO_DRIVER;
 
 		const client = new RepoDriverClient();
 
