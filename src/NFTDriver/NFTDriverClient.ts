@@ -254,6 +254,7 @@ export default class NFTDriverClient {
 	 * The minted NFT's ID (token ID) and the user ID controlled by it are always equal.
 	 *
 	 * This means that **anywhere in the SDK, a method expects a user ID parameter, and a token ID is a valid argument**.
+	 * @param salt The salt to use for the deterministic token ID derivation.
 	 * @param transferToAddress The address to transfer the minted token to.
 	 * @param associatedApp
 	 * The name/ID of the app that is associated with the new account.
