@@ -123,6 +123,25 @@ describe('NFTDriverTxFactory', () => {
 		});
 	});
 
+	describe('safeMintWithSalt', () => {
+		it('should return the expected transaction', async () => {
+			// Arrange
+			const stub = sinon.stub();
+			const expectedTx = { from: '0x1234' };
+			nftDriverContractStub.populateTransaction.safeMintWithSalt = stub.resolves(expectedTx);
+			const userMetadata = [] as UserMetadataStruct[];
+			const overrides = {};
+
+			// Act
+			const tx = await testNftDriverTxFactory.safeMintWithSalt(1, '0x1234', userMetadata, overrides);
+
+			// Assert
+			assert(stub.calledOnceWithExactly(1, '0x1234', userMetadata, overrides));
+			assert.deepEqual(tx.from, expectedTx.from);
+			assert.isTrue(tx.value!.toNumber() === 0);
+		});
+	});
+
 	describe('collect', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange

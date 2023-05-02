@@ -510,6 +510,175 @@ describe('NFTDriverClient', () => {
 		});
 	});
 
+	describe('safeCreateAccountWithSalt()', () => {
+		it('should validate the ERC20 address', async () => {
+			// Arrange
+			const salt = 1;
+			const metadata: UserMetadata[] = [];
+			const transferToAddress = Wallet.createRandom().address;
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMintWithSalt.withArgs(salt, transferToAddress, metadataAsBytes).resolves(txResponse);
+
+			// Act
+			await testNftDriverClient.safeCreateAccountWithSalt(1, transferToAddress);
+
+			// Assert
+			assert(validateAddressStub.calledOnceWithExactly(transferToAddress));
+		});
+
+		it('should validate the user metadata', async () => {
+			// Arrange
+			const salt = 1;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const transferToAddress = Wallet.createRandom().address;
+			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ event: 'Transfer', args: { tokenId: 1 } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMintWithSalt.withArgs(salt, transferToAddress, metadataAsBytes).resolves(txResponse);
+
+			// Act
+			await testNftDriverClient.safeCreateAccountWithSalt(1, transferToAddress, undefined, metadata);
+
+			// Assert
+			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
+		});
+
+		it('should not set an associated app metadata entry when an associated app is not provided', async () => {
+			// Arrange
+			const salt = 1;
+			const expectedTokenId = '1';
+			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMintWithSalt.resolves(txResponse);
+
+			// Act
+			await testNftDriverClient.safeCreateAccountWithSalt(salt, transferToAddress, undefined, metadata);
+
+			// Assert
+			assert(
+				nftDriverContractStub.safeMintWithSalt.calledOnceWithExactly(
+					salt,
+					transferToAddress,
+					sinon.match(
+						(meta: UserMetadata[]) =>
+							meta.length === 1 &&
+							meta[0].key === ethers.utils.formatBytes32String(metadata[0].key) &&
+							meta[0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[0].value))
+					)
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+
+		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
+			const salt = 1;
+			let threw = false;
+			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: []
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMintWithSalt.withArgs(salt, transferToAddress, metadataAsBytes).resolves(txResponse);
+
+			try {
+				// Act
+				await testNftDriverClient.safeCreateAccountWithSalt(salt, transferToAddress, undefined, metadata);
+			} catch (error: any) {
+				// Assert
+				assert.equal(error.code, DripsErrorCode.TX_EVENT_NOT_FOUND);
+				threw = true;
+			}
+
+			// Assert
+			assert.isTrue(threw, 'Expected type of exception was not thrown');
+		});
+
+		it('should return the expected token', async () => {
+			// Arrange
+			const salt = 1;
+			const expectedTokenId = '1';
+			const transferToAddress = Wallet.createRandom().address;
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMintWithSalt.withArgs(salt, transferToAddress, metadataAsBytes).resolves(txResponse);
+
+			// Act
+			const actualTokenId = await testNftDriverClient.safeCreateAccountWithSalt(
+				salt,
+				transferToAddress,
+				undefined,
+				metadata
+			);
+
+			// Assert
+			assert.equal(actualTokenId, expectedTokenId);
+			assert('Expected method to be called with different arguments');
+		});
+
+		it('should call the safeMint() of the NFTDriver contract', async () => {
+			// Arrange
+			const salt = 1;
+			const expectedTokenId = '1';
+			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const transferToAddress = Wallet.createRandom().address;
+
+			const waitFake = async () =>
+				Promise.resolve({
+					events: [{ event: 'Transfer', args: { tokenId: expectedTokenId } } as unknown as Event]
+				} as unknown as ContractReceipt);
+			const txResponse = { wait: waitFake } as ContractTransaction;
+			nftDriverContractStub.safeMintWithSalt.resolves(txResponse);
+
+			// Act
+			await testNftDriverClient.safeCreateAccountWithSalt(salt, transferToAddress, 'myApp', metadata);
+
+			// Assert
+			assert(
+				nftDriverContractStub.safeMintWithSalt.calledOnceWithExactly(
+					salt,
+					transferToAddress,
+					sinon.match(
+						(meta: UserMetadata[]) =>
+							meta.length === 2 &&
+							meta[0].key === ethers.utils.formatBytes32String(metadata[0].key) &&
+							meta[0].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[0].value)) &&
+							meta[1].key === ethers.utils.formatBytes32String(metadata[1].key) &&
+							meta[1].value === ethers.utils.hexlify(ethers.utils.toUtf8Bytes(metadata[1].value))
+					)
+				),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
 	describe('collect()', () => {
 		it('should throw argumentMissingError when tokenId is missing', async () => {
 			// Arrange

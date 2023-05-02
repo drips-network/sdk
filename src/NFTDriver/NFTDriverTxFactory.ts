@@ -73,6 +73,15 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		return safeDripsTx(await this.#driver.populateTransaction.safeMint(to, userMetadata, overrides));
 	}
 
+	public async safeMintWithSalt(
+		salt: PromiseOrValue<BigNumberish>,
+		to: PromiseOrValue<string>,
+		userMetadata: UserMetadataStruct[],
+		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
+	): Promise<PopulatedTransaction> {
+		return safeDripsTx(await this.#driver.populateTransaction.safeMintWithSalt(salt, to, userMetadata, overrides));
+	}
+
 	public async collect(
 		tokenId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
