@@ -232,11 +232,14 @@ export default class RepoDriverClient {
 	 * @throws DripsErrors.argumentError if the `forge` or `name` is missing.
 	 */
 	public async triggerUpdateRepoOwnerRequest(forge: Forge, name: string): Promise<ContractTransaction> {
+		ensureSignerExists(this.#signer);
 		if (isNullOrUndefined(forge) || !name) {
 			throw DripsErrors.argumentError('Could not request update repo owner: forge or name is missing.');
 		}
 
-		return this.#driver.requestUpdateRepoOwner(forge, name);
+		const tx = await this.#txFactory.requestUpdateRepoOwner(forge, name);
+
+		return this.#signer.sendTransaction(tx);
 	}
 	/**
 	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.

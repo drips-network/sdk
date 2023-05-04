@@ -352,20 +352,19 @@ describe('RepoDriverClient', () => {
 	});
 
 	describe('triggerUpdateRepoOwnerRequest()', () => {
-		it('should call the repoOwner() method of the RepoDriver contract', async () => {
+		it('should send the expected transaction', async () => {
 			// Arrange
 			const forge = Forge.GitHub;
 			const name = 'test';
-			repoDriverContractStub.requestUpdateRepoOwner.withArgs(forge, name);
+
+			const tx = {};
+			RepoDriverTxFactoryStub.requestUpdateRepoOwner.withArgs(forge, name).resolves(tx);
 
 			// Act
 			await testRepoDriverClient.triggerUpdateRepoOwnerRequest(forge, name);
 
 			// Assert
-			assert(
-				repoDriverContractStub.requestUpdateRepoOwner.calledOnceWithExactly(forge, name),
-				'Expected method to be called with different arguments'
-			);
+			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
 		});
 
 		it('should throw argumentError when forge is missing', async () => {

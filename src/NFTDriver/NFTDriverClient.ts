@@ -36,11 +36,7 @@ export default class NFTDriverClient {
 		return this.#provider;
 	}
 
-	/**
-	 * Returns the client's `signer`.
-	 *
-	 * The `signer` is the `provider`'s signer.
-	 */
+	/** Returns the client's `signer`. */
 	public get signer(): Signer {
 		return this.#signer;
 	}
