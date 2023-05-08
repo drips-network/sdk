@@ -37,6 +37,7 @@ import {
 } from './mappers';
 import type { DripsHistoryStruct, DripsReceiverStruct, SqueezeArgs } from '../common/types';
 import { reconcileDripsSetReceivers } from './utils';
+import RepoDriverQueries from './RepoDriverQueries';
 
 /**
  * A client for querying the Drips Subgraph.
@@ -52,6 +53,12 @@ export default class DripsSubgraphClient {
 	/** Returns the `DripsSubgraphClient`'s API URL. */
 	public get apiUrl() {
 		return this.#apiUrl;
+	}
+
+	#repoDriverQueries!: RepoDriverQueries;
+	/** Exposes `RepoDriver` queries. */
+	public get repoDriverQueries() {
+		return this.#repoDriverQueries;
 	}
 
 	private constructor() {}
@@ -83,8 +90,10 @@ export default class DripsSubgraphClient {
 
 		const subgraphClient = new DripsSubgraphClient();
 
+		const apiUrl = customApiUrl ?? Utils.Network.configs[chainId].SUBGRAPH_URL;
+		subgraphClient.#apiUrl = apiUrl;
 		subgraphClient.#chainId = chainId;
-		subgraphClient.#apiUrl = customApiUrl ?? Utils.Network.configs[subgraphClient.#chainId].SUBGRAPH_URL;
+		subgraphClient.#repoDriverQueries = RepoDriverQueries.create(apiUrl, subgraphClient.query.bind(subgraphClient));
 
 		return subgraphClient;
 	}

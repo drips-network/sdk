@@ -22,6 +22,7 @@ import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance, S
 import {
 	GivenEvent,
 	SplitEvent,
+	RepoAccount,
 	SplitsEntry,
 	NftSubAccount,
 	DripsSetEvent,
@@ -84,6 +85,7 @@ export {
 	GivenEvent,
 	SqueezeArgs,
 	SplitResult,
+	RepoAccount,
 	SplitsEntry,
 	UserMetadata,
 	NftSubAccount,

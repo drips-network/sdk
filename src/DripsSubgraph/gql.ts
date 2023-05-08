@@ -258,3 +258,34 @@ query getSqueezedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) 
 	}
 }
 `;
+
+const getRepoAccountById = `#graphql
+query getRepoAccountById($repoId: ID!) {
+  repoAccount(id: $repoId) {
+		id
+    name
+    forge
+    status
+    ownerAddress
+    lastUpdatedBlockTimestamp
+	}
+}
+`;
+
+const getRepoAccountByNameAndForge = `#graphql
+query getRepoAccountByNameAndForge($name: String!, $forge: BigInt!) {
+  repoAccounts(where: {name: $name, forge: $forge}) {
+		id
+    name
+    forge
+    status
+    ownerAddress
+    lastUpdatedBlockTimestamp
+	}
+}
+`;
+
+export const repoDriverQueries = {
+	getRepoAccountById,
+	getRepoAccountByNameAndForge
+};

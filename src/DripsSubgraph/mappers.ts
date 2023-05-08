@@ -9,9 +9,25 @@ import type {
 	ReceivedDripsEvent,
 	GivenEvent,
 	CollectedEvent,
-	SqueezedDripsEvent
+	SqueezedDripsEvent,
+	RepoAccount
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
+
+/** @internal */
+export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): RepoAccount => {
+	const ss = BigInt(repoAccount.forge);
+	console.log(ss);
+
+	return {
+		repoId: repoAccount.id,
+		name: repoAccount.name,
+		status: repoAccount.status,
+		forge: BigInt(repoAccount.forge),
+		ownerAddress: repoAccount.ownerAddress,
+		lastUpdatedBlockTimestamp: BigInt(repoAccount.lastUpdatedBlockTimestamp)
+	};
+};
 
 /** @internal */
 export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({

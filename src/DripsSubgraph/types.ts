@@ -1,3 +1,5 @@
+import type { Forge } from 'src/common/types';
+
 export type UserAssetConfig = {
 	id: string;
 	assetId: bigint;
@@ -112,3 +114,12 @@ export type DripsSetEventWithFullReceivers = {
 		config: bigint;
 	}[];
 } & DripsSetEvent;
+
+export type RepoAccount = {
+	repoId: string;
+	name: string;
+	forge: bigint;
+	status: string;
+	ownerAddress: string;
+	lastUpdatedBlockTimestamp: bigint;
+};
