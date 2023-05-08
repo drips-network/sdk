@@ -1,5 +1,3 @@
-import type { Forge } from 'src/common/types';
-
 export type UserAssetConfig = {
 	id: string;
 	assetId: bigint;
