@@ -6,7 +6,6 @@ import type * as SubgraphTypes from './generated/graphql-types';
 import * as gql from './gql';
 import { mapRepoAccountToDto } from './mappers';
 
-/** @internal */
 export default class RepoDriverQueries {
 	#apiUrl!: string;
 	#queryExecutor!: <T = unknown>(apiUrl: string, query: string, variables: unknown) => Promise<{ data: T }>;
