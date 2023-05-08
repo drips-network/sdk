@@ -121,8 +121,8 @@ namespace Utils {
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
 				REPO_DRIVER_ADMIN: '',
 				REPO_DRIVER_ID: '5',
-				REPO_DRIVER_LOGIC: '0x2d69D5371200c60d9De486eDf3774D7c298709cF',
-				REPO_DRIVER: '0x6a9683d741B2796e58A737849D971dDcc6ecc1CB',
+				REPO_DRIVER_LOGIC: '0x2139829c30916b6a03c85f85cd200a8b6f160e5c',
+				REPO_DRIVER: '0x45Aa599e4EB38300025eAB83908652bcC61601D4',
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/jtourkos/drips-v2-on-goerli'
 			},
 			// Mumbai

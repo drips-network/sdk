@@ -22,7 +22,7 @@ describe('RepoDriverClient', () => {
 	let repoDriverContractStub: StubbedInstance<RepoDriver>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let RepoDriverTxFactoryStub: StubbedInstance<RepoDriverTxFactory>;
+	let repoDriverTxFactoryStub: StubbedInstance<RepoDriverTxFactory>;
 
 	let testRepoDriverClient: RepoDriverClient;
 
@@ -40,11 +40,11 @@ describe('RepoDriverClient', () => {
 		signerWithProviderStub = { ...signerStub, provider: providerStub };
 		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
-		RepoDriverTxFactoryStub = stubInterface<RepoDriverTxFactory>();
+		repoDriverTxFactoryStub = stubInterface<RepoDriverTxFactory>();
 		sinon
 			.stub(RepoDriverTxFactory, 'create')
 			.withArgs(signerWithProviderStub, Utils.Network.configs[TEST_CHAIN_ID].REPO_DRIVER)
-			.resolves(RepoDriverTxFactoryStub);
+			.resolves(repoDriverTxFactoryStub);
 
 		repoDriverContractStub = stubInterface<RepoDriver>();
 		sinon
@@ -52,7 +52,7 @@ describe('RepoDriverClient', () => {
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].REPO_DRIVER, signerWithProviderStub)
 			.returns(repoDriverContractStub);
 
-		testRepoDriverClient = await RepoDriverClient.create(providerStub, signerStub, undefined, RepoDriverTxFactoryStub);
+		testRepoDriverClient = await RepoDriverClient.create(providerStub, signerStub, undefined, repoDriverTxFactoryStub);
 	});
 
 	afterEach(() => {
@@ -358,7 +358,9 @@ describe('RepoDriverClient', () => {
 			const name = 'test';
 
 			const tx = {};
-			RepoDriverTxFactoryStub.requestUpdateRepoOwner.withArgs(forge, name).resolves(tx);
+			repoDriverTxFactoryStub.requestUpdateRepoOwner
+				.withArgs(forge, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name)))
+				.resolves(tx);
 
 			// Act
 			await testRepoDriverClient.triggerUpdateRepoOwnerRequest(forge, name);
@@ -453,7 +455,7 @@ describe('RepoDriverClient', () => {
 			const transferToAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			RepoDriverTxFactoryStub.collect.withArgs(repoId, tokenAddress, transferToAddress).resolves(tx);
+			repoDriverTxFactoryStub.collect.withArgs(repoId, tokenAddress, transferToAddress).resolves(tx);
 
 			// Act
 			await testRepoDriverClient.collect(repoId, tokenAddress, transferToAddress);
@@ -539,7 +541,7 @@ describe('RepoDriverClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			RepoDriverTxFactoryStub.give.withArgs(repoId, receiverUserId, tokenAddress, amount).resolves(tx);
+			repoDriverTxFactoryStub.give.withArgs(repoId, receiverUserId, tokenAddress, amount).resolves(tx);
 
 			// Act
 			await testRepoDriverClient.give(repoId, receiverUserId, tokenAddress, amount);
@@ -653,7 +655,7 @@ describe('RepoDriverClient', () => {
 			const balance = 1n;
 
 			const tx = {};
-			RepoDriverTxFactoryStub.setDrips
+			repoDriverTxFactoryStub.setDrips
 				.withArgs(repoId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
 				.resolves(tx);
 
@@ -718,7 +720,7 @@ describe('RepoDriverClient', () => {
 			];
 
 			const tx = {};
-			RepoDriverTxFactoryStub.setSplits.withArgs(repoId, receivers).resolves(tx);
+			repoDriverTxFactoryStub.setSplits.withArgs(repoId, receivers).resolves(tx);
 
 			// Act
 			await testRepoDriverClient.setSplits(repoId, receivers);
@@ -752,7 +754,7 @@ describe('RepoDriverClient', () => {
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const tx = {};
-			RepoDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);
+			repoDriverTxFactoryStub.emitUserMetadata.withArgs('1', metadataAsBytes).resolves(tx);
 
 			// Act
 			await testRepoDriverClient.emitUserMetadata('1', metadata);

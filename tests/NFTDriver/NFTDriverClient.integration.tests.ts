@@ -34,7 +34,7 @@ describe('NFTDriver integration tests', () => {
 		account2NftDriverClient = await NFTDriverClient.create(provider, account2AsSigner);
 	});
 
-	it.only('should create a new sub-account and transfer its ownership', async () => {
+	it('should create a new sub-account and transfer its ownership', async () => {
 		console.log(`${account1} will create a new sub-account and transfer it to ${account2}.`);
 
 		const subAccountsBefore = await subgraphClient.getNftSubAccountsByOwner(account2);

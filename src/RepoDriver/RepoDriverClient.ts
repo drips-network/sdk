@@ -237,7 +237,9 @@ export default class RepoDriverClient {
 			throw DripsErrors.argumentError('Could not request update repo owner: forge or name is missing.');
 		}
 
-		const tx = await this.#txFactory.requestUpdateRepoOwner(forge, name);
+		const nameAsBytes = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name));
+
+		const tx = await this.#txFactory.requestUpdateRepoOwner(forge, nameAsBytes);
 
 		return this.#signer.sendTransaction(tx);
 	}
