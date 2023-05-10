@@ -10,7 +10,7 @@ import Utils from '../utils';
 export interface IRepoDriverTxFactory
 	extends Pick<
 		RepoDriver['populateTransaction'],
-		'requestUpdateRepoOwner' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
+		'requestUpdateOwner' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
 	> {}
 
 /**
@@ -59,12 +59,12 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 		return client;
 	}
 
-	public async requestUpdateRepoOwner(
+	public async requestUpdateOwner(
 		forge: PromiseOrValue<BigNumberish>,
 		name: PromiseOrValue<BytesLike>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.requestUpdateRepoOwner(forge, name, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.requestUpdateOwner(forge, name, overrides));
 	}
 
 	public async collect(

@@ -87,18 +87,18 @@ describe('RepoDriverTxFactory', () => {
 		});
 	});
 
-	describe('requestUpdateRepoOwner', () => {
+	describe('requestUpdateOwner', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const forge = Forge.GitHub;
 			const name = 'test';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			RepoDriverContractStub.populateTransaction.requestUpdateRepoOwner = stub.resolves(expectedTx);
+			RepoDriverContractStub.populateTransaction.requestUpdateOwner = stub.resolves(expectedTx);
 			const overrides = {};
 
 			// Act
-			const tx = await testRepoDriverTxFactory.requestUpdateRepoOwner(forge, name, overrides);
+			const tx = await testRepoDriverTxFactory.requestUpdateOwner(forge, name, overrides);
 
 			// Assert
 			assert(stub.calledOnceWithExactly(forge, name, overrides));

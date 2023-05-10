@@ -198,53 +198,18 @@ describe('RepoDriverClient', () => {
 	describe('getUserId()', () => {
 		it('should call the calcUserId() method of the RepoDriver contract', async () => {
 			// Arrange
-			const repoId = '1';
-			repoDriverContractStub.calcUserId.withArgs(repoId).resolves(BigNumber.from(111));
-
-			// Act
-			await testRepoDriverClient.getUserId(repoId);
-
-			// Assert
-			assert(
-				repoDriverContractStub.calcUserId.calledOnceWithExactly(repoId),
-				'Expected method to be called with different arguments'
-			);
-		});
-
-		it('should throw argumentError when repoId is missing', async () => {
-			// Arrange
-			let threw = false;
-			repoDriverContractStub.calcUserId.withArgs(undefined as unknown as string).resolves(BigNumber.from(111));
-
-			try {
-				// Act
-				await testRepoDriverClient.getUserId(undefined as unknown as string);
-			} catch (error: any) {
-				// Assert
-				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
-				threw = true;
-			}
-
-			// Assert
-			assert.isTrue(threw, 'Expected type of exception was not thrown');
-		});
-	});
-
-	describe('getRepoId()', () => {
-		it('should call the calcRepoId() method of the RepoDriver contract', async () => {
-			// Arrange
 			const forge = Forge.GitHub;
 			const name = 'test';
-			repoDriverContractStub.calcRepoId
+			repoDriverContractStub.calcUserId
 				.withArgs(forge, ethers.utils.arrayify(ethers.utils.toUtf8Bytes(name)))
 				.resolves(BigNumber.from(111));
 
 			// Act
-			await testRepoDriverClient.getRepoId(forge, name);
+			await testRepoDriverClient.getUserId(forge, name);
 
 			// Assert
 			assert(
-				repoDriverContractStub.calcRepoId.calledOnceWithExactly(
+				repoDriverContractStub.calcUserId.calledOnceWithExactly(
 					forge,
 					ethers.utils.arrayify(ethers.utils.toUtf8Bytes(name))
 				),
@@ -256,11 +221,11 @@ describe('RepoDriverClient', () => {
 			// Arrange
 			const name = 'test';
 			let threw = false;
-			repoDriverContractStub.calcRepoId.withArgs(undefined as unknown as Forge, name).resolves(BigNumber.from(111));
+			repoDriverContractStub.calcUserId.withArgs(undefined as unknown as Forge, name).resolves(BigNumber.from(111));
 
 			try {
 				// Act
-				await testRepoDriverClient.getRepoId(undefined as unknown as Forge, name);
+				await testRepoDriverClient.getUserId(undefined as unknown as Forge, name);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -275,11 +240,11 @@ describe('RepoDriverClient', () => {
 			// Arrange
 			const forge = Forge.GitHub;
 			let threw = false;
-			repoDriverContractStub.calcRepoId.withArgs(forge, undefined as unknown as string).resolves(BigNumber.from(111));
+			repoDriverContractStub.calcUserId.withArgs(forge, undefined as unknown as string).resolves(BigNumber.from(111));
 
 			try {
 				// Act
-				await testRepoDriverClient.getRepoId(forge, undefined as unknown as string);
+				await testRepoDriverClient.getUserId(forge, undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -291,15 +256,15 @@ describe('RepoDriverClient', () => {
 		});
 	});
 
-	describe('getRepoOwner()', () => {
+	describe('getOwner()', () => {
 		it('should return the owner address when owner exists', async () => {
 			// Arrange
 			const repoId = '1';
 			const owner = Wallet.createRandom().address;
-			repoDriverContractStub.repoOwner.withArgs(repoId).resolves(owner);
+			repoDriverContractStub.ownerOf.withArgs(repoId).resolves(owner);
 
 			// Act
-			const result = await testRepoDriverClient.getRepoOwner(repoId);
+			const result = await testRepoDriverClient.getOwner(repoId);
 
 			// Assert
 			assert.equal(result, owner);
@@ -308,26 +273,26 @@ describe('RepoDriverClient', () => {
 		it('should return null address when owner does not exist', async () => {
 			// Arrange
 			const repoId = '1';
-			repoDriverContractStub.repoOwner.withArgs(repoId).resolves(null as unknown as string);
+			repoDriverContractStub.ownerOf.withArgs(repoId).resolves(null as unknown as string);
 
 			// Act
-			const result = await testRepoDriverClient.getRepoOwner(repoId);
+			const result = await testRepoDriverClient.getOwner(repoId);
 
 			// Assert
 			assert.isNull(result);
 		});
 
-		it('should call the repoOwner() method of the RepoDriver contract', async () => {
+		it('should call the ownerOf() method of the RepoDriver contract', async () => {
 			// Arrange
 			const repoId = '1';
-			repoDriverContractStub.repoOwner.withArgs(repoId).resolves(Wallet.createRandom().address);
+			repoDriverContractStub.ownerOf.withArgs(repoId).resolves(Wallet.createRandom().address);
 
 			// Act
-			await testRepoDriverClient.getRepoOwner(repoId);
+			await testRepoDriverClient.getOwner(repoId);
 
 			// Assert
 			assert(
-				repoDriverContractStub.repoOwner.calledOnceWithExactly(repoId),
+				repoDriverContractStub.ownerOf.calledOnceWithExactly(repoId),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -335,11 +300,11 @@ describe('RepoDriverClient', () => {
 		it('should throw argumentError when repoId is missing', async () => {
 			// Arrange
 			let threw = false;
-			repoDriverContractStub.repoOwner.withArgs(undefined as unknown as string).resolves(Wallet.createRandom().address);
+			repoDriverContractStub.ownerOf.withArgs(undefined as unknown as string).resolves(Wallet.createRandom().address);
 
 			try {
 				// Act
-				await testRepoDriverClient.getRepoOwner(undefined as unknown as string);
+				await testRepoDriverClient.getOwner(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -351,19 +316,19 @@ describe('RepoDriverClient', () => {
 		});
 	});
 
-	describe('triggerUpdateRepoOwnerRequest()', () => {
+	describe('triggerUpdateownerOfRequest()', () => {
 		it('should send the expected transaction', async () => {
 			// Arrange
 			const forge = Forge.GitHub;
 			const name = 'test';
 
 			const tx = {};
-			repoDriverTxFactoryStub.requestUpdateRepoOwner
+			repoDriverTxFactoryStub.requestUpdateOwner
 				.withArgs(forge, ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name)))
 				.resolves(tx);
 
 			// Act
-			await testRepoDriverClient.triggerUpdateRepoOwnerRequest(forge, name);
+			await testRepoDriverClient.requestOwnerUpdate(forge, name);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -373,11 +338,11 @@ describe('RepoDriverClient', () => {
 			// Arrange
 			let threw = false;
 			const name = 'test';
-			repoDriverContractStub.requestUpdateRepoOwner.withArgs(undefined as unknown as Forge, name).resolves();
+			repoDriverContractStub.requestUpdateOwner.withArgs(undefined as unknown as Forge, name).resolves();
 
 			try {
 				// Act
-				await testRepoDriverClient.triggerUpdateRepoOwnerRequest(undefined as unknown as Forge, name);
+				await testRepoDriverClient.requestOwnerUpdate(undefined as unknown as Forge, name);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -392,11 +357,11 @@ describe('RepoDriverClient', () => {
 			// Arrange
 			let threw = false;
 			const forge = Forge.GitHub;
-			repoDriverContractStub.requestUpdateRepoOwner.withArgs(forge, undefined as unknown as string).resolves();
+			repoDriverContractStub.requestUpdateOwner.withArgs(forge, undefined as unknown as string).resolves();
 
 			try {
 				// Act
-				await testRepoDriverClient.triggerUpdateRepoOwnerRequest(forge, undefined as unknown as string);
+				await testRepoDriverClient.requestOwnerUpdate(forge, undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);

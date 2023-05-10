@@ -21,9 +21,9 @@ import type { IRepoDriverTxFactory } from './RepoDriverTxFactory';
 import RepoDriverTxFactory from './RepoDriverTxFactory';
 
 /**
- * A client for managing Drips accounts identified by a Git repository.
+ * A client for interacting with the `RepoDriver` contract.
  * Each repository stored in one of the supported forges has a deterministic user ID assigned.
- * By default the repositories have no owner and their user IDs cannot be controlled by anybody.
+ * By default the repositories have no owner and their users cannot be controlled by anybody.
  */
 export default class RepoDriverClient {
 	#provider!: Provider;
@@ -163,35 +163,16 @@ export default class RepoDriverClient {
 	}
 
 	/**
-	 * Returns the user ID for the given repository ID.
-	 *
-	 * Every user ID is a 256-bit integer constructed by concatenating: `driverId (32 bits) | repoId (224 bits)`.
-	 *
-	 * @param repoId The repository ID.
-	 * @returns The user ID.
-	 * @throws DripsErrors.argumentError if the `repoId` is missing.
-	 */
-	public async getUserId(repoId: string): Promise<string> {
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not calculate project ID: repoId is missing.');
-		}
-
-		const userId = await this.#driver.calcUserId(repoId);
-
-		return userId.toString();
-	}
-
-	/**
-	 * Returns the repository ID.
+	 * Returns the user ID.
 	 *
 	 * Every repo ID is a 224-bit integer constructed by concatenating: `forge (8 bits) | uint216(keccak256(name)) (216 bits)`.
 	 *
 	 * @param forge The forge where the repository is stored.
 	 * @param name The repository name.
-	 * @returns The repository ID.
+	 * @returns The user ID.
 	 * @throws DripsErrors.argumentError if the `forge` or `name` is missing.
 	 */
-	public async getRepoId(forge: Forge, name: string): Promise<string> {
+	public async getUserId(forge: Forge, name: string): Promise<string> {
 		if (isNullOrUndefined(forge) || !name) {
 			throw DripsErrors.argumentError('Could not calculate repo ID: forge or name is missing.');
 		}
@@ -199,23 +180,23 @@ export default class RepoDriverClient {
 		const nameAsHexString = ethers.utils.toUtf8Bytes(name);
 		const nameAsBytesLike = ethers.utils.arrayify(nameAsHexString);
 
-		const repoId = await this.#driver.calcRepoId(forge, nameAsBytesLike);
+		const repoId = await this.#driver.calcUserId(forge, nameAsBytesLike);
 
 		return repoId.toString();
 	}
 
 	/**
-	 * Returns the current repository owner.
-	 * @param repoId The ID of the repository.
-	 * @returns The owner of the repository or `null` if the repository is not claimed.
+	 * Returns the user owner.
+	 * @param userId The ID of the user.
+	 * @returns The owner of the user or `null` if the user has no owner.
 	 * @throws DripsErrors.argumentError if the `repoId` is missing.
 	 */
-	public async getRepoOwner(repoId: string): Promise<Address | null> {
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not calculate repo owner: repoId is missing.');
+	public async getOwner(userId: string): Promise<Address | null> {
+		if (isNullOrUndefined(userId)) {
+			throw DripsErrors.argumentError('Could get user owner: userId is missing.');
 		}
 
-		const owner = await this.#driver.repoOwner(repoId);
+		const owner = await this.#driver.ownerOf(userId);
 
 		return owner === constants.AddressZero ? null : owner;
 	}
@@ -231,7 +212,7 @@ export default class RepoDriverClient {
 	 * @returns The contract transaction.
 	 * @throws DripsErrors.argumentError if the `forge` or `name` is missing.
 	 */
-	public async triggerUpdateRepoOwnerRequest(forge: Forge, name: string): Promise<ContractTransaction> {
+	public async requestOwnerUpdate(forge: Forge, name: string): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		if (isNullOrUndefined(forge) || !name) {
 			throw DripsErrors.argumentError('Could not request update repo owner: forge or name is missing.');
@@ -239,10 +220,11 @@ export default class RepoDriverClient {
 
 		const nameAsBytes = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(name));
 
-		const tx = await this.#txFactory.requestUpdateRepoOwner(forge, nameAsBytes);
+		const tx = await this.#txFactory.requestUpdateOwner(forge, nameAsBytes);
 
 		return this.#signer.sendTransaction(tx);
 	}
+
 	/**
 	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
 	 * @param tokenAddress The ERC20 token address.
