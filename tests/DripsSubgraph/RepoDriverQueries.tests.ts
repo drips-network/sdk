@@ -145,7 +145,7 @@ describe('RepoDriverQueries', () => {
 			);
 
 			// Assert
-			assert.equal(result!.repoId, expectedAccount.id);
+			assert.equal(result!.userId, expectedAccount.id);
 			assert.equal(result!.name, expectedAccount.name);
 			assert.equal(result!.forge, expectedAccount.forge);
 			assert.equal(result!.status, expectedAccount.status);
@@ -174,16 +174,16 @@ describe('RepoDriverQueries', () => {
 
 		it('should return null when repo does not exist', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 
-			queryExecutorStub.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountById, { repoId }).resolves({
+			queryExecutorStub.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountById, { userId }).resolves({
 				data: {
 					repoAccounts: []
 				}
 			});
 
 			// Act
-			const result = await sut.getRepoAccountById(repoId);
+			const result = await sut.getRepoAccountById(userId);
 
 			// Assert
 			assert.isNull(result);
@@ -191,11 +191,11 @@ describe('RepoDriverQueries', () => {
 
 		it('should return the expected repo account when repo exist', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 			const forge = Forge.GitHub;
 
 			const expectedAccount = {
-				id: repoId,
+				id: userId,
 				name: 'name',
 				forge: BigInt(forge),
 				status: 'status',
@@ -205,7 +205,7 @@ describe('RepoDriverQueries', () => {
 
 			queryExecutorStub
 				.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountById, {
-					repoId
+					userId
 				})
 				.resolves({
 					data: {
@@ -217,7 +217,7 @@ describe('RepoDriverQueries', () => {
 			const result = await sut.getRepoAccountById(expectedAccount.id);
 
 			// Assert
-			assert.equal(result!.repoId, expectedAccount.id);
+			assert.equal(result!.userId, expectedAccount.id);
 			assert.equal(result!.name, expectedAccount.name);
 			assert.equal(result!.forge, expectedAccount.forge);
 			assert.equal(result!.status, expectedAccount.status);

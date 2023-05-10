@@ -217,7 +217,7 @@ describe('RepoDriverClient', () => {
 			);
 		});
 
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			const name = 'test';
 			let threw = false;
@@ -236,7 +236,7 @@ describe('RepoDriverClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			const forge = Forge.GitHub;
 			let threw = false;
@@ -259,12 +259,12 @@ describe('RepoDriverClient', () => {
 	describe('getOwner()', () => {
 		it('should return the owner address when owner exists', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const owner = Wallet.createRandom().address;
-			repoDriverContractStub.ownerOf.withArgs(repoId).resolves(owner);
+			repoDriverContractStub.ownerOf.withArgs(userId).resolves(owner);
 
 			// Act
-			const result = await testRepoDriverClient.getOwner(repoId);
+			const result = await testRepoDriverClient.getOwner(userId);
 
 			// Assert
 			assert.equal(result, owner);
@@ -272,11 +272,11 @@ describe('RepoDriverClient', () => {
 
 		it('should return null address when owner does not exist', async () => {
 			// Arrange
-			const repoId = '1';
-			repoDriverContractStub.ownerOf.withArgs(repoId).resolves(null as unknown as string);
+			const userId = '1';
+			repoDriverContractStub.ownerOf.withArgs(userId).resolves(null as unknown as string);
 
 			// Act
-			const result = await testRepoDriverClient.getOwner(repoId);
+			const result = await testRepoDriverClient.getOwner(userId);
 
 			// Assert
 			assert.isNull(result);
@@ -284,20 +284,20 @@ describe('RepoDriverClient', () => {
 
 		it('should call the ownerOf() method of the RepoDriver contract', async () => {
 			// Arrange
-			const repoId = '1';
-			repoDriverContractStub.ownerOf.withArgs(repoId).resolves(Wallet.createRandom().address);
+			const userId = '1';
+			repoDriverContractStub.ownerOf.withArgs(userId).resolves(Wallet.createRandom().address);
 
 			// Act
-			await testRepoDriverClient.getOwner(repoId);
+			await testRepoDriverClient.getOwner(userId);
 
 			// Assert
 			assert(
-				repoDriverContractStub.ownerOf.calledOnceWithExactly(repoId),
+				repoDriverContractStub.ownerOf.calledOnceWithExactly(userId),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 			repoDriverContractStub.ownerOf.withArgs(undefined as unknown as string).resolves(Wallet.createRandom().address);
@@ -374,7 +374,7 @@ describe('RepoDriverClient', () => {
 	});
 
 	describe('collect()', () => {
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const testAddress = Wallet.createRandom().address;
@@ -394,13 +394,13 @@ describe('RepoDriverClient', () => {
 
 		it('should validate the ERC20 and transferTo addresses', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			await testRepoDriverClient.collect(repoId, tokenAddress, transferToAddress);
+			await testRepoDriverClient.collect(userId, tokenAddress, transferToAddress);
 
 			// Assert
 			assert(
@@ -415,15 +415,15 @@ describe('RepoDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			repoDriverTxFactoryStub.collect.withArgs(repoId, tokenAddress, transferToAddress).resolves(tx);
+			repoDriverTxFactoryStub.collect.withArgs(userId, tokenAddress, transferToAddress).resolves(tx);
 
 			// Act
-			await testRepoDriverClient.collect(repoId, tokenAddress, transferToAddress);
+			await testRepoDriverClient.collect(userId, tokenAddress, transferToAddress);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -431,7 +431,7 @@ describe('RepoDriverClient', () => {
 	});
 
 	describe('give()', () => {
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -487,12 +487,12 @@ describe('RepoDriverClient', () => {
 
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			await testRepoDriverClient.give(repoId, ' 1', tokenAddress, 1);
+			await testRepoDriverClient.give(userId, ' 1', tokenAddress, 1);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -500,16 +500,16 @@ describe('RepoDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const amount = 100n;
 			const receiverUserId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			repoDriverTxFactoryStub.give.withArgs(repoId, receiverUserId, tokenAddress, amount).resolves(tx);
+			repoDriverTxFactoryStub.give.withArgs(userId, receiverUserId, tokenAddress, amount).resolves(tx);
 
 			// Act
-			await testRepoDriverClient.give(repoId, receiverUserId, tokenAddress, amount);
+			await testRepoDriverClient.give(userId, receiverUserId, tokenAddress, amount);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -517,7 +517,7 @@ describe('RepoDriverClient', () => {
 	});
 
 	describe('setDrips()', () => {
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -538,7 +538,7 @@ describe('RepoDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
@@ -566,7 +566,7 @@ describe('RepoDriverClient', () => {
 			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
 
 			// Act
-			await testRepoDriverClient.setDrips(repoId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
+			await testRepoDriverClient.setDrips(userId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
@@ -593,7 +593,7 @@ describe('RepoDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: DripsReceiverStruct[] = [
@@ -621,12 +621,12 @@ describe('RepoDriverClient', () => {
 
 			const tx = {};
 			repoDriverTxFactoryStub.setDrips
-				.withArgs(repoId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
+				.withArgs(userId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
 				.resolves(tx);
 
 			// Act
 			await testRepoDriverClient.setDrips(
-				repoId,
+				userId,
 				tokenAddress,
 				currentReceivers,
 				receivers,
@@ -640,7 +640,7 @@ describe('RepoDriverClient', () => {
 	});
 
 	describe('setSplits()', () => {
-		it('should throw argumentError when repoId is missing', async () => {
+		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 
@@ -659,7 +659,7 @@ describe('RepoDriverClient', () => {
 
 		it('should validate the splits receivers', async () => {
 			// Arrange
-			const repoId = '1';
+			const userId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 1, weight: 1 },
@@ -669,14 +669,14 @@ describe('RepoDriverClient', () => {
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
-			await testRepoDriverClient.setSplits(repoId, receivers);
+			await testRepoDriverClient.setSplits(userId, receivers);
 
 			// Assert
 			assert(validateSplitsReceiversStub.calledOnceWithExactly(receivers));
 		});
 
 		it('should send the expected transaction', async () => {
-			const repoId = '1';
+			const userId = '1';
 
 			const receivers: SplitsReceiverStruct[] = [
 				{ userId: 2, weight: 100 },
@@ -685,10 +685,10 @@ describe('RepoDriverClient', () => {
 			];
 
 			const tx = {};
-			repoDriverTxFactoryStub.setSplits.withArgs(repoId, receivers).resolves(tx);
+			repoDriverTxFactoryStub.setSplits.withArgs(userId, receivers).resolves(tx);
 
 			// Act
-			await testRepoDriverClient.setSplits(repoId, receivers);
+			await testRepoDriverClient.setSplits(userId, receivers);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -696,7 +696,7 @@ describe('RepoDriverClient', () => {
 	});
 
 	describe('emitUserMetadata()', () => {
-		it('should throw argumentMissingError when repoId is missing', async () => {
+		it('should throw argumentMissingError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
 

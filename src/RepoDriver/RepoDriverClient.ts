@@ -180,16 +180,16 @@ export default class RepoDriverClient {
 		const nameAsHexString = ethers.utils.toUtf8Bytes(name);
 		const nameAsBytesLike = ethers.utils.arrayify(nameAsHexString);
 
-		const repoId = await this.#driver.calcUserId(forge, nameAsBytesLike);
+		const userId = await this.#driver.calcUserId(forge, nameAsBytesLike);
 
-		return repoId.toString();
+		return userId.toString();
 	}
 
 	/**
 	 * Returns the user owner.
 	 * @param userId The ID of the user.
 	 * @returns The owner of the user or `null` if the user has no owner.
-	 * @throws DripsErrors.argumentError if the `repoId` is missing.
+	 * @throws DripsErrors.argumentError if the `userId` is missing.
 	 */
 	public async getOwner(userId: string): Promise<Address | null> {
 		if (isNullOrUndefined(userId)) {
@@ -234,7 +234,7 @@ export default class RepoDriverClient {
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @param repoId The repository ID.
+	 * @param userId The ID of the collecting user.
 	 * @param tokenAddress The ERC20 token address.
 	 * @param transferToAddress The address to send collected funds to.
 	 * @returns A `Promise` which resolves to the contract transaction.
@@ -242,17 +242,17 @@ export default class RepoDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async collect(
-		repoId: string,
+		userId: string,
 		tokenAddress: Address,
 		transferToAddress: Address
 	): Promise<ContractTransaction> {
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not collect: repoId is missing.');
+		if (isNullOrUndefined(userId)) {
+			throw DripsErrors.argumentError('Could not collect: userId is missing.');
 		}
 		ensureSignerExists(this.#signer);
 		validateCollectInput(tokenAddress, transferToAddress);
 
-		const tx = await this.#txFactory.collect(repoId, tokenAddress, transferToAddress);
+		const tx = await this.#txFactory.collect(userId, tokenAddress, transferToAddress);
 
 		return this.#signer.sendTransaction(tx);
 	}
@@ -261,7 +261,7 @@ export default class RepoDriverClient {
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `DripsHub` contract.
-	 * @param repoId The repository ID.
+	 * @param userId The ID of the giving user. The caller must be the owner of the user.
 	 * @param receiverUserId The receiver user ID.
 	 * @param tokenAddress The ERC20 token address.
 	 *
@@ -278,15 +278,15 @@ export default class RepoDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async give(
-		repoId: string,
+		userId: string,
 		receiverUserId: string,
 		tokenAddress: Address,
 		amount: BigNumberish
 	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not give: repoId is missing.');
+		if (isNullOrUndefined(userId)) {
+			throw DripsErrors.argumentError('Could not give: userId is missing.');
 		}
 
 		if (isNullOrUndefined(receiverUserId)) {
@@ -298,14 +298,14 @@ export default class RepoDriverClient {
 			throw DripsErrors.argumentError(`Could not give: amount must be greater than 0.`);
 		}
 
-		const tx = await this.#txFactory.give(repoId, receiverUserId, tokenAddress, amount);
+		const tx = await this.#txFactory.give(userId, receiverUserId, tokenAddress, amount);
 
 		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
 	 * Sets the Splits configuration.
-	 * @param repoId The repository ID.
+	 * @param userId The ID of the configured user. The caller must be the owner of the user.
 	 * @param receivers The splits receivers (max `200`).
 	 * Each splits receiver will be getting `weight / TOTAL_SPLITS_WEIGHT` share of the funds.
 	 * Duplicate receivers are not allowed and will only be processed once.
@@ -316,14 +316,14 @@ export default class RepoDriverClient {
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async setSplits(repoId: string, receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not setSplits: repoId is missing.');
+	public async setSplits(userId: string, receivers: SplitsReceiverStruct[]): Promise<ContractTransaction> {
+		if (isNullOrUndefined(userId)) {
+			throw DripsErrors.argumentError('Could not setSplits: userId is missing.');
 		}
 		ensureSignerExists(this.#signer);
 		validateSplitsReceivers(receivers);
 
-		const tx = await this.#txFactory.setSplits(repoId, receivers);
+		const tx = await this.#txFactory.setSplits(userId, receivers);
 
 		return this.#signer.sendTransaction(tx);
 	}
@@ -331,7 +331,7 @@ export default class RepoDriverClient {
 	/**
 	 * Sets a Drips configuration.
 	 * Transfers funds from the user's wallet to the `DripsHub` contract to fulfill the change of the drips balance.
-	 * @param repoId The repository ID.
+	 * @param userId The ID of the configured user. The caller must be the owner of the user.
 	 *
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
@@ -361,15 +361,15 @@ export default class RepoDriverClient {
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async setDrips(
-		repoId: string,
+		userId: string,
 		tokenAddress: Address,
 		currentReceivers: DripsReceiverStruct[],
 		newReceivers: DripsReceiverStruct[],
 		transferToAddress: Address,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not setSplits: repoId is missing.');
+		if (isNullOrUndefined(userId)) {
+			throw DripsErrors.argumentError('Could not setSplits: userId is missing.');
 		}
 		ensureSignerExists(this.#signer);
 		validateSetDripsInput(
@@ -387,7 +387,7 @@ export default class RepoDriverClient {
 		);
 
 		const tx = await this.#txFactory.setDrips(
-			repoId,
+			userId,
 			tokenAddress,
 			currentReceivers,
 			balanceDelta,
@@ -403,23 +403,23 @@ export default class RepoDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param repoId The repository ID.
+	 * @param userId The ID of the emitting user. The caller must be the owner of the user.
 	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws DripsErrors.argumentError if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async emitUserMetadata(repoId: string, userMetadata: UserMetadata[]): Promise<ContractTransaction> {
-		if (isNullOrUndefined(repoId)) {
-			throw DripsErrors.argumentError('Could not setSplits: repoId is missing.');
+	public async emitUserMetadata(userId: string, userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+		if (isNullOrUndefined(userId)) {
+			throw DripsErrors.argumentError('Could not setSplits: userId is missing.');
 		}
 		ensureSignerExists(this.#signer);
 		validateEmitUserMetadataInput(userMetadata);
 
 		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
-		const tx = await this.#txFactory.emitUserMetadata(repoId, userMetadataAsBytes);
+		const tx = await this.#txFactory.emitUserMetadata(userId, userMetadataAsBytes);
 
 		return this.#signer.sendTransaction(tx);
 	}

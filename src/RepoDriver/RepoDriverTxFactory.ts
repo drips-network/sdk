@@ -68,36 +68,36 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 	}
 
 	public async collect(
-		repoId: PromiseOrValue<BigNumberish>,
+		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.collect(repoId, erc20, transferTo, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.collect(userId, erc20, transferTo, overrides));
 	}
 
 	public async give(
-		repoId: PromiseOrValue<BigNumberish>,
+		userId: PromiseOrValue<BigNumberish>,
 		receiver: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		amt: PromiseOrValue<BigNumberish>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.give(repoId, receiver, erc20, amt, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.give(userId, receiver, erc20, amt, overrides));
 	}
 
 	public async setSplits(
-		repoId: PromiseOrValue<BigNumberish>,
+		userId: PromiseOrValue<BigNumberish>,
 		receivers: SplitsReceiverStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
 		return safeDripsTx(
-			await this.#driver.populateTransaction.setSplits(repoId, formatSplitReceivers(receivers), overrides)
+			await this.#driver.populateTransaction.setSplits(userId, formatSplitReceivers(receivers), overrides)
 		);
 	}
 
 	public async setDrips(
-		repoId: PromiseOrValue<BigNumberish>,
+		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		currReceivers: DripsReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
@@ -109,7 +109,7 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 	): Promise<PopulatedTransaction> {
 		if (!overrides.gasLimit) {
 			const gasEstimation = await this.#driver.estimateGas.setDrips(
-				repoId,
+				userId,
 				erc20,
 				formatDripsReceivers(currReceivers),
 				balanceDelta,
@@ -127,7 +127,7 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 
 		return safeDripsTx(
 			await this.#driver.populateTransaction.setDrips(
-				repoId,
+				userId,
 				erc20,
 				formatDripsReceivers(currReceivers),
 				balanceDelta,
@@ -141,10 +141,10 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 	}
 
 	public async emitUserMetadata(
-		repoId: PromiseOrValue<BigNumberish>,
+		userId: PromiseOrValue<BigNumberish>,
 		userMetadata: UserMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(repoId, userMetadata, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(userId, userMetadata, overrides));
 	}
 }

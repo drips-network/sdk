@@ -20,7 +20,7 @@ export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): Rep
 	console.log(ss);
 
 	return {
-		repoId: repoAccount.id,
+		userId: repoAccount.id,
 		name: repoAccount.name,
 		status: repoAccount.status,
 		forge: BigInt(repoAccount.forge),

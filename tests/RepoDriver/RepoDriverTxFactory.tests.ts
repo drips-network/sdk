@@ -110,17 +110,17 @@ describe('RepoDriverTxFactory', () => {
 	describe('collect', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			RepoDriverContractStub.populateTransaction.collect = stub.resolves(expectedTx);
 			const overrides = {};
 
 			// Act
-			const tx = await testRepoDriverTxFactory.collect(repoId, '0x1234', '0x5678', overrides);
+			const tx = await testRepoDriverTxFactory.collect(userId, '0x1234', '0x5678', overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(repoId, '0x1234', '0x5678', overrides));
+			assert(stub.calledOnceWithExactly(userId, '0x1234', '0x5678', overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -129,17 +129,17 @@ describe('RepoDriverTxFactory', () => {
 	describe('give', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			RepoDriverContractStub.populateTransaction.give = stub.resolves(expectedTx);
 			const overrides = {};
 
 			// Act
-			const tx = await testRepoDriverTxFactory.give(repoId, '0x1234', '0x5678', '0x9abc', overrides);
+			const tx = await testRepoDriverTxFactory.give(userId, '0x1234', '0x5678', '0x9abc', overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(repoId, '0x1234', '0x5678', '0x9abc', overrides));
+			assert(stub.calledOnceWithExactly(userId, '0x1234', '0x5678', '0x9abc', overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -148,7 +148,7 @@ describe('RepoDriverTxFactory', () => {
 	describe('setSplits', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			RepoDriverContractStub.populateTransaction.setSplits = stub.resolves(expectedTx);
@@ -156,10 +156,10 @@ describe('RepoDriverTxFactory', () => {
 			const overrides = {};
 
 			// Act
-			const tx = await testRepoDriverTxFactory.setSplits(repoId, receivers, overrides);
+			const tx = await testRepoDriverTxFactory.setSplits(userId, receivers, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(repoId, receivers, overrides));
+			assert(stub.calledOnceWithExactly(userId, receivers, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -168,7 +168,7 @@ describe('RepoDriverTxFactory', () => {
 	describe('setDrips', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			RepoDriverContractStub.populateTransaction.setDrips = stub.resolves(expectedTx);
@@ -179,7 +179,7 @@ describe('RepoDriverTxFactory', () => {
 
 			// Act
 			const tx = await testRepoDriverTxFactory.setDrips(
-				repoId,
+				userId,
 				'0x1234',
 				currReceivers,
 				'0x5678',
@@ -192,7 +192,7 @@ describe('RepoDriverTxFactory', () => {
 			// Assert
 			assert(
 				stub.calledOnceWithExactly(
-					repoId,
+					userId,
 					'0x1234',
 					formatDripsReceivers(currReceivers),
 					'0x5678',
@@ -211,7 +211,7 @@ describe('RepoDriverTxFactory', () => {
 	describe('emitUserMetadata', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
-			const repoId = '0x12345';
+			const userId = '0x12345';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			RepoDriverContractStub.populateTransaction.emitUserMetadata = stub.resolves(expectedTx);
@@ -219,10 +219,10 @@ describe('RepoDriverTxFactory', () => {
 			const overrides = {};
 
 			// Act
-			const tx = await testRepoDriverTxFactory.emitUserMetadata(repoId, userMetadata, overrides);
+			const tx = await testRepoDriverTxFactory.emitUserMetadata(userId, userMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(repoId, userMetadata, overrides));
+			assert(stub.calledOnceWithExactly(userId, userMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});

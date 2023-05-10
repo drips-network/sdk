@@ -64,15 +64,15 @@ export default class RepoDriverQueries {
 	}
 
 	/**
-	 * Returns the `RepoAccount` for the given `repoId`.
-	 * @param repoId The ID of the repository.
-	 * @returns The `RepoAccount` for the given `repoId` or `null` if no `RepoAccount` was found.
-	 * @throws {@link DripsErrors.argumentError} if `repoId` is missing.
+	 * Returns the `RepoAccount` for the given `userId`.
+	 * @param userId The ID of the repository.
+	 * @returns The `RepoAccount` for the given `userId` or `null` if no `RepoAccount` was found.
+	 * @throws {@link DripsErrors.argumentError} if `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getRepoAccountById(repoId: string) {
-		if (!repoId) {
-			throw DripsErrors.argumentError(`Could not get repo account: repoId is missing.`);
+	public async getRepoAccountById(userId: string) {
+		if (!userId) {
+			throw DripsErrors.argumentError(`Could not get repo account: userId is missing.`);
 		}
 
 		type QueryResponse = {
@@ -80,7 +80,7 @@ export default class RepoDriverQueries {
 		};
 
 		const response = await this.#queryExecutor<QueryResponse>(this.#apiUrl, gql.repoDriverQueries.getRepoAccountById, {
-			repoId
+			userId
 		});
 
 		if (!response.data.repoAccount) {

@@ -114,7 +114,7 @@ export type DripsSetEventWithFullReceivers = {
 } & DripsSetEvent;
 
 export type RepoAccount = {
-	repoId: string;
+	userId: string;
 	name: string;
 	forge: bigint;
 	status: string;

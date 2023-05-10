@@ -260,8 +260,8 @@ query getSqueezedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) 
 `;
 
 const getRepoAccountById = `#graphql
-query getRepoAccountById($repoId: ID!) {
-  repoAccount(id: $repoId) {
+query getRepoAccountById($userId: ID!) {
+  repoAccount(id: $userId) {
 		id
     name
     forge
