@@ -202,7 +202,7 @@ export default class RepoDriverClient {
 	}
 
 	/**
-	 * Triggers a request to update the repository owner.
+	 * Triggers a request to update the ownership of the user representing the repository.
 	 * The actual update of the owner will be made in a future transaction.
 	 * The fee (in Link) that must be paid to the Chainlink operator will be covered by the `RepoDriver`.
 	 * If you want to cover the fee yourself, use `onTokenTransfer`.
