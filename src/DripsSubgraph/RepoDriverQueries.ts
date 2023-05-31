@@ -8,13 +8,13 @@ import { mapRepoAccountToDto } from './mappers';
 
 export default class RepoDriverQueries {
 	#apiUrl!: string;
-	#queryExecutor!: <T = unknown>(apiUrl: string, query: string, variables: unknown) => Promise<{ data: T }>;
+	#queryExecutor!: <T = unknown>(query: string, variables: unknown, apiUrl: string) => Promise<{ data: T }>;
 
 	private constructor() {}
 
 	public static create(
 		apiUrl: string,
-		queryExecutor: <T = unknown>(apiUrl: string, query: string, variables: unknown) => Promise<{ data: T }>
+		queryExecutor: <T = unknown>(query: string, variables: unknown, apiUrl: string) => Promise<{ data: T }>
 	) {
 		const queries = new RepoDriverQueries();
 
@@ -42,12 +42,12 @@ export default class RepoDriverQueries {
 		};
 
 		const response = await this.#queryExecutor<QueryResponse>(
-			this.#apiUrl,
 			gql.repoDriverQueries.getRepoAccountByNameAndForge,
 			{
 				name,
 				forge
-			}
+			},
+			this.#apiUrl
 		);
 
 		if (!response.data.repoAccounts || response.data.repoAccounts.length === 0) {
@@ -79,9 +79,13 @@ export default class RepoDriverQueries {
 			repoAccount: SubgraphTypes.RepoAccount;
 		};
 
-		const response = await this.#queryExecutor<QueryResponse>(this.#apiUrl, gql.repoDriverQueries.getRepoAccountById, {
-			userId
-		});
+		const response = await this.#queryExecutor<QueryResponse>(
+			gql.repoDriverQueries.getRepoAccountById,
+			{
+				userId
+			},
+			this.#apiUrl
+		);
 
 		if (!response.data.repoAccount) {
 			return null;

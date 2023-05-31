@@ -2,8 +2,10 @@ import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { assert } from 'chai';
+import { log } from 'console';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import RepoDriverClient from '../../src/RepoDriver/RepoDriverClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { expect } from '../../src/common/internals';
@@ -16,7 +18,7 @@ dotenv.config();
 describe('NFTDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
-	const provider = new InfuraProvider('goerli');
+	const provider = new InfuraProvider('sepolia');
 	const account1 = process.env.ACCOUNT_1 as string;
 	const account2 = process.env.ACCOUNT_2 as string;
 	const account1AsSigner = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
@@ -34,7 +36,16 @@ describe('NFTDriver integration tests', () => {
 		account2NftDriverClient = await NFTDriverClient.create(provider, account2AsSigner);
 	});
 
-	it('should create a new sub-account and transfer its ownership', async () => {
+	it.only('should create a new sub-account and transfer its ownership', async () => {
+		const sss = await subgraphClient.repoDriverQueries.getRepoAccountById(
+			'80926893384620155797209144599005987947132455529379768365057151336448'
+		);
+		log(sss);
+
+		const client = await RepoDriverClient.create(provider, account1AsSigner);
+		const ss = await client.getUserId(0, 'radicle-dev/drips-app-v2');
+		log(ss);
+
 		console.log(`${account1} will create a new sub-account and transfer it to ${account2}.`);
 
 		const subAccountsBefore = await subgraphClient.getNftSubAccountsByOwner(account2);

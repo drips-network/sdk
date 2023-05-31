@@ -71,10 +71,14 @@ describe('RepoDriverQueries', () => {
 			};
 
 			queryExecutorStub
-				.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountByNameAndForge, {
-					name: expectedAccount.name,
-					forge
-				})
+				.withArgs(
+					gql.repoDriverQueries.getRepoAccountByNameAndForge,
+					{
+						name: expectedAccount.name,
+						forge
+					},
+					API_URL
+				)
 				.resolves({
 					data: {
 						repoAccounts: [expectedAccount, expectedAccount]
@@ -100,7 +104,7 @@ describe('RepoDriverQueries', () => {
 			const forge = Forge.GitHub;
 
 			queryExecutorStub
-				.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountByNameAndForge, { name, forge })
+				.withArgs(gql.repoDriverQueries.getRepoAccountByNameAndForge, { name, forge }, API_URL)
 				.resolves({
 					data: {
 						repoAccounts: []
@@ -128,10 +132,14 @@ describe('RepoDriverQueries', () => {
 			};
 
 			queryExecutorStub
-				.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountByNameAndForge, {
-					name: expectedAccount.name,
-					forge
-				})
+				.withArgs(
+					gql.repoDriverQueries.getRepoAccountByNameAndForge,
+					{
+						name: expectedAccount.name,
+						forge
+					},
+					API_URL
+				)
 				.resolves({
 					data: {
 						repoAccounts: [expectedAccount]
@@ -176,7 +184,7 @@ describe('RepoDriverQueries', () => {
 			// Arrange
 			const userId = '0x12345';
 
-			queryExecutorStub.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountById, { userId }).resolves({
+			queryExecutorStub.withArgs(gql.repoDriverQueries.getRepoAccountById, { userId }).resolves({
 				data: {
 					repoAccounts: []
 				}
@@ -204,9 +212,13 @@ describe('RepoDriverQueries', () => {
 			};
 
 			queryExecutorStub
-				.withArgs(API_URL, gql.repoDriverQueries.getRepoAccountById, {
-					userId
-				})
+				.withArgs(
+					gql.repoDriverQueries.getRepoAccountById,
+					{
+						userId
+					},
+					API_URL
+				)
 				.resolves({
 					data: {
 						repoAccount: expectedAccount

@@ -982,8 +982,12 @@ export default class DripsSubgraphClient {
 	 * @returns A `Promise` which resolves to the expected data.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async query<T = unknown>(query: string, variables: unknown): Promise<{ data: T }> {
-		const resp = await fetch(this.apiUrl, {
+	public async query<T = unknown>(
+		query: string,
+		variables: unknown,
+		apiUrl: string = this.#apiUrl
+	): Promise<{ data: T }> {
+		const resp = await fetch(apiUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
