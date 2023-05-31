@@ -12,7 +12,7 @@ import * as validators from '../../src/common/validators';
 import type { SplitsReceiverStruct, DripsHistoryStruct } from '../../src/common/types';
 
 describe('DripsHubTxFactory', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;

@@ -18,7 +18,7 @@ import constants from '../../src/constants';
 import type { CycleInfo } from '../../src/common/types';
 
 describe('DripsSubgraphClient', () => {
-	const TEST_CHAIN_ID = 5;
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 	let testSubgraphClient: DripsSubgraphClient;
 
 	// Acts also as the "base Arrange step".

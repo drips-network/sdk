@@ -13,7 +13,7 @@ import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadataStruct } fr
 import { formatDripsReceivers } from '../../src/common/internals';
 
 describe('NFTDriverTxFactory', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;

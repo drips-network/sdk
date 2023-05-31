@@ -102,7 +102,7 @@ describe('Utils', () => {
 
 				// Act
 				try {
-					await Utils.Cycle.getInfo(100);
+					Utils.Cycle.getInfo(100);
 				} catch (error: any) {
 					// Assert
 					assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
@@ -120,7 +120,7 @@ describe('Utils', () => {
 				// assertions
 
 				// Act
-				const result = Utils.Cycle.getInfo(5);
+				const result = Utils.Cycle.getInfo(11155111);
 
 				// Assert
 				assert.equal(result.cycleDurationSecs, 604800n);
@@ -281,7 +281,7 @@ describe('Utils', () => {
 		describe('networkConfig', () => {
 			it('should export only unique and supported chain IDs', () => {
 				// Arrange
-				const chainIds = [1, 5, 80001];
+				const chainIds = [1, 11155111];
 
 				// Assert
 				assert.includeMembers(Utils.Network.SUPPORTED_CHAINS as number[], chainIds);
@@ -294,7 +294,7 @@ describe('Utils', () => {
 				// Arrange
 
 				// Act
-				const isSupported = Utils.Network.isSupportedChain(5);
+				const isSupported = Utils.Network.isSupportedChain(11155111);
 
 				// Assert
 				assert.isTrue(isSupported);

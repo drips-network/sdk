@@ -15,7 +15,7 @@ import { Forge } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('RepoDriverClient', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;

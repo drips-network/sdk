@@ -15,7 +15,7 @@ import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '..
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('NFTDriverClient', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;

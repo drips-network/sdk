@@ -15,7 +15,7 @@ import * as internals from '../../src/common/internals';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
 
 describe('AddressDriverClient', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
