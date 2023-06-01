@@ -15,19 +15,14 @@ import type {
 import type * as SubgraphTypes from './generated/graphql-types';
 
 /** @internal */
-export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): RepoAccount => {
-	const ss = BigInt(repoAccount.forge);
-	console.log(ss);
-
-	return {
-		userId: repoAccount.id,
-		name: repoAccount.name,
-		status: repoAccount.status,
-		forge: BigInt(repoAccount.forge),
-		ownerAddress: repoAccount.ownerAddress,
-		lastUpdatedBlockTimestamp: BigInt(repoAccount.lastUpdatedBlockTimestamp)
-	};
-};
+export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): RepoAccount => ({
+	userId: repoAccount.id,
+	name: repoAccount.name,
+	status: repoAccount.status,
+	forge: BigInt(repoAccount.forge),
+	ownerAddress: repoAccount.ownerAddress,
+	lastUpdatedBlockTimestamp: BigInt(repoAccount.lastUpdatedBlockTimestamp)
+});
 
 /** @internal */
 export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
