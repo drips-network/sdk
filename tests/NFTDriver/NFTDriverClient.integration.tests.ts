@@ -2,10 +2,8 @@ import { InfuraProvider } from '@ethersproject/providers';
 import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { assert } from 'chai';
-import { log } from 'console';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import DripsHubClient from '../../src/DripsHub/DripsHubClient';
-import RepoDriverClient from '../../src/RepoDriver/RepoDriverClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { expect } from '../../src/common/internals';
@@ -37,10 +35,6 @@ describe('NFTDriver integration tests', () => {
 	});
 
 	it('should create a new sub-account and transfer its ownership', async () => {
-		const client = await RepoDriverClient.create(provider, account1AsSigner);
-		const ss = await client.getUserId(0, 'radicle-dev/drips-app-v2');
-		log(ss);
-
 		console.log(`${account1} will create a new sub-account and transfer it to ${account2}.`);
 
 		const subAccountsBefore = await subgraphClient.getNftSubAccountsByOwner(account2);
