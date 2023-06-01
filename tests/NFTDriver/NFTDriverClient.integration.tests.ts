@@ -36,12 +36,7 @@ describe('NFTDriver integration tests', () => {
 		account2NftDriverClient = await NFTDriverClient.create(provider, account2AsSigner);
 	});
 
-	it.only('should create a new sub-account and transfer its ownership', async () => {
-		const sss = await subgraphClient.repoDriverQueries.getRepoAccountById(
-			'80926893384620155797209144599005987947132455529379768365057151336448'
-		);
-		log(sss);
-
+	it('should create a new sub-account and transfer its ownership', async () => {
 		const client = await RepoDriverClient.create(provider, account1AsSigner);
 		const ss = await client.getUserId(0, 'radicle-dev/drips-app-v2');
 		log(ss);
