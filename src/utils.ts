@@ -126,7 +126,7 @@ namespace Utils {
 				REPO_DRIVER_ANYAPI_OPERATOR: '0x0F9c6BCdE15dfFFD95Cfa8F9167b19B433af1abE',
 				REPO_DRIVER_ANYAPI_JOB_ID: '9af746c7cfbc415c9737b239df9a30ab',
 				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '150000000000000000',
-				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/v0.0.1'
+				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/v0.0.6'
 			} as NetworkConfig
 		};
 
