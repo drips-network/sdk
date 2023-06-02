@@ -55,6 +55,9 @@ export type NetworkConfig = {
 	REPO_DRIVER_LOGIC: string;
 	REPO_DRIVER_ADMIN: string;
 	REPO_DRIVER_ID: string;
+	REPO_DRIVER_ANYAPI_OPERATOR: string;
+	REPO_DRIVER_ANYAPI_JOB_ID: string;
+	REPO_DRIVER_ANYAPI_DEFAULT_FEE: string;
 	SUBGRAPH_URL: string;
 };
 

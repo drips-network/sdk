@@ -88,10 +88,14 @@ namespace Utils {
 				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x5BCeF0D71274b0623F1E5A354F3BADb60Fd4e29C',
 				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
-				REPO_DRIVER: '',
-				REPO_DRIVER_LOGIC: '',
-				REPO_DRIVER_ADMIN: '',
-				REPO_DRIVER_ID: '',
+				// TODO: change to Ethereum mainnet addresses. For now, use Sepolia testnet addresses.
+				REPO_DRIVER: '0x55222830207c833f9F8a28848D48246A022fdefd',
+				REPO_DRIVER_LOGIC: '0xe41043b765656E3eB044D8B23f80AF617E389288',
+				REPO_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				REPO_DRIVER_ID: '3',
+				REPO_DRIVER_ANYAPI_OPERATOR: '0x0F9c6BCdE15dfFFD95Cfa8F9167b19B433af1abE',
+				REPO_DRIVER_ANYAPI_JOB_ID: '9af746c7cfbc415c9737b239df9a30ab',
+				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '150000000000000000',
 				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/drips-network-dev/drips-v2-on-ethereum'
 			},
 			// Sepolia
@@ -127,7 +131,7 @@ namespace Utils {
 				REPO_DRIVER_ANYAPI_JOB_ID: '9af746c7cfbc415c9737b239df9a30ab',
 				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '150000000000000000',
 				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/v0.0.6'
-			} as NetworkConfig
+			}
 		};
 
 		export const SUPPORTED_CHAINS: readonly number[] = Object.freeze(
