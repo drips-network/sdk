@@ -5,6 +5,7 @@ import RepoDriverQueries from '../../src/DripsSubgraph/RepoDriverQueries';
 import { Forge } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import * as gql from '../../src/DripsSubgraph/gql';
+import type { RepoAccountStatus } from '../../src/DripsSubgraph/types';
 
 describe('RepoDriverQueries', () => {
 	const API_URL = 'http://localhost:8000';
@@ -156,8 +157,8 @@ describe('RepoDriverQueries', () => {
 			assert.equal(result!.userId, expectedAccount.id);
 			assert.equal(result!.name, expectedAccount.name);
 			assert.equal(result!.forge, expectedAccount.forge);
-			assert.equal(result!.status, expectedAccount.status);
 			assert.equal(result!.ownerAddress, expectedAccount.ownerAddress);
+			assert.equal(result!.status, expectedAccount.status as RepoAccountStatus);
 			assert.equal(result!.lastUpdatedBlockTimestamp, expectedAccount.lastUpdatedBlockTimestamp);
 		});
 	});
@@ -206,7 +207,7 @@ describe('RepoDriverQueries', () => {
 				id: userId,
 				name: 'name',
 				forge: BigInt(forge),
-				status: 'status',
+				status: 'CLAIMED',
 				ownerAddress: 'ownerAddress',
 				lastUpdatedBlockTimestamp: 1n
 			};
@@ -232,8 +233,8 @@ describe('RepoDriverQueries', () => {
 			assert.equal(result!.userId, expectedAccount.id);
 			assert.equal(result!.name, expectedAccount.name);
 			assert.equal(result!.forge, expectedAccount.forge);
-			assert.equal(result!.status, expectedAccount.status);
 			assert.equal(result!.ownerAddress, expectedAccount.ownerAddress);
+			assert.equal(result!.status, expectedAccount.status as RepoAccountStatus);
 			assert.equal(result!.lastUpdatedBlockTimestamp, expectedAccount.lastUpdatedBlockTimestamp);
 		});
 	});

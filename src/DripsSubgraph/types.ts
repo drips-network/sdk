@@ -113,11 +113,13 @@ export type DripsSetEventWithFullReceivers = {
 	}[];
 } & DripsSetEvent;
 
+export type RepoAccountStatus = 'CLAIMED' | 'OWNER_UPDATE_REQUESTED' | null;
+
 export type RepoAccount = {
 	userId: string;
 	name: string;
 	forge: bigint;
-	status: string;
+	status: RepoAccountStatus;
 	ownerAddress: string;
 	lastUpdatedBlockTimestamp: bigint;
 };

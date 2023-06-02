@@ -10,7 +10,8 @@ import type {
 	GivenEvent,
 	CollectedEvent,
 	SqueezedDripsEvent,
-	RepoAccount
+	RepoAccount,
+	RepoAccountStatus
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
 
@@ -18,7 +19,7 @@ import type * as SubgraphTypes from './generated/graphql-types';
 export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): RepoAccount => ({
 	userId: repoAccount.id,
 	name: repoAccount.name,
-	status: repoAccount.status,
+	status: repoAccount.status as RepoAccountStatus,
 	forge: BigInt(repoAccount.forge),
 	ownerAddress: repoAccount.ownerAddress,
 	lastUpdatedBlockTimestamp: BigInt(repoAccount.lastUpdatedBlockTimestamp)
