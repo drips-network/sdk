@@ -195,6 +195,24 @@ describe('NFTDriverClient', () => {
 		});
 	});
 
+	describe('calcTokenIdWithSalt', () => {
+		it('should call the calcUserId() method of the AddressDriver contract', async () => {
+			// Arrange
+			const minter = Wallet.createRandom().address;
+			const salt = 1;
+			nftDriverContractStub.calcTokenIdWithSalt.withArgs(minter, salt).resolves(BigNumber.from(111));
+
+			// Act
+			await nftDriverContractStub.calcTokenIdWithSalt(minter, salt);
+
+			// Assert
+			assert(
+				nftDriverContractStub.calcTokenIdWithSalt.calledOnceWithExactly(minter, salt),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
 	describe('createAccount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange

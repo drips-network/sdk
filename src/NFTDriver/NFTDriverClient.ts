@@ -149,6 +149,21 @@ export default class NFTDriverClient {
 	}
 
 	/**
+	 * Calculates the ID of the token minted with salt.
+	 * @param minter The minter address of the token.
+	 * @param salt The salt used for minting the token.
+	 * @returns The token ID. It's equal to the user ID controlled by it.
+	 * @throws if the `minter` address is not valid.
+	 */
+	public async calcTokenIdWithSalt(minter: string, salt: number): Promise<string> {
+		validateAddress(minter);
+
+		const userId = await this.#driver.calcTokenIdWithSalt(minter, salt);
+
+		return userId.toString();
+	}
+
+	/**
 	 *
 	 * **Usage of this method is discouraged**; use {@link safeCreateAccount} whenever possible.
 	 *
