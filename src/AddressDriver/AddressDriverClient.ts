@@ -377,19 +377,19 @@ export default class AddressDriverClient {
 
 		const userIdAsBn = ethers.BigNumber.from(userId);
 
-		// if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
-		// 	throw DripsErrors.argumentError(
-		// 		`Could not get user address: ${userId} is not a valid positive number within the range of a uint256.`
-		// 	);
-		// }
-
-		const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
-
-		if (!userIdAsBn.and(mid64BitsMask).isZero()) {
+		if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
 			throw DripsErrors.argumentError(
-				`Could not get user address: ${userId} is not a valid user ID. The first 64 (after first 32) bits must be 0.`
+				`Could not get user address: ${userId} is not a valid positive number within the range of a uint256.`
 			);
 		}
+
+		// const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
+
+		// if (!userIdAsBn.and(mid64BitsMask).isZero()) {
+		// 	throw DripsErrors.argumentError(
+		// 		`Could not get user address: ${userId} is not a valid user ID. The first 64 (after first 32) bits must be 0.`
+		// 	);
+		// }
 
 		const mask = ethers.BigNumber.from(2).pow(160).sub(1);
 		const address = userIdAsBn.and(mask).toHexString();
