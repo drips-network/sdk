@@ -3,8 +3,43 @@ import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
 import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
 import { validateAddress, validateDripsReceiverConfig } from './common/validators';
+import { isNullOrUndefined } from './common/internals';
+
+type Driver = 'address' | 'nft' | 'immutableSplits' | 'repo';
 
 namespace Utils {
+	export namespace UserId {
+		export const getDriver = (userId: string): Driver => {
+			if (isNullOrUndefined(userId)) {
+				throw DripsErrors.argumentError(`Could not get bits: userId is missing.`);
+			}
+
+			const userIdAsBn = ethers.BigNumber.from(userId);
+
+			if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
+				throw DripsErrors.argumentError(
+					`Could not get bits: ${userId} is not a valid positive number within the range of a uint256.`
+				);
+			}
+
+			const mask = ethers.BigNumber.from(2).pow(32).sub(1); // 32 bits mask
+			const bits = userIdAsBn.shr(224).and(mask); // shift right to bring the first 32 bits to the end and apply the mask
+
+			switch (bits.toNumber()) {
+				case 0:
+					return 'address';
+				case 1:
+					return 'nft';
+				case 2:
+					return 'immutableSplits';
+				case 3:
+					return 'repo';
+				default:
+					throw DripsErrors.argumentError(`Unknown driver for userId: ${userId}.`);
+			}
+		};
+	}
+
 	export namespace Metadata {
 		/**
 		 * Converts a `string` to a `BytesLike` representation.
