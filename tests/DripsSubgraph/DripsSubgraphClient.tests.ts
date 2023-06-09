@@ -1858,6 +1858,7 @@ describe('DripsSubgraphClient', () => {
 					id: '502',
 					blockTimestamp: 502n,
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
+					receiversHash: '0x6cc830f4f294a80b24635161e488f5444b0e3387c8e5d491ab8f2d68d1a6e67d',
 					dripsReceiverSeenEvents: [
 						{
 							id: '502',
@@ -1869,6 +1870,7 @@ describe('DripsSubgraphClient', () => {
 				{
 					id: '501',
 					blockTimestamp: 501n,
+					receiversHash: '0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9',
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 					dripsReceiverSeenEvents: [
 						{

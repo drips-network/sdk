@@ -931,9 +931,37 @@ export default class DripsSubgraphClient {
 		// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
 		dripsSetEvents = dripsSetEvents.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 
+		function hashDrips(receivers: DripsReceiverStruct[]): string {
+			if (receivers.length === 0) {
+				return ethers.constants.HashZero;
+			}
+
+			const types = receivers.flatMap(() => ['uint256', 'uint256']);
+			const values = receivers.flatMap((receiver) => [receiver.userId, receiver.config]);
+
+			const encodedReceivers = ethers.utils.defaultAbiCoder.encode(types, values);
+
+			return ethers.utils.keccak256(encodedReceivers);
+		}
+
+		// Find the most recent event where the hash matches the receiversHash
+		const matchingEvent = dripsSetEvents.find(
+			(e) =>
+				hashDrips(
+					e.dripsReceiverSeenEvents.map((d) => ({
+						config: d.config,
+						userId: d.receiverUserId
+					}))
+				) === e.receiversHash
+		);
+
+		if (!matchingEvent) {
+			return [];
+		}
+
 		// Return the most recent event's receivers formatted as expected by the protocol.
 		return formatDripsReceivers(
-			dripsSetEvents[0].dripsReceiverSeenEvents.map((d) => ({
+			matchingEvent.dripsReceiverSeenEvents.map((d) => ({
 				config: d.config,
 				userId: d.receiverUserId
 			}))
