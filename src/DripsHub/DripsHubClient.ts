@@ -108,6 +108,22 @@ export default class DripsHubClient {
 	}
 
 	/**
+	 * Calculates the hash of the drips receivers.
+	 * @param currentReceivers The drips receivers.
+	 * Must be sorted by the receivers' addresses, deduplicated and without 0 `amtPerSecs`.
+	 * @param provider The provider.
+	 * @returns The hash of the drips receivers.
+	 */
+	public static async hashDrips(receivers: DripsReceiverStruct[], provider: Provider): Promise<string> {
+		const hash = DripsHub__factory.connect(
+			Utils.Network.configs[(await provider.getNetwork()).chainId].DRIPS_HUB,
+			provider
+		).hashDrips(receivers);
+
+		return hash;
+	}
+
+	/**
 	 * Returns the total amount currently stored in `DripsHub` for the given token.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
@@ -188,7 +204,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		if (!maxCycles || maxCycles < 0) {
+		if (!maxCycles || BigNumber.from(maxCycles).lt(0)) {
 			throw DripsErrors.argumentError(
 				`Could not get receivable balance: '${nameOf({ maxCycles })}' is missing.`,
 				nameOf({ maxCycles }),
@@ -392,7 +408,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		if (!amount || amount < 0) {
+		if (!amount || BigNumber.from(amount).lt(0)) {
 			throw DripsErrors.argumentError(
 				`Could not get split result: '${nameOf({ amount })}' must be greater than 0.`,
 				nameOf({ amount }),
