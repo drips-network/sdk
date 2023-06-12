@@ -1,6 +1,10 @@
 import { assert } from 'chai';
 import { BigNumber, ethers, Wallet } from 'ethers';
 import * as sinon from 'sinon';
+import type { Network } from '@ethersproject/providers';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import type { StubbedInstance } from 'ts-sinon';
+import { stubObject } from 'ts-sinon';
 import { DripsErrorCode } from '../../src/common/DripsError';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import * as gql from '../../src/DripsSubgraph/gql';
@@ -16,13 +20,20 @@ import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 import constants from '../../src/constants';
 import type { CycleInfo } from '../../src/common/types';
+import DripsHubClient from '../../src/DripsHub/DripsHubClient';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 11155111; // Sepolia.
 	let testSubgraphClient: DripsSubgraphClient;
+	let networkStub: StubbedInstance<Network>;
+	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(() => {
+		providerStub = sinon.createStubInstance(JsonRpcProvider);
+		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
+
+		providerStub.getNetwork.resolves(networkStub);
 		testSubgraphClient = DripsSubgraphClient.create(TEST_CHAIN_ID);
 	});
 
@@ -1826,7 +1837,7 @@ describe('DripsSubgraphClient', () => {
 			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
 
 			// Act
-			const senders = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress);
+			const senders = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress, providerStub);
 
 			// Assert
 			assert.equal(Object.keys(senders).length, 0);
@@ -1858,7 +1869,7 @@ describe('DripsSubgraphClient', () => {
 					id: '502',
 					blockTimestamp: 502n,
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
-					receiversHash: '0x6cc830f4f294a80b24635161e488f5444b0e3387c8e5d491ab8f2d68d1a6e67d',
+					receiversHash: '0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9',
 					dripsReceiverSeenEvents: [
 						{
 							id: '502',
@@ -1889,8 +1900,14 @@ describe('DripsSubgraphClient', () => {
 				.onSecondCall()
 				.resolves(secondResults);
 
+			sinon
+				.stub(DripsHubClient, 'hashDrips')
+				.onFirstCall()
+				.resolves('0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9')
+				.onSecondCall()
+				.resolves('0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9');
 			// Act
-			const currentReceivers = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress);
+			const currentReceivers = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress, providerStub);
 
 			// Assert
 			assert.equal(currentReceivers.length, 1);
