@@ -130,6 +130,21 @@ export default class CallerClient {
 		calls: CallStruct[] | Preset | PopulatedTransaction[],
 		overrides: PayableOverrides & { from?: string } = {}
 	): Promise<ContractTransaction> {
+		const transformedCalls: CallStruct[] = this._getCalls(calls);
+
+		return this.#caller.callBatched(transformedCalls, overrides);
+	}
+
+	public async populateCallBatchedTx(
+		calls: CallStruct[] | Preset | PopulatedTransaction[],
+		overrides: PayableOverrides & { from?: string } = {}
+	): Promise<PopulatedTransaction> {
+		const transformedCalls: CallStruct[] = this._getCalls(calls);
+
+		return this.#caller.populateTransaction.callBatched(transformedCalls, overrides);
+	}
+
+	private _getCalls(calls: CallStruct[] | Preset | PopulatedTransaction[]) {
 		let transformedCalls: CallStruct[];
 
 		if (Array.isArray(calls)) {
@@ -170,6 +185,6 @@ export default class CallerClient {
 			...call,
 			value: call.value ?? 0
 		}));
-		return this.#caller.callBatched(transformedCalls, overrides);
+		return transformedCalls;
 	}
 }
