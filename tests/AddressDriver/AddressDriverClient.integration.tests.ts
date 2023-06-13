@@ -16,7 +16,7 @@ dotenv.config();
 describe('AddressDriver integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
-	const provider = new InfuraProvider('goerli');
+	const provider = new InfuraProvider('sepolia');
 	const account1 = process.env.ACCOUNT_1 as string;
 	const account2 = process.env.ACCOUNT_2 as string;
 	const account1AsSigner = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
@@ -62,7 +62,7 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Updating Drips configuration...`);
 		await account2AddressDriverClient.setDrips(
 			WETH,
-			await subgraphClient.getCurrentDripsReceivers(userId2, WETH),
+			await subgraphClient.getCurrentDripsReceivers(userId2, WETH, provider),
 			[{ config, userId: userId1 }],
 			account2
 		);
@@ -93,7 +93,7 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await account2AddressDriverClient.setDrips(
 			WETH,
-			await subgraphClient.getCurrentDripsReceivers(userId2, WETH),
+			await subgraphClient.getCurrentDripsReceivers(userId2, WETH, provider),
 			[],
 			account2
 		);
