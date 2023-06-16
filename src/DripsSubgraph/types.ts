@@ -120,6 +120,6 @@ export type RepoAccount = {
 	name: string;
 	forge: bigint;
 	status: RepoAccountStatus;
-	ownerAddress: string;
+	ownerAddress: string | null;
 	lastUpdatedBlockTimestamp: bigint;
 };

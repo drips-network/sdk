@@ -19,9 +19,9 @@ import type * as SubgraphTypes from './generated/graphql-types';
 export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): RepoAccount => ({
 	userId: repoAccount.id,
 	name: repoAccount.name,
-	status: repoAccount.status as RepoAccountStatus,
+	status: repoAccount.status ? (repoAccount.status as RepoAccountStatus) : null,
 	forge: BigInt(repoAccount.forge),
-	ownerAddress: repoAccount.ownerAddress,
+	ownerAddress: repoAccount.ownerAddress ? repoAccount.ownerAddress : null,
 	lastUpdatedBlockTimestamp: BigInt(repoAccount.lastUpdatedBlockTimestamp)
 });
 
