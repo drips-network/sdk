@@ -93,4 +93,28 @@ export default class RepoDriverQueries {
 
 		return mapRepoAccountToDto(response.data.repoAccount);
 	}
+
+	public async getRepoAccountsOwnedByAddress(address: string) {
+		if (!address) {
+			throw DripsErrors.argumentError('Unable to get repo accounts: no address provided');
+		}
+
+		type QueryResponse = {
+			repoAccounts: SubgraphTypes.RepoAccount[];
+		}
+
+		const response = await this.#queryExecutor<QueryResponse>(
+			gql.repoDriverQueries.getRepoAccountsByOwnerAddress,
+			{
+				address,
+			},
+			this.#apiUrl
+		);
+
+		if (!response.data.repoAccounts) {
+			return []
+		}
+
+		return response.data.repoAccounts.map((ra) => mapRepoAccountToDto(ra));
+	}
 }

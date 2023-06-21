@@ -285,7 +285,21 @@ query getRepoAccountByNameAndForge($name: String!, $forge: BigInt!) {
 }
 `;
 
+const getRepoAccountsByOwnerAddress = `#graphql
+query getRepoAccountsByOwnerAddress($address: String!) {
+  repoAccounts(where: {ownerAddress: $address}) {
+		id
+    name
+    forge
+    status
+    ownerAddress
+    lastUpdatedBlockTimestamp
+	}
+}
+`;
+
 export const repoDriverQueries = {
 	getRepoAccountById,
-	getRepoAccountByNameAndForge
+	getRepoAccountByNameAndForge,
+	getRepoAccountsByOwnerAddress
 };
