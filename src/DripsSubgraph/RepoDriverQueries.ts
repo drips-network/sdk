@@ -111,7 +111,7 @@ export default class RepoDriverQueries {
 			this.#apiUrl
 		);
 
-		if (!response.data.repoAccounts) {
+		if (!response?.data?.repoAccounts) {
 			return []
 		}
 
