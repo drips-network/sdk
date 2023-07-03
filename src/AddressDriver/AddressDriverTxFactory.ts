@@ -1,7 +1,7 @@
 /* eslint-disable no-dupe-class-members */
 import type {
 	AddressDriver,
-	DripsReceiverStruct,
+	StreamReceiverStruct,
 	SplitsReceiverStruct,
 	UserMetadataStruct
 } from 'contracts/AddressDriver';
@@ -15,7 +15,7 @@ import Utils from '../utils';
 export interface IAddressDriverTxFactory
 	extends Pick<
 		AddressDriver['populateTransaction'],
-		'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
+		'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitUserMetadata'
 	> {}
 
 /**
@@ -89,18 +89,18 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		return safeDripsTx(await this.#driver.populateTransaction.setSplits(formatSplitReceivers(receivers), overrides));
 	}
 
-	public async setDrips(
+	public async setStreams(
 		erc20: PromiseOrValue<string>,
-		currReceivers: DripsReceiverStruct[],
+		currReceivers: StreamReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
-		newReceivers: DripsReceiverStruct[],
+		newReceivers: StreamReceiverStruct[],
 		maxEndHint1: PromiseOrValue<BigNumberish>,
 		maxEndHint2: PromiseOrValue<BigNumberish>,
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
 		if (!overrides.gasLimit) {
-			const gasEstimation = await this.#driver.estimateGas.setDrips(
+			const gasEstimation = await this.#driver.estimateGas.setStreams(
 				erc20,
 				formatDripsReceivers(currReceivers),
 				balanceDelta,
@@ -117,7 +117,7 @@ export default class AddressDriverTxFactory implements IAddressDriverTxFactory {
 		}
 
 		return safeDripsTx(
-			await this.#driver.populateTransaction.setDrips(
+			await this.#driver.populateTransaction.setStreams(
 				erc20,
 				formatDripsReceivers(currReceivers),
 				balanceDelta,

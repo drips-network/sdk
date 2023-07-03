@@ -3,7 +3,7 @@ import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { assert } from 'chai';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import DripsClient from '../../src/Drips/DripsClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { expect } from '../../src/common/internals';
@@ -12,7 +12,7 @@ import constants from '../../src/constants';
 
 dotenv.config();
 
-describe('DripsHubClient integration tests', () => {
+describe('DripsClient integration tests', () => {
 	const THREE_MINS = 180000; // In milliseconds.
 	const WETH = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
@@ -25,7 +25,7 @@ describe('DripsHubClient integration tests', () => {
 
 		const senderAddressDriverClient = await AddressDriverClient.create(provider, senderAccountAsSigner);
 		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
-		const dripsHubClient = await DripsHubClient.create(provider, senderAccountAsSigner);
+		const dripsHubClient = await DripsClient.create(provider, senderAccountAsSigner);
 
 		const senderUserId = await senderAddressDriverClient.getUserId();
 		const receiverUserId = await senderAddressDriverClient.getUserIdByAddress(receiverAccount);
@@ -42,7 +42,7 @@ describe('DripsHubClient integration tests', () => {
 
 		console.log(`Squeezing funds to set receiver's squeezable balance to 0...`);
 		const argsBefore = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
-		await dripsHubClient.squeezeDrips(
+		await dripsHubClient.squeezeStreams(
 			argsBefore.userId,
 			argsBefore.tokenAddress,
 			argsBefore.senderId,
@@ -98,7 +98,7 @@ describe('DripsHubClient integration tests', () => {
 		});
 
 		console.log(`Updating Drips configuration...`);
-		await senderAddressDriverClient.setDrips(
+		await senderAddressDriverClient.setStreams(
 			WETH,
 			wEthConfigurationBefore?.dripsEntries.map((d) => ({
 				config: d.config,
@@ -161,7 +161,7 @@ describe('DripsHubClient integration tests', () => {
 		assert.isTrue(squeezableBalanceAfter > 0);
 
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
-		await senderAddressDriverClient.setDrips(
+		await senderAddressDriverClient.setStreams(
 			WETH,
 			expectedConfig.dripsEntries.map((d) => ({
 				config: d.config,

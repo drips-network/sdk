@@ -164,7 +164,7 @@ namespace Utils {
 				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '150000000000000000',
 				REPO_DRIVER_LOGIC: '0xf6BFe643eE4bD90233fF781fD5b9499b35DF6760',
 				REPO_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
-				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/v0.0.6'
+				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/version/latest'
 			},
 			// Goerli
 			5: {
@@ -198,7 +198,7 @@ namespace Utils {
 				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '50000000000000000',
 				REPO_DRIVER_LOGIC: '0x600D54395F107B460b52179Ccb53d988DC53e238',
 				REPO_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
-				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/v0.0.6'
+				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-goerli/version/latest'
 			}
 		};
 

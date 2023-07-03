@@ -1,5 +1,5 @@
 /* eslint-disable no-dupe-class-members */
-import type { RepoDriver, DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/RepoDriver';
+import type { RepoDriver, StreamReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/RepoDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Overrides, Signer, BytesLike } from 'ethers';
 import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
@@ -10,7 +10,7 @@ import Utils from '../utils';
 export interface IRepoDriverTxFactory
 	extends Pick<
 		RepoDriver['populateTransaction'],
-		'requestUpdateOwner' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
+		'requestUpdateOwner' | 'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitUserMetadata'
 	> {}
 
 /**
@@ -96,19 +96,19 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 		);
 	}
 
-	public async setDrips(
+	public async setStreams(
 		userId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
-		currReceivers: DripsReceiverStruct[],
+		currReceivers: StreamReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
-		newReceivers: DripsReceiverStruct[],
+		newReceivers: StreamReceiverStruct[],
 		maxEndHint1: PromiseOrValue<BigNumberish>,
 		maxEndHint2: PromiseOrValue<BigNumberish>,
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
 		if (!overrides.gasLimit) {
-			const gasEstimation = await this.#driver.estimateGas.setDrips(
+			const gasEstimation = await this.#driver.estimateGas.setStreams(
 				userId,
 				erc20,
 				formatDripsReceivers(currReceivers),
@@ -126,7 +126,7 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 		}
 
 		return safeDripsTx(
-			await this.#driver.populateTransaction.setDrips(
+			await this.#driver.populateTransaction.setStreams(
 				userId,
 				erc20,
 				formatDripsReceivers(currReceivers),

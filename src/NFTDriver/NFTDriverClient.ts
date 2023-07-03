@@ -2,7 +2,7 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { constants, BigNumber } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import type { NFTDriver } from '../../contracts';
 import { NFTDriver__factory, IERC20__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
@@ -11,7 +11,7 @@ import {
 	validateClientProvider,
 	validateClientSigner,
 	validateEmitUserMetadataInput,
-	validateSetDripsInput,
+	validateSetStreamsInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
@@ -300,7 +300,7 @@ export default class NFTDriverClient {
 	}
 
 	/**
-	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
+	 * Collects the received and already split funds and transfers them from the `Drips` contract to an address.
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param tokenId The ID of the token representing the collecting account.
@@ -390,7 +390,7 @@ export default class NFTDriverClient {
 	/**
 	 * Sets a Drips configuration for the given account.
 	 *
-	 * It will transfer funds from the client's `signer` wallet to the `DripsHub` contract to fulfill the change of the drips balance.
+	 * It will transfer funds from the client's `signer` wallet to the `Drips` contract to fulfill the change of the drips balance.
 	 *
 	 * The caller (client's `signer`) must be the owner of the `tokenId` or be approved to use it.
 	 * @param tokenId The ID of the token representing the configured account.
@@ -421,11 +421,11 @@ export default class NFTDriverClient {
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 */
-	public async setDrips(
+	public async setStreams(
 		tokenId: string,
 		tokenAddress: string,
-		currentReceivers: DripsReceiverStruct[],
-		newReceivers: DripsReceiverStruct[],
+		currentReceivers: StreamReceiverStruct[],
+		newReceivers: StreamReceiverStruct[],
 		transferToAddress: string,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
@@ -435,7 +435,7 @@ export default class NFTDriverClient {
 				nameOf({ tokenId })
 			);
 		}
-		validateSetDripsInput(
+		validateSetStreamsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
 				userId: r.userId.toString(),
@@ -449,7 +449,7 @@ export default class NFTDriverClient {
 			balanceDelta
 		);
 
-		const tx = await this.#txFactory.setDrips(
+		const tx = await this.#txFactory.setStreams(
 			tokenId,
 			tokenAddress,
 			currentReceivers,

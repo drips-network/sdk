@@ -6,7 +6,7 @@ import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { DripsHistoryStruct, DripsReceiver, DripsReceiverConfig, UserMetadata } from '../../src/common/types';
+import type { StreamsHistoryStruct, DripsReceiver, DripsReceiverConfig, UserMetadata } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -15,7 +15,7 @@ describe('validators', () => {
 		sinon.restore();
 	});
 
-	describe('validateSetDripsInput', () => {
+	describe('validateSetStreamsInput', () => {
 		it('should validate all inputs', () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
@@ -34,7 +34,7 @@ describe('validators', () => {
 			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
 
 			// Act
-			validators.validateSetDripsInput(tokenAddress, currentReceivers, newReceivers, transferToAddress, balanceDelta);
+			validators.validateSetStreamsInput(tokenAddress, currentReceivers, newReceivers, transferToAddress, balanceDelta);
 
 			// Assert
 			assert(validateAddressStub.calledTwice);
@@ -76,7 +76,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateSetDripsInput(
+				validators.validateSetStreamsInput(
 					tokenAddress,
 					currentReceivers,
 					newReceivers,
@@ -842,7 +842,7 @@ describe('validators', () => {
 					Wallet.createRandom().address,
 					'1',
 					'0x00',
-					undefined as unknown as DripsHistoryStruct[]
+					undefined as unknown as StreamsHistoryStruct[]
 				);
 			} catch (error: any) {
 				// Assert

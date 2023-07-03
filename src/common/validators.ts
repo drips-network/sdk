@@ -3,7 +3,7 @@ import type { BigNumberish, Signer } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct, DripsHistoryStruct, UserMetadata } from './types';
+import type { DripsReceiverConfig, SplitsReceiverStruct, StreamsHistoryStruct, UserMetadata } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -187,7 +187,7 @@ export const validateClientSigner = async (signer: Signer, supportedChains: read
 };
 
 /** @internal */
-export const validateSetDripsInput = (
+export const validateSetStreamsInput = (
 	tokenAddress: string,
 	currentReceivers: {
 		userId: string;
@@ -277,7 +277,7 @@ export const validateSqueezeDripsInput = (
 	tokenAddress: string,
 	senderId: BigNumberish,
 	historyHash: string,
-	dripsHistory: DripsHistoryStruct[]
+	dripsHistory: StreamsHistoryStruct[]
 ) => {
 	validateAddress(tokenAddress);
 

@@ -2,14 +2,14 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { Address, DripsReceiverStruct, Forge, SplitsReceiverStruct, UserMetadata } from '../common/types';
+import type { Address, StreamReceiverStruct, Forge, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
 	validateClientSigner,
 	validateCollectInput,
 	validateEmitUserMetadataInput,
-	validateSetDripsInput,
+	validateSetStreamsInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
@@ -226,7 +226,7 @@ export default class RepoDriverClient {
 	}
 
 	/**
-	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
+	 * Collects the received and already split funds and transfers them from the `Drips` contract to an address.
 	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -260,7 +260,7 @@ export default class RepoDriverClient {
 	/**
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
-	 * Transfers funds from the user's wallet to the `DripsHub` contract.
+	 * Transfers funds from the user's wallet to the `Drips` contract.
 	 * @param userId The ID of the giving user. The caller must be the owner of the user.
 	 * @param receiverUserId The receiver user ID.
 	 * @param tokenAddress The ERC20 token address.
@@ -330,7 +330,7 @@ export default class RepoDriverClient {
 
 	/**
 	 * Sets a Drips configuration.
-	 * Transfers funds from the user's wallet to the `DripsHub` contract to fulfill the change of the drips balance.
+	 * Transfers funds from the user's wallet to the `Drips` contract to fulfill the change of the drips balance.
 	 * @param userId The ID of the configured user. The caller must be the owner of the user.
 	 *
 	 * @param  {string} tokenAddress The ERC20 token address.
@@ -360,11 +360,11 @@ export default class RepoDriverClient {
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async setDrips(
+	public async setStreams(
 		userId: string,
 		tokenAddress: Address,
-		currentReceivers: DripsReceiverStruct[],
-		newReceivers: DripsReceiverStruct[],
+		currentReceivers: StreamReceiverStruct[],
+		newReceivers: StreamReceiverStruct[],
 		transferToAddress: Address,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
@@ -372,7 +372,7 @@ export default class RepoDriverClient {
 			throw DripsErrors.argumentError('Could not setSplits: userId is missing.');
 		}
 		ensureSignerExists(this.#signer);
-		validateSetDripsInput(
+		validateSetStreamsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
 				userId: r.userId.toString(),
@@ -386,7 +386,7 @@ export default class RepoDriverClient {
 			balanceDelta
 		);
 
-		const tx = await this.#txFactory.setDrips(
+		const tx = await this.#txFactory.setStreams(
 			userId,
 			tokenAddress,
 			currentReceivers,

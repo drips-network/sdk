@@ -6,7 +6,7 @@ import type { Network } from '@ethersproject/networks';
 import { BigNumber, constants, ethers, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadata } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadata } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
@@ -488,7 +488,7 @@ describe('AddressDriverClient', () => {
 		});
 	});
 
-	describe('setDrips()', () => {
+	describe('setStreams()', () => {
 		it('should ensure the signer exists', async () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
@@ -496,7 +496,7 @@ describe('AddressDriverClient', () => {
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
+			await testAddressDriverClient.setStreams(tokenAddress, [], [], transferToAddress, undefined as unknown as bigint);
 
 			// Assert
 			assert(
@@ -510,13 +510,13 @@ describe('AddressDriverClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
-			const currentReceivers: DripsReceiverStruct[] = [
+			const currentReceivers: StreamReceiverStruct[] = [
 				{
 					userId: '3',
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: '2',
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -531,10 +531,10 @@ describe('AddressDriverClient', () => {
 				}
 			];
 
-			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetStreamsInput');
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
+			await testAddressDriverClient.setStreams(tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
@@ -563,13 +563,13 @@ describe('AddressDriverClient', () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
+			const currentReceivers: StreamReceiverStruct[] = [
 				{
 					userId: 3n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -587,12 +587,12 @@ describe('AddressDriverClient', () => {
 			const balance = 1n;
 
 			const tx = {};
-			addressDriverTxFactoryStub.setDrips
+			addressDriverTxFactoryStub.setStreams
 				.withArgs(tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
 				.resolves(tx);
 
 			// Act
-			await testAddressDriverClient.setDrips(tokenAddress, currentReceivers, receivers, transferToAddress, balance);
+			await testAddressDriverClient.setStreams(tokenAddress, currentReceivers, receivers, transferToAddress, balance);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');

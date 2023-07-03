@@ -10,7 +10,7 @@ import * as validators from '../../src/common/validators';
 import RepoDriverTxFactory from '../../src/RepoDriver/RepoDriverTxFactory';
 import type { IERC20, RepoDriver } from '../../contracts';
 import { RepoDriver__factory, IERC20__factory } from '../../contracts';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
 import { Forge } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
@@ -516,7 +516,7 @@ describe('RepoDriverClient', () => {
 		});
 	});
 
-	describe('setDrips()', () => {
+	describe('setStreams()', () => {
 		it('should throw argumentError when userId is missing', async () => {
 			// Arrange
 			let threw = false;
@@ -525,7 +525,14 @@ describe('RepoDriverClient', () => {
 
 			try {
 				// Act
-				await testRepoDriverClient.setDrips(undefined as unknown as string, tokenAddress, [], [], transferToAddress, 1);
+				await testRepoDriverClient.setStreams(
+					undefined as unknown as string,
+					tokenAddress,
+					[],
+					[],
+					transferToAddress,
+					1
+				);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -542,13 +549,13 @@ describe('RepoDriverClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
-			const currentReceivers: DripsReceiverStruct[] = [
+			const currentReceivers: StreamReceiverStruct[] = [
 				{
 					userId: '3',
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: '2',
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -563,10 +570,10 @@ describe('RepoDriverClient', () => {
 				}
 			];
 
-			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetStreamsInput');
 
 			// Act
-			await testRepoDriverClient.setDrips(userId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
+			await testRepoDriverClient.setStreams(userId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
@@ -596,13 +603,13 @@ describe('RepoDriverClient', () => {
 			const userId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
+			const currentReceivers: StreamReceiverStruct[] = [
 				{
 					userId: 3n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -620,12 +627,12 @@ describe('RepoDriverClient', () => {
 			const balance = 1n;
 
 			const tx = {};
-			repoDriverTxFactoryStub.setDrips
+			repoDriverTxFactoryStub.setStreams
 				.withArgs(userId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
 				.resolves(tx);
 
 			// Act
-			await testRepoDriverClient.setDrips(
+			await testRepoDriverClient.setStreams(
 				userId,
 				tokenAddress,
 				currentReceivers,

@@ -11,7 +11,7 @@ import * as validators from '../../src/common/validators';
 import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
 import type { IERC20, NFTDriver } from '../../contracts';
 import { NFTDriver__factory, IERC20__factory } from '../../contracts';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('NFTDriverClient', () => {
@@ -840,7 +840,7 @@ describe('NFTDriverClient', () => {
 		});
 	});
 
-	describe('setDrips()', () => {
+	describe('setStreams()', () => {
 		it('should throw argumentMissingError when tokenId is missing', async () => {
 			// Arrange
 			let threw = false;
@@ -849,7 +849,14 @@ describe('NFTDriverClient', () => {
 
 			try {
 				// Act
-				await testNftDriverClient.setDrips(undefined as unknown as string, tokenAddress, [], [], transferToAddress, 1);
+				await testNftDriverClient.setStreams(
+					undefined as unknown as string,
+					tokenAddress,
+					[],
+					[],
+					transferToAddress,
+					1
+				);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -866,13 +873,13 @@ describe('NFTDriverClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 
-			const currentReceivers: DripsReceiverStruct[] = [
+			const currentReceivers: StreamReceiverStruct[] = [
 				{
 					userId: '3',
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: '2',
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -887,10 +894,10 @@ describe('NFTDriverClient', () => {
 				}
 			];
 
-			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetStreamsInput');
 
 			// Act
-			await testNftDriverClient.setDrips(tokenId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
+			await testNftDriverClient.setStreams(tokenId, tokenAddress, currentReceivers, receivers, transferToAddress, 1n);
 
 			// Assert
 			assert(
@@ -920,13 +927,13 @@ describe('NFTDriverClient', () => {
 			const tokenId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
-			const currentReceivers: DripsReceiverStruct[] = [
+			const currentReceivers: StreamReceiverStruct[] = [
 				{
 					userId: 3n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2n,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -944,12 +951,12 @@ describe('NFTDriverClient', () => {
 			const balance = 1n;
 
 			const tx = {};
-			nftDriverTxFactoryStub.setDrips
+			nftDriverTxFactoryStub.setStreams
 				.withArgs(tokenId, tokenAddress, currentReceivers, balance, receivers, 0, 0, transferToAddress)
 				.resolves(tx);
 
 			// Act
-			await testNftDriverClient.setDrips(
+			await testNftDriverClient.setStreams(
 				tokenId,
 				tokenAddress,
 				currentReceivers,

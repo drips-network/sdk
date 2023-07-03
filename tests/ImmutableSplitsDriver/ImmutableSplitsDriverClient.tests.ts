@@ -7,7 +7,7 @@ import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import type { ImmutableSplitsDriver, SplitsReceiverStruct } from '../../contracts/ImmutableSplitsDriver';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import DripsClient from '../../src/Drips/DripsClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriverClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
@@ -19,7 +19,7 @@ describe('ImmutableSplitsDriverClient', () => {
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
+	let dripsHubClientStub: StubbedInstance<DripsClient>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let immutableSplitsDriverContractStub: StubbedInstance<ImmutableSplitsDriver>;
@@ -46,8 +46,8 @@ describe('ImmutableSplitsDriverClient', () => {
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].IMMUTABLE_SPLITS_DRIVER, signerWithProviderStub)
 			.returns(immutableSplitsDriverContractStub);
 
-		dripsHubClientStub = stubInterface<DripsHubClient>();
-		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
+		dripsHubClientStub = stubInterface<DripsClient>();
+		sinon.stub(DripsClient, 'create').resolves(dripsHubClientStub);
 
 		testImmutableSplitsDriverClient = await ImmutableSplitsDriverClient.create(providerStub, signerStub);
 	});

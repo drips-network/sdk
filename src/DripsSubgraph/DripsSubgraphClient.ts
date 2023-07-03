@@ -4,7 +4,7 @@
 import type { BigNumberish } from 'ethers';
 import { ethers } from 'ethers';
 import type { Provider } from '@ethersproject/providers';
-import DripsHubClient from '../DripsHub/DripsHubClient';
+import DripsClient from '../Drips/DripsClient';
 import constants from '../constants';
 import { nameOf, formatDripsReceivers } from '../common/internals';
 import Utils from '../utils';
@@ -38,7 +38,7 @@ import {
 	mapUserAssetConfigToDto,
 	mapUserMetadataEventToDto
 } from './mappers';
-import type { DripsHistoryStruct, DripsReceiverStruct, SqueezeArgs } from '../common/types';
+import type { StreamsHistoryStruct, StreamReceiverStruct, SqueezeArgs } from '../common/types';
 import { reconcileDripsSetReceivers } from './utils';
 import RepoDriverQueries from './RepoDriverQueries';
 
@@ -719,11 +719,11 @@ export default class DripsSubgraphClient {
 	 * **Important**: This method might fail if two Drips updates were performed in a single block.
 	 * because the order of the Drips configurations returned by the Subgraph is not guaranteed for such cases.
 	 * The transaction will fail in the gas estimation phase, so no gas will be wasted.
-	 * @see `DripsHubClient.squeezeDrips` method for more.
+	 * @see `DripsClient.squeezeStreams` method for more.
 	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {string} tokenAddress The ERC20 token address.
-	 * @returns A `Promise` which resolves to the `DripsHubClient.squeezeDrips` arguments.
+	 * @returns A `Promise` which resolves to the `DripsClient.squeezeStreams` arguments.
 	 */
 	public async getArgsForSqueezingAllDrips(
 		userId: string,
@@ -789,7 +789,7 @@ export default class DripsSubgraphClient {
 			dripsSetEventsToSqueeze[dripsSetEventsToSqueeze.length - 1]?.dripsHistoryHash || ethers.constants.HashZero;
 
 		// Transform the events into `DripsHistory` objects.
-		const dripsHistory: DripsHistoryStruct[] = dripsSetEventsToSqueeze
+		const dripsHistory: StreamsHistoryStruct[] = dripsSetEventsToSqueeze
 			?.map((dripsSetEvent) => {
 				// By default a configuration should *not* be squeezed.
 				let shouldSqueeze = false;
@@ -806,8 +806,8 @@ export default class DripsSubgraphClient {
 					}
 				}
 
-				const historyItem: DripsHistoryStruct = {
-					dripsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
+				const historyItem: StreamsHistoryStruct = {
+					streamsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
 					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
 						? dripsSetEvent.currentReceivers.map((r) => ({
 								userId: r.receiverUserId,
@@ -823,7 +823,7 @@ export default class DripsSubgraphClient {
 			// Reverse from DESC to ASC order, as the protocol expects.
 			.reverse();
 
-		// Return the parameters required by the `squeezeDrips` methods.
+		// Return the parameters required by the `squeezeStreams` methods.
 		return { userId, tokenAddress, senderId, historyHash, dripsHistory };
 	}
 
@@ -908,7 +908,7 @@ export default class DripsSubgraphClient {
 		userId: string,
 		tokenAddress: string,
 		provider: Provider
-	): Promise<DripsReceiverStruct[]> {
+	): Promise<StreamReceiverStruct[]> {
 		let dripsSetEvents: DripsSetEvent[] = [];
 		let skip = 0;
 		const first = 500;
@@ -941,7 +941,7 @@ export default class DripsSubgraphClient {
 		// Find the most recent event where the hash matches the receiversHash
 		let matchingEvent = null;
 		for (const e of dripsSetEvents) {
-			const hash = await DripsHubClient.hashDrips(
+			const hash = await DripsClient.hashStreams(
 				e.dripsReceiverSeenEvents.map((d) => ({
 					config: d.config,
 					userId: d.receiverUserId

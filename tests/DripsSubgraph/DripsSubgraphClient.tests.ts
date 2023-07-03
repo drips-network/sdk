@@ -20,7 +20,7 @@ import * as validators from '../../src/common/validators';
 import type * as SubgraphTypes from '../../src/DripsSubgraph/generated/graphql-types';
 import constants from '../../src/constants';
 import type { CycleInfo } from '../../src/common/types';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import DripsClient from '../../src/Drips/DripsClient';
 
 describe('DripsSubgraphClient', () => {
 	const TEST_CHAIN_ID = 11155111; // Sepolia.
@@ -1753,12 +1753,12 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(
 				args.dripsHistory.filter(
 					(c) =>
-						c.dripsHash === ethers.constants.HashZero && c.receivers.filter((e) => e.userId === userId).length === 1
+						c.streamsHash === ethers.constants.HashZero && c.receivers.filter((e) => e.userId === userId).length === 1
 				).length,
 				6
 			);
 			assert.equal(
-				args.dripsHistory.filter((c) => c.dripsHash !== ethers.constants.HashZero && c.receivers.length === 0).length,
+				args.dripsHistory.filter((c) => c.streamsHash !== ethers.constants.HashZero && c.receivers.length === 0).length,
 				6
 			);
 		});
@@ -1901,7 +1901,7 @@ describe('DripsSubgraphClient', () => {
 				.resolves(secondResults);
 
 			sinon
-				.stub(DripsHubClient, 'hashDrips')
+				.stub(DripsClient, 'hashStreams')
 				.onFirstCall()
 				.resolves('0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9')
 				.onSecondCall()

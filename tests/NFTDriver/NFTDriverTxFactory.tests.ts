@@ -9,7 +9,7 @@ import { NFTDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
 import * as validators from '../../src/common/validators';
-import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadataStruct } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadataStruct } from '../../src/common/types';
 import { formatDripsReceivers } from '../../src/common/internals';
 
 describe('NFTDriverTxFactory', () => {
@@ -197,19 +197,19 @@ describe('NFTDriverTxFactory', () => {
 		});
 	});
 
-	describe('setDrips', () => {
+	describe('setStreams', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			nftDriverContractStub.populateTransaction.setDrips = stub.resolves(expectedTx);
-			const currReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
-			const newReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
+			nftDriverContractStub.populateTransaction.setStreams = stub.resolves(expectedTx);
+			const currReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
+			const newReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
 
-			nftDriverContractStub.estimateGas.setDrips = sinon.stub().resolves(BigNumber.from(100));
+			nftDriverContractStub.estimateGas.setStreams = sinon.stub().resolves(BigNumber.from(100));
 
 			// Act
-			const tx = await testNftDriverTxFactory.setDrips(
+			const tx = await testNftDriverTxFactory.setStreams(
 				'1',
 				'0x1234',
 				currReceivers,

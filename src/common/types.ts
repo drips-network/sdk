@@ -1,13 +1,13 @@
 import type { PopulatedTransaction } from 'ethers';
-import type { DripsHistoryStruct } from '../../contracts/DripsHub';
+import type { StreamsHistoryStruct } from '../../contracts/Drips';
 
 export {
-	DripsReceiverStruct,
+	StreamReceiverStruct,
 	SplitsReceiverStruct,
-	DripsHistoryStruct,
-	DripsHubInterface,
+	StreamsHistoryStruct,
+	DripsInterface,
 	UserMetadataStruct
-} from '../../contracts/DripsHub';
+} from '../../contracts/Drips';
 export { NFTDriverInterface } from '../../contracts/NFTDriver';
 export { CallStruct, CallerInterface } from '../../contracts/Caller';
 export { AddressDriverInterface } from '../../contracts/AddressDriver';
@@ -82,7 +82,7 @@ export type SqueezeArgs = {
 	tokenAddress: string;
 	senderId: string;
 	historyHash: string;
-	dripsHistory: DripsHistoryStruct[];
+	dripsHistory: StreamsHistoryStruct[];
 };
 
 export enum Forge {

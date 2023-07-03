@@ -2,14 +2,14 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { DripsReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
 	validateClientSigner,
 	validateCollectInput,
 	validateEmitUserMetadataInput,
-	validateSetDripsInput,
+	validateSetStreamsInput,
 	validateSplitsReceivers
 } from '../common/validators';
 import Utils from '../utils';
@@ -193,7 +193,7 @@ export default class AddressDriverClient {
 	}
 
 	/**
-	 * Collects the received and already split funds and transfers them from the `DripsHub` contract to an address.
+	 * Collects the received and already split funds and transfers them from the `Drips` contract to an address.
 	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -218,7 +218,7 @@ export default class AddressDriverClient {
 	/**
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
-	 * Transfers funds from the user's wallet to the `DripsHub` contract.
+	 * Transfers funds from the user's wallet to the `Drips` contract.
 	 * @param receiverUserId The receiver user ID.
 	 * @param tokenAddress The ERC20 token address.
 	 *
@@ -282,7 +282,7 @@ export default class AddressDriverClient {
 
 	/**
 	 * Sets a Drips configuration.
-	 * Transfers funds from the user's wallet to the `DripsHub` contract to fulfill the change of the drips balance.
+	 * Transfers funds from the user's wallet to the `Drips` contract to fulfill the change of the drips balance.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -310,15 +310,15 @@ export default class AddressDriverClient {
 	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async setDrips(
+	public async setStreams(
 		tokenAddress: string,
-		currentReceivers: DripsReceiverStruct[],
-		newReceivers: DripsReceiverStruct[],
+		currentReceivers: StreamReceiverStruct[],
+		newReceivers: StreamReceiverStruct[],
 		transferToAddress: string,
 		balanceDelta: BigNumberish = 0
 	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
-		validateSetDripsInput(
+		validateSetStreamsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
 				userId: r.userId.toString(),
@@ -332,7 +332,7 @@ export default class AddressDriverClient {
 			balanceDelta
 		);
 
-		const tx = await this.#txFactory.setDrips(
+		const tx = await this.#txFactory.setStreams(
 			tokenAddress,
 			currentReceivers,
 			balanceDelta,

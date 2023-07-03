@@ -9,7 +9,7 @@ import { RepoDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import RepoDriverTxFactory from '../../src/RepoDriver/RepoDriverTxFactory';
 import * as validators from '../../src/common/validators';
-import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadataStruct } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadataStruct } from '../../src/common/types';
 import { Forge } from '../../src/common/types';
 import { formatDripsReceivers } from '../../src/common/internals';
 
@@ -165,20 +165,20 @@ describe('RepoDriverTxFactory', () => {
 		});
 	});
 
-	describe('setDrips', () => {
+	describe('setStreams', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const userId = '0x12345';
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			RepoDriverContractStub.populateTransaction.setDrips = stub.resolves(expectedTx);
-			const currReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
-			const newReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
+			RepoDriverContractStub.populateTransaction.setStreams = stub.resolves(expectedTx);
+			const currReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
+			const newReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
 
-			RepoDriverContractStub.estimateGas.setDrips = sinon.stub().resolves(BigNumber.from(100));
+			RepoDriverContractStub.estimateGas.setStreams = sinon.stub().resolves(BigNumber.from(100));
 
 			// Act
-			const tx = await testRepoDriverTxFactory.setDrips(
+			const tx = await testRepoDriverTxFactory.setStreams(
 				userId,
 				'0x1234',
 				currReceivers,

@@ -1,5 +1,5 @@
 /* eslint-disable no-dupe-class-members */
-import type { NFTDriver, DripsReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/NFTDriver';
+import type { NFTDriver, StreamReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/NFTDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer, Overrides } from 'ethers';
 import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
@@ -10,7 +10,7 @@ import Utils from '../utils';
 export interface INFTDriverTxFactory
 	extends Pick<
 		NFTDriver['populateTransaction'],
-		'mint' | 'safeMint' | 'collect' | 'give' | 'setSplits' | 'setDrips' | 'emitUserMetadata'
+		'mint' | 'safeMint' | 'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitUserMetadata'
 	> {}
 
 export default class NFTDriverTxFactory implements INFTDriverTxFactory {
@@ -111,19 +111,19 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		);
 	}
 
-	public async setDrips(
+	public async setStreams(
 		tokenId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
-		currReceivers: DripsReceiverStruct[],
+		currReceivers: StreamReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
-		newReceivers: DripsReceiverStruct[],
+		newReceivers: StreamReceiverStruct[],
 		maxEndHint1: PromiseOrValue<BigNumberish>,
 		maxEndHint2: PromiseOrValue<BigNumberish>,
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
 		if (!overrides.gasLimit) {
-			const gasEstimation = await this.#driver.estimateGas.setDrips(
+			const gasEstimation = await this.#driver.estimateGas.setStreams(
 				tokenId,
 				erc20,
 				formatDripsReceivers(currReceivers),
@@ -141,7 +141,7 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		}
 
 		return safeDripsTx(
-			await this.#driver.populateTransaction.setDrips(
+			await this.#driver.populateTransaction.setStreams(
 				tokenId,
 				erc20,
 				formatDripsReceivers(currReceivers),

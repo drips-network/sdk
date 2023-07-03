@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import sinon from 'ts-sinon';
 import * as internals from '../../src/common/internals';
 import Utils from '../../src/utils';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('internals', () => {
@@ -187,7 +187,7 @@ describe('internals', () => {
 	describe('formatDripsReceivers()', () => {
 		it('should sort by the expected order when userID1=userID2 but config1<config2', async () => {
 			// Arrange
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
@@ -212,7 +212,7 @@ describe('internals', () => {
 
 		it('should sort by the expected order when userID1=userID2 but config1>config2', async () => {
 			// Arrange
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2,
 					config: Utils.DripsReceiverConfiguration.toUint256({
@@ -237,7 +237,7 @@ describe('internals', () => {
 
 		it('should remove duplicates', async () => {
 			// Arrange
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2,
 					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 2n })
@@ -273,7 +273,7 @@ describe('internals', () => {
 
 		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 100,
 					config: Utils.DripsReceiverConfiguration.toUint256({
@@ -303,7 +303,7 @@ describe('internals', () => {
 
 		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange
-			const receivers: DripsReceiverStruct[] = [
+			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 1,
 					config: Utils.DripsReceiverConfiguration.toUint256({

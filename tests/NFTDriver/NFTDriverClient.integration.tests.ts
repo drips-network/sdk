@@ -3,12 +3,12 @@ import { Wallet } from 'ethers';
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { assert } from 'chai';
 import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import DripsClient from '../../src/Drips/DripsClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { expect } from '../../src/common/internals';
 import type { NftSubAccount, SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
-import type { CollectableBalance } from '../../src/DripsHub/types';
+import type { CollectableBalance } from '../../src/Drips/types';
 import constants from '../../src/constants';
 
 dotenv.config();
@@ -22,13 +22,13 @@ describe('NFTDriver integration tests', () => {
 	const account1AsSigner = new Wallet(process.env.ACCOUNT_1_SECRET_KEY as string);
 	const account2AsSigner = new Wallet(process.env.ACCOUNT_2_SECRET_KEY as string);
 
-	let dripsHubClient: DripsHubClient;
+	let dripsHubClient: DripsClient;
 	let subgraphClient: DripsSubgraphClient;
 	let account1NftDriverClient: NFTDriverClient;
 	let account2NftDriverClient: NFTDriverClient;
 
 	beforeEach(async () => {
-		dripsHubClient = await DripsHubClient.create(provider, account1AsSigner);
+		dripsHubClient = await DripsClient.create(provider, account1AsSigner);
 		subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
 		account1NftDriverClient = await NFTDriverClient.create(provider, account1AsSigner);
 		account2NftDriverClient = await NFTDriverClient.create(provider, account2AsSigner);
@@ -114,7 +114,7 @@ describe('NFTDriver integration tests', () => {
 		assert.equal(receiverSubAccount.ownerAddress, senderSubAccount.ownerAddress);
 
 		console.log(`Updating Drips configuration...`);
-		await account2NftDriverClient.setDrips(
+		await account2NftDriverClient.setStreams(
 			senderSubAccount.tokenId,
 			WETH,
 			await subgraphClient.getCurrentDripsReceivers(senderSubAccount.tokenId, WETH, provider),
@@ -146,7 +146,7 @@ describe('NFTDriver integration tests', () => {
 		assert.equal(expectedConfig.dripsEntries[0].userId, receiverSubAccount.tokenId);
 
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
-		await account2NftDriverClient.setDrips(
+		await account2NftDriverClient.setStreams(
 			senderSubAccount.tokenId,
 			WETH,
 			await subgraphClient.getCurrentDripsReceivers(senderSubAccount.tokenId, WETH, provider),

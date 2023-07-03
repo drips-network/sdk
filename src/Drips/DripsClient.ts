@@ -1,7 +1,7 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { BigNumber } from 'ethers';
-import type { DripsHistoryStruct, DripsReceiverStruct, SplitsReceiverStruct } from '../common/types';
+import type { StreamsHistoryStruct, StreamReceiverStruct, SplitsReceiverStruct } from '../common/types';
 import { ensureSignerExists, formatSplitReceivers, isNullOrUndefined, nameOf } from '../common/internals';
 import {
 	validateAddress,
@@ -14,29 +14,29 @@ import {
 	validateSqueezeDripsInput
 } from '../common/validators';
 import Utils from '../utils';
-import type { DripsHub } from '../../contracts';
-import { DripsHub__factory } from '../../contracts';
+import type { Drips } from '../../contracts';
+import { Drips__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
-import type { CollectableBalance, DripsState, ReceivableBalance, SplitResult, SplittableBalance } from './types';
+import type { CollectableBalance, StreamsState, ReceivableBalance, SplitResult, SplittableBalance } from './types';
 
 /**
- * A client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/DripsHub.sol DripsHub}.
+ * A client for interacting with the {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/Drips.sol Drips}.
  */
-export default class DripsHubClient {
-	#driver!: DripsHub;
+export default class DripsClient {
+	#driver!: Drips;
 	#contractAddress!: string;
 	#provider!: Provider;
 	#signer: Signer | undefined;
 
-	/** Returns the `DripsHubClient`'s `provider`. */
+	/** Returns the `DripsClient`'s `provider`. */
 	public get provider(): Provider {
 		return this.#provider;
 	}
 
 	/**
-	 * Returns the `DripsHubClient`'s `signer`.
+	 * Returns the `DripsClient`'s `signer`.
 	 *
-	 * This is the user to which the `DripsHubClient` is linked and manages Drips.
+	 * This is the user to which the `DripsClient` is linked and manages Drips.
 	 *
 	 * Note that for read-only client instances created with the {@link createReadonly} method it returns `undefined`.
 	 */
@@ -44,7 +44,7 @@ export default class DripsHubClient {
 		return this.#signer;
 	}
 
-	/** Returns the `DripsHub`'s address to which the `DripsHubClient` is connected. */
+	/** Returns the `Drips`'s address to which the `DripsClient` is connected. */
 	public get contractAddress(): string {
 		return this.#contractAddress;
 	}
@@ -52,7 +52,7 @@ export default class DripsHubClient {
 	private constructor() {}
 
 	/**
-	 * Creates a new immutable `DripsHubClient` instance.
+	 * Creates a new immutable `DripsClient` instance.
 	 * @param  {Provider} provider The network provider. It cannot be changed after creation.
 	 *
 	 * The `provider` must be connected to one of the following supported networks:
@@ -67,11 +67,7 @@ export default class DripsHubClient {
 	 * @returns A `Promise` which resolves to the new client instance.
 	 * @throws {@link DripsErrors.initializationError} if the client initialization fails.
 	 */
-	public static async create(
-		provider: Provider,
-		signer?: Signer,
-		customDriverAddress?: string
-	): Promise<DripsHubClient> {
+	public static async create(provider: Provider, signer?: Signer, customDriverAddress?: string): Promise<DripsClient> {
 		try {
 			await validateClientProvider(provider, Utils.Network.SUPPORTED_CHAINS);
 
@@ -85,17 +81,17 @@ export default class DripsHubClient {
 			}
 
 			const network = await provider.getNetwork();
-			const contractAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].DRIPS_HUB;
+			const contractAddress = customDriverAddress ?? Utils.Network.configs[network.chainId].DRIPS;
 
-			const client = new DripsHubClient();
+			const client = new DripsClient();
 
 			client.#signer = signer;
 			client.#provider = provider;
 			client.#contractAddress = contractAddress;
-			client.#driver = DripsHub__factory.connect(contractAddress, signer ?? provider);
+			client.#driver = Drips__factory.connect(contractAddress, signer ?? provider);
 			return client;
 		} catch (error: any) {
-			throw DripsErrors.initializationError(`Could not create 'DripsHubClient': ${error.message}`);
+			throw DripsErrors.initializationError(`Could not create 'DripsClient': ${error.message}`);
 		}
 	}
 
@@ -114,17 +110,17 @@ export default class DripsHubClient {
 	 * @param provider The provider.
 	 * @returns The hash of the drips receivers.
 	 */
-	public static async hashDrips(receivers: DripsReceiverStruct[], provider: Provider): Promise<string> {
-		const hash = DripsHub__factory.connect(
-			Utils.Network.configs[(await provider.getNetwork()).chainId].DRIPS_HUB,
+	public static async hashStreams(receivers: StreamReceiverStruct[], provider: Provider): Promise<string> {
+		const hash = Drips__factory.connect(
+			Utils.Network.configs[(await provider.getNetwork()).chainId].DRIPS,
 			provider
-		).hashDrips(receivers);
+		).hashStreams(receivers);
 
 		return hash;
 	}
 
 	/**
-	 * Returns the total amount currently stored in `DripsHub` for the given token.
+	 * Returns the amount currently stored in `Drips` for the given token.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -132,15 +128,21 @@ export default class DripsHubClient {
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @returns A `Promise` which resolves to the balance of the token.
+	 * @returns The balance currently stored in streaming and splitting.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 */
-	public async getTokenBalance(tokenAddress: string): Promise<bigint> {
+	public async getTokenBalance(tokenAddress: string): Promise<{
+		streamsBalance: bigint;
+		splitsBalance: bigint;
+	}> {
 		validateAddress(tokenAddress);
 
-		const totalBalance = await this.#driver.totalBalance(tokenAddress);
+		const totalBalance = await this.#driver.balances(tokenAddress);
 
-		return totalBalance.toBigInt();
+		return {
+			streamsBalance: totalBalance.streamsBalance.toBigInt(),
+			splitsBalance: totalBalance.splitsBalance.toBigInt()
+		};
 	}
 
 	/**
@@ -168,7 +170,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		return this.#driver.receivableDripsCycles(userId, tokenAddress);
+		return this.#driver.receivableStreamsCycles(userId, tokenAddress);
 	}
 
 	/**
@@ -212,7 +214,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		const receivableBalance = await this.#driver.receiveDripsResult(userId, tokenAddress, maxCycles);
+		const receivableBalance = await this.#driver.receiveStreamsResult(userId, tokenAddress, maxCycles);
 
 		return {
 			tokenAddress,
@@ -239,17 +241,17 @@ export default class DripsHubClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.argumentError} if `maxCycles` is not valid.
 	 */
-	public receiveDrips(userId: string, tokenAddress: string, maxCycles: BigNumberish): Promise<ContractTransaction> {
+	public receiveStreams(userId: string, tokenAddress: string, maxCycles: BigNumberish): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 		validateReceiveDripsInput(userId, tokenAddress, maxCycles);
 
-		return this.#driver.receiveDrips(userId, tokenAddress, maxCycles);
+		return this.#driver.receiveStreams(userId, tokenAddress, maxCycles);
 	}
 
 	/**
 	 * Receives drips from the currently running cycle from a single sender.
-	 * It doesn't receive drips from the previous, finished cycles, to do that use `receiveDrips`.
-	 * Squeezed funds won't be received in the next calls to `squeezeDrips` or `receiveDrips`.
+	 * It doesn't receive drips from the previous, finished cycles, to do that use `receiveStreams`.
+	 * Squeezed funds won't be received in the next calls to `squeezeStreams` or `receiveStreams`.
 	 * Only funds dripped before `block.timestamp` can be squeezed.
 	 *
 	 * **Tip**: you might want to use `DripsSubgraphClient.getArgsForSqueezingAllDrips` to easily populate the arguments for squeezing all Drips up to "now".
@@ -272,16 +274,16 @@ export default class DripsHubClient {
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
-	public squeezeDrips(
+	public squeezeStreams(
 		userId: string,
 		tokenAddress: string,
 		senderId: BigNumberish,
 		historyHash: string,
-		dripsHistory: DripsHistoryStruct[]
+		dripsHistory: StreamsHistoryStruct[]
 	): Promise<ContractTransaction> {
 		validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
 
-		return this.#driver.squeezeDrips(userId, tokenAddress, senderId, historyHash, dripsHistory);
+		return this.#driver.squeezeStreams(userId, tokenAddress, senderId, historyHash, dripsHistory);
 	}
 
 	/**
@@ -298,7 +300,7 @@ export default class DripsHubClient {
 	 * @param  {string} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {string} historyHash The sender's history hash which was valid right before
 	 * they set up the sequence of configurations described by `dripsHistory`.
-	 * @param  {DripsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
+	 * @param  {StreamsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
 	 * @returns A `Promise` which resolves to the the squeezable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
@@ -308,7 +310,7 @@ export default class DripsHubClient {
 		tokenAddress: string,
 		senderId: string,
 		historyHash: string,
-		dripsHistory: DripsHistoryStruct[]
+		dripsHistory: StreamsHistoryStruct[]
 	): Promise<bigint> {
 		validateAddress(tokenAddress);
 
@@ -340,7 +342,7 @@ export default class DripsHubClient {
 			);
 		}
 
-		const squeezableBalance = await this.#driver.squeezeDripsResult(
+		const squeezableBalance = await this.#driver.squeezeStreamsResult(
 			userId,
 			tokenAddress,
 			senderId,
@@ -496,11 +498,11 @@ export default class DripsHubClient {
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @returns A Promise which resolves to the {@link DripsState}.
+	 * @returns A Promise which resolves to the {@link StreamsState}.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 */
-	public async dripsState(userId: string, tokenAddress: string): Promise<DripsState> {
+	public async streamsState(userId: string, tokenAddress: string): Promise<StreamsState> {
 		validateAddress(tokenAddress);
 
 		if (isNullOrUndefined(userId)) {
@@ -510,14 +512,14 @@ export default class DripsHubClient {
 			);
 		}
 
-		const { dripsHash, dripsHistoryHash, updateTime, balance, maxEnd } = await this.#driver.dripsState(
+		const { streamsHash, streamsHistoryHash, updateTime, balance, maxEnd } = await this.#driver.streamsState(
 			userId,
 			tokenAddress
 		);
 
 		return {
-			dripsHash,
-			dripsHistoryHash,
+			streamsHash,
+			streamsHistoryHash,
 			updateTime,
 			balance: balance?.toBigInt(),
 			maxEnd
@@ -535,9 +537,9 @@ export default class DripsHubClient {
 	 * Tokens which rebase the holders' balances, collect taxes on transfers,
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
-	 * @param  {DripsReceiverStruct[]} receivers The users's current drips receivers.
-	 * @param  {BigNumberish} timestamp The timestamp for which the balance should be calculated. It can't be lower than the timestamp of the last call to `setDrips`.
-	 * If it's bigger than `block.timestamp`, then it's a prediction assuming that `setDrips` won't be called before `timestamp`.
+	 * @param  {StreamReceiverStruct[]} receivers The users's current drips receivers.
+	 * @param  {BigNumberish} timestamp The timestamp for which the balance should be calculated. It can't be lower than the timestamp of the last call to `setStreams`.
+	 * If it's bigger than `block.timestamp`, then it's a prediction assuming that `setStreams` won't be called before `timestamp`.
 	 * @returns A Promise which resolves to the user balance on `timestamp`.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
@@ -549,7 +551,7 @@ export default class DripsHubClient {
 	public async getDripsBalanceAt(
 		userId: string,
 		tokenAddress: string,
-		receivers: DripsReceiverStruct[],
+		receivers: StreamReceiverStruct[],
 		timestamp: BigNumberish
 	): Promise<bigint> {
 		validateAddress(tokenAddress);

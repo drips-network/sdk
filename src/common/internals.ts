@@ -6,7 +6,7 @@
 import type { PopulatedTransaction, Signer } from 'ethers';
 import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from './types';
+import type { StreamReceiverStruct, SplitsReceiverStruct } from './types';
 
 /** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];
@@ -15,13 +15,14 @@ export const nameOf = (obj: any) => Object.keys(obj)[0];
 export const isNullOrUndefined = (obj: any) => obj == null;
 
 /** @internal */
-export const formatDripsReceivers = (receivers: DripsReceiverStruct[]) => {
+export const formatDripsReceivers = (receivers: StreamReceiverStruct[]) => {
 	// Drips receivers must be sorted by user ID and config, deduplicated, and without amount per second <= 0.
 
-	const uniqueReceivers = receivers.reduce((unique: DripsReceiverStruct[], o) => {
+	const uniqueReceivers = receivers.reduce((unique: StreamReceiverStruct[], o) => {
 		if (
 			!unique.some(
-				(obj: DripsReceiverStruct) => obj.userId === o.userId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
+				(obj: StreamReceiverStruct) =>
+					obj.userId === o.userId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
 			)
 		) {
 			unique.push(o);

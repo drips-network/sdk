@@ -281,7 +281,7 @@ describe('Utils', () => {
 		describe('networkConfig', () => {
 			it('should export only unique and supported chain IDs', () => {
 				// Arrange
-				const chainIds = [1, 11155111];
+				const chainIds = [1, 11155111, 5];
 
 				// Assert
 				assert.includeMembers(Utils.Network.SUPPORTED_CHAINS as number[], chainIds);

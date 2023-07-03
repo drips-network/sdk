@@ -10,7 +10,7 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
-import DripsHubTxFactory from '../../src/DripsHub/DripsHubTxFactory';
+import DripsTxFactory from '../../src/Drips/DripsTxFactory';
 
 describe('NFTDriverPresets', () => {
 	const TEST_CHAIN_ID = 11155111; // Sepolia.
@@ -19,11 +19,11 @@ describe('NFTDriverPresets', () => {
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let dripsHubTxFactoryStub: StubbedInstance<DripsHubTxFactory>;
+	let dripsHubTxFactoryStub: StubbedInstance<DripsTxFactory>;
 	let nftDriverFactoryStub: StubbedInstance<NFTDriverTxFactory>;
 
 	beforeEach(async () => {
-		dripsHubTxFactoryStub = stubInterface<DripsHubTxFactory>();
+		dripsHubTxFactoryStub = stubInterface<DripsTxFactory>();
 		nftDriverFactoryStub = stubInterface<NFTDriverTxFactory>();
 
 		providerStub = sinon.createStubInstance(JsonRpcProvider);
@@ -39,7 +39,7 @@ describe('NFTDriverPresets', () => {
 		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		sinon.stub(NFTDriverTxFactory, 'create').resolves(nftDriverFactoryStub);
-		sinon.stub(DripsHubTxFactory, 'create').resolves(dripsHubTxFactoryStub);
+		sinon.stub(DripsTxFactory, 'create').resolves(dripsHubTxFactoryStub);
 	});
 
 	afterEach(() => {
@@ -100,9 +100,9 @@ describe('NFTDriverPresets', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should validate the setDrips input', async () => {
+		it('should validate the setStreams input', async () => {
 			// Arrange
-			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetStreamsInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
@@ -210,7 +210,7 @@ describe('NFTDriverPresets', () => {
 
 		it('should return the expected preset', async () => {
 			// Arrange
-			sinon.stub(validators, 'validateSetDripsInput');
+			sinon.stub(validators, 'validateSetStreamsInput');
 			sinon.stub(validators, 'validateEmitUserMetadataInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
@@ -245,7 +245,7 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address
 			};
 
-			nftDriverFactoryStub.setDrips
+			nftDriverFactoryStub.setStreams
 				.withArgs(
 					payload.tokenId,
 					payload.tokenAddress,
@@ -256,7 +256,7 @@ describe('NFTDriverPresets', () => {
 					0,
 					payload.transferToAddress
 				)
-				.resolves({ data: 'setDrips' } as PopulatedTransaction);
+				.resolves({ data: 'setStreams' } as PopulatedTransaction);
 
 			nftDriverFactoryStub.emitUserMetadata
 				.withArgs(
@@ -279,7 +279,7 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert.equal(preset.length, 2);
-			assert.equal(preset[0].data, 'setDrips');
+			assert.equal(preset[0].data, 'setStreams');
 			assert.equal(preset[1].data, 'emitUserMetadata');
 		});
 	});
@@ -336,7 +336,7 @@ describe('NFTDriverPresets', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should validate the squeezeDrips input', async () => {
+		it('should validate the squeezeStreams input', async () => {
 			// Arrange
 			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
 
@@ -382,7 +382,7 @@ describe('NFTDriverPresets', () => {
 			);
 		});
 
-		it('should validate the receiveDrips input', async () => {
+		it('should validate the receiveStreams input', async () => {
 			// Arrange
 			const validateReceiveDripsInputStub = sinon.stub(validators, 'validateReceiveDripsInput');
 
@@ -546,11 +546,11 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			dripsHubTxFactoryStub.squeezeDrips.resolves({ data: 'squeezeDrips' } as PopulatedTransaction);
+			dripsHubTxFactoryStub.squeezeStreams.resolves({ data: 'squeezeStreams' } as PopulatedTransaction);
 
-			dripsHubTxFactoryStub.receiveDrips
+			dripsHubTxFactoryStub.receiveStreams
 				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
-				.resolves({ data: 'receiveDrips' } as PopulatedTransaction);
+				.resolves({ data: 'receiveStreams' } as PopulatedTransaction);
 
 			dripsHubTxFactoryStub.split
 				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
@@ -565,14 +565,14 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert.equal(preset.length, 5);
-			assert.equal(preset[0].data, 'squeezeDrips');
-			assert.equal(preset[1].data, 'squeezeDrips');
-			assert.equal(preset[2].data, 'receiveDrips');
+			assert.equal(preset[0].data, 'squeezeStreams');
+			assert.equal(preset[1].data, 'squeezeStreams');
+			assert.equal(preset[2].data, 'receiveStreams');
 			assert.equal(preset[3].data, 'split');
 			assert.equal(preset[4].data, 'collect');
 		});
 
-		it('should return the expected preset when skip receiveDrips is true', async () => {
+		it('should return the expected preset when skip receiveStreams is true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
@@ -636,9 +636,9 @@ describe('NFTDriverPresets', () => {
 				]
 			};
 
-			dripsHubTxFactoryStub.receiveDrips
+			dripsHubTxFactoryStub.receiveStreams
 				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
-				.resolves({ data: 'receiveDrips' } as PopulatedTransaction);
+				.resolves({ data: 'receiveStreams' } as PopulatedTransaction);
 
 			nftDriverFactoryStub.collect
 				.withArgs(payload.tokenId, payload.tokenAddress, payload.transferToAddress)
@@ -649,11 +649,11 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert.equal(preset.length, 2);
-			assert.equal(preset[0].data, 'receiveDrips');
+			assert.equal(preset[0].data, 'receiveStreams');
 			assert.equal(preset[1].data, 'collect');
 		});
 
-		it('should return the expected preset when skip receiveDrips and split are true', async () => {
+		it('should return the expected preset when skip receiveStreams and split are true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
