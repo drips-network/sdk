@@ -32,12 +32,12 @@ export type NetworkConfig = {
 	DEPLOYMENT_TIME: string;
 	COMMIT_HASH: string;
 	WALLET: string;
-	WALLET_NONCE: string;
-	DEPLOYER: string;
-	DRIPS_HUB: string;
-	DRIPS_HUB_CYCLE_SECONDS: string;
-	DRIPS_HUB_LOGIC: string;
-	DRIPS_HUB_ADMIN: string;
+	DRIPS_DEPLOYER: string;
+	DRIPS_DEPLOYER_SALT: string;
+	DRIPS: string;
+	DRIPS_CYCLE_SECONDS: string;
+	DRIPS_LOGIC: string;
+	DRIPS_ADMIN: string;
 	CALLER: string;
 	ADDRESS_DRIVER: string;
 	ADDRESS_DRIVER_LOGIC: string;
