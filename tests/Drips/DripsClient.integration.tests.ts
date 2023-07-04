@@ -84,13 +84,13 @@ describe('DripsClient integration tests', () => {
 		);
 		console.log(
 			`Current WETH Drips configuration has the following receivers: ${
-				wEthConfigurationBefore?.dripsEntries.length
-					? wEthConfigurationBefore?.dripsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
+				wEthConfigurationBefore?.streamsEntries.length
+					? wEthConfigurationBefore?.streamsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
 					: '[no receivers or no configuration found]'
 			}`
 		);
 
-		const config = Utils.DripsReceiverConfiguration.toUint256({
+		const config = Utils.StreamConfiguration.toUint256({
 			start: BigInt(0),
 			duration: BigInt(0),
 			amountPerSec: BigInt(1 * constants.AMT_PER_SEC_MULTIPLIER),
@@ -100,7 +100,7 @@ describe('DripsClient integration tests', () => {
 		console.log(`Updating Drips configuration...`);
 		await senderAddressDriverClient.setStreams(
 			WETH,
-			wEthConfigurationBefore?.dripsEntries.map((d) => ({
+			wEthConfigurationBefore?.streamsEntries.map((d) => ({
 				config: d.config,
 				userId: d.userId
 			})) || [],
@@ -114,9 +114,9 @@ describe('DripsClient integration tests', () => {
 			() => subgraphClient.getUserAssetConfigById(senderUserId, Utils.Asset.getIdFromAddress(WETH)),
 			(configuration) => {
 				const found =
-					configuration?.dripsEntries.length === 1 &&
-					configuration.dripsEntries[0].config === config &&
-					configuration.dripsEntries[0].userId === receiverUserId;
+					configuration?.streamsEntries.length === 1 &&
+					configuration.streamsEntries[0].config === config &&
+					configuration.streamsEntries[0].userId === receiverUserId;
 
 				if (!found) {
 					console.log('New Drips configuration not found yet.');
@@ -130,7 +130,7 @@ describe('DripsClient integration tests', () => {
 			5000
 		)) as UserAssetConfig;
 
-		assert.equal(expectedConfig.dripsEntries[0].userId, receiverUserId);
+		assert.equal(expectedConfig.streamsEntries[0].userId, receiverUserId);
 
 		console.log("Querying the Subgraph until receiver's squeezable balance is greater than 0...");
 		const argsAfter = await subgraphClient.getArgsForSqueezingAllDrips(receiverUserId, senderUserId, WETH);
@@ -163,7 +163,7 @@ describe('DripsClient integration tests', () => {
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await senderAddressDriverClient.setStreams(
 			WETH,
-			expectedConfig.dripsEntries.map((d) => ({
+			expectedConfig.streamsEntries.map((d) => ({
 				config: d.config,
 				userId: d.userId
 			})),

@@ -15,7 +15,7 @@ import type {
 	StreamsHistoryStruct,
 	StreamReceiverStruct,
 	SplitsReceiverStruct,
-	DripsReceiverConfig
+	StreamConfig
 } from '../../src/common/types';
 import * as internals from '../../src/common/internals';
 
@@ -885,7 +885,7 @@ describe('DripsClient', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 			const tokenAddress = Wallet.createRandom().address;
@@ -900,8 +900,8 @@ describe('DripsClient', () => {
 			assert(
 				validateDripsReceiversStub.calledOnceWithExactly(
 					sinon.match(
-						(r: { userId: string; config: DripsReceiverConfig }[]) =>
-							Utils.DripsReceiverConfiguration.toUint256(r[0].config) === receivers[0].config
+						(r: { userId: string; config: StreamConfig }[]) =>
+							Utils.StreamConfiguration.toUint256(r[0].config) === receivers[0].config
 					)
 				)
 			);
@@ -951,7 +951,7 @@ describe('DripsClient', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 			const expectedBalance = BigNumber.from(1);

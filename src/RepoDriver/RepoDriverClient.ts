@@ -356,8 +356,8 @@ export default class RepoDriverClient {
 	 * @throws {@link DripsErrors.addressError} if `tokenAddress` or `transferToAddress` is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws DripsErrors.argumentError if `currentReceivers`' or `newReceivers`' count exceeds the max allowed drips receivers.
-	 * @throws {@link DripsErrors.dripsReceiverError} if any of the `currentReceivers` or the `newReceivers` is not valid.
-	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
+	 * @throws {@link DripsErrors.streamsReceiverError} if any of the `currentReceivers` or the `newReceivers` is not valid.
+	 * @throws {@link DripsErrors.streamConfigError} if any of the receivers' configuration is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
 	public async setStreams(
@@ -376,11 +376,11 @@ export default class RepoDriverClient {
 			tokenAddress,
 			currentReceivers?.map((r) => ({
 				userId: r.userId.toString(),
-				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			})),
 			newReceivers?.map((r) => ({
 				userId: r.userId.toString(),
-				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			})),
 			transferToAddress,
 			balanceDelta

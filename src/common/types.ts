@@ -13,7 +13,7 @@ export { CallStruct, CallerInterface } from '../../contracts/Caller';
 export { AddressDriverInterface } from '../../contracts/AddressDriver';
 export { ImmutableSplitsDriverInterface } from '../../contracts/ImmutableSplitsDriver';
 
-export type DripsReceiverConfig = {
+export type StreamConfig = {
 	/** An arbitrary number used to identify a drip. When setting a config, it must be greater than or equal to `0`. It's a part of the configuration but the protocol doesn't use it. */
 	dripId: bigint;
 
@@ -68,7 +68,7 @@ export type CycleInfo = {
 	nextCycleStartDate: Date;
 };
 
-export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
+export type DripsReceiver = { userId: string; config: StreamConfig };
 
 export type Preset = PopulatedTransaction[];
 

@@ -3,7 +3,7 @@ import type { BigNumberish, Signer } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct, StreamsHistoryStruct, UserMetadata } from './types';
+import type { StreamConfig, SplitsReceiverStruct, StreamsHistoryStruct, UserMetadata } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -16,18 +16,18 @@ export const validateAddress = (address: string) => {
 };
 
 /** @internal */
-export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverConfig): void => {
-	if (!dripsReceiverConfig) {
+export const validateStreamConfig = (streamConfig: StreamConfig): void => {
+	if (!streamConfig) {
 		throw DripsErrors.argumentMissingError(
-			`Drips receiver config validation failed: '${nameOf({ dripsReceiverConfig })}' is missing.`,
-			nameOf({ dripsReceiverConfig })
+			`Drips receiver config validation failed: '${nameOf({ streamConfig })}' is missing.`,
+			nameOf({ streamConfig })
 		);
 	}
 
-	const { dripId, start, duration, amountPerSec } = dripsReceiverConfig;
+	const { dripId, start, duration, amountPerSec } = streamConfig;
 
 	if (isNullOrUndefined(dripId) || dripId < 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ dripId })}' must be greater than or equal to 0`,
 			nameOf({ start }),
 			start
@@ -35,7 +35,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 	}
 
 	if (isNullOrUndefined(start) || start < 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ start })}' must be greater than or equal to 0`,
 			nameOf({ start }),
 			start
@@ -43,7 +43,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 	}
 
 	if (isNullOrUndefined(duration) || duration < 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ duration })}' must be greater than or equal to 0`,
 			nameOf({ duration }),
 			duration
@@ -51,7 +51,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 	}
 
 	if (isNullOrUndefined(amountPerSec) || amountPerSec <= 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ amountPerSec })}' must be greater than 0.`,
 			nameOf({ amountPerSec }),
 			amountPerSec
@@ -60,7 +60,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 };
 
 /** @internal */
-export const validateDripsReceivers = (receivers: { userId: string; config: DripsReceiverConfig }[]) => {
+export const validateDripsReceivers = (receivers: { userId: string; config: StreamConfig }[]) => {
 	if (!receivers) {
 		throw DripsErrors.argumentMissingError(
 			`Drips receivers validation failed: '${nameOf({ receivers })}' is missing.`,
@@ -81,21 +81,21 @@ export const validateDripsReceivers = (receivers: { userId: string; config: Drip
 			const { userId, config } = receiver;
 
 			if (isNullOrUndefined(userId)) {
-				throw DripsErrors.dripsReceiverError(
+				throw DripsErrors.streamsReceiverError(
 					`Drips receivers validation failed: '${nameOf({ userId })}' is missing.`,
 					nameOf({ userId }),
 					userId
 				);
 			}
 			if (isNullOrUndefined(config)) {
-				throw DripsErrors.dripsReceiverError(
+				throw DripsErrors.streamsReceiverError(
 					`Drips receivers validation failed: '${nameOf({ config })}' is missing.`,
 					nameOf({ config }),
 					config
 				);
 			}
 
-			validateDripsReceiverConfig(config);
+			validateStreamConfig(config);
 		});
 	}
 };
@@ -191,11 +191,11 @@ export const validateSetStreamsInput = (
 	tokenAddress: string,
 	currentReceivers: {
 		userId: string;
-		config: DripsReceiverConfig;
+		config: StreamConfig;
 	}[],
 	newReceivers: {
 		userId: string;
-		config: DripsReceiverConfig;
+		config: StreamConfig;
 	}[],
 	transferToAddress: string,
 	balanceDelta: BigNumberish

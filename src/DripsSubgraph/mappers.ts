@@ -1,15 +1,15 @@
 import Utils from '../utils';
 import type {
-	DripsReceiverSeenEvent,
-	DripsSetEvent,
+	StreamReceiverSeenEvent,
+	StreamsSetEvent,
 	SplitsEntry,
 	UserAssetConfig,
 	UserMetadataEntry,
 	SplitEvent,
-	ReceivedDripsEvent,
+	ReceivedStreamsEvent,
 	GivenEvent,
 	CollectedEvent,
-	SqueezedDripsEvent,
+	SqueezedStreamsEvent,
 	RepoAccount,
 	RepoAccountStatus
 } from './types';
@@ -29,7 +29,7 @@ export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): Rep
 export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
 	id: userAssetConfig.id,
 	assetId: BigInt(userAssetConfig.assetId),
-	dripsEntries: userAssetConfig.dripsEntries?.map((d) => ({
+	streamsEntries: userAssetConfig.streamsEntries?.map((d) => ({
 		id: d.id,
 		userId: d.userId,
 		config: BigInt(d.config)
@@ -48,20 +48,20 @@ export const mapSplitEntryToDto = (splitEntry: SubgraphTypes.SplitsEntry): Split
 });
 
 /** @internal */
-export const mapDripsSetEventToDto = (dripsSetEvent: SubgraphTypes.DripsSetEvent): DripsSetEvent => ({
-	id: dripsSetEvent.id,
-	userId: dripsSetEvent.userId,
-	assetId: BigInt(dripsSetEvent.assetId),
-	dripsReceiverSeenEvents: dripsSetEvent.dripsReceiverSeenEvents?.map((r) => ({
+export const mapStreamsSetEventToDto = (streamsSetEvent: SubgraphTypes.StreamsSetEvent): StreamsSetEvent => ({
+	id: streamsSetEvent.id,
+	userId: streamsSetEvent.userId,
+	assetId: BigInt(streamsSetEvent.assetId),
+	streamReceiverSeenEvents: streamsSetEvent.streamReceiverSeenEvents?.map((r) => ({
 		id: r.id,
 		receiverUserId: r.receiverUserId,
 		config: BigInt(r.config)
 	})),
-	dripsHistoryHash: dripsSetEvent.dripsHistoryHash,
-	balance: BigInt(dripsSetEvent.balance),
-	blockTimestamp: BigInt(dripsSetEvent.blockTimestamp),
-	maxEnd: BigInt(dripsSetEvent.maxEnd),
-	receiversHash: dripsSetEvent.receiversHash
+	streamsHistoryHash: streamsSetEvent.streamsHistoryHash,
+	balance: BigInt(streamsSetEvent.balance),
+	blockTimestamp: BigInt(streamsSetEvent.blockTimestamp),
+	maxEnd: BigInt(streamsSetEvent.maxEnd),
+	receiversHash: streamsSetEvent.receiversHash
 });
 
 /** @internal */
@@ -75,9 +75,9 @@ export const mapSplitEventToDto = (splitEvent: SubgraphTypes.SplitEvent): SplitE
 });
 
 /** @internal */
-export const mapReceivedDripsEventToDto = (
-	receivedDripsEvent: SubgraphTypes.ReceivedDripsEvent
-): ReceivedDripsEvent => ({
+export const mapReceivedStreamsEventToDto = (
+	receivedDripsEvent: SubgraphTypes.ReceivedStreamsEvent
+): ReceivedStreamsEvent => ({
 	id: receivedDripsEvent.id,
 	amount: BigInt(receivedDripsEvent.amt),
 	assetId: BigInt(receivedDripsEvent.assetId),
@@ -96,14 +96,16 @@ export const mapCollectedEventToDto = (collectedEvent: SubgraphTypes.CollectedEv
 });
 
 /** @internal */
-export const mapSqueezedDripsToDto = (squeezedDripsEvent: SubgraphTypes.SqueezedDripsEvent): SqueezedDripsEvent => ({
+export const mapSqueezedDripsToDto = (
+	squeezedDripsEvent: SubgraphTypes.SqueezedStreamsEvent
+): SqueezedStreamsEvent => ({
 	amount: BigInt(squeezedDripsEvent.amt),
 	assetId: BigInt(squeezedDripsEvent.assetId),
 	blockTimestamp: BigInt(squeezedDripsEvent.blockTimestamp),
 	id: squeezedDripsEvent.id,
 	senderId: squeezedDripsEvent.senderId,
 	userId: squeezedDripsEvent.userId,
-	dripsHistoryHashes: squeezedDripsEvent.dripsHistoryHashes
+	streamsHistoryHashes: squeezedDripsEvent.streamsHistoryHashes
 });
 
 /** @internal */
@@ -117,19 +119,19 @@ export const mapGivenEventToDto = (givenEvent: SubgraphTypes.GivenEvent): GivenE
 });
 
 /** @internal */
-export const mapDripsReceiverSeenEventToDto = (
-	dripsReceiverSeenEvent: SubgraphTypes.DripsReceiverSeenEvent
-): DripsReceiverSeenEvent => ({
-	id: dripsReceiverSeenEvent.id,
-	config: BigInt(dripsReceiverSeenEvent.config),
-	senderUserId: BigInt(dripsReceiverSeenEvent.senderUserId),
-	receiverUserId: BigInt(dripsReceiverSeenEvent.receiverUserId),
-	dripsSetEvent: {
-		id: dripsReceiverSeenEvent.dripsSetEvent.id,
-		assetId: BigInt(dripsReceiverSeenEvent.dripsSetEvent.assetId),
-		receiversHash: dripsReceiverSeenEvent.dripsSetEvent.receiversHash
+export const mapStreamReceiverSeenEventToDto = (
+	streamsReceiverSeenEvent: SubgraphTypes.StreamReceiverSeenEvent
+): StreamReceiverSeenEvent => ({
+	id: streamsReceiverSeenEvent.id,
+	config: BigInt(streamsReceiverSeenEvent.config),
+	senderUserId: BigInt(streamsReceiverSeenEvent.senderUserId),
+	receiverUserId: BigInt(streamsReceiverSeenEvent.receiverUserId),
+	streamsSetEvent: {
+		id: streamsReceiverSeenEvent.streamsSetEvent.id,
+		assetId: BigInt(streamsReceiverSeenEvent.streamsSetEvent.assetId),
+		receiversHash: streamsReceiverSeenEvent.streamsSetEvent.receiversHash
 	},
-	blockTimestamp: BigInt(dripsReceiverSeenEvent.blockTimestamp)
+	blockTimestamp: BigInt(streamsReceiverSeenEvent.blockTimestamp)
 });
 
 /** @internal */

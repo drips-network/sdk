@@ -1,7 +1,7 @@
 export type UserAssetConfig = {
 	id: string;
 	assetId: bigint;
-	dripsEntries: {
+	streamsEntries: {
 		id: string;
 		userId: string;
 		config: bigint;
@@ -18,16 +18,16 @@ export type SplitsEntry = {
 	senderId: string;
 };
 
-export type DripsSetEvent = {
+export type StreamsSetEvent = {
 	id: string;
 	userId: string;
 	assetId: bigint;
-	dripsReceiverSeenEvents: {
+	streamReceiverSeenEvents: {
 		id: string;
 		receiverUserId: string;
 		config: bigint;
 	}[];
-	dripsHistoryHash: string;
+	streamsHistoryHash: string;
 	balance: bigint;
 	blockTimestamp: bigint;
 	maxEnd: bigint;
@@ -42,14 +42,14 @@ export type CollectedEvent = {
 	blockTimestamp: bigint;
 };
 
-export type SqueezedDripsEvent = {
+export type SqueezedStreamsEvent = {
 	amount: bigint;
 	assetId: bigint;
 	blockTimestamp: bigint;
 	id: string;
 	senderId: string;
 	userId: string;
-	dripsHistoryHashes: string[];
+	streamsHistoryHashes: string[];
 };
 
 export type SplitEvent = {
@@ -61,7 +61,7 @@ export type SplitEvent = {
 	userId: string;
 };
 
-export type ReceivedDripsEvent = {
+export type ReceivedStreamsEvent = {
 	id: string;
 	amount: bigint;
 	assetId: bigint;
@@ -79,12 +79,12 @@ export type GivenEvent = {
 	userId: string;
 };
 
-export type DripsReceiverSeenEvent = {
+export type StreamReceiverSeenEvent = {
 	id: string;
 	config: bigint;
 	senderUserId: bigint;
 	receiverUserId: bigint;
-	dripsSetEvent: {
+	streamsSetEvent: {
 		id: string;
 		assetId: bigint;
 		receiversHash: string;
@@ -105,13 +105,13 @@ export type NftSubAccount = {
 	ownerAddress: string;
 };
 
-export type DripsSetEventWithFullReceivers = {
+export type StreamsSetEventWithFullReceivers = {
 	currentReceivers: {
 		id: string;
 		receiverUserId: string;
 		config: bigint;
 	}[];
-} & DripsSetEvent;
+} & StreamsSetEvent;
 
 export type RepoAccountStatus = 'CLAIMED' | 'OWNER_UPDATE_REQUESTED' | null;
 

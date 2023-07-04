@@ -13,25 +13,25 @@ import { DripsErrors } from '../common/DripsError';
 import * as gql from './gql';
 import type * as SubgraphTypes from './generated/graphql-types';
 import type {
-	DripsSetEvent,
+	StreamsSetEvent,
 	SplitsEntry,
 	UserAssetConfig,
-	DripsReceiverSeenEvent,
+	StreamReceiverSeenEvent,
 	UserMetadataEntry,
 	NftSubAccount,
 	SplitEvent,
-	ReceivedDripsEvent,
+	ReceivedStreamsEvent,
 	GivenEvent,
 	CollectedEvent,
-	SqueezedDripsEvent,
-	DripsSetEventWithFullReceivers
+	SqueezedStreamsEvent,
+	StreamsSetEventWithFullReceivers
 } from './types';
 import {
 	mapCollectedEventToDto,
-	mapDripsReceiverSeenEventToDto,
-	mapDripsSetEventToDto,
+	mapStreamReceiverSeenEventToDto,
+	mapStreamsSetEventToDto,
 	mapGivenEventToDto,
-	mapReceivedDripsEventToDto,
+	mapReceivedStreamsEventToDto,
 	mapSplitEntryToDto,
 	mapSplitEventToDto,
 	mapSqueezedDripsToDto,
@@ -240,11 +240,11 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsSetEventsByUserId(
+	public async getStreamsSetEventsByUserId(
 		userId: string,
 		skip: number = 0,
 		first: number = 100
-	): Promise<DripsSetEvent[]> {
+	): Promise<StreamsSetEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'drip set' events: ${nameOf({ userId })} is missing.`,
@@ -253,12 +253,12 @@ export default class DripsSubgraphClient {
 		}
 
 		type QueryResponse = {
-			dripsSetEvents: SubgraphTypes.DripsSetEvent[];
+			streamsSetEvents: SubgraphTypes.StreamsSetEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getDripsSetEventsByUserId, { userId, skip, first });
+		const response = await this.query<QueryResponse>(gql.getStreamsSetEventsByUserId, { userId, skip, first });
 
-		return response?.data?.dripsSetEvents?.map(mapDripsSetEventToDto) || [];
+		return response?.data?.streamsSetEvents?.map(mapStreamsSetEventToDto) || [];
 	}
 
 	/**
@@ -270,11 +270,11 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getDripsReceiverSeenEventsByReceiverId(
+	public async getStreamReceiverSeenEventsByReceiverId(
 		receiverUserId: string,
 		skip: number = 0,
 		first: number = 100
-	): Promise<DripsReceiverSeenEvent[]> {
+	): Promise<StreamReceiverSeenEvent[]> {
 		if (!receiverUserId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get streaming users: ${nameOf({ receiverUserId })} is missing.`,
@@ -283,21 +283,21 @@ export default class DripsSubgraphClient {
 		}
 
 		type QueryResponse = {
-			dripsReceiverSeenEvents: SubgraphTypes.DripsReceiverSeenEvent[];
+			streamReceiverSeenEvents: SubgraphTypes.StreamReceiverSeenEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getDripsReceiverSeenEventsByReceiverId, {
+		const response = await this.query<QueryResponse>(gql.getStreamReceiverSeenEventsByReceiverId, {
 			receiverUserId,
 			skip,
 			first
 		});
-		const dripsReceiverSeenEvents = response?.data?.dripsReceiverSeenEvents;
+		const streamReceiverSeenEvents = response?.data?.streamReceiverSeenEvents;
 
-		if (!dripsReceiverSeenEvents?.length) {
+		if (!streamReceiverSeenEvents?.length) {
 			return [];
 		}
 
-		return dripsReceiverSeenEvents.map(mapDripsReceiverSeenEventToDto);
+		return streamReceiverSeenEvents.map(mapStreamReceiverSeenEventToDto);
 	}
 
 	/**
@@ -321,9 +321,9 @@ export default class DripsSubgraphClient {
 			);
 		}
 
-		const dripReceiverSeenEvents = await this.getDripsReceiverSeenEventsByReceiverId(receiverUserId, skip, first);
+		const dripReceiverSeenEvents = await this.getStreamReceiverSeenEventsByReceiverId(receiverUserId, skip, first);
 
-		const uniqueSenders = dripReceiverSeenEvents.reduce((unique: bigint[], o: DripsReceiverSeenEvent) => {
+		const uniqueSenders = dripReceiverSeenEvents.reduce((unique: bigint[], o: StreamReceiverSeenEvent) => {
 			if (!unique.some((id: bigint) => id === o.senderUserId)) {
 				unique.push(o.senderUserId);
 			}
@@ -551,20 +551,20 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getSqueezedDripsEventsByUserId(
+	public async getSqueezedStreamsEventsByUserId(
 		userId: string,
 		skip: number = 0,
 		first: number = 100
-	): Promise<SqueezedDripsEvent[]> {
+	): Promise<SqueezedStreamsEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentError(`Could not get 'squeezed Drips' events: ${nameOf({ userId })} is missing.`);
 		}
 
 		type QueryResponse = {
-			squeezedDripsEvents: SubgraphTypes.SqueezedDripsEvent[];
+			squeezedDripsEvents: SubgraphTypes.SqueezedStreamsEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getSqueezedDripsEventsByUserId, { userId, skip, first });
+		const response = await this.query<QueryResponse>(gql.getSqueezedStreamsEventsByUserId, { userId, skip, first });
 
 		return response?.data?.squeezedDripsEvents?.map(mapSqueezedDripsToDto) || [];
 	}
@@ -635,11 +635,11 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getReceivedDripsEventsByUserId(
+	public async getReceivedStreamsEventsByUserId(
 		userId: string,
 		skip: number = 0,
 		first: number = 100
-	): Promise<ReceivedDripsEvent[]> {
+	): Promise<ReceivedStreamsEvent[]> {
 		if (!userId) {
 			throw DripsErrors.argumentMissingError(
 				`Could not get 'received drips' events: ${nameOf({ userId })} is missing.`,
@@ -648,12 +648,12 @@ export default class DripsSubgraphClient {
 		}
 
 		type QueryResponse = {
-			receivedDripsEvents: SubgraphTypes.ReceivedDripsEvent[];
+			receivedDripsEvents: SubgraphTypes.ReceivedStreamsEvent[];
 		};
 
-		const response = await this.query<QueryResponse>(gql.getReceivedDripsEventsByUserId, { userId, skip, first });
+		const response = await this.query<QueryResponse>(gql.getReceivedStreamsEventsByUserId, { userId, skip, first });
 
-		return response?.data?.receivedDripsEvents?.map(mapReceivedDripsEventToDto) || [];
+		return response?.data?.receivedDripsEvents?.map(mapReceivedStreamsEventToDto) || [];
 	}
 
 	/**
@@ -731,13 +731,13 @@ export default class DripsSubgraphClient {
 		tokenAddress: string
 	): Promise<SqueezeArgs> {
 		// Get all `DripsSet` events (drips configurations) for the sender.
-		const allDripsSetEvents: DripsSetEvent[] = [];
+		const allStreamsSetEvents: StreamsSetEvent[] = [];
 		let skip = 0;
 		const first = 500;
 		while (true) {
-			const iterationEvents = await this.getDripsSetEventsByUserId(senderId, skip, first);
+			const iterationEvents = await this.getStreamsSetEventsByUserId(senderId, skip, first);
 
-			allDripsSetEvents.push(...iterationEvents);
+			allStreamsSetEvents.push(...iterationEvents);
 
 			if (!iterationEvents?.length || iterationEvents.length < first) {
 				break;
@@ -746,10 +746,10 @@ export default class DripsSubgraphClient {
 			skip += first;
 		}
 
-		const filtered = allDripsSetEvents
+		const filtered = allStreamsSetEvents
 			// Remove any duplicates (limitation of skip-first pagination).
-			.reduce((unique: DripsSetEvent[], o: DripsSetEvent) => {
-				if (!unique.some((ev: DripsSetEvent) => ev.id === o.id)) {
+			.reduce((unique: StreamsSetEvent[], o: StreamsSetEvent) => {
+				if (!unique.some((ev: StreamsSetEvent) => ev.id === o.id)) {
 					unique.push(o);
 				}
 				return unique;
@@ -757,28 +757,28 @@ export default class DripsSubgraphClient {
 			// Filter only the events for the token-to-be-squeezed.
 			.filter((e) => e.assetId === Utils.Asset.getIdFromAddress(ethers.utils.getAddress(tokenAddress)));
 
-		const squeezableDripsSetEvents: DripsSetEventWithFullReceivers[] =
+		const squeezableStreamsSetEvents: StreamsSetEventWithFullReceivers[] =
 			// Add the `receivers` field to each event.
 			reconcileDripsSetReceivers(filtered)
 				// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
 				.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 
-		const dripsSetEventsToSqueeze: DripsSetEventWithFullReceivers[] = [];
+		const streamsSetEventsToSqueeze: StreamsSetEventWithFullReceivers[] = [];
 
 		// Iterate over all events.
-		if (squeezableDripsSetEvents?.length) {
-			for (let i = 0; i < squeezableDripsSetEvents.length; i++) {
-				const dripsConfiguration = squeezableDripsSetEvents[i];
+		if (squeezableStreamsSetEvents?.length) {
+			for (let i = 0; i < squeezableStreamsSetEvents.length; i++) {
+				const dripsConfiguration = squeezableStreamsSetEvents[i];
 
 				// Keep the drips configurations of the current cycle.
 				const { currentCycleStartDate } = Utils.Cycle.getInfo(this.#chainId);
 				const eventTimestamp = new Date(Number(dripsConfiguration.blockTimestamp * BigInt(1000)));
 				if (eventTimestamp >= currentCycleStartDate) {
-					dripsSetEventsToSqueeze.push(dripsConfiguration);
+					streamsSetEventsToSqueeze.push(dripsConfiguration);
 				}
 				// Get the last event of the previous cycle.
 				else {
-					dripsSetEventsToSqueeze.push(dripsConfiguration);
+					streamsSetEventsToSqueeze.push(dripsConfiguration);
 					break;
 				}
 			}
@@ -786,17 +786,17 @@ export default class DripsSubgraphClient {
 
 		// The last (oldest) event added, provides the hash prior to the DripsHistory (or 0, if there was only one event).
 		const historyHash =
-			dripsSetEventsToSqueeze[dripsSetEventsToSqueeze.length - 1]?.dripsHistoryHash || ethers.constants.HashZero;
+			streamsSetEventsToSqueeze[streamsSetEventsToSqueeze.length - 1]?.streamsHistoryHash || ethers.constants.HashZero;
 
 		// Transform the events into `DripsHistory` objects.
-		const dripsHistory: StreamsHistoryStruct[] = dripsSetEventsToSqueeze
-			?.map((dripsSetEvent) => {
+		const dripsHistory: StreamsHistoryStruct[] = streamsSetEventsToSqueeze
+			?.map((streamsSetEvent) => {
 				// By default a configuration should *not* be squeezed.
 				let shouldSqueeze = false;
 
 				// Iterate over all event's receivers.
-				for (let i = 0; i < dripsSetEvent.currentReceivers.length; i++) {
-					const receiver = dripsSetEvent.currentReceivers[i];
+				for (let i = 0; i < streamsSetEvent.currentReceivers.length; i++) {
+					const receiver = streamsSetEvent.currentReceivers[i];
 
 					// Mark as squeezable only the events that drip to the `userId`; the others should not be squeezed.
 					if (receiver.receiverUserId === userId) {
@@ -807,15 +807,15 @@ export default class DripsSubgraphClient {
 				}
 
 				const historyItem: StreamsHistoryStruct = {
-					streamsHash: shouldSqueeze ? ethers.constants.HashZero : dripsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
+					streamsHash: shouldSqueeze ? ethers.constants.HashZero : streamsSetEvent.receiversHash, // If it's non-zero, `receivers` must be empty.
 					receivers: shouldSqueeze // If it's non-empty, `dripsHash` must be 0.
-						? dripsSetEvent.currentReceivers.map((r) => ({
+						? streamsSetEvent.currentReceivers.map((r) => ({
 								userId: r.receiverUserId,
 								config: r.config
 						  }))
 						: [],
-					updateTime: dripsSetEvent.blockTimestamp,
-					maxEnd: dripsSetEvent.maxEnd
+					updateTime: streamsSetEvent.blockTimestamp,
+					maxEnd: streamsSetEvent.maxEnd
 				};
 
 				return historyItem;
@@ -839,22 +839,22 @@ export default class DripsSubgraphClient {
 	 */
 	public async filterSqueezableSenders(receiverId: string): Promise<Record<string, string[]>> {
 		type ApiResponse = {
-			dripsReceiverSeenEvents: DripsReceiverSeenEvent[];
+			streamReceiverSeenEvents: StreamReceiverSeenEvent[];
 		};
 
 		// Get all `DripsReceiverSeen` events for the given receiver.
-		const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [];
+		const streamReceiverSeenEvents: StreamReceiverSeenEvent[] = [];
 		let skip = 0;
 		const first = 500;
 		while (true) {
-			const response = await this.query<ApiResponse>(gql.getDripsReceiverSeenEventsByReceiverId, {
+			const response = await this.query<ApiResponse>(gql.getStreamReceiverSeenEventsByReceiverId, {
 				receiverId,
 				skip,
 				first
 			});
-			const iterationEvents = response?.data?.dripsReceiverSeenEvents;
+			const iterationEvents = response?.data?.streamReceiverSeenEvents;
 
-			dripsReceiverSeenEvents.push(...iterationEvents);
+			streamReceiverSeenEvents.push(...iterationEvents);
 
 			if (!iterationEvents?.length || iterationEvents.length < first) {
 				break;
@@ -863,14 +863,14 @@ export default class DripsSubgraphClient {
 			skip += first;
 		}
 
-		if (!dripsReceiverSeenEvents?.length) {
+		if (!streamReceiverSeenEvents?.length) {
 			return {};
 		}
 
 		// Remove any duplicates.
-		const uniqueEvents = dripsReceiverSeenEvents.reduce(
-			(unique: DripsReceiverSeenEvent[], o: DripsReceiverSeenEvent) => {
-				if (!unique.some((ev: DripsReceiverSeenEvent) => ev.id === o.id)) {
+		const uniqueEvents = streamReceiverSeenEvents.reduce(
+			(unique: StreamReceiverSeenEvent[], o: StreamReceiverSeenEvent) => {
+				if (!unique.some((ev: StreamReceiverSeenEvent) => ev.id === o.id)) {
 					unique.push(o);
 				}
 				return unique;
@@ -882,14 +882,14 @@ export default class DripsSubgraphClient {
 
 		// Iterate over all `DripsReceiverSeen` events.
 		for (let i = 0; i < uniqueEvents.length; i++) {
-			const { senderUserId, dripsSetEvent } = uniqueEvents[i];
+			const { senderUserId, streamsSetEvent } = uniqueEvents[i];
 
 			if (!squeezableSenders[senderUserId.toString()]) {
 				squeezableSenders[senderUserId.toString()] = [];
 			}
 
-			if (!squeezableSenders[senderUserId.toString()].includes(dripsSetEvent.assetId.toString())) {
-				squeezableSenders[senderUserId.toString()].push(dripsSetEvent.assetId.toString());
+			if (!squeezableSenders[senderUserId.toString()].includes(streamsSetEvent.assetId.toString())) {
+				squeezableSenders[senderUserId.toString()].push(streamsSetEvent.assetId.toString());
 			}
 		}
 
@@ -909,40 +909,40 @@ export default class DripsSubgraphClient {
 		tokenAddress: string,
 		provider: Provider
 	): Promise<StreamReceiverStruct[]> {
-		let dripsSetEvents: DripsSetEvent[] = [];
+		let streamsSetEvents: StreamsSetEvent[] = [];
 		let skip = 0;
 		const first = 500;
 
 		// Get all `DripsSet` events.
 		while (true) {
-			const iterationDripsSetEvents = await this.getDripsSetEventsByUserId(userId, skip, first);
+			const iterationStreamsSetEvents = await this.getStreamsSetEventsByUserId(userId, skip, first);
 
 			// Filter by asset.
-			const tokenDripsSetEvents = iterationDripsSetEvents.filter(
+			const tokenStreamsSetEvents = iterationStreamsSetEvents.filter(
 				(e) => e.assetId === Utils.Asset.getIdFromAddress(tokenAddress)
 			);
 
-			dripsSetEvents.push(...tokenDripsSetEvents);
+			streamsSetEvents.push(...tokenStreamsSetEvents);
 
-			if (!iterationDripsSetEvents?.length || iterationDripsSetEvents.length < first) {
+			if (!iterationStreamsSetEvents?.length || iterationStreamsSetEvents.length < first) {
 				break;
 			}
 
 			skip += first;
 		}
 
-		if (!dripsSetEvents?.length) {
+		if (!streamsSetEvents?.length) {
 			return [];
 		}
 
 		// Sort by `blockTimestamp` DESC - the first ones will be the most recent.
-		dripsSetEvents = dripsSetEvents.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
+		streamsSetEvents = streamsSetEvents.sort((a, b) => Number(b.blockTimestamp) - Number(a.blockTimestamp));
 
 		// Find the most recent event where the hash matches the receiversHash
 		let matchingEvent = null;
-		for (const e of dripsSetEvents) {
+		for (const e of streamsSetEvents) {
 			const hash = await DripsClient.hashStreams(
-				e.dripsReceiverSeenEvents.map((d) => ({
+				e.streamReceiverSeenEvents.map((d) => ({
 					config: d.config,
 					userId: d.receiverUserId
 				})),
@@ -960,7 +960,7 @@ export default class DripsSubgraphClient {
 
 		// Return the most recent event's receivers formatted as expected by the protocol.
 		return formatDripsReceivers(
-			matchingEvent.dripsReceiverSeenEvents.map((d) => ({
+			matchingEvent.streamReceiverSeenEvents.map((d) => ({
 				config: d.config,
 				userId: d.receiverUserId
 			}))

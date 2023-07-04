@@ -94,7 +94,7 @@ describe('AddressDriverPresets', () => {
 				currentReceivers: [
 					{
 						userId: 1n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
 							dripId: 1n,
@@ -105,7 +105,7 @@ describe('AddressDriverPresets', () => {
 				newReceivers: [
 					{
 						userId: 2n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
 							dripId: 2n,
@@ -128,13 +128,13 @@ describe('AddressDriverPresets', () => {
 					sinon.match.array.deepEquals(
 						payload.currentReceivers?.map((r) => ({
 							userId: r.userId.toString(),
-							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
 					sinon.match.array.deepEquals(
 						payload.newReceivers?.map((r) => ({
 							userId: r.userId.toString(),
-							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
 					payload.transferToAddress,
@@ -155,7 +155,7 @@ describe('AddressDriverPresets', () => {
 				currentReceivers: [
 					{
 						userId: 1n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
 							dripId: 1n,
@@ -166,7 +166,7 @@ describe('AddressDriverPresets', () => {
 				newReceivers: [
 					{
 						userId: 2n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
 							dripId: 2n,
@@ -201,7 +201,7 @@ describe('AddressDriverPresets', () => {
 				currentReceivers: [
 					{
 						userId: 1n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
 							dripId: 1n,
@@ -212,7 +212,7 @@ describe('AddressDriverPresets', () => {
 				newReceivers: [
 					{
 						userId: 2n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
 							dripId: 2n,

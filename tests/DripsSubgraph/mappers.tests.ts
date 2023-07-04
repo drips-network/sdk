@@ -1,10 +1,10 @@
 import { assert } from 'chai';
 import {
 	mapCollectedEventToDto,
-	mapDripsReceiverSeenEventToDto,
-	mapDripsSetEventToDto,
+	mapStreamReceiverSeenEventToDto,
+	mapStreamsSetEventToDto,
 	mapGivenEventToDto,
-	mapReceivedDripsEventToDto,
+	mapReceivedStreamsEventToDto,
 	mapSplitEntryToDto,
 	mapSplitEventToDto,
 	mapSqueezedDripsToDto,
@@ -64,10 +64,10 @@ describe('mappers', () => {
 		});
 	});
 
-	describe('mapReceivedDripsEventToDto()', () => {
+	describe('mapReceivedStreamsEventToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const event: SubgraphTypes.ReceivedDripsEvent = {
+			const event: SubgraphTypes.ReceivedStreamsEvent = {
 				amt: 1n,
 				assetId: '2',
 				blockTimestamp: 3n,
@@ -77,7 +77,7 @@ describe('mappers', () => {
 			};
 
 			// Act
-			const result = mapReceivedDripsEventToDto(event);
+			const result = mapReceivedStreamsEventToDto(event);
 
 			// Assert
 			assert.equal(result.id, event.id);
@@ -117,15 +117,15 @@ describe('mappers', () => {
 	describe('mapSqueezedDripsToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const event: SubgraphTypes.SqueezedDripsEvent = {
+			const event: SubgraphTypes.SqueezedStreamsEvent = {
 				assetId: 1n,
 				blockTimestamp: 2n,
 				id: '3',
 				amt: '4',
 				senderId: '5',
 				userId: '6',
-				dripsHistoryHashes: ['7', '8']
-			} as SubgraphTypes.SqueezedDripsEvent;
+				streamsHistoryHashes: ['7', '8']
+			} as SubgraphTypes.SqueezedStreamsEvent;
 
 			// Act
 			const result = mapSqueezedDripsToDto(event);
@@ -137,8 +137,8 @@ describe('mappers', () => {
 			assert.equal(result.senderId, event.senderId);
 			assert.equal(result.userId, event.userId);
 			assert.equal(result.blockTimestamp, BigInt(event.blockTimestamp));
-			assert.isTrue(result.dripsHistoryHashes.includes('7'));
-			assert.isTrue(result.dripsHistoryHashes.includes('8'));
+			assert.isTrue(result.streamsHistoryHashes.includes('7'));
+			assert.isTrue(result.streamsHistoryHashes.includes('8'));
 		});
 	});
 
@@ -148,7 +148,7 @@ describe('mappers', () => {
 			const apiConfig: SubgraphTypes.UserAssetConfig = {
 				id: '1',
 				assetId: '2',
-				dripsEntries: [{ id: '1', userId: '3', config: '4' }],
+				streamsEntries: [{ id: '1', userId: '3', config: '4' }],
 				balance: '5',
 				amountCollected: '6',
 				lastUpdatedBlockTimestamp: '7'
@@ -160,50 +160,50 @@ describe('mappers', () => {
 			// Assert
 			assert.equal(result.id, apiConfig.id);
 			assert.equal(result.assetId.toString(), apiConfig.assetId);
-			assert.equal(result.dripsEntries[0].id.toString(), apiConfig.dripsEntries[0].id);
-			assert.equal(result.dripsEntries[0].userId.toString(), apiConfig.dripsEntries[0].userId);
-			assert.equal(result.dripsEntries[0].config.toString(), apiConfig.dripsEntries[0].config);
+			assert.equal(result.streamsEntries[0].id.toString(), apiConfig.streamsEntries[0].id);
+			assert.equal(result.streamsEntries[0].userId.toString(), apiConfig.streamsEntries[0].userId);
+			assert.equal(result.streamsEntries[0].config.toString(), apiConfig.streamsEntries[0].config);
 			assert.equal(result.balance.toString(), apiConfig.balance);
 			assert.equal(result.amountCollected.toString(), apiConfig.amountCollected);
 			assert.equal(result.lastUpdatedBlockTimestamp.toString(), apiConfig.lastUpdatedBlockTimestamp);
 		});
 	});
 
-	describe('mapDripsSetEventToDto()', () => {
+	describe('mapStreamsSetEventToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiDripsSetEvent: SubgraphTypes.DripsSetEvent = {
+			const apiStreamsSetEvent: SubgraphTypes.StreamsSetEvent = {
 				id: '100',
 				userId: '1',
 				assetId: '2',
-				dripsReceiverSeenEvents: [{ id: '1', receiverUserId: '3', config: '4' }],
-				dripsHistoryHash: '5',
+				streamReceiverSeenEvents: [{ id: '1', receiverUserId: '3', config: '4' }],
+				streamsHistoryHash: '5',
 				balance: '6',
 				blockTimestamp: '7',
 				maxEnd: '7',
 				receiversHash: '0x00'
-			} as SubgraphTypes.DripsSetEvent;
+			} as SubgraphTypes.StreamsSetEvent;
 
 			// Act
-			const result = mapDripsSetEventToDto(apiDripsSetEvent);
+			const result = mapStreamsSetEventToDto(apiStreamsSetEvent);
 
 			// Assert
-			assert.equal(result.id.toString(), apiDripsSetEvent.id);
-			assert.equal(result.userId.toString(), apiDripsSetEvent.userId);
-			assert.equal(result.assetId.toString(), apiDripsSetEvent.assetId);
-			assert.equal(result.dripsReceiverSeenEvents[0].id.toString(), apiDripsSetEvent.dripsReceiverSeenEvents[0].id);
+			assert.equal(result.id.toString(), apiStreamsSetEvent.id);
+			assert.equal(result.userId.toString(), apiStreamsSetEvent.userId);
+			assert.equal(result.assetId.toString(), apiStreamsSetEvent.assetId);
+			assert.equal(result.streamReceiverSeenEvents[0].id.toString(), apiStreamsSetEvent.streamReceiverSeenEvents[0].id);
 			assert.equal(
-				result.dripsReceiverSeenEvents[0].receiverUserId.toString(),
-				apiDripsSetEvent.dripsReceiverSeenEvents[0].receiverUserId
+				result.streamReceiverSeenEvents[0].receiverUserId.toString(),
+				apiStreamsSetEvent.streamReceiverSeenEvents[0].receiverUserId
 			);
 			assert.equal(
-				result.dripsReceiverSeenEvents[0].config.toString(),
-				apiDripsSetEvent.dripsReceiverSeenEvents[0].config
+				result.streamReceiverSeenEvents[0].config.toString(),
+				apiStreamsSetEvent.streamReceiverSeenEvents[0].config
 			);
-			assert.equal(result.dripsHistoryHash.toString(), apiDripsSetEvent.dripsHistoryHash);
-			assert.equal(result.balance.toString(), apiDripsSetEvent.balance);
-			assert.equal(result.blockTimestamp.toString(), apiDripsSetEvent.blockTimestamp);
-			assert.equal(result.maxEnd.toString(), apiDripsSetEvent.maxEnd);
+			assert.equal(result.streamsHistoryHash.toString(), apiStreamsSetEvent.streamsHistoryHash);
+			assert.equal(result.balance.toString(), apiStreamsSetEvent.balance);
+			assert.equal(result.blockTimestamp.toString(), apiStreamsSetEvent.blockTimestamp);
+			assert.equal(result.maxEnd.toString(), apiStreamsSetEvent.maxEnd);
 		});
 	});
 
@@ -230,13 +230,13 @@ describe('mappers', () => {
 		});
 	});
 
-	describe('mapDripsReceiverSeenEventToDto()', () => {
+	describe('mapStreamReceiverSeenEventToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
-			const apiDripsReceiverSeenEvent: SubgraphTypes.DripsReceiverSeenEvent = {
+			const apiStreamReceiverSeenEvent: SubgraphTypes.StreamReceiverSeenEvent = {
 				id: '100',
 				config: '1',
-				dripsSetEvent: {
+				streamsSetEvent: {
 					id: '100',
 					assetId: '2',
 					receiversHash: '0x00'
@@ -244,20 +244,20 @@ describe('mappers', () => {
 				receiverUserId: '2',
 				senderUserId: '3',
 				blockTimestamp: '4'
-			} as SubgraphTypes.DripsReceiverSeenEvent;
+			} as SubgraphTypes.StreamReceiverSeenEvent;
 
 			// Act
-			const result = mapDripsReceiverSeenEventToDto(apiDripsReceiverSeenEvent);
+			const result = mapStreamReceiverSeenEventToDto(apiStreamReceiverSeenEvent);
 
 			// Assert
-			assert.equal(result.id.toString(), apiDripsReceiverSeenEvent.id);
-			assert.equal(result.config.toString(), apiDripsReceiverSeenEvent.config);
-			assert.equal(result.dripsSetEvent.id, apiDripsReceiverSeenEvent.dripsSetEvent.id);
-			assert.equal(result.senderUserId.toString(), apiDripsReceiverSeenEvent.senderUserId);
-			assert.equal(result.blockTimestamp.toString(), apiDripsReceiverSeenEvent.blockTimestamp);
-			assert.equal(result.receiverUserId.toString(), apiDripsReceiverSeenEvent.receiverUserId);
-			assert.equal(result.dripsSetEvent.assetId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.assetId);
-			assert.equal(result.dripsSetEvent.assetId.toString(), apiDripsReceiverSeenEvent.dripsSetEvent.assetId);
+			assert.equal(result.id.toString(), apiStreamReceiverSeenEvent.id);
+			assert.equal(result.config.toString(), apiStreamReceiverSeenEvent.config);
+			assert.equal(result.streamsSetEvent.id, apiStreamReceiverSeenEvent.streamsSetEvent.id);
+			assert.equal(result.senderUserId.toString(), apiStreamReceiverSeenEvent.senderUserId);
+			assert.equal(result.blockTimestamp.toString(), apiStreamReceiverSeenEvent.blockTimestamp);
+			assert.equal(result.receiverUserId.toString(), apiStreamReceiverSeenEvent.receiverUserId);
+			assert.equal(result.streamsSetEvent.assetId.toString(), apiStreamReceiverSeenEvent.streamsSetEvent.assetId);
+			assert.equal(result.streamsSetEvent.assetId.toString(), apiStreamReceiverSeenEvent.streamsSetEvent.assetId);
 		});
 	});
 

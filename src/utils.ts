@@ -1,8 +1,8 @@
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
-import { validateAddress, validateDripsReceiverConfig } from './common/validators';
+import type { NetworkConfig, CycleInfo, StreamConfig, UserMetadataStruct } from './common/types';
+import { validateAddress, validateStreamConfig } from './common/validators';
 import { isNullOrUndefined } from './common/internals';
 
 type Driver = 'address' | 'nft' | 'immutableSplits' | 'repo';
@@ -264,18 +264,18 @@ namespace Utils {
 		};
 	}
 
-	export namespace DripsReceiverConfiguration {
+	export namespace StreamConfiguration {
 		/**
 		 * Converts a drips receiver configuration object to a `uint256`.
-		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration object.
+		 * @param  {StreamConfigDto} streamConfig The drips receiver configuration object.
 		 * @returns The drips receiver configuration as a `uint256`.
-		 * @throws {@link DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {@link DripsErrors.dripsReceiverConfigError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if the `streamConfig` is missing.
+		 * @throws {@link DripsErrors.streamConfigError} if the `streamConfig` is not valid.
 		 */
-		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): bigint => {
-			validateDripsReceiverConfig(dripsReceiverConfig);
+		export const toUint256 = (streamConfig: StreamConfig): bigint => {
+			validateStreamConfig(streamConfig);
 
-			const { dripId, start, duration, amountPerSec } = dripsReceiverConfig;
+			const { dripId, start, duration, amountPerSec } = streamConfig;
 
 			let config = BigNumber.from(dripId);
 			config = config.shl(160);
@@ -290,13 +290,13 @@ namespace Utils {
 
 		/**
 		 * Converts a `uint256` that represent a drips receiver configuration to an object.
-		 * @param  {BigNumberish} dripsReceiverConfig The drips receiver configuration as`uint256`.
+		 * @param  {BigNumberish} streamConfig The drips receiver configuration as`uint256`.
 		 * @returns The drips receiver configuration object.
-		 * @throws {@link DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {@link DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if the `streamConfig` is missing.
+		 * @throws {@link DripsErrors.argumentError} if the `streamConfig` is not valid.
 		 */
-		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
-			const configAsBn = BigNumber.from(dripsReceiverConfig);
+		export const fromUint256 = (streamConfig: BigNumberish): StreamConfig => {
+			const configAsBn = BigNumber.from(streamConfig);
 
 			const dripId = configAsBn.shr(160 + 32 + 32);
 			const amountPerSec = configAsBn.shr(32 + 32).and(BigNumber.from(1).shl(160).sub(1));
@@ -310,7 +310,7 @@ namespace Utils {
 				start: start.toBigInt()
 			};
 
-			validateDripsReceiverConfig(config);
+			validateStreamConfig(config);
 
 			return config;
 		};

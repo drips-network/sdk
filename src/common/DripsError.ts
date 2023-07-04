@@ -75,7 +75,7 @@ export class DripsErrors {
 			}
 		});
 
-	static dripsReceiverError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
+	static streamsReceiverError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER, message, {
 			invalidProperty: {
 				name: invalidPropertyName,
@@ -83,7 +83,7 @@ export class DripsErrors {
 			}
 		});
 
-	static dripsReceiverConfigError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
+	static streamConfigError = (message: string, invalidPropertyName: string, invalidPropertyValue: unknown) =>
 		new DripsError(DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG, message, {
 			invalidProperty: {
 				name: invalidPropertyName,

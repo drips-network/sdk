@@ -544,8 +544,8 @@ export default class DripsClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.argumentError} if `receivers`' count exceeds the max allowed drips receivers.
-	 * @throws {@link DripsErrors.dripsReceiverError} if any of the the `receivers` is not valid.
-	 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
+	 * @throws {@link DripsErrors.streamsReceiverError} if any of the the `receivers` is not valid.
+	 * @throws {@link DripsErrors.streamConfigError} if any of the receivers' configuration is not valid.
 	 *
 	 */
 	public async getDripsBalanceAt(
@@ -558,7 +558,7 @@ export default class DripsClient {
 		validateDripsReceivers(
 			receivers.map((r) => ({
 				userId: r.userId.toString(),
-				config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			}))
 		);
 

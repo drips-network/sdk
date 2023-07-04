@@ -190,11 +190,11 @@ describe('internals', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({
+					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
 						duration: 1n,
@@ -215,7 +215,7 @@ describe('internals', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({
+					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
 						duration: 1n,
@@ -224,7 +224,7 @@ describe('internals', () => {
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 
@@ -240,27 +240,27 @@ describe('internals', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 2n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 1n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 1n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
 				},
 				{
 					userId: 2,
-					config: Utils.DripsReceiverConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
+					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
 				}
 			];
 
@@ -276,7 +276,7 @@ describe('internals', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256({
+					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 100n,
 						duration: 1n,
@@ -285,7 +285,7 @@ describe('internals', () => {
 				},
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({
+					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
 						duration: 1n,
@@ -306,7 +306,7 @@ describe('internals', () => {
 			const receivers: StreamReceiverStruct[] = [
 				{
 					userId: 1,
-					config: Utils.DripsReceiverConfiguration.toUint256({
+					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
 						duration: 1n,
@@ -315,7 +315,7 @@ describe('internals', () => {
 				},
 				{
 					userId: 100,
-					config: Utils.DripsReceiverConfiguration.toUint256({
+					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 100n,
 						duration: 1n,

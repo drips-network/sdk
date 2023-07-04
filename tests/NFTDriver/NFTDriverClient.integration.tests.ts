@@ -93,13 +93,13 @@ describe('NFTDriver integration tests', () => {
 
 		console.log(
 			`Current WETH Drips configuration has the following receivers: ${
-				wEthConfigurationBefore?.dripsEntries.length
-					? wEthConfigurationBefore?.dripsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
+				wEthConfigurationBefore?.streamsEntries.length
+					? wEthConfigurationBefore?.streamsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
 					: '[no receivers or no configuration found]'
 			}`
 		);
 
-		const config = Utils.DripsReceiverConfiguration.toUint256({
+		const config = Utils.StreamConfiguration.toUint256({
 			start: BigInt(1),
 			duration: BigInt(2),
 			amountPerSec: BigInt(3 * constants.AMT_PER_SEC_MULTIPLIER),
@@ -127,9 +127,9 @@ describe('NFTDriver integration tests', () => {
 			() => subgraphClient.getUserAssetConfigById(senderSubAccount.tokenId, Utils.Asset.getIdFromAddress(WETH)),
 			(configuration) => {
 				const found =
-					configuration?.dripsEntries.length === 1 &&
-					configuration.dripsEntries[0].config === config &&
-					configuration.dripsEntries[0].userId === receiverSubAccount.tokenId;
+					configuration?.streamsEntries.length === 1 &&
+					configuration.streamsEntries[0].config === config &&
+					configuration.streamsEntries[0].userId === receiverSubAccount.tokenId;
 
 				if (!found) {
 					console.log('New Drips configuration not found yet.');
@@ -143,7 +143,7 @@ describe('NFTDriver integration tests', () => {
 			5000
 		)) as UserAssetConfig;
 
-		assert.equal(expectedConfig.dripsEntries[0].userId, receiverSubAccount.tokenId);
+		assert.equal(expectedConfig.streamsEntries[0].userId, receiverSubAccount.tokenId);
 
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await account2NftDriverClient.setStreams(

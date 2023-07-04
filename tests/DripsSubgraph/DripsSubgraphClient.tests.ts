@@ -11,8 +11,8 @@ import * as gql from '../../src/DripsSubgraph/gql';
 import type {
 	UserAssetConfig,
 	SplitsEntry,
-	DripsSetEvent,
-	DripsReceiverSeenEvent
+	StreamsSetEvent,
+	StreamReceiverSeenEvent
 } from '../../src/DripsSubgraph/types';
 import Utils from '../../src/utils';
 import * as mappers from '../../src/DripsSubgraph/mappers';
@@ -141,7 +141,7 @@ describe('DripsSubgraphClient', () => {
 				assetId: assetId.toString(),
 				balance: '3',
 				amountCollected: '4',
-				dripsEntries: [
+				streamsEntries: [
 					{
 						id: '1',
 						userId: '5',
@@ -178,7 +178,7 @@ describe('DripsSubgraphClient', () => {
 				assetId: assetId.toString(),
 				balance: '3',
 				amountCollected: '4',
-				dripsEntries: [
+				streamsEntries: [
 					{
 						id: '1',
 						userId: '5',
@@ -243,7 +243,7 @@ describe('DripsSubgraphClient', () => {
 					assetId: assetId.toString(),
 					balance: '3',
 					amountCollected: '4',
-					dripsEntries: [
+					streamsEntries: [
 						{
 							id: '1',
 							userId: '5',
@@ -466,13 +466,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getDripsSetEventsByUserId()', () => {
+	describe('getStreamsSetEventsByUserId()', () => {
 		it('should throw argumentMissingError error when asset ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getDripsSetEventsByUserId(undefined as unknown as string);
+				await testSubgraphClient.getStreamsSetEventsByUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -486,70 +486,70 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
-			const dripsSetEvents: SubgraphTypes.DripsSetEvent[] = [
+			const streamsSetEvents: SubgraphTypes.StreamsSetEvent[] = [
 				{
 					userId: '1'
-				} as SubgraphTypes.DripsSetEvent
+				} as SubgraphTypes.StreamsSetEvent
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 })
+				.withArgs(gql.getStreamsSetEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						dripsSetEvents
+						streamsSetEvents
 					}
 				});
 
-			const expectedDripsSetEvent = {} as DripsSetEvent;
+			const expectedStreamsSetEvent = {} as StreamsSetEvent;
 
 			const mapperStub = sinon
-				.stub(mappers, 'mapDripsSetEventToDto')
-				.withArgs(dripsSetEvents[0])
-				.returns(expectedDripsSetEvent);
+				.stub(mappers, 'mapStreamsSetEventToDto')
+				.withArgs(streamsSetEvents[0])
+				.returns(expectedStreamsSetEvent);
 
 			// Act
-			const result = await testSubgraphClient.getDripsSetEventsByUserId(userId);
+			const result = await testSubgraphClient.getStreamsSetEventsByUserId(userId);
 
 			// Assert
-			assert.equal(result[0], expectedDripsSetEvent);
+			assert.equal(result[0], expectedStreamsSetEvent);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 }),
+				clientStub.calledOnceWithExactly(gql.getStreamsSetEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
-			assert(mapperStub.calledOnceWith(dripsSetEvents[0]), 'Expected method to be called with different arguments');
+			assert(mapperStub.calledOnceWith(streamsSetEvents[0]), 'Expected method to be called with different arguments');
 		});
 
-		it('should return an empty array when DripsSetEvent entries do not exist', async () => {
+		it('should return an empty array when StreamsSetEvent entries do not exist', async () => {
 			// Arrange
 			const userId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 })
+				.withArgs(gql.getStreamsSetEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						dripsSetEvents: undefined
+						streamsSetEvents: undefined
 					}
 				});
 
 			// Act
-			const dripsSetEvents = await testSubgraphClient.getDripsSetEventsByUserId(userId);
+			const streamsSetEvents = await testSubgraphClient.getStreamsSetEventsByUserId(userId);
 
 			// Assert
-			assert.isEmpty(dripsSetEvents);
+			assert.isEmpty(streamsSetEvents);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsSetEventsByUserId, { userId, skip: 0, first: 100 }),
+				clientStub.calledOnceWithExactly(gql.getStreamsSetEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
 	});
 
-	describe('getDripsReceiverSeenEventsByReceiverId()', () => {
+	describe('getStreamReceiverSeenEventsByReceiverId()', () => {
 		it('should throw argumentMissingError error when asset ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(undefined as unknown as string);
+				await testSubgraphClient.getStreamReceiverSeenEventsByReceiverId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -563,35 +563,35 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const receiverUserId = '1';
-			const dripsReceiverSeenEvents: SubgraphTypes.DripsReceiverSeenEvent[] = [
+			const streamReceiverSeenEvents: SubgraphTypes.StreamReceiverSeenEvent[] = [
 				{
 					receiverUserId: '1',
-					dripsSetEvent: {} as SubgraphTypes.DripsSetEvent
-				} as unknown as SubgraphTypes.DripsReceiverSeenEvent
+					streamsSetEvent: {} as SubgraphTypes.StreamsSetEvent
+				} as unknown as SubgraphTypes.StreamReceiverSeenEvent
 			];
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId, skip: 0, first: 100 })
+				.withArgs(gql.getStreamReceiverSeenEventsByReceiverId, { receiverUserId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						dripsReceiverSeenEvents
+						streamReceiverSeenEvents
 					}
 				});
 
-			const expectedDripsReceiverSeenEvent = {} as DripsReceiverSeenEvent;
+			const expectedStreamReceiverSeenEvent = {} as StreamReceiverSeenEvent;
 
 			const mapperStub = sinon
-				.stub(mappers, 'mapDripsReceiverSeenEventToDto')
-				.withArgs(dripsReceiverSeenEvents[0])
-				.returns(expectedDripsReceiverSeenEvent);
+				.stub(mappers, 'mapStreamReceiverSeenEventToDto')
+				.withArgs(streamReceiverSeenEvents[0])
+				.returns(expectedStreamReceiverSeenEvent);
 
 			// Act
-			const result = await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(receiverUserId);
+			const result = await testSubgraphClient.getStreamReceiverSeenEventsByReceiverId(receiverUserId);
 
 			// Assert
-			assert.equal(result[0], expectedDripsReceiverSeenEvent);
+			assert.equal(result[0], expectedStreamReceiverSeenEvent);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, {
+				clientStub.calledOnceWithExactly(gql.getStreamReceiverSeenEventsByReceiverId, {
 					receiverUserId,
 					skip: 0,
 					first: 100
@@ -599,7 +599,7 @@ describe('DripsSubgraphClient', () => {
 				'Expected method to be called with different arguments'
 			);
 			assert(
-				mapperStub.calledOnceWith(dripsReceiverSeenEvents[0]),
+				mapperStub.calledOnceWith(streamReceiverSeenEvents[0]),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -609,20 +609,20 @@ describe('DripsSubgraphClient', () => {
 			const receiverUserId = '1';
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getDripsReceiverSeenEventsByReceiverId, { receiverUserId, skip: 0, first: 100 })
+				.withArgs(gql.getStreamReceiverSeenEventsByReceiverId, { receiverUserId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						dripsReceiverSeenEvents: []
+						streamReceiverSeenEvents: []
 					}
 				});
 
 			// Act
-			const dripsSetEvents = await testSubgraphClient.getDripsReceiverSeenEventsByReceiverId(receiverUserId);
+			const streamsSetEvents = await testSubgraphClient.getStreamReceiverSeenEventsByReceiverId(receiverUserId);
 
 			// Assert
-			assert.isEmpty(dripsSetEvents);
+			assert.isEmpty(streamsSetEvents);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getDripsReceiverSeenEventsByReceiverId, {
+				clientStub.calledOnceWithExactly(gql.getStreamReceiverSeenEventsByReceiverId, {
 					receiverUserId,
 					skip: 0,
 					first: 100
@@ -652,24 +652,24 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const receiverUserId = '1';
-			const dripsReceiverSeenEvents: DripsReceiverSeenEvent[] = [
+			const streamReceiverSeenEvents: StreamReceiverSeenEvent[] = [
 				{
 					senderUserId: '1',
-					dripsSetEvent: {} as DripsSetEvent
-				} as unknown as DripsReceiverSeenEvent,
+					streamsSetEvent: {} as StreamsSetEvent
+				} as unknown as StreamReceiverSeenEvent,
 				{
 					senderUserId: '1',
-					dripsSetEvent: {} as DripsSetEvent
-				} as unknown as DripsReceiverSeenEvent,
+					streamsSetEvent: {} as StreamsSetEvent
+				} as unknown as StreamReceiverSeenEvent,
 				{
 					senderUserId: '2',
-					dripsSetEvent: {} as DripsSetEvent
-				} as unknown as DripsReceiverSeenEvent
+					streamsSetEvent: {} as StreamsSetEvent
+				} as unknown as StreamReceiverSeenEvent
 			];
 
 			sinon
-				.stub(DripsSubgraphClient.prototype, 'getDripsReceiverSeenEventsByReceiverId')
-				.resolves(dripsReceiverSeenEvents);
+				.stub(DripsSubgraphClient.prototype, 'getStreamReceiverSeenEventsByReceiverId')
+				.resolves(streamReceiverSeenEvents);
 
 			// Act
 			const result = await testSubgraphClient.getUsersStreamingToUser(receiverUserId);
@@ -1178,13 +1178,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getSqueezedDripsEventsByUserId()', () => {
+	describe('getSqueezedStreamsEventsByUserId()', () => {
 		it('should throw an argumentMissingError when user ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getSqueezedDripsEventsByUserId(undefined as unknown as string);
+				await testSubgraphClient.getSqueezedStreamsEventsByUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -1201,7 +1201,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId, skip: 0, first: 100 })
+				.withArgs(gql.getSqueezedStreamsEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						givenEvents: null
@@ -1209,7 +1209,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getSqueezedDripsEventsByUserId(userId);
+			const metadata = await testSubgraphClient.getSqueezedStreamsEventsByUserId(userId);
 
 			// Assert
 			assert.isEmpty(metadata);
@@ -1218,7 +1218,7 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
-			const events: SubgraphTypes.SqueezedDripsEvent[] = [
+			const events: SubgraphTypes.SqueezedStreamsEvent[] = [
 				{
 					assetId: 1n,
 					blockTimestamp: 2n,
@@ -1226,12 +1226,12 @@ describe('DripsSubgraphClient', () => {
 					amt: '4',
 					senderId: '5',
 					userId: '6'
-				} as SubgraphTypes.SqueezedDripsEvent
+				} as SubgraphTypes.SqueezedStreamsEvent
 			];
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getSqueezedDripsEventsByUserId, { userId, skip: 0, first: 100 })
+				.withArgs(gql.getSqueezedStreamsEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						squeezedDripsEvents: events
@@ -1239,12 +1239,12 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const result = await testSubgraphClient.getSqueezedDripsEventsByUserId(userId);
+			const result = await testSubgraphClient.getSqueezedStreamsEventsByUserId(userId);
 
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getSqueezedDripsEventsByUserId, { userId, skip: 0, first: 100 }),
+				clientStub.calledOnceWithExactly(gql.getSqueezedStreamsEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1396,13 +1396,13 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getReceivedDripsEventsByUserId()', () => {
+	describe('getReceivedStreamsEventsByUserId()', () => {
 		it('should throw an argumentMissingError when user ID is missing', async () => {
 			let threw = false;
 
 			try {
 				// Act
-				await testSubgraphClient.getReceivedDripsEventsByUserId(undefined as unknown as string);
+				await testSubgraphClient.getReceivedStreamsEventsByUserId(undefined as unknown as string);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -1419,7 +1419,7 @@ describe('DripsSubgraphClient', () => {
 
 			sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getReceivedDripsEventsByUserId, { userId })
+				.withArgs(gql.getReceivedStreamsEventsByUserId, { userId })
 				.resolves({
 					data: {
 						givenEvents: null
@@ -1427,7 +1427,7 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const metadata = await testSubgraphClient.getReceivedDripsEventsByUserId(userId);
+			const metadata = await testSubgraphClient.getReceivedStreamsEventsByUserId(userId);
 
 			// Assert
 			assert.isEmpty(metadata);
@@ -1436,7 +1436,7 @@ describe('DripsSubgraphClient', () => {
 		it('should return the expected result', async () => {
 			// Arrange
 			const userId = '1';
-			const events: SubgraphTypes.ReceivedDripsEvent[] = [
+			const events: SubgraphTypes.ReceivedStreamsEvent[] = [
 				{
 					id: '1',
 					amt: 1n,
@@ -1449,7 +1449,7 @@ describe('DripsSubgraphClient', () => {
 
 			const clientStub = sinon
 				.stub(testSubgraphClient, 'query')
-				.withArgs(gql.getReceivedDripsEventsByUserId, { userId, skip: 0, first: 100 })
+				.withArgs(gql.getReceivedStreamsEventsByUserId, { userId, skip: 0, first: 100 })
 				.resolves({
 					data: {
 						receivedDripsEvents: events
@@ -1457,12 +1457,12 @@ describe('DripsSubgraphClient', () => {
 				});
 
 			// Act
-			const result = await testSubgraphClient.getReceivedDripsEventsByUserId(userId);
+			const result = await testSubgraphClient.getReceivedStreamsEventsByUserId(userId);
 
 			// Assert
 			assert.equal(result![0].id, events[0].id);
 			assert(
-				clientStub.calledOnceWithExactly(gql.getReceivedDripsEventsByUserId, { userId, skip: 0, first: 100 }),
+				clientStub.calledOnceWithExactly(gql.getReceivedStreamsEventsByUserId, { userId, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -1618,7 +1618,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const senderId = '2';
 			const tokenAddress = Wallet.createRandom().address;
-			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
+			sinon.stub(DripsSubgraphClient.prototype, 'getStreamsSetEventsByUserId').resolves([]);
 
 			// Act
 			const args = await testSubgraphClient.getArgsForSqueezingAllDrips(userId, senderId, tokenAddress);
@@ -1643,7 +1643,7 @@ describe('DripsSubgraphClient', () => {
 			// Sun Dec 05 2021 09:40:49 GMT+0200 (Eastern European Standard Time) === (1638690049000)
 			const currentCycleStartDate = new Date(new Date(now).setDate(new Date(now).getDate() - 5)).getTime();
 
-			const firstResults: DripsSetEvent[] = new Array(490)
+			const firstResults: StreamsSetEvent[] = new Array(490)
 				.fill({})
 				.map(
 					(_e, i) =>
@@ -1651,16 +1651,16 @@ describe('DripsSubgraphClient', () => {
 							id: i,
 							assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 							receiversHash: `receiversHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
-							dripsHistoryHash: `dripsHistoryHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
+							streamsHistoryHash: `streamsHistoryHash-${BigInt(currentCycleStartDate - i * 10 - 1)}-${i}`,
 							blockTimestamp: BigInt(Math.ceil(currentCycleStartDate / 1000 - i * 10 - 1)),
-							dripsReceiverSeenEvents: [
+							streamReceiverSeenEvents: [
 								{
 									receiverUserId: '3',
 									config: i
 								}
 							],
 							maxEnd: BigInt(i)
-						} as unknown as DripsSetEvent)
+						} as unknown as StreamsSetEvent)
 				)
 				.concat(
 					new Array(10).fill({}).map(
@@ -1669,66 +1669,66 @@ describe('DripsSubgraphClient', () => {
 								id: i + 1000,
 								assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 								receiversHash: `receiversHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
-								dripsHistoryHash: `dripsHistoryHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
+								streamsHistoryHash: `streamsHistoryHash-${BigInt(currentCycleStartDate + i * 10)}-${i + 1000}`,
 								blockTimestamp: BigInt(Math.ceil(currentCycleStartDate / 1000 + i * 10)),
-								dripsReceiverSeenEvents: [
+								streamReceiverSeenEvents: [
 									{
 										receiverUserId: (i + 1000) % 2 === 0 ? userId : '3',
 										config: i + 1000
 									}
 								],
 								maxEnd: BigInt(i + 1000)
-							} as unknown as DripsSetEvent)
+							} as unknown as StreamsSetEvent)
 					)
 				);
 
-			const secondResults: DripsSetEvent[] = [
+			const secondResults: StreamsSetEvent[] = [
 				{
 					id: firstResults[0].id,
 					maxEnd: firstResults[0].maxEnd,
 					receiversHash: firstResults[0].receiversHash,
 					blockTimestamp: firstResults[0].blockTimestamp,
-					dripsHistoryHash: firstResults[0].dripsHistoryHash,
+					streamsHistoryHash: firstResults[0].streamsHistoryHash,
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
-					dripsReceiverSeenEvents: firstResults[0].dripsReceiverSeenEvents
-				} as unknown as DripsSetEvent,
+					streamReceiverSeenEvents: firstResults[0].streamReceiverSeenEvents
+				} as unknown as StreamsSetEvent,
 				{
 					id: firstResults[firstResults.length - 1].id,
 					maxEnd: firstResults[firstResults.length - 1].maxEnd,
 					receiversHash: firstResults[firstResults.length - 1].receiversHash,
 					blockTimestamp: firstResults[firstResults.length - 1].blockTimestamp,
-					dripsHistoryHash: firstResults[firstResults.length - 1].dripsHistoryHash,
+					streamsHistoryHash: firstResults[firstResults.length - 1].streamsHistoryHash,
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
-					dripsReceiverSeenEvents: firstResults[firstResults.length - 1].dripsReceiverSeenEvents
-				} as unknown as DripsSetEvent,
+					streamReceiverSeenEvents: firstResults[firstResults.length - 1].streamReceiverSeenEvents
+				} as unknown as StreamsSetEvent,
 				{
 					id: '500',
 					maxEnd: '500',
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 					blockTimestamp: firstResults[firstResults.length - 1].blockTimestamp + BigInt(1),
-					receiversHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-500`,
-					dripsHistoryHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-500`,
-					dripsReceiverSeenEvents: [
+					receiversHash: `${firstResults[firstResults.length - 1].streamsHistoryHash}-500`,
+					streamsHistoryHash: `${firstResults[firstResults.length - 1].streamsHistoryHash}-500`,
+					streamReceiverSeenEvents: [
 						{
 							receiverUserId: userId,
 							config: '500'
 						}
 					]
-				} as unknown as DripsSetEvent,
+				} as unknown as StreamsSetEvent,
 				{
 					id: '600',
 					maxEnd: '600',
 					assetId: '1000',
 					blockTimestamp: firstResults[firstResults.length - 1].blockTimestamp + BigInt(1),
-					receiversHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-600`,
-					dripsHistoryHash: `${firstResults[firstResults.length - 1].dripsHistoryHash}-600`,
-					dripsReceiverSeenEvents: [
+					receiversHash: `${firstResults[firstResults.length - 1].streamsHistoryHash}-600`,
+					streamsHistoryHash: `${firstResults[firstResults.length - 1].streamsHistoryHash}-600`,
+					streamReceiverSeenEvents: [
 						{
 							receiverUserId: userId,
 							config: '600'
 						}
 					]
-				} as unknown as DripsSetEvent
+				} as unknown as StreamsSetEvent
 			];
 
 			sinon.stub(Utils.Cycle, 'getInfo').returns({
@@ -1736,7 +1736,7 @@ describe('DripsSubgraphClient', () => {
 			} as CycleInfo);
 
 			sinon
-				.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId')
+				.stub(DripsSubgraphClient.prototype, 'getStreamsSetEventsByUserId')
 				.onFirstCall()
 				.resolves(firstResults)
 				.onSecondCall()
@@ -1769,7 +1769,7 @@ describe('DripsSubgraphClient', () => {
 			// Arrange
 			const receiverId = '1';
 
-			sinon.stub(DripsSubgraphClient.prototype, 'query').resolves({ data: { dripsReceiverSeenEvents: [] } });
+			sinon.stub(DripsSubgraphClient.prototype, 'query').resolves({ data: { streamReceiverSeenEvents: [] } });
 
 			// Act
 			const senders = await testSubgraphClient.filterSqueezableSenders(receiverId);
@@ -1783,40 +1783,40 @@ describe('DripsSubgraphClient', () => {
 			const assetId = '100';
 			const receiverId = '1';
 
-			const firstResults: DripsReceiverSeenEvent[] = new Array(500).fill({}).map(
+			const firstResults: StreamReceiverSeenEvent[] = new Array(500).fill({}).map(
 				(_e, i) =>
 					({
 						id: i,
 						senderUserId: i,
-						dripsSetEvent: { assetId }
-					} as unknown as DripsReceiverSeenEvent)
+						streamsSetEvent: { assetId }
+					} as unknown as StreamReceiverSeenEvent)
 			);
 
-			const secondResults: DripsReceiverSeenEvent[] = [
+			const secondResults: StreamReceiverSeenEvent[] = [
 				firstResults[0],
 				{
 					id: '501',
 					senderUserId: 0,
-					dripsSetEvent: { assetId }
-				} as unknown as DripsReceiverSeenEvent,
+					streamsSetEvent: { assetId }
+				} as unknown as StreamReceiverSeenEvent,
 				{
 					id: '502',
 					senderUserId: 0,
-					dripsSetEvent: { assetId: '999' }
-				} as unknown as DripsReceiverSeenEvent,
+					streamsSetEvent: { assetId: '999' }
+				} as unknown as StreamReceiverSeenEvent,
 				{
 					id: '503',
 					senderUserId: 503,
-					dripsSetEvent: { assetId: '999' }
-				} as unknown as DripsReceiverSeenEvent
+					streamsSetEvent: { assetId: '999' }
+				} as unknown as StreamReceiverSeenEvent
 			];
 
 			sinon
 				.stub(DripsSubgraphClient.prototype, 'query')
 				.onFirstCall()
-				.resolves({ data: { dripsReceiverSeenEvents: firstResults } })
+				.resolves({ data: { streamReceiverSeenEvents: firstResults } })
 				.onSecondCall()
-				.resolves({ data: { dripsReceiverSeenEvents: secondResults } });
+				.resolves({ data: { streamReceiverSeenEvents: secondResults } });
 
 			// Act
 			const senders = await testSubgraphClient.filterSqueezableSenders(receiverId);
@@ -1834,7 +1834,7 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const tokenAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-			sinon.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId').resolves([]);
+			sinon.stub(DripsSubgraphClient.prototype, 'getStreamsSetEventsByUserId').resolves([]);
 
 			// Act
 			const senders = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress, providerStub);
@@ -1848,53 +1848,53 @@ describe('DripsSubgraphClient', () => {
 			const userId = '1';
 			const tokenAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
 
-			const firstResults: DripsSetEvent[] = new Array(500).fill({}).map(
+			const firstResults: StreamsSetEvent[] = new Array(500).fill({}).map(
 				(_e, i) =>
 					({
 						id: i,
 						blockTimestamp: i,
 						assetId: 'not included',
-						dripsReceiverSeenEvents: [
+						streamReceiverSeenEvents: [
 							{
 								id: i,
 								receiverUserId: i,
 								config: i
 							}
 						]
-					} as unknown as DripsSetEvent)
+					} as unknown as StreamsSetEvent)
 			);
 
-			const secondResults: DripsSetEvent[] = [
+			const secondResults: StreamsSetEvent[] = [
 				{
 					id: '502',
 					blockTimestamp: 502n,
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
 					receiversHash: '0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9',
-					dripsReceiverSeenEvents: [
+					streamReceiverSeenEvents: [
 						{
 							id: '502',
 							receiverUserId: '502',
 							config: 502n
 						}
 					]
-				} as DripsSetEvent,
+				} as StreamsSetEvent,
 				{
 					id: '501',
 					blockTimestamp: 501n,
 					receiversHash: '0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9',
 					assetId: Utils.Asset.getIdFromAddress(tokenAddress),
-					dripsReceiverSeenEvents: [
+					streamReceiverSeenEvents: [
 						{
 							id: '501',
 							receiverUserId: '501',
 							config: 501n
 						}
 					]
-				} as DripsSetEvent
+				} as StreamsSetEvent
 			];
 
 			sinon
-				.stub(DripsSubgraphClient.prototype, 'getDripsSetEventsByUserId')
+				.stub(DripsSubgraphClient.prototype, 'getStreamsSetEventsByUserId')
 				.onFirstCall()
 				.resolves(firstResults)
 				.onSecondCall()

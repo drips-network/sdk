@@ -12,7 +12,7 @@ import {
 	NFTDriverInterface,
 	UserMetadataStruct,
 	StreamsHistoryStruct,
-	DripsReceiverConfig,
+	StreamConfig,
 	StreamReceiverStruct,
 	SplitsReceiverStruct,
 	AddressDriverInterface,
@@ -25,14 +25,14 @@ import {
 	RepoAccount,
 	SplitsEntry,
 	NftSubAccount,
-	DripsSetEvent,
+	StreamsSetEvent,
 	CollectedEvent,
 	UserAssetConfig,
 	UserMetadataEntry,
-	SqueezedDripsEvent,
-	ReceivedDripsEvent,
-	DripsReceiverSeenEvent,
-	DripsSetEventWithFullReceivers
+	SqueezedStreamsEvent,
+	ReceivedStreamsEvent,
+	StreamReceiverSeenEvent,
+	StreamsSetEventWithFullReceivers
 } from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
@@ -89,7 +89,7 @@ export {
 	SplitsEntry,
 	UserMetadata,
 	NftSubAccount,
-	DripsSetEvent,
+	StreamsSetEvent,
 	NetworkConfig,
 	DripsReceiver,
 	CollectedEvent,
@@ -101,17 +101,17 @@ export {
 	UserMetadataEntry,
 	SplittableBalance,
 	UserMetadataStruct,
-	ReceivedDripsEvent,
+	ReceivedStreamsEvent,
 	NFTDriverInterface,
-	SqueezedDripsEvent,
+	SqueezedStreamsEvent,
 	StreamsHistoryStruct,
 	CollectableBalance,
 	StreamReceiverStruct,
-	DripsReceiverConfig,
+	StreamConfig,
 	AddressDriverPresets,
 	SplitsReceiverStruct,
-	DripsReceiverSeenEvent,
+	StreamReceiverSeenEvent,
 	AddressDriverInterface,
 	ImmutableSplitsDriverInterface,
-	DripsSetEventWithFullReceivers
+	StreamsSetEventWithFullReceivers
 };

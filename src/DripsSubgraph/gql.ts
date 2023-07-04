@@ -3,7 +3,7 @@ query getUserAssetConfigById($configId: ID!) {
 	userAssetConfig(id: $configId) {
 		id
 		assetId
-		dripsEntries {
+		streamsEntries {
 			id
 			userId
 			config
@@ -21,7 +21,7 @@ query getAllUserAssetConfigsByUserId($userId: ID!, $skip: Int, $first: Int) {
     assetConfigs(skip: $skip, first: $first) {
       id
 			assetId
-			dripsEntries {
+			streamsEntries {
 				id
 				userId
 				config
@@ -62,19 +62,19 @@ query getSplitEntriesByReceiverUserId($receiverUserId: String!, $skip: Int, $fir
 }
 `;
 
-export const getDripsSetEventsByUserId = `#graphql
-query getDripsSetEventsByUserId($userId: String!, $skip: Int, $first: Int) {
-  dripsSetEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+export const getStreamsSetEventsByUserId = `#graphql
+query getStreamsSetEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  streamsSetEvents(where: {userId: $userId}, skip: $skip, first: $first) {
 		id
     userId
     assetId
 		receiversHash
-    dripsReceiverSeenEvents {
+    streamReceiverSeenEvents {
 			id
       receiverUserId
 			config
     }
-    dripsHistoryHash
+    streamsHistoryHash
 		balance
     blockTimestamp
 		maxEnd
@@ -82,14 +82,14 @@ query getDripsSetEventsByUserId($userId: String!, $skip: Int, $first: Int) {
 }
 `;
 
-export const getDripsReceiverSeenEventsByReceiverId = `#graphql
-query getDripsReceiverSeenEventsByReceiverId($receiverUserId: String!, $skip: Int, $first: Int) {
-  dripsReceiverSeenEvents(where: {receiverUserId: $receiverUserId}, skip: $skip, first: $first) {
+export const getStreamReceiverSeenEventsByReceiverId = `#graphql
+query getStreamReceiverSeenEventsByReceiverId($receiverUserId: String!, $skip: Int, $first: Int) {
+  streamReceiverSeenEvents(where: {receiverUserId: $receiverUserId}, skip: $skip, first: $first) {
 		id
     config
 		receiverUserId
 		senderUserId
-		dripsSetEvent {
+		streamsSetEvent {
 			id
 			userId
 			assetId
@@ -194,9 +194,9 @@ query getSplitEventsByReceiverUserId($receiverUserId: String!, $skip: Int, $firs
 }
 `;
 
-export const getReceivedDripsEventsByUserId = `#graphql
-query getReceivedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
-  receivedDripsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+export const getReceivedStreamsEventsByUserId = `#graphql
+query getReceivedStreamsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  receivedStreamsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
 		id
 		userId
 		receivableCycles
@@ -245,16 +245,16 @@ query getLatestUserMetadata($id: ID!) {
 }
 `;
 
-export const getSqueezedDripsEventsByUserId = `#graphql
-query getSqueezedDripsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
-  squeezedDripsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
+export const getSqueezedStreamsEventsByUserId = `#graphql
+query getSqueezedStreamsEventsByUserId($userId: String!, $skip: Int, $first: Int) {
+  squeezedStreamsEvents(where: {userId: $userId}, skip: $skip, first: $first) {
 		id
     userId
     assetId
     senderId
     amt
     blockTimestamp
-		dripsHistoryHashes
+		streamsHistoryHashes
 	}
 }
 `;

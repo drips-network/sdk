@@ -80,8 +80,8 @@ export namespace NFTDriverPresets {
 		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
 		 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 		 * @throws {@link DripsErrors.argumentError} if `payload.currentReceivers`' or `payload.newReceivers`' count exceeds the max allowed drips receivers.
-		 * @throws {@link DripsErrors.dripsReceiverError} if any of the `payload.currentReceivers` or the `payload.newReceivers` is not valid.
-		 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
+		 * @throws {@link DripsErrors.streamsReceiverError} if any of the `payload.currentReceivers` or the `payload.newReceivers` is not valid.
+		 * @throws {@link DripsErrors.streamConfigError} if any of the receivers' configuration is not valid.
 		 */
 		public static async createNewStreamFlow(payload: NewStreamFlowPayload): Promise<Preset> {
 			if (isNullOrUndefined(payload)) {
@@ -119,11 +119,11 @@ export namespace NFTDriverPresets {
 				tokenAddress,
 				currentReceivers?.map((r) => ({
 					userId: r.userId.toString(),
-					config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+					config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 				})),
 				newReceivers?.map((r) => ({
 					userId: r.userId.toString(),
-					config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+					config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 				})),
 				transferToAddress,
 				balanceDelta
