@@ -32,7 +32,7 @@ export namespace NFTDriverPresets {
 		tokenId: string;
 		signer: Signer;
 		driverAddress: string;
-		dripsHubAddress: string;
+		dripsAddress: string;
 		userId: string;
 		tokenAddress: string;
 		maxCycles: BigNumberish;
@@ -53,7 +53,7 @@ export namespace NFTDriverPresets {
  * // Populate the flow's payload.
 	const flowPayload: NFTDriverPresets.CollectFlowPayload = {
 		driverAddress,
-		dripsHubAddress,
+		dripsAddress,
 		userId,
 		tokenAddress,
 		maxCycles,
@@ -183,7 +183,7 @@ export namespace NFTDriverPresets {
 				tokenId,
 				signer,
 				driverAddress,
-				dripsHubAddress,
+				dripsAddress,
 				userId,
 				tokenAddress,
 				maxCycles,
@@ -206,7 +206,7 @@ export namespace NFTDriverPresets {
 
 			const flow: PopulatedTransaction[] = [];
 
-			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsHubAddress);
+			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsAddress);
 
 			squeezeArgs?.forEach(async (args) => {
 				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.dripsHistory);

@@ -30,7 +30,7 @@ export namespace AddressDriverPresets {
 	export type CollectFlowPayload = {
 		signer: Signer;
 		driverAddress: string;
-		dripsHubAddress: string;
+		dripsAddress: string;
 		userId: string;
 		tokenAddress: string;
 		maxCycles: BigNumberish;
@@ -51,7 +51,7 @@ export namespace AddressDriverPresets {
  * // Populate the flow's payload.
 	const flowPayload: AddressDriverPresets.CollectFlowPayload = {
 		driverAddress,
-		dripsHubAddress,
+		dripsAddress,
 		userId,
 		tokenAddress,
 		maxCycles,
@@ -170,7 +170,7 @@ export namespace AddressDriverPresets {
 			const {
 				signer,
 				driverAddress,
-				dripsHubAddress,
+				dripsAddress,
 				userId,
 				tokenAddress,
 				maxCycles,
@@ -185,7 +185,7 @@ export namespace AddressDriverPresets {
 
 			const flow: PopulatedTransaction[] = [];
 
-			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsHubAddress);
+			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsAddress);
 
 			squeezeArgs?.forEach(async (args) => {
 				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.dripsHistory);

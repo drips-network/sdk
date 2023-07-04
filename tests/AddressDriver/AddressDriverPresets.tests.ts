@@ -309,7 +309,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -354,7 +354,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -384,7 +384,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -414,7 +414,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -447,7 +447,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -516,7 +516,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -556,7 +556,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
@@ -596,7 +596,7 @@ describe('AddressDriverPresets', () => {
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
