@@ -404,7 +404,7 @@ export default class NFTDriverClient {
 	 * @param currentReceivers The drips receivers that were set in the last drips update.
 	 * Pass an empty array if this is the first update.
 	 *
-	 * **Tip**: you might want to use `DripsSubgraphClient.getCurrentDripsReceivers` to easily retrieve the list of current receivers.
+	 * **Tip**: you might want to use `DripsSubgraphClient.getCurrentStreamsReceivers` to easily retrieve the list of current receivers.
 	 * @param newReceivers The new drips receivers (max `100`).
 	 * Duplicate receivers are not allowed and will only be processed once.
 	 * Pass an empty array  if you want to clear all receivers.

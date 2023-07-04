@@ -117,7 +117,7 @@ describe('NFTDriver integration tests', () => {
 		await account2NftDriverClient.setStreams(
 			senderSubAccount.tokenId,
 			WETH,
-			await subgraphClient.getCurrentDripsReceivers(senderSubAccount.tokenId, WETH, provider),
+			await subgraphClient.getCurrentStreamsReceivers(senderSubAccount.tokenId, WETH, provider),
 			[{ config, userId: receiverSubAccount.tokenId }],
 			account2
 		);
@@ -149,7 +149,7 @@ describe('NFTDriver integration tests', () => {
 		await account2NftDriverClient.setStreams(
 			senderSubAccount.tokenId,
 			WETH,
-			await subgraphClient.getCurrentDripsReceivers(senderSubAccount.tokenId, WETH, provider),
+			await subgraphClient.getCurrentStreamsReceivers(senderSubAccount.tokenId, WETH, provider),
 			[],
 			account2
 		);

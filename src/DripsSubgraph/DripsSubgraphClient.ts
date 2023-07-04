@@ -904,7 +904,7 @@ export default class DripsSubgraphClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if the current Drips receivers.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getCurrentDripsReceivers(
+	public async getCurrentStreamsReceivers(
 		userId: string,
 		tokenAddress: string,
 		provider: Provider

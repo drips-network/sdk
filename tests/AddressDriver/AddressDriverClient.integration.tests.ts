@@ -62,7 +62,7 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Updating Drips configuration...`);
 		await account2AddressDriverClient.setStreams(
 			WETH,
-			await subgraphClient.getCurrentDripsReceivers(userId2, WETH, provider),
+			await subgraphClient.getCurrentStreamsReceivers(userId2, WETH, provider),
 			[{ config, userId: userId1 }],
 			account2
 		);
@@ -93,7 +93,7 @@ describe('AddressDriver integration tests', () => {
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await account2AddressDriverClient.setStreams(
 			WETH,
-			await subgraphClient.getCurrentDripsReceivers(userId2, WETH, provider),
+			await subgraphClient.getCurrentStreamsReceivers(userId2, WETH, provider),
 			[],
 			account2
 		);

@@ -1828,7 +1828,7 @@ describe('DripsSubgraphClient', () => {
 		});
 	});
 
-	describe('getCurrentDripsReceivers()', () => {
+	describe('getCurrentStreamsReceivers()', () => {
 		it('should return the expected result when there are no events', async () => {
 			// Arrange
 			const userId = '1';
@@ -1837,7 +1837,7 @@ describe('DripsSubgraphClient', () => {
 			sinon.stub(DripsSubgraphClient.prototype, 'getStreamsSetEventsByUserId').resolves([]);
 
 			// Act
-			const senders = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress, providerStub);
+			const senders = await testSubgraphClient.getCurrentStreamsReceivers(userId, tokenAddress, providerStub);
 
 			// Assert
 			assert.equal(Object.keys(senders).length, 0);
@@ -1907,7 +1907,7 @@ describe('DripsSubgraphClient', () => {
 				.onSecondCall()
 				.resolves('0xab1290d36f461ed68109d46b0d53cd064d194773a2c6dbd0b973f51e526e80d9');
 			// Act
-			const currentReceivers = await testSubgraphClient.getCurrentDripsReceivers(userId, tokenAddress, providerStub);
+			const currentReceivers = await testSubgraphClient.getCurrentStreamsReceivers(userId, tokenAddress, providerStub);
 
 			// Assert
 			assert.equal(currentReceivers.length, 1);
