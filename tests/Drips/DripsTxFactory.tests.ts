@@ -97,13 +97,13 @@ describe('DripsTxFactory', () => {
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			dripsContractStub.populateTransaction.squeezeStreams = stub.resolves(expectedTx);
-			const dripsHistory = [] as StreamsHistoryStruct[];
+			const streamsHistory = [] as StreamsHistoryStruct[];
 
 			// Act
-			const tx = await testDripsHubTxFactory.squeezeStreams('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory);
+			const tx = await testDripsHubTxFactory.squeezeStreams('0x1234', '0x5678', '0x9abc', '0xdef0', streamsHistory);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory));
+			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', '0xdef0', streamsHistory));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});

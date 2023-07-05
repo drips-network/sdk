@@ -47,10 +47,10 @@ export default class DripsTxFactory implements IDripsHubTxFactory {
 		erc20: PromiseOrValue<string>,
 		senderId: PromiseOrValue<BigNumberish>,
 		historyHash: PromiseOrValue<BytesLike>,
-		dripsHistory: StreamsHistoryStruct[]
+		streamsHistory: StreamsHistoryStruct[]
 	): Promise<PopulatedTransaction> {
 		return safeDripsTx(
-			await this.#driver.populateTransaction.squeezeStreams(userId, erc20, senderId, historyHash, dripsHistory)
+			await this.#driver.populateTransaction.squeezeStreams(userId, erc20, senderId, historyHash, streamsHistory)
 		);
 	}
 

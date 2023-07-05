@@ -15,7 +15,7 @@ export const nameOf = (obj: any) => Object.keys(obj)[0];
 export const isNullOrUndefined = (obj: any) => obj == null;
 
 /** @internal */
-export const formatDripsReceivers = (receivers: StreamReceiverStruct[]) => {
+export const formatStreamReceivers = (receivers: StreamReceiverStruct[]) => {
 	// Drips receivers must be sorted by user ID and config, deduplicated, and without amount per second <= 0.
 
 	const uniqueReceivers = receivers.reduce((unique: StreamReceiverStruct[], o) => {

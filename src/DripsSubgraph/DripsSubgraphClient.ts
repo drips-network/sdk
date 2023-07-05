@@ -6,7 +6,7 @@ import { ethers } from 'ethers';
 import type { Provider } from '@ethersproject/providers';
 import DripsClient from '../Drips/DripsClient';
 import constants from '../constants';
-import { nameOf, formatDripsReceivers } from '../common/internals';
+import { nameOf, formatStreamReceivers } from '../common/internals';
 import Utils from '../utils';
 import { validateAddress } from '../common/validators';
 import { DripsErrors } from '../common/DripsError';
@@ -262,11 +262,11 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns a list of `DripsReceiverSeen` events for the given receiver.
+	 * Returns a list of `StreamReceiverSeen` events for the given receiver.
 	 * @param  {string} receiverUserId The receiver's user ID.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
 	 * @param  {number} first The number of database entries to take. Defaults to `100`.
-	 * @returns A `Promise` which resolves to the receivers's `DripsReceiverSeen` events.
+	 * @returns A `Promise` which resolves to the receivers's `StreamReceiverSeen` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
@@ -784,12 +784,12 @@ export default class DripsSubgraphClient {
 			}
 		}
 
-		// The last (oldest) event added, provides the hash prior to the DripsHistory (or 0, if there was only one event).
+		// The last (oldest) event added, provides the hash prior to the StreamsHistory (or 0, if there was only one event).
 		const historyHash =
 			streamsSetEventsToSqueeze[streamsSetEventsToSqueeze.length - 1]?.streamsHistoryHash || ethers.constants.HashZero;
 
-		// Transform the events into `DripsHistory` objects.
-		const dripsHistory: StreamsHistoryStruct[] = streamsSetEventsToSqueeze
+		// Transform the events into `StreamsHistory` objects.
+		const streamsHistory: StreamsHistoryStruct[] = streamsSetEventsToSqueeze
 			?.map((streamsSetEvent) => {
 				// By default a configuration should *not* be squeezed.
 				let shouldSqueeze = false;
@@ -824,7 +824,7 @@ export default class DripsSubgraphClient {
 			.reverse();
 
 		// Return the parameters required by the `squeezeStreams` methods.
-		return { userId, tokenAddress, senderId, historyHash, dripsHistory };
+		return { userId, tokenAddress, senderId, historyHash, streamsHistory };
 	}
 
 	/**
@@ -842,7 +842,7 @@ export default class DripsSubgraphClient {
 			streamReceiverSeenEvents: StreamReceiverSeenEvent[];
 		};
 
-		// Get all `DripsReceiverSeen` events for the given receiver.
+		// Get all `StreamReceiverSeen` events for the given receiver.
 		const streamReceiverSeenEvents: StreamReceiverSeenEvent[] = [];
 		let skip = 0;
 		const first = 500;
@@ -880,7 +880,7 @@ export default class DripsSubgraphClient {
 
 		const squeezableSenders: Record<string, string[]> = {}; // key: senderId, value: [asset1Id, asset2Id, ...]
 
-		// Iterate over all `DripsReceiverSeen` events.
+		// Iterate over all `StreamReceiverSeen` events.
 		for (let i = 0; i < uniqueEvents.length; i++) {
 			const { senderUserId, streamsSetEvent } = uniqueEvents[i];
 
@@ -959,7 +959,7 @@ export default class DripsSubgraphClient {
 		}
 
 		// Return the most recent event's receivers formatted as expected by the protocol.
-		return formatDripsReceivers(
+		return formatStreamReceivers(
 			matchingEvent.streamReceiverSeenEvents.map((d) => ({
 				config: d.config,
 				userId: d.receiverUserId

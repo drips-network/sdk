@@ -364,16 +364,22 @@ describe('DripsClient', () => {
 			const userId = '1';
 			const senderId = '1';
 			const historyHash = '0x00';
-			const dripsHistory: StreamsHistoryStruct[] = [];
+			const streamsHistory: StreamsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			// Act
-			await testDripsHubClient.squeezeStreams(userId, tokenAddress, senderId, historyHash, dripsHistory);
+			await testDripsHubClient.squeezeStreams(userId, tokenAddress, senderId, historyHash, streamsHistory);
 
 			// Assert
 			assert(
-				validateSqueezeDripsInputStub.calledOnceWithExactly(userId, tokenAddress, senderId, historyHash, dripsHistory),
+				validateSqueezeDripsInputStub.calledOnceWithExactly(
+					userId,
+					tokenAddress,
+					senderId,
+					historyHash,
+					streamsHistory
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -383,11 +389,11 @@ describe('DripsClient', () => {
 			const userId = '1';
 			const senderId = '1';
 			const historyHash = '0x';
-			const dripsHistory: StreamsHistoryStruct[] = [];
+			const streamsHistory: StreamsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
-			await testDripsHubClient.squeezeStreams(userId, tokenAddress, senderId, historyHash, dripsHistory);
+			await testDripsHubClient.squeezeStreams(userId, tokenAddress, senderId, historyHash, streamsHistory);
 
 			// Assert
 			assert(
@@ -396,7 +402,7 @@ describe('DripsClient', () => {
 					tokenAddress,
 					senderId,
 					historyHash,
-					dripsHistory
+					streamsHistory
 				)
 			);
 		});
@@ -408,16 +414,16 @@ describe('DripsClient', () => {
 			const userId = '1';
 			const senderId = '1';
 			const historyHash = '0x';
-			const dripsHistory: StreamsHistoryStruct[] = [];
+			const streamsHistory: StreamsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsContractStub.squeezeStreamsResult
-				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
+				.withArgs(userId, tokenAddress, senderId, historyHash, streamsHistory)
 				.resolves(BigNumber.from(1));
 
 			// Act
-			await testDripsHubClient.getSqueezableBalance(userId, tokenAddress, senderId, historyHash, dripsHistory);
+			await testDripsHubClient.getSqueezableBalance(userId, tokenAddress, senderId, historyHash, streamsHistory);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -477,7 +483,7 @@ describe('DripsClient', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw argumentMissingError when dripsHistory is missing', async () => {
+		it('should throw argumentMissingError when streamsHistory is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -507,11 +513,11 @@ describe('DripsClient', () => {
 			const senderId = '1';
 			const historyHash = '0x';
 			const expectedBalance = BigNumber.from(10);
-			const dripsHistory: StreamsHistoryStruct[] = [];
+			const streamsHistory: StreamsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 
 			dripsContractStub.squeezeStreamsResult
-				.withArgs(userId, tokenAddress, senderId, historyHash, dripsHistory)
+				.withArgs(userId, tokenAddress, senderId, historyHash, streamsHistory)
 				.resolves(expectedBalance);
 
 			// Act
@@ -520,7 +526,7 @@ describe('DripsClient', () => {
 				tokenAddress,
 				senderId,
 				historyHash,
-				dripsHistory
+				streamsHistory
 			);
 
 			// Assert
@@ -531,7 +537,7 @@ describe('DripsClient', () => {
 					tokenAddress,
 					senderId,
 					historyHash,
-					dripsHistory
+					streamsHistory
 				)
 			);
 		});
@@ -889,7 +895,7 @@ describe('DripsClient', () => {
 				}
 			];
 			const tokenAddress = Wallet.createRandom().address;
-			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
+			const validateStreamReceiversStub = sinon.stub(validators, 'validateStreamReceivers');
 
 			dripsContractStub.balanceAt.withArgs(userId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
 
@@ -898,7 +904,7 @@ describe('DripsClient', () => {
 
 			// Assert
 			assert(
-				validateDripsReceiversStub.calledOnceWithExactly(
+				validateStreamReceiversStub.calledOnceWithExactly(
 					sinon.match(
 						(r: { userId: string; config: StreamConfig }[]) =>
 							Utils.StreamConfiguration.toUint256(r[0].config) === receivers[0].config

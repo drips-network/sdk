@@ -60,7 +60,7 @@ export const validateStreamConfig = (streamConfig: StreamConfig): void => {
 };
 
 /** @internal */
-export const validateDripsReceivers = (receivers: { userId: string; config: StreamConfig }[]) => {
+export const validateStreamReceivers = (receivers: { userId: string; config: StreamConfig }[]) => {
 	if (!receivers) {
 		throw DripsErrors.argumentMissingError(
 			`Drips receivers validation failed: '${nameOf({ receivers })}' is missing.`,
@@ -202,8 +202,8 @@ export const validateSetStreamsInput = (
 ) => {
 	validateAddress(tokenAddress);
 	validateAddress(transferToAddress);
-	validateDripsReceivers(newReceivers);
-	validateDripsReceivers(currentReceivers);
+	validateStreamReceivers(newReceivers);
+	validateStreamReceivers(currentReceivers);
 	if (isNullOrUndefined(balanceDelta)) {
 		throw DripsErrors.argumentMissingError(
 			`Could not set drips: '${nameOf({ balanceDelta })}' is missing.`,
@@ -277,7 +277,7 @@ export const validateSqueezeDripsInput = (
 	tokenAddress: string,
 	senderId: BigNumberish,
 	historyHash: string,
-	dripsHistory: StreamsHistoryStruct[]
+	streamsHistory: StreamsHistoryStruct[]
 ) => {
 	validateAddress(tokenAddress);
 
@@ -293,7 +293,7 @@ export const validateSqueezeDripsInput = (
 		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ historyHash })}' is missing.`);
 	}
 
-	if (!dripsHistory) {
-		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ dripsHistory })}' is missing.`);
+	if (!streamsHistory) {
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ streamsHistory })}' is missing.`);
 	}
 };

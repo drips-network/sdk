@@ -6,7 +6,7 @@ import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { StreamsHistoryStruct, DripsReceiver, StreamConfig, UserMetadata } from '../../src/common/types';
+import type { StreamsHistoryStruct, StreamReceiver, StreamConfig, UserMetadata } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -31,7 +31,7 @@ describe('validators', () => {
 			const balanceDelta = 1;
 
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
+			const validateStreamReceiversStub = sinon.stub(validators, 'validateStreamReceivers');
 
 			// Act
 			validators.validateSetStreamsInput(tokenAddress, currentReceivers, newReceivers, transferToAddress, balanceDelta);
@@ -47,13 +47,13 @@ describe('validators', () => {
 				'Expected method to be called with different arguments'
 			);
 
-			assert(validateDripsReceiversStub.calledTwice);
+			assert(validateStreamReceiversStub.calledTwice);
 			assert(
-				validateDripsReceiversStub.calledWithExactly(newReceivers),
+				validateStreamReceiversStub.calledWithExactly(newReceivers),
 				'Expected method to be called with different arguments'
 			);
 			assert(
-				validateDripsReceiversStub.calledWithExactly(currentReceivers),
+				validateStreamReceiversStub.calledWithExactly(currentReceivers),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -436,14 +436,14 @@ describe('validators', () => {
 		});
 	});
 
-	describe('validateDripsReceivers()', () => {
+	describe('validateStreamReceivers()', () => {
 		it('should throw argumentMissingError when receivers are missing', () => {
 			// Arrange
 			let threw = false;
 
 			try {
 				// Act
-				validators.validateDripsReceivers(undefined as unknown as DripsReceiver[]);
+				validators.validateStreamReceivers(undefined as unknown as StreamReceiver[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -464,7 +464,7 @@ describe('validators', () => {
 
 			try {
 				// Act
-				validators.validateDripsReceivers(receivers);
+				validators.validateStreamReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -487,7 +487,7 @@ describe('validators', () => {
 
 			try {
 				// Act
-				validators.validateDripsReceivers(receivers);
+				validators.validateStreamReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -501,7 +501,7 @@ describe('validators', () => {
 		it('should throw streamsReceiverError when receiver config is missing', () => {
 			// Arrange
 			let threw = false;
-			const receivers: DripsReceiver[] = [
+			const receivers: StreamReceiver[] = [
 				{
 					userId: '123',
 					config: undefined as unknown as StreamConfig
@@ -510,7 +510,7 @@ describe('validators', () => {
 
 			try {
 				// Act
-				validators.validateDripsReceivers(receivers);
+				validators.validateStreamReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -523,7 +523,7 @@ describe('validators', () => {
 
 		it("should validate receivers' configs", () => {
 			// Arrange
-			const receivers: DripsReceiver[] = [
+			const receivers: StreamReceiver[] = [
 				{
 					userId: '123',
 					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
@@ -533,7 +533,7 @@ describe('validators', () => {
 			const validateStreamConfigObjStub = sinon.stub(validators, 'validateStreamConfig');
 
 			// Act
-			validators.validateDripsReceivers(receivers);
+			validators.validateStreamReceivers(receivers);
 
 			// Assert
 			assert(
@@ -829,7 +829,7 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw an argumentError when dripsHistory is missing in a metadata entry', () => {
+		it('should throw an argumentError when streamsHistory is missing in a metadata entry', () => {
 			// Arrange
 			let threw = false;
 

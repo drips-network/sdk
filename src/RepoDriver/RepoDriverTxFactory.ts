@@ -2,7 +2,7 @@
 import type { RepoDriver, StreamReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/RepoDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Overrides, Signer, BytesLike } from 'ethers';
-import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
+import { formatStreamReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
 import { RepoDriver__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
@@ -111,9 +111,9 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 			const gasEstimation = await this.#driver.estimateGas.setStreams(
 				userId,
 				erc20,
-				formatDripsReceivers(currReceivers),
+				formatStreamReceivers(currReceivers),
 				balanceDelta,
-				formatDripsReceivers(newReceivers),
+				formatStreamReceivers(newReceivers),
 				maxEndHint1,
 				maxEndHint2,
 				transferTo,
@@ -129,9 +129,9 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 			await this.#driver.populateTransaction.setStreams(
 				userId,
 				erc20,
-				formatDripsReceivers(currReceivers),
+				formatStreamReceivers(currReceivers),
 				balanceDelta,
-				formatDripsReceivers(newReceivers),
+				formatStreamReceivers(newReceivers),
 				maxEndHint1,
 				maxEndHint2,
 				transferTo,

@@ -2,7 +2,7 @@
 import type { NFTDriver, StreamReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/NFTDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer, Overrides } from 'ethers';
-import { formatDripsReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
+import { formatStreamReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
 import { NFTDriver__factory } from '../../contracts/factories';
 import { validateClientSigner } from '../common/validators';
 import Utils from '../utils';
@@ -126,9 +126,9 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 			const gasEstimation = await this.#driver.estimateGas.setStreams(
 				tokenId,
 				erc20,
-				formatDripsReceivers(currReceivers),
+				formatStreamReceivers(currReceivers),
 				balanceDelta,
-				formatDripsReceivers(newReceivers),
+				formatStreamReceivers(newReceivers),
 				maxEndHint1,
 				maxEndHint2,
 				transferTo,
@@ -144,9 +144,9 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 			await this.#driver.populateTransaction.setStreams(
 				tokenId,
 				erc20,
-				formatDripsReceivers(currReceivers),
+				formatStreamReceivers(currReceivers),
 				balanceDelta,
-				formatDripsReceivers(newReceivers),
+				formatStreamReceivers(newReceivers),
 				maxEndHint1,
 				maxEndHint2,
 				transferTo,

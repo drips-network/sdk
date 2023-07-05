@@ -7,7 +7,7 @@ import {
 	validateAddress,
 	validateClientProvider,
 	validateClientSigner,
-	validateDripsReceivers,
+	validateStreamReceivers,
 	validateReceiveDripsInput,
 	validateSplitInput,
 	validateSplitsReceivers,
@@ -264,12 +264,12 @@ export default class DripsClient {
 	 * or impose any restrictions on holding or transferring tokens are not supported.
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {BigNumberish} senderId The ID of the user sending drips to squeeze funds from.
-	 * @param  {string} historyHash The sender's history hash which was valid right before they set up the sequence of configurations described by `dripsHistory`.
-	 * @param  {BigNumberish} dripsHistory The sequence of the sender's drips configurations.
+	 * @param  {string} historyHash The sender's history hash which was valid right before they set up the sequence of configurations described by `streamsHistory`.
+	 * @param  {BigNumberish} streamsHistory The sequence of the sender's drips configurations.
 	 * It can start at an arbitrary past configuration, but must describe all the configurations
 	 * which have been used since then including the current one, in the chronological order.
-	 * Only drips described by `dripsHistory` will be squeezed.
-	 * If `dripsHistory` entries have no receivers, they won't be squeezed.
+	 * Only drips described by `streamsHistory` will be squeezed.
+	 * If `streamsHistory` entries have no receivers, they won't be squeezed.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
@@ -279,11 +279,11 @@ export default class DripsClient {
 		tokenAddress: string,
 		senderId: BigNumberish,
 		historyHash: string,
-		dripsHistory: StreamsHistoryStruct[]
+		streamsHistory: StreamsHistoryStruct[]
 	): Promise<ContractTransaction> {
-		validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, dripsHistory);
+		validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, streamsHistory);
 
-		return this.#driver.squeezeStreams(userId, tokenAddress, senderId, historyHash, dripsHistory);
+		return this.#driver.squeezeStreams(userId, tokenAddress, senderId, historyHash, streamsHistory);
 	}
 
 	/**
@@ -299,8 +299,8 @@ export default class DripsClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param  {string} senderId The ID of the user sending drips to squeeze funds from.
 	 * @param  {string} historyHash The sender's history hash which was valid right before
-	 * they set up the sequence of configurations described by `dripsHistory`.
-	 * @param  {StreamsHistoryStruct[]} dripsHistory The sequence of the sender's drips configurations.
+	 * they set up the sequence of configurations described by `streamsHistory`.
+	 * @param  {StreamsHistoryStruct[]} streamsHistory The sequence of the sender's drips configurations.
 	 * @returns A `Promise` which resolves to the the squeezable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
@@ -310,7 +310,7 @@ export default class DripsClient {
 		tokenAddress: string,
 		senderId: string,
 		historyHash: string,
-		dripsHistory: StreamsHistoryStruct[]
+		streamsHistory: StreamsHistoryStruct[]
 	): Promise<bigint> {
 		validateAddress(tokenAddress);
 
@@ -335,10 +335,10 @@ export default class DripsClient {
 			);
 		}
 
-		if (isNullOrUndefined(dripsHistory)) {
+		if (isNullOrUndefined(streamsHistory)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get squeezable balance: '${nameOf({ dripsHistory })}' is missing.`,
-				nameOf({ dripsHistory })
+				`Could not get squeezable balance: '${nameOf({ streamsHistory })}' is missing.`,
+				nameOf({ streamsHistory })
 			);
 		}
 
@@ -347,7 +347,7 @@ export default class DripsClient {
 			tokenAddress,
 			senderId,
 			historyHash,
-			dripsHistory
+			streamsHistory
 		);
 
 		return squeezableBalance.toBigInt();
@@ -555,7 +555,7 @@ export default class DripsClient {
 		timestamp: BigNumberish
 	): Promise<bigint> {
 		validateAddress(tokenAddress);
-		validateDripsReceivers(
+		validateStreamReceivers(
 			receivers.map((r) => ({
 				userId: r.userId.toString(),
 				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())

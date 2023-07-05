@@ -184,7 +184,7 @@ describe('internals', () => {
 		});
 	});
 
-	describe('formatDripsReceivers()', () => {
+	describe('formatStreamReceivers()', () => {
 		it('should sort by the expected order when userID1=userID2 but config1<config2', async () => {
 			// Arrange
 			const receivers: StreamReceiverStruct[] = [
@@ -204,7 +204,7 @@ describe('internals', () => {
 			];
 
 			// Act
-			const formattedReceivers = internals.formatDripsReceivers(receivers);
+			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
 			assert.isTrue(formattedReceivers[0].config < formattedReceivers[1].config);
@@ -229,7 +229,7 @@ describe('internals', () => {
 			];
 
 			// Act
-			const formattedReceivers = internals.formatDripsReceivers(receivers);
+			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
 			assert.isTrue(formattedReceivers[0].config < formattedReceivers[1].config);
@@ -265,7 +265,7 @@ describe('internals', () => {
 			];
 
 			// Act
-			const formattedReceivers = internals.formatDripsReceivers(receivers);
+			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
 			assert.equal(formattedReceivers.length, 4);
@@ -295,7 +295,7 @@ describe('internals', () => {
 			];
 
 			// Act
-			const formattedReceivers = internals.formatDripsReceivers(receivers);
+			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
 			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
@@ -325,7 +325,7 @@ describe('internals', () => {
 			];
 
 			// Act
-			const formattedReceivers = internals.formatDripsReceivers(receivers);
+			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
 			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);

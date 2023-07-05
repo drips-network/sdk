@@ -323,7 +323,7 @@ describe('AddressDriverPresets', () => {
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
-						dripsHistory: []
+						streamsHistory: []
 					}
 				]
 			};
@@ -338,7 +338,7 @@ describe('AddressDriverPresets', () => {
 					payload.squeezeArgs![0].tokenAddress,
 					payload.squeezeArgs![0].senderId,
 					payload.squeezeArgs![0].historyHash,
-					payload.squeezeArgs![0].dripsHistory
+					payload.squeezeArgs![0].streamsHistory
 				),
 				'Expected method to be called with different arguments'
 			);
@@ -465,14 +465,14 @@ describe('AddressDriverPresets', () => {
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
-						dripsHistory: []
+						streamsHistory: []
 					},
 					{
 						userId: '2',
 						senderId: '2',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
-						dripsHistory: []
+						streamsHistory: []
 					}
 				]
 			};

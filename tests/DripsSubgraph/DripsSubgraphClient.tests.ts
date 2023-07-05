@@ -604,7 +604,7 @@ describe('DripsSubgraphClient', () => {
 			);
 		});
 
-		it('should return an empty array when DripsReceiverSeen event entries do not exist', async () => {
+		it('should return an empty array when StreamReceiverSeen event entries do not exist', async () => {
 			// Arrange
 			const receiverUserId = '1';
 			const clientStub = sinon
@@ -1628,7 +1628,7 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(args.tokenAddress, tokenAddress);
 			assert.equal(args.senderId, senderId);
 			assert.equal(args.historyHash, ethers.constants.HashZero);
-			assert.equal(args.dripsHistory.length, 0);
+			assert.equal(args.streamsHistory.length, 0);
 		});
 
 		it('should return the expected result', async () => {
@@ -1751,14 +1751,15 @@ describe('DripsSubgraphClient', () => {
 			assert.equal(args.senderId, senderId);
 			assert.equal(args.historyHash.substring(args.historyHash.length - 2), '-0');
 			assert.equal(
-				args.dripsHistory.filter(
+				args.streamsHistory.filter(
 					(c) =>
 						c.streamsHash === ethers.constants.HashZero && c.receivers.filter((e) => e.userId === userId).length === 1
 				).length,
 				6
 			);
 			assert.equal(
-				args.dripsHistory.filter((c) => c.streamsHash !== ethers.constants.HashZero && c.receivers.length === 0).length,
+				args.streamsHistory.filter((c) => c.streamsHash !== ethers.constants.HashZero && c.receivers.length === 0)
+					.length,
 				6
 			);
 		});

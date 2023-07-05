@@ -11,7 +11,7 @@ import RepoDriverTxFactory from '../../src/RepoDriver/RepoDriverTxFactory';
 import * as validators from '../../src/common/validators';
 import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadataStruct } from '../../src/common/types';
 import { Forge } from '../../src/common/types';
-import { formatDripsReceivers } from '../../src/common/internals';
+import { formatStreamReceivers } from '../../src/common/internals';
 
 describe('RepoDriverTxFactory', () => {
 	const TEST_CHAIN_ID = 11155111; // Sepolia.
@@ -194,9 +194,9 @@ describe('RepoDriverTxFactory', () => {
 				stub.calledOnceWithExactly(
 					userId,
 					'0x1234',
-					formatDripsReceivers(currReceivers),
+					formatStreamReceivers(currReceivers),
 					'0x5678',
-					formatDripsReceivers(newReceivers),
+					formatStreamReceivers(newReceivers),
 					0,
 					0,
 					'0x9abc',

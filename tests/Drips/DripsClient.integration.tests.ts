@@ -47,7 +47,7 @@ describe('DripsClient integration tests', () => {
 			argsBefore.tokenAddress,
 			argsBefore.senderId,
 			argsBefore.historyHash,
-			argsBefore.dripsHistory
+			argsBefore.streamsHistory
 		);
 
 		console.log("Querying the Subgraph until receiver's squeezable balance is 0...");
@@ -58,7 +58,7 @@ describe('DripsClient integration tests', () => {
 					argsBefore.tokenAddress,
 					argsBefore.senderId,
 					argsBefore.historyHash,
-					argsBefore.dripsHistory
+					argsBefore.streamsHistory
 				),
 			(balance) => {
 				const found = balance === 0n;
@@ -141,7 +141,7 @@ describe('DripsClient integration tests', () => {
 					argsAfter.tokenAddress,
 					argsAfter.senderId,
 					argsAfter.historyHash,
-					argsAfter.dripsHistory
+					argsAfter.streamsHistory
 				),
 			(balance) => {
 				const found = balance > 0;

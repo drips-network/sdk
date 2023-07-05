@@ -68,7 +68,7 @@ export type CycleInfo = {
 	nextCycleStartDate: Date;
 };
 
-export type DripsReceiver = { userId: string; config: StreamConfig };
+export type StreamReceiver = { userId: string; config: StreamConfig };
 
 export type Preset = PopulatedTransaction[];
 
@@ -82,7 +82,7 @@ export type SqueezeArgs = {
 	tokenAddress: string;
 	senderId: string;
 	historyHash: string;
-	dripsHistory: StreamsHistoryStruct[];
+	streamsHistory: StreamsHistoryStruct[];
 };
 
 export enum Forge {

@@ -10,7 +10,7 @@ import Utils from '../../src/utils';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
 import * as validators from '../../src/common/validators';
 import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadataStruct } from '../../src/common/types';
-import { formatDripsReceivers } from '../../src/common/internals';
+import { formatStreamReceivers } from '../../src/common/internals';
 
 describe('AddressDriverTxFactory', () => {
 	const TEST_CHAIN_ID = 11155111; // Sepolia.
@@ -167,9 +167,9 @@ describe('AddressDriverTxFactory', () => {
 			assert(
 				stub.calledOnceWithExactly(
 					'0x1234',
-					formatDripsReceivers(currReceivers),
+					formatStreamReceivers(currReceivers),
 					'0x5678',
-					formatDripsReceivers(newReceivers),
+					formatStreamReceivers(newReceivers),
 					0,
 					0,
 					'0x9abc',

@@ -188,14 +188,14 @@ export namespace AddressDriverPresets {
 			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsAddress);
 
 			squeezeArgs?.forEach(async (args) => {
-				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.dripsHistory);
+				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.streamsHistory);
 
 				const squeezeTx = await dripsTxFactory.squeezeStreams(
 					userId,
 					tokenAddress,
 					args.senderId,
 					args.historyHash,
-					args.dripsHistory
+					args.streamsHistory
 				);
 
 				flow.push(squeezeTx);
