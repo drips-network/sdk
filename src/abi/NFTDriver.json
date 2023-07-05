@@ -98,7 +98,13 @@
 		"name": "Upgraded",
 		"type": "event"
 	},
-	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "acceptAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [],
 		"name": "admin",
@@ -180,12 +186,12 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
-		"name": "emitUserMetadata",
+		"name": "emitAccountMetadata",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -272,8 +278,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -291,8 +297,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -322,7 +328,13 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
 		"name": "proposeNewAdmin",
@@ -344,7 +356,13 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "renounceAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",
@@ -360,8 +378,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -379,8 +397,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -427,7 +445,7 @@
 			{ "internalType": "uint256", "name": "tokenId", "type": "uint256" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
 				],
 				"internalType": "struct SplitsReceiver[]",
@@ -446,7 +464,7 @@
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct StreamReceiver[]",
@@ -456,7 +474,7 @@
 			{ "internalType": "int128", "name": "balanceDelta", "type": "int128" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct StreamReceiver[]",
@@ -504,7 +522,13 @@
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "newImplementation", "type": "address" }],
 		"name": "upgradeTo",

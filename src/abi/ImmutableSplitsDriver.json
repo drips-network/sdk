@@ -25,7 +25,7 @@
 	{
 		"anonymous": false,
 		"inputs": [
-			{ "indexed": true, "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "indexed": true, "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "indexed": true, "internalType": "bytes32", "name": "receiversHash", "type": "bytes32" }
 		],
 		"name": "CreatedSplits",
@@ -76,7 +76,13 @@
 		"name": "Upgraded",
 		"type": "event"
 	},
-	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "acceptAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [],
 		"name": "admin",
@@ -95,7 +101,7 @@
 		"inputs": [
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
 				],
 				"internalType": "struct SplitsReceiver[]",
@@ -107,13 +113,13 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
 		"name": "createSplits",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -161,12 +167,18 @@
 	},
 	{
 		"inputs": [],
-		"name": "nextUserId",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"name": "nextAccountId",
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
 		"name": "proposeNewAdmin",
@@ -188,7 +200,13 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "renounceAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",
@@ -203,7 +221,13 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "newImplementation", "type": "address" }],
 		"name": "upgradeTo",

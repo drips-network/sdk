@@ -8,6 +8,12 @@
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
+	{ "inputs": [], "name": "InvalidShortString", "type": "error" },
+	{
+		"inputs": [{ "internalType": "string", "name": "str", "type": "string" }],
+		"name": "StringTooLong",
+		"type": "error"
+	},
 	{
 		"anonymous": false,
 		"inputs": [
@@ -20,7 +26,12 @@
 	{
 		"anonymous": false,
 		"inputs": [
-			{ "indexed": true, "internalType": "contract OperatorInterface", "name": "operator", "type": "address" },
+			{
+				"indexed": true,
+				"internalType": "contract OperatorInterface",
+				"name": "operator",
+				"type": "address"
+			},
 			{ "indexed": true, "internalType": "bytes32", "name": "jobId", "type": "bytes32" },
 			{ "indexed": false, "internalType": "uint96", "name": "defaultFee", "type": "uint96" }
 		],
@@ -45,7 +56,7 @@
 	{
 		"anonymous": false,
 		"inputs": [
-			{ "indexed": true, "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "indexed": true, "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "indexed": false, "internalType": "enum Forge", "name": "forge", "type": "uint8" },
 			{ "indexed": false, "internalType": "bytes", "name": "name", "type": "bytes" }
 		],
@@ -55,7 +66,7 @@
 	{
 		"anonymous": false,
 		"inputs": [
-			{ "indexed": true, "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "indexed": true, "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "indexed": false, "internalType": "address", "name": "owner", "type": "address" }
 		],
 		"name": "OwnerUpdated",
@@ -97,7 +108,13 @@
 		"name": "Upgraded",
 		"type": "event"
 	},
-	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "acceptAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [],
 		"name": "admin",
@@ -128,14 +145,14 @@
 			{ "internalType": "enum Forge", "name": "forge", "type": "uint8" },
 			{ "internalType": "bytes", "name": "name", "type": "bytes" }
 		],
-		"name": "calcUserId",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"name": "calcAccountId",
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{ "internalType": "address", "name": "transferTo", "type": "address" }
 		],
@@ -160,25 +177,25 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{
 				"components": [
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
-		"name": "emitUserMetadata",
+		"name": "emitAccountMetadata",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "internalType": "uint256", "name": "receiver", "type": "uint256" },
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{ "internalType": "uint128", "name": "amt", "type": "uint128" }
@@ -253,13 +270,19 @@
 		"type": "function"
 	},
 	{
-		"inputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"inputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"name": "ownerOf",
 		"outputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
 		"name": "proposeNewAdmin",
@@ -281,14 +304,20 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "renounceAdmin",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [
 			{ "internalType": "enum Forge", "name": "forge", "type": "uint8" },
 			{ "internalType": "bytes", "name": "name", "type": "bytes" }
 		],
 		"name": "requestUpdateOwner",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -301,10 +330,10 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
 				],
 				"internalType": "struct SplitsReceiver[]",
@@ -319,11 +348,11 @@
 	},
 	{
 		"inputs": [
-			{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct StreamReceiver[]",
@@ -333,7 +362,7 @@
 			{ "internalType": "int128", "name": "balanceDelta", "type": "int128" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct StreamReceiver[]",
@@ -349,7 +378,13 @@
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
-	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"inputs": [
 			{ "internalType": "contract OperatorInterface", "name": "operator", "type": "address" },

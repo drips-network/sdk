@@ -84,9 +84,9 @@
 		"type": "function"
 	},
 	{
-		"inputs": [{ "internalType": "address", "name": "userAddr", "type": "address" }],
-		"name": "calcUserId",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"inputs": [{ "internalType": "address", "name": "addr", "type": "address" }],
+		"name": "calcAccountId",
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -121,12 +121,12 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
-		"name": "emitUserMetadata",
+		"name": "emitAccountMetadata",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -211,7 +211,7 @@
 		"inputs": [
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
 				],
 				"internalType": "struct SplitsReceiver[]",
@@ -229,7 +229,7 @@
 			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct StreamReceiver[]",
@@ -239,7 +239,7 @@
 			{ "internalType": "int128", "name": "balanceDelta", "type": "int128" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
 				],
 				"internalType": "struct StreamReceiver[]",

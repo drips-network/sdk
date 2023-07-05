@@ -32,6 +32,8 @@ export type NetworkConfig = {
 	DEPLOYMENT_TIME: string;
 	COMMIT_HASH: string;
 	WALLET: string;
+	DETERMINISTIC_DEPLOYER: string;
+	CREATE3_FACTORY: string;
 	DRIPS_DEPLOYER: string;
 	DRIPS_DEPLOYER_SALT: string;
 	DRIPS: string;
