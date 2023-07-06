@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers';
 import DripsTxFactory from '../Drips/DripsTxFactory';
 import {
 	validateCollectInput,
-	validateEmitUserMetadataInput,
+	validateEmitAccountMetadataInput,
 	validateReceiveDripsInput,
 	validateSetStreamsInput,
 	validateSplitInput,
@@ -11,7 +11,7 @@ import {
 } from '../common/validators';
 import { isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { StreamReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
+import type { StreamReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, AccountMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import NFTDriverTxFactory from './NFTDriverTxFactory';
 
@@ -25,7 +25,7 @@ export namespace NFTDriverPresets {
 		newReceivers: StreamReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		userMetadata: UserMetadata[];
+		accountMetadata: AccountMetadata[];
 	};
 
 	export type CollectFlowPayload = {
@@ -33,7 +33,7 @@ export namespace NFTDriverPresets {
 		signer: Signer;
 		driverAddress: string;
 		dripsAddress: string;
-		userId: string;
+		accountId: string;
 		tokenAddress: string;
 		maxCycles: BigNumberish;
 		currentReceivers: SplitsReceiverStruct[];
@@ -54,7 +54,7 @@ export namespace NFTDriverPresets {
 	const flowPayload: NFTDriverPresets.CollectFlowPayload = {
 		driverAddress,
 		dripsAddress,
-		userId,
+		accountId,
 		tokenAddress,
 		maxCycles,
 		currentReceivers,
@@ -72,7 +72,7 @@ export namespace NFTDriverPresets {
 		/**
 		 * Creates a new batch with the following sequence of calls:
 		 * 1. `setStreams`
-		 * 2. `emitUserMetadata`
+		 * 2. `emitAccountMetadata`
 		 *
 		 * @see `NFTDriverClient`'s API for more details.
 		 * @param  {CreateStreamFlowPayload} payload the flow's payload.
@@ -94,7 +94,7 @@ export namespace NFTDriverPresets {
 			const {
 				signer,
 				tokenId,
-				userMetadata,
+				accountMetadata,
 				tokenAddress,
 				driverAddress,
 				newReceivers,
@@ -118,17 +118,17 @@ export namespace NFTDriverPresets {
 			validateSetStreamsInput(
 				tokenAddress,
 				currentReceivers?.map((r) => ({
-					userId: r.userId.toString(),
+					accountId: r.accountId.toString(),
 					config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 				})),
 				newReceivers?.map((r) => ({
-					userId: r.userId.toString(),
+					accountId: r.accountId.toString(),
 					config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 				})),
 				transferToAddress,
 				balanceDelta
 			);
-			validateEmitUserMetadataInput(userMetadata);
+			validateEmitAccountMetadataInput(accountMetadata);
 
 			const nftDriverTxFactory = await NFTDriverTxFactory.create(signer, driverAddress);
 
@@ -143,11 +143,11 @@ export namespace NFTDriverPresets {
 				transferToAddress
 			);
 
-			const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+			const accountMetadataAsBytes = accountMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
-			const emitUserMetadataTx = await nftDriverTxFactory.emitUserMetadata(tokenId, userMetadataAsBytes);
+			const emitAccountMetadataTx = await nftDriverTxFactory.emitAccountMetadata(tokenId, accountMetadataAsBytes);
 
-			return [setStreamsTx, emitUserMetadataTx];
+			return [setStreamsTx, emitAccountMetadataTx];
 		}
 
 		/**
@@ -184,7 +184,7 @@ export namespace NFTDriverPresets {
 				signer,
 				driverAddress,
 				dripsAddress,
-				userId,
+				accountId,
 				tokenAddress,
 				maxCycles,
 				currentReceivers,
@@ -209,10 +209,16 @@ export namespace NFTDriverPresets {
 			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsAddress);
 
 			squeezeArgs?.forEach(async (args) => {
-				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.streamsHistory);
+				validateSqueezeDripsInput(
+					args.accountId,
+					args.tokenAddress,
+					args.senderId,
+					args.historyHash,
+					args.streamsHistory
+				);
 
 				const squeezeTx = await dripsTxFactory.squeezeStreams(
-					userId,
+					accountId,
 					tokenAddress,
 					args.senderId,
 					args.historyHash,
@@ -223,17 +229,17 @@ export namespace NFTDriverPresets {
 			});
 
 			if (!skipReceive) {
-				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+				validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 
-				const receiveTx = await dripsTxFactory.receiveStreams(userId, tokenAddress, maxCycles);
+				const receiveTx = await dripsTxFactory.receiveStreams(accountId, tokenAddress, maxCycles);
 
 				flow.push(receiveTx);
 			}
 
 			if (!skipSplit) {
-				validateSplitInput(userId, tokenAddress, currentReceivers);
+				validateSplitInput(accountId, tokenAddress, currentReceivers);
 
-				const splitTx = await dripsTxFactory.split(userId, tokenAddress, currentReceivers);
+				const splitTx = await dripsTxFactory.split(accountId, tokenAddress, currentReceivers);
 
 				flow.push(splitTx);
 			}

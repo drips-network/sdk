@@ -148,7 +148,7 @@ export default class DripsClient {
 	/**
 	 * Returns the count of cycles from which drips can be collected.
 	 * This method can be used to detect if there are too many cycles to analyze in a single transaction.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -158,25 +158,25 @@ export default class DripsClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the number of receivable cycles.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 */
-	public receivableCyclesCount(userId: string, tokenAddress: string): Promise<number> {
+	public receivableCyclesCount(accountId: string, tokenAddress: string): Promise<number> {
 		validateAddress(tokenAddress);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get receivable cycles count: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get receivable cycles count: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
-		return this.#driver.receivableStreamsCycles(userId, tokenAddress);
+		return this.#driver.receivableStreamsCycles(accountId, tokenAddress);
 	}
 
 	/**
 	 * Calculates the user's receivable balance for the given token.
 	 * Receivable balance contains the funds other users drip to and is updated once every cycle.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -189,20 +189,20 @@ export default class DripsClient {
 	 * If too high, receiving may become too expensive to fit in a single transaction.
 	 * @returns A `Promise` which resolves to the receivable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 * @throws {@link DripsErrors.argumentError} if `maxCycles` is not valid.
 	 */
 	public async getReceivableBalanceForUser(
-		userId: string,
+		accountId: string,
 		tokenAddress: string,
 		maxCycles: BigNumberish
 	): Promise<ReceivableBalance> {
 		validateAddress(tokenAddress);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get receivable balance: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get receivable balance: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
@@ -214,7 +214,7 @@ export default class DripsClient {
 			);
 		}
 
-		const receivableBalance = await this.#driver.receiveStreamsResult(userId, tokenAddress, maxCycles);
+		const receivableBalance = await this.#driver.receiveStreamsResult(accountId, tokenAddress, maxCycles);
 
 		return {
 			tokenAddress,
@@ -225,7 +225,7 @@ export default class DripsClient {
 	/**
 	 * Receives user's drips.
 	 * Calling this function does not collect but makes the funds ready to split and collect.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -238,14 +238,18 @@ export default class DripsClient {
 	 * If too high, receiving may become too expensive to fit in a single transaction.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 * @throws {@link DripsErrors.argumentError} if `maxCycles` is not valid.
 	 */
-	public receiveStreams(userId: string, tokenAddress: string, maxCycles: BigNumberish): Promise<ContractTransaction> {
+	public receiveStreams(
+		accountId: string,
+		tokenAddress: string,
+		maxCycles: BigNumberish
+	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
-		validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+		validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 
-		return this.#driver.receiveStreams(userId, tokenAddress, maxCycles);
+		return this.#driver.receiveStreams(accountId, tokenAddress, maxCycles);
 	}
 
 	/**
@@ -255,7 +259,7 @@ export default class DripsClient {
 	 * Only funds dripped before `block.timestamp` can be squeezed.
 	 *
 	 * **Tip**: you might want to use `DripsSubgraphClient.getArgsForSqueezingAllDrips` to easily populate the arguments for squeezing all Drips up to "now".
-	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} accountId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -275,21 +279,21 @@ export default class DripsClient {
 	 * @throws {DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
 	public squeezeStreams(
-		userId: string,
+		accountId: string,
 		tokenAddress: string,
 		senderId: BigNumberish,
 		historyHash: string,
 		streamsHistory: StreamsHistoryStruct[]
 	): Promise<ContractTransaction> {
-		validateSqueezeDripsInput(userId, tokenAddress, senderId, historyHash, streamsHistory);
+		validateSqueezeDripsInput(accountId, tokenAddress, senderId, historyHash, streamsHistory);
 
-		return this.#driver.squeezeStreams(userId, tokenAddress, senderId, historyHash, streamsHistory);
+		return this.#driver.squeezeStreams(accountId, tokenAddress, senderId, historyHash, streamsHistory);
 	}
 
 	/**
 	 * Calculates the user's squeezable balance.
 	 * Squeezable balance contains the funds that can be received from the currently running cycle from a single sender.
-	 * @param  {string} userId The ID of the user receiving drips to squeeze funds for.
+	 * @param  {string} accountId The ID of the user receiving drips to squeeze funds for.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -306,7 +310,7 @@ export default class DripsClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 	 */
 	public async getSqueezableBalance(
-		userId: string,
+		accountId: string,
 		tokenAddress: string,
 		senderId: string,
 		historyHash: string,
@@ -314,10 +318,10 @@ export default class DripsClient {
 	): Promise<bigint> {
 		validateAddress(tokenAddress);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get squeezable balance: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get squeezable balance: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
@@ -343,7 +347,7 @@ export default class DripsClient {
 		}
 
 		const squeezableBalance = await this.#driver.squeezeStreamsResult(
-			userId,
+			accountId,
 			tokenAddress,
 			senderId,
 			historyHash,
@@ -356,7 +360,7 @@ export default class DripsClient {
 	/**
 	 * Returns the user's splittable balance for the given token.
 	 * Splittable balance contains the user's received but not split yet funds.
-	 * @param  {string} userId user ID.
+	 * @param  {string} accountId user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -366,19 +370,19 @@ export default class DripsClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the the splittable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 */
-	public async getSplittableBalanceForUser(userId: string, tokenAddress: string): Promise<SplittableBalance> {
+	public async getSplittableBalanceForUser(accountId: string, tokenAddress: string): Promise<SplittableBalance> {
 		validateAddress(tokenAddress);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get splittable balance: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get splittable balance: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
-		const splittableBalance = await this.#driver.splittable(userId, tokenAddress);
+		const splittableBalance = await this.#driver.splittable(accountId, tokenAddress);
 
 		return {
 			tokenAddress,
@@ -388,7 +392,7 @@ export default class DripsClient {
 
 	/**
 	 * Calculates the result of splitting an amount using the user's current splits configuration.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {SplitsReceiverStruct[]} currentReceivers The current splits receivers.
 	 * @param  {BigNumberish[]} amount The amount being split. It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the split result.
@@ -397,16 +401,16 @@ export default class DripsClient {
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `currentReceivers` is not valid.
 	 */
 	public async getSplitResult(
-		userId: string,
+		accountId: string,
 		currentReceivers: SplitsReceiverStruct[],
 		amount: BigNumberish
 	): Promise<SplitResult> {
 		validateSplitsReceivers(currentReceivers);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get split result: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get split result: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
@@ -418,7 +422,7 @@ export default class DripsClient {
 			);
 		}
 
-		const { collectableAmt, splitAmt } = await this.#driver.splitResult(userId, currentReceivers, amount);
+		const { collectableAmt, splitAmt } = await this.#driver.splitResult(accountId, currentReceivers, amount);
 
 		return {
 			collectableAmount: collectableAmt.toBigInt(),
@@ -428,7 +432,7 @@ export default class DripsClient {
 
 	/**
 	 * Splits user's received but not split yet funds among receivers.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -442,23 +446,23 @@ export default class DripsClient {
 	 * @throws {@link DripsErrors.argumentMissingError} if `currentReceivers` are missing.
 	 * @throws {@link DripsErrors.argumentError} if `currentReceivers`' count exceeds the max allowed splits receivers.
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `currentReceivers` is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 */
 	public async split(
-		userId: BigNumberish,
+		accountId: BigNumberish,
 		tokenAddress: string,
 		currentReceivers: SplitsReceiverStruct[]
 	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
-		validateSplitInput(userId, tokenAddress, currentReceivers);
+		validateSplitInput(accountId, tokenAddress, currentReceivers);
 
-		return this.#driver.split(userId, tokenAddress, formatSplitReceivers(currentReceivers));
+		return this.#driver.split(accountId, tokenAddress, formatSplitReceivers(currentReceivers));
 	}
 
 	/**
 	 * Returns the user's collectable balance.
 	 * Collectable balance contains the user's funds that are already split and ready to be collected.
-	 * @param  {string} userId user ID.
+	 * @param  {string} accountId user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -468,19 +472,19 @@ export default class DripsClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A `Promise` which resolves to the the collectable balance.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` address is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 */
-	public async getCollectableBalanceForUser(userId: string, tokenAddress: string): Promise<CollectableBalance> {
+	public async getCollectableBalanceForUser(accountId: string, tokenAddress: string): Promise<CollectableBalance> {
 		validateAddress(tokenAddress);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get collectable balance: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get collectable balance: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
-		const collectableBalance = await this.#driver.collectable(userId, tokenAddress);
+		const collectableBalance = await this.#driver.collectable(accountId, tokenAddress);
 
 		return {
 			tokenAddress,
@@ -490,7 +494,7 @@ export default class DripsClient {
 
 	/**
 	 * Returns the user's drips state.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -500,20 +504,20 @@ export default class DripsClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @returns A Promise which resolves to the {@link StreamsState}.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `userId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 */
-	public async streamsState(userId: string, tokenAddress: string): Promise<StreamsState> {
+	public async streamsState(accountId: string, tokenAddress: string): Promise<StreamsState> {
 		validateAddress(tokenAddress);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get drips state: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get drips state: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
 		const { streamsHash, streamsHistoryHash, updateTime, balance, maxEnd } = await this.#driver.streamsState(
-			userId,
+			accountId,
 			tokenAddress
 		);
 
@@ -529,7 +533,7 @@ export default class DripsClient {
 	/**
 	 * Returns the user's drips balance at a given timestamp.
 	 * Drips balance contains the funds the user can stream to other users.
-	 * @param  {string} userId The user ID.
+	 * @param  {string} accountId The user ID.
 	 * @param  {string} tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -549,7 +553,7 @@ export default class DripsClient {
 	 *
 	 */
 	public async getDripsBalanceAt(
-		userId: string,
+		accountId: string,
 		tokenAddress: string,
 		receivers: StreamReceiverStruct[],
 		timestamp: BigNumberish
@@ -557,15 +561,15 @@ export default class DripsClient {
 		validateAddress(tokenAddress);
 		validateStreamReceivers(
 			receivers.map((r) => ({
-				userId: r.userId.toString(),
+				accountId: r.accountId.toString(),
 				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			}))
 		);
 
-		if (isNullOrUndefined(userId)) {
+		if (isNullOrUndefined(accountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not get balance: '${nameOf({ userId })}' is missing.`,
-				nameOf({ userId })
+				`Could not get balance: '${nameOf({ accountId })}' is missing.`,
+				nameOf({ accountId })
 			);
 		}
 
@@ -576,7 +580,7 @@ export default class DripsClient {
 			);
 		}
 
-		const dripsBalance = await this.#driver.balanceAt(userId, tokenAddress, receivers, timestamp);
+		const dripsBalance = await this.#driver.balanceAt(accountId, tokenAddress, receivers, timestamp);
 
 		return dripsBalance.toBigInt();
 	}

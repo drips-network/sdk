@@ -9,7 +9,7 @@ import { AddressDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
 import * as validators from '../../src/common/validators';
-import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadataStruct } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamReceiverStruct, AccountMetadataStruct } from '../../src/common/types';
 import { formatStreamReceivers } from '../../src/common/internals';
 
 describe('AddressDriverTxFactory', () => {
@@ -147,8 +147,8 @@ describe('AddressDriverTxFactory', () => {
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			addressDriverContractStub.populateTransaction.setStreams = stub.resolves(expectedTx);
-			const currReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
-			const newReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
+			const currReceivers = [{ accountId: 2 }, { accountId: 1 }] as StreamReceiverStruct[];
+			const newReceivers = [{ accountId: 2 }, { accountId: 1 }] as StreamReceiverStruct[];
 
 			addressDriverContractStub.estimateGas.setStreams = sinon.stub().resolves(BigNumber.from(100));
 
@@ -181,20 +181,20 @@ describe('AddressDriverTxFactory', () => {
 		});
 	});
 
-	describe('emitUserMetadata', () => {
+	describe('emitAccountMetadata', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			addressDriverContractStub.populateTransaction.emitUserMetadata = stub.resolves(expectedTx);
-			const userMetadata = [] as UserMetadataStruct[];
+			addressDriverContractStub.populateTransaction.emitAccountMetadata = stub.resolves(expectedTx);
+			const accountMetadata = [] as AccountMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			const tx = await testAddressDriverTxFactory.emitUserMetadata(userMetadata, overrides);
+			const tx = await testAddressDriverTxFactory.emitAccountMetadata(accountMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(userMetadata, overrides));
+			assert(stub.calledOnceWithExactly(accountMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});

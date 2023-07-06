@@ -1,9 +1,9 @@
-export type UserAssetConfig = {
+export type AccountAssetConfig = {
 	id: string;
 	assetId: bigint;
 	streamsEntries: {
 		id: string;
-		userId: string;
+		accountId: string;
 		config: bigint;
 	}[];
 	balance: bigint;
@@ -13,18 +13,18 @@ export type UserAssetConfig = {
 
 export type SplitsEntry = {
 	id: string;
-	userId: string;
+	accountId: string;
 	weight: bigint;
 	senderId: string;
 };
 
 export type StreamsSetEvent = {
 	id: string;
-	userId: string;
+	accountId: string;
 	assetId: bigint;
 	streamReceiverSeenEvents: {
 		id: string;
-		receiverUserId: string;
+		receiverAccountId: string;
 		config: bigint;
 	}[];
 	streamsHistoryHash: string;
@@ -36,7 +36,7 @@ export type StreamsSetEvent = {
 
 export type CollectedEvent = {
 	id: string;
-	userId: string;
+	accountId: string;
 	assetId: bigint;
 	collected: bigint;
 	blockTimestamp: bigint;
@@ -48,7 +48,7 @@ export type SqueezedStreamsEvent = {
 	blockTimestamp: bigint;
 	id: string;
 	senderId: string;
-	userId: string;
+	accountId: string;
 	streamsHistoryHashes: string[];
 };
 
@@ -58,7 +58,7 @@ export type SplitEvent = {
 	assetId: bigint;
 	blockTimestamp: bigint;
 	receiverId: string;
-	userId: string;
+	accountId: string;
 };
 
 export type ReceivedStreamsEvent = {
@@ -67,7 +67,7 @@ export type ReceivedStreamsEvent = {
 	assetId: bigint;
 	blockTimestamp: bigint;
 	receivableCycles: bigint;
-	userId: string;
+	accountId: string;
 };
 
 export type GivenEvent = {
@@ -75,15 +75,15 @@ export type GivenEvent = {
 	amount: bigint;
 	assetId: bigint;
 	blockTimestamp: bigint;
-	receiverUserId: string;
-	userId: string;
+	receiverAccountId: string;
+	accountId: string;
 };
 
 export type StreamReceiverSeenEvent = {
 	id: string;
 	config: bigint;
-	senderUserId: bigint;
-	receiverUserId: bigint;
+	senderAccountId: bigint;
+	receiverAccountId: bigint;
 	streamsSetEvent: {
 		id: string;
 		assetId: bigint;
@@ -92,11 +92,11 @@ export type StreamReceiverSeenEvent = {
 	blockTimestamp: bigint;
 };
 
-export type UserMetadataEntry = {
+export type AccountMetadataEntry = {
 	id: string;
 	key: string;
 	value: string;
-	userId: string;
+	accountId: string;
 	lastUpdatedBlockTimestamp: bigint;
 };
 
@@ -108,7 +108,7 @@ export type NftSubAccount = {
 export type StreamsSetEventWithFullReceivers = {
 	currentReceivers: {
 		id: string;
-		receiverUserId: string;
+		receiverAccountId: string;
 		config: bigint;
 	}[];
 } & StreamsSetEvent;
@@ -116,7 +116,7 @@ export type StreamsSetEventWithFullReceivers = {
 export type RepoAccountStatus = 'CLAIMED' | 'OWNER_UPDATE_REQUESTED' | null;
 
 export type RepoAccount = {
-	userId: string;
+	accountId: string;
 	name: string;
 	forge: bigint;
 	status: RepoAccountStatus;

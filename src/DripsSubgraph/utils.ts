@@ -4,7 +4,7 @@ type ReceiversHash = string;
 
 interface StreamReceiverSeenEvent {
 	id: string;
-	receiverUserId: string;
+	receiverAccountId: string;
 	config: bigint;
 }
 

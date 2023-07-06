@@ -1,5 +1,5 @@
 /* eslint-disable no-dupe-class-members */
-import type { NFTDriver, StreamReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/NFTDriver';
+import type { NFTDriver, StreamReceiverStruct, SplitsReceiverStruct, AccountMetadataStruct } from 'contracts/NFTDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Signer, Overrides } from 'ethers';
 import { formatStreamReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
@@ -10,7 +10,7 @@ import Utils from '../utils';
 export interface INFTDriverTxFactory
 	extends Pick<
 		NFTDriver['populateTransaction'],
-		'mint' | 'safeMint' | 'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitUserMetadata'
+		'mint' | 'safeMint' | 'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitAccountMetadata'
 	> {}
 
 export default class NFTDriverTxFactory implements INFTDriverTxFactory {
@@ -59,27 +59,27 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 
 	public async mint(
 		to: PromiseOrValue<string>,
-		userMetadata: UserMetadataStruct[],
+		accountMetadata: AccountMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.mint(to, userMetadata, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.mint(to, accountMetadata, overrides));
 	}
 
 	public async safeMint(
 		to: PromiseOrValue<string>,
-		userMetadata: UserMetadataStruct[],
+		accountMetadata: AccountMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.safeMint(to, userMetadata, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.safeMint(to, accountMetadata, overrides));
 	}
 
 	public async safeMintWithSalt(
 		salt: PromiseOrValue<BigNumberish>,
 		to: PromiseOrValue<string>,
-		userMetadata: UserMetadataStruct[],
+		accountMetadata: AccountMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.safeMintWithSalt(salt, to, userMetadata, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.safeMintWithSalt(salt, to, accountMetadata, overrides));
 	}
 
 	public async collect(
@@ -155,11 +155,11 @@ export default class NFTDriverTxFactory implements INFTDriverTxFactory {
 		);
 	}
 
-	public async emitUserMetadata(
+	public async emitAccountMetadata(
 		tokenId: PromiseOrValue<BigNumberish>,
-		userMetadata: UserMetadataStruct[],
+		accountMetadata: AccountMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(tokenId, userMetadata, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.emitAccountMetadata(tokenId, accountMetadata, overrides));
 	}
 }

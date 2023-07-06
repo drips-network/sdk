@@ -6,7 +6,7 @@ export {
 	SplitsReceiverStruct,
 	StreamsHistoryStruct,
 	DripsInterface,
-	UserMetadataStruct
+	AccountMetadataStruct
 } from '../../contracts/Drips';
 export { NFTDriverInterface } from '../../contracts/NFTDriver';
 export { CallStruct, CallerInterface } from '../../contracts/Caller';
@@ -70,17 +70,17 @@ export type CycleInfo = {
 	nextCycleStartDate: Date;
 };
 
-export type StreamReceiver = { userId: string; config: StreamConfig };
+export type StreamReceiver = { accountId: string; config: StreamConfig };
 
 export type Preset = PopulatedTransaction[];
 
-export type UserMetadata = {
+export type AccountMetadata = {
 	key: string;
 	value: string;
 };
 
 export type SqueezeArgs = {
-	userId: string;
+	accountId: string;
 	tokenAddress: string;
 	senderId: string;
 	historyHash: string;

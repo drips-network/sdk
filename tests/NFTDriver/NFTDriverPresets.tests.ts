@@ -107,11 +107,11 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userMetadata: [],
+				accountMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
@@ -122,7 +122,7 @@ describe('NFTDriverPresets', () => {
 				],
 				newReceivers: [
 					{
-						userId: 2n,
+						accountId: 2n,
 						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
@@ -145,13 +145,13 @@ describe('NFTDriverPresets', () => {
 					payload.tokenAddress,
 					sinon.match.array.deepEquals(
 						payload.currentReceivers?.map((r) => ({
-							userId: r.userId.toString(),
+							accountId: r.accountId.toString(),
 							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
 					sinon.match.array.deepEquals(
 						payload.newReceivers?.map((r) => ({
-							userId: r.userId.toString(),
+							accountId: r.accountId.toString(),
 							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
@@ -162,18 +162,18 @@ describe('NFTDriverPresets', () => {
 			);
 		});
 
-		it('should validate the emitUserMetadata input', async () => {
+		it('should validate the emitAccountMetadata input', async () => {
 			// Arrange
-			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+			const validateEmitAccountMetadataInputStub = sinon.stub(validators, 'validateEmitAccountMetadataInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userMetadata: [],
+				accountMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
@@ -184,7 +184,7 @@ describe('NFTDriverPresets', () => {
 				],
 				newReceivers: [
 					{
-						userId: 2n,
+						accountId: 2n,
 						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
@@ -203,7 +203,7 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateEmitUserMetadataInputStub.calledOnceWithExactly(payload.userMetadata),
+				validateEmitAccountMetadataInputStub.calledOnceWithExactly(payload.accountMetadata),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -211,16 +211,16 @@ describe('NFTDriverPresets', () => {
 		it('should return the expected preset', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSetStreamsInput');
-			sinon.stub(validators, 'validateEmitUserMetadataInput');
+			sinon.stub(validators, 'validateEmitAccountMetadataInput');
 
 			const payload: NFTDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userMetadata: [{ key: 'key', value: 'value' }],
+				accountMetadata: [{ key: 'key', value: 'value' }],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
@@ -231,7 +231,7 @@ describe('NFTDriverPresets', () => {
 				],
 				newReceivers: [
 					{
-						userId: 2n,
+						accountId: 2n,
 						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
@@ -258,21 +258,21 @@ describe('NFTDriverPresets', () => {
 				)
 				.resolves({ data: 'setStreams' } as PopulatedTransaction);
 
-			nftDriverFactoryStub.emitUserMetadata
+			nftDriverFactoryStub.emitAccountMetadata
 				.withArgs(
 					payload.tokenId,
 					sinon.match(
 						(
-							userMetadataAsBytes: {
+							accountMetadataAsBytes: {
 								key: BytesLike;
 								value: BytesLike;
 							}[]
 						) =>
-							userMetadataAsBytes[0].key === Utils.Metadata.keyFromString(payload.userMetadata[0].key) &&
-							userMetadataAsBytes[0].value === Utils.Metadata.valueFromString(payload.userMetadata[0].value)
+							accountMetadataAsBytes[0].key === Utils.Metadata.keyFromString(payload.accountMetadata[0].key) &&
+							accountMetadataAsBytes[0].value === Utils.Metadata.valueFromString(payload.accountMetadata[0].value)
 					)
 				)
-				.resolves({ data: 'emitUserMetadata' } as PopulatedTransaction);
+				.resolves({ data: 'emitAccountMetadata' } as PopulatedTransaction);
 
 			// Act
 			const preset = await NFTDriverPresets.Presets.createNewStreamFlow(payload);
@@ -280,7 +280,7 @@ describe('NFTDriverPresets', () => {
 			// Assert
 			assert.equal(preset.length, 2);
 			assert.equal(preset[0].data, 'setStreams');
-			assert.equal(preset[1].data, 'emitUserMetadata');
+			assert.equal(preset[1].data, 'emitAccountMetadata');
 		});
 	});
 
@@ -343,7 +343,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -351,13 +351,13 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
@@ -372,7 +372,7 @@ describe('NFTDriverPresets', () => {
 			// Assert
 			assert(
 				validateSqueezeDripsInputStub.calledOnceWithExactly(
-					payload.squeezeArgs![0].userId,
+					payload.squeezeArgs![0].accountId,
 					payload.squeezeArgs![0].tokenAddress,
 					payload.squeezeArgs![0].senderId,
 					payload.squeezeArgs![0].historyHash,
@@ -389,7 +389,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -397,13 +397,13 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
@@ -417,7 +417,7 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateReceiveDripsInputStub.calledOnceWithExactly(payload.userId, payload.tokenAddress, payload.maxCycles),
+				validateReceiveDripsInputStub.calledOnceWithExactly(payload.accountId, payload.tokenAddress, payload.maxCycles),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -429,7 +429,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -437,13 +437,13 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
@@ -457,7 +457,7 @@ describe('NFTDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateSplitInputStub.calledOnceWithExactly(payload.userId, payload.tokenAddress, payload.currentReceivers),
+				validateSplitInputStub.calledOnceWithExactly(payload.accountId, payload.tokenAddress, payload.currentReceivers),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -469,7 +469,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -477,13 +477,13 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
@@ -512,7 +512,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -520,24 +520,24 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 2n,
+						accountId: 2n,
 						weight: 2n
 					},
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
 						streamsHistory: []
 					},
 					{
-						userId: '2',
+						accountId: '2',
 						senderId: '2',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
@@ -549,11 +549,11 @@ describe('NFTDriverPresets', () => {
 			dripsHubTxFactoryStub.squeezeStreams.resolves({ data: 'squeezeStreams' } as PopulatedTransaction);
 
 			dripsHubTxFactoryStub.receiveStreams
-				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
+				.withArgs(payload.accountId, payload.tokenAddress, payload.maxCycles)
 				.resolves({ data: 'receiveStreams' } as PopulatedTransaction);
 
 			dripsHubTxFactoryStub.split
-				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
+				.withArgs(payload.accountId, payload.tokenAddress, payload.currentReceivers)
 				.resolves({ data: 'split' } as PopulatedTransaction);
 
 			nftDriverFactoryStub.collect
@@ -582,7 +582,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -590,14 +590,14 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
 			};
 
 			dripsHubTxFactoryStub.split
-				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
+				.withArgs(payload.accountId, payload.tokenAddress, payload.currentReceivers)
 				.resolves({ data: 'split' } as PopulatedTransaction);
 			nftDriverFactoryStub.collect
 				.withArgs(payload.tokenId, payload.tokenAddress, payload.transferToAddress)
@@ -622,7 +622,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -630,14 +630,14 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
 			};
 
 			dripsHubTxFactoryStub.receiveStreams
-				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
+				.withArgs(payload.accountId, payload.tokenAddress, payload.maxCycles)
 				.resolves({ data: 'receiveStreams' } as PopulatedTransaction);
 
 			nftDriverFactoryStub.collect
@@ -662,7 +662,7 @@ describe('NFTDriverPresets', () => {
 			const payload: NFTDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
 				tokenId: '200',
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
@@ -670,7 +670,7 @@ describe('NFTDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]

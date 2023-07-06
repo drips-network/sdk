@@ -35,30 +35,30 @@ export default class DripsTxFactory implements IDripsHubTxFactory {
 	}
 
 	async receiveStreams(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		maxCycles: PromiseOrValue<BigNumberish>
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.receiveStreams(userId, erc20, maxCycles));
+		return safeDripsTx(await this.#driver.populateTransaction.receiveStreams(accountId, erc20, maxCycles));
 	}
 
 	async squeezeStreams(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		senderId: PromiseOrValue<BigNumberish>,
 		historyHash: PromiseOrValue<BytesLike>,
 		streamsHistory: StreamsHistoryStruct[]
 	): Promise<PopulatedTransaction> {
 		return safeDripsTx(
-			await this.#driver.populateTransaction.squeezeStreams(userId, erc20, senderId, historyHash, streamsHistory)
+			await this.#driver.populateTransaction.squeezeStreams(accountId, erc20, senderId, historyHash, streamsHistory)
 		);
 	}
 
 	async split(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		currReceivers: SplitsReceiverStruct[]
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.split(userId, erc20, currReceivers));
+		return safeDripsTx(await this.#driver.populateTransaction.split(accountId, erc20, currReceivers));
 	}
 }

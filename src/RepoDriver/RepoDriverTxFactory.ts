@@ -1,5 +1,10 @@
 /* eslint-disable no-dupe-class-members */
-import type { RepoDriver, StreamReceiverStruct, SplitsReceiverStruct, UserMetadataStruct } from 'contracts/RepoDriver';
+import type {
+	RepoDriver,
+	StreamReceiverStruct,
+	SplitsReceiverStruct,
+	AccountMetadataStruct
+} from 'contracts/RepoDriver';
 import type { PromiseOrValue } from 'contracts/common';
 import type { PopulatedTransaction, BigNumberish, Overrides, Signer, BytesLike } from 'ethers';
 import { formatStreamReceivers, formatSplitReceivers, safeDripsTx } from '../common/internals';
@@ -10,7 +15,7 @@ import Utils from '../utils';
 export interface IRepoDriverTxFactory
 	extends Pick<
 		RepoDriver['populateTransaction'],
-		'requestUpdateOwner' | 'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitUserMetadata'
+		'requestUpdateOwner' | 'collect' | 'give' | 'setSplits' | 'setStreams' | 'emitAccountMetadata'
 	> {}
 
 /**
@@ -68,36 +73,36 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 	}
 
 	public async collect(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		transferTo: PromiseOrValue<string>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.collect(userId, erc20, transferTo, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.collect(accountId, erc20, transferTo, overrides));
 	}
 
 	public async give(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		receiver: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		amt: PromiseOrValue<BigNumberish>,
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.give(userId, receiver, erc20, amt, overrides));
+		return safeDripsTx(await this.#driver.populateTransaction.give(accountId, receiver, erc20, amt, overrides));
 	}
 
 	public async setSplits(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		receivers: SplitsReceiverStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
 		return safeDripsTx(
-			await this.#driver.populateTransaction.setSplits(userId, formatSplitReceivers(receivers), overrides)
+			await this.#driver.populateTransaction.setSplits(accountId, formatSplitReceivers(receivers), overrides)
 		);
 	}
 
 	public async setStreams(
-		userId: PromiseOrValue<BigNumberish>,
+		accountId: PromiseOrValue<BigNumberish>,
 		erc20: PromiseOrValue<string>,
 		currReceivers: StreamReceiverStruct[],
 		balanceDelta: PromiseOrValue<BigNumberish>,
@@ -109,7 +114,7 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 	): Promise<PopulatedTransaction> {
 		if (!overrides.gasLimit) {
 			const gasEstimation = await this.#driver.estimateGas.setStreams(
-				userId,
+				accountId,
 				erc20,
 				formatStreamReceivers(currReceivers),
 				balanceDelta,
@@ -127,7 +132,7 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 
 		return safeDripsTx(
 			await this.#driver.populateTransaction.setStreams(
-				userId,
+				accountId,
 				erc20,
 				formatStreamReceivers(currReceivers),
 				balanceDelta,
@@ -140,11 +145,13 @@ export default class RepoDriverTxFactory implements IRepoDriverTxFactory {
 		);
 	}
 
-	public async emitUserMetadata(
-		userId: PromiseOrValue<BigNumberish>,
-		userMetadata: UserMetadataStruct[],
+	public async emitAccountMetadata(
+		accountId: PromiseOrValue<BigNumberish>,
+		accountMetadata: AccountMetadataStruct[],
 		overrides: Overrides & { from?: PromiseOrValue<string> } = {}
 	): Promise<PopulatedTransaction> {
-		return safeDripsTx(await this.#driver.populateTransaction.emitUserMetadata(userId, userMetadata, overrides));
+		return safeDripsTx(
+			await this.#driver.populateTransaction.emitAccountMetadata(accountId, accountMetadata, overrides)
+		);
 	}
 }

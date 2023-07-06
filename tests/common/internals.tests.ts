@@ -98,37 +98,37 @@ describe('internals', () => {
 		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 100, weight: 1 },
-				{ userId: 1, weight: 100 }
+				{ accountId: 100, weight: 1 },
+				{ accountId: 1, weight: 100 }
 			];
 
 			// Act
 			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+			assert.isTrue(formattedReceivers[0].accountId < formattedReceivers[1].accountId);
 		});
 
 		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 100 },
-				{ userId: 100, weight: 1 }
+				{ accountId: 1, weight: 100 },
+				{ accountId: 100, weight: 1 }
 			];
 
 			// Act
 			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+			assert.isTrue(formattedReceivers[0].accountId < formattedReceivers[1].accountId);
 		});
 
 		it('should remove duplicates', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 100 },
-				{ userId: 1, weight: 100 },
-				{ userId: 100, weight: 1 }
+				{ accountId: 1, weight: 100 },
+				{ accountId: 1, weight: 100 },
+				{ accountId: 100, weight: 1 }
 			];
 
 			// Act
@@ -143,37 +143,37 @@ describe('internals', () => {
 		it('should sort by the expected order when userID1>userID2', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 100, weight: 1 },
-				{ userId: 1, weight: 100 }
+				{ accountId: 100, weight: 1 },
+				{ accountId: 1, weight: 100 }
 			];
 
 			// Act
 			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+			assert.isTrue(formattedReceivers[0].accountId < formattedReceivers[1].accountId);
 		});
 
 		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 100 },
-				{ userId: 100, weight: 1 }
+				{ accountId: 1, weight: 100 },
+				{ accountId: 100, weight: 1 }
 			];
 
 			// Act
 			const formattedReceivers = internals.formatSplitReceivers(receivers);
 
 			// Assert
-			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+			assert.isTrue(formattedReceivers[0].accountId < formattedReceivers[1].accountId);
 		});
 
 		it('should remove duplicates', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 100 },
-				{ userId: 1, weight: 100 },
-				{ userId: 100, weight: 1 }
+				{ accountId: 1, weight: 100 },
+				{ accountId: 1, weight: 100 },
+				{ accountId: 100, weight: 1 }
 			];
 
 			// Act
@@ -189,11 +189,11 @@ describe('internals', () => {
 			// Arrange
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
@@ -214,7 +214,7 @@ describe('internals', () => {
 			// Arrange
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
@@ -223,7 +223,7 @@ describe('internals', () => {
 					})
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
@@ -239,27 +239,27 @@ describe('internals', () => {
 			// Arrange
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 2n })
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
 				},
 				{
-					userId: 2,
+					accountId: 2,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 1n, start: 2n })
 				}
 			];
@@ -275,7 +275,7 @@ describe('internals', () => {
 			// Arrange
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 100,
+					accountId: 100,
 					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 100n,
@@ -284,7 +284,7 @@ describe('internals', () => {
 					})
 				},
 				{
-					userId: 1,
+					accountId: 1,
 					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
@@ -298,14 +298,14 @@ describe('internals', () => {
 			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
-			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+			assert.isTrue(formattedReceivers[0].accountId < formattedReceivers[1].accountId);
 		});
 
 		it('should sort by the expected order when userID1<userID2', async () => {
 			// Arrange
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 1,
+					accountId: 1,
 					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 1n,
@@ -314,7 +314,7 @@ describe('internals', () => {
 					})
 				},
 				{
-					userId: 100,
+					accountId: 100,
 					config: Utils.StreamConfiguration.toUint256({
 						dripId: 1n,
 						amountPerSec: 100n,
@@ -328,7 +328,7 @@ describe('internals', () => {
 			const formattedReceivers = internals.formatStreamReceivers(receivers);
 
 			// Assert
-			assert.isTrue(formattedReceivers[0].userId < formattedReceivers[1].userId);
+			assert.isTrue(formattedReceivers[0].accountId < formattedReceivers[1].accountId);
 		});
 	});
 });

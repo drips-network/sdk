@@ -154,7 +154,7 @@ describe('RepoDriverQueries', () => {
 			);
 
 			// Assert
-			assert.equal(result!.userId, expectedAccount.id);
+			assert.equal(result!.accountId, expectedAccount.id);
 			assert.equal(result!.name, expectedAccount.name);
 			assert.equal(result!.forge, expectedAccount.forge);
 			assert.equal(result!.ownerAddress, expectedAccount.ownerAddress);
@@ -183,16 +183,16 @@ describe('RepoDriverQueries', () => {
 
 		it('should return null when repo does not exist', async () => {
 			// Arrange
-			const userId = '0x12345';
+			const accountId = '0x12345';
 
-			queryExecutorStub.withArgs(gql.repoDriverQueries.getRepoAccountById, { userId }).resolves({
+			queryExecutorStub.withArgs(gql.repoDriverQueries.getRepoAccountById, { accountId }).resolves({
 				data: {
 					repoAccounts: []
 				}
 			});
 
 			// Act
-			const result = await sut.getRepoAccountById(userId);
+			const result = await sut.getRepoAccountById(accountId);
 
 			// Assert
 			assert.isNull(result);
@@ -200,11 +200,11 @@ describe('RepoDriverQueries', () => {
 
 		it('should return the expected repo account when repo exist', async () => {
 			// Arrange
-			const userId = '0x12345';
+			const accountId = '0x12345';
 			const forge = Forge.GitHub;
 
 			const expectedAccount = {
-				id: userId,
+				id: accountId,
 				name: 'name',
 				forge: BigInt(forge),
 				status: 'CLAIMED',
@@ -216,7 +216,7 @@ describe('RepoDriverQueries', () => {
 				.withArgs(
 					gql.repoDriverQueries.getRepoAccountById,
 					{
-						userId
+						accountId
 					},
 					API_URL
 				)
@@ -230,7 +230,7 @@ describe('RepoDriverQueries', () => {
 			const result = await sut.getRepoAccountById(expectedAccount.id);
 
 			// Assert
-			assert.equal(result!.userId, expectedAccount.id);
+			assert.equal(result!.accountId, expectedAccount.id);
 			assert.equal(result!.name, expectedAccount.name);
 			assert.equal(result!.forge, expectedAccount.forge);
 			assert.equal(result!.ownerAddress, expectedAccount.ownerAddress);
@@ -267,33 +267,36 @@ describe('RepoDriverQueries', () => {
 			// Arrange
 			const ownerAddress = '0x0000000000000000000000000000000000000000';
 
-			const expectedAccounts = [{
-				id: '0x12345',
-				name: 'name1',
-				forge: BigInt(Forge.GitHub),
-				status: 'CLAIMED',
-				ownerAddress,
-				lastUpdatedBlockTimestamp: 1n
-			}, {
-				id: '0x12346',
-				name: 'name2',
-				forge: BigInt(Forge.GitHub),
-				status: 'CLAIMED',
-				ownerAddress,
-				lastUpdatedBlockTimestamp: 1n
-			}];
+			const expectedAccounts = [
+				{
+					id: '0x12345',
+					name: 'name1',
+					forge: BigInt(Forge.GitHub),
+					status: 'CLAIMED',
+					ownerAddress,
+					lastUpdatedBlockTimestamp: 1n
+				},
+				{
+					id: '0x12346',
+					name: 'name2',
+					forge: BigInt(Forge.GitHub),
+					status: 'CLAIMED',
+					ownerAddress,
+					lastUpdatedBlockTimestamp: 1n
+				}
+			];
 
 			queryExecutorStub
 				.withArgs(
 					gql.repoDriverQueries.getRepoAccountsByOwnerAddress,
 					{
-						address: ownerAddress,
+						address: ownerAddress
 					},
 					API_URL
 				)
 				.resolves({
 					data: {
-						repoAccounts: expectedAccounts,
+						repoAccounts: expectedAccounts
 					}
 				});
 
@@ -301,14 +304,14 @@ describe('RepoDriverQueries', () => {
 			const result = await sut.getRepoAccountsOwnedByAddress(ownerAddress);
 
 			// Assert
-			assert.equal(result[0].userId, expectedAccounts[0].id);
+			assert.equal(result[0].accountId, expectedAccounts[0].id);
 			assert.equal(result[0].name, expectedAccounts[0].name);
 			assert.equal(result[0].forge, expectedAccounts[0].forge);
 			assert.equal(result[0].ownerAddress, expectedAccounts[0].ownerAddress);
 			assert.equal(result[0].status, expectedAccounts[0].status as RepoAccountStatus);
 			assert.equal(result[0].lastUpdatedBlockTimestamp, expectedAccounts[0].lastUpdatedBlockTimestamp);
 
-			assert.equal(result[1].userId, expectedAccounts[1].id);
+			assert.equal(result[1].accountId, expectedAccounts[1].id);
 			assert.equal(result[1].name, expectedAccounts[1].name);
 			assert.equal(result[1].forge, expectedAccounts[1].forge);
 			assert.equal(result[1].ownerAddress, expectedAccounts[1].ownerAddress);

@@ -312,20 +312,20 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('UserId', () => {
+	describe('AccountId', () => {
 		describe('getDriver', () => {
 			it('should return the expected result', () => {
 				// TODO: Add test case for immutable address driver user ID.
 
 				// Arrange
-				const addressDriverUserId = '846959513016227493489143736695218182523669298507';
-				const nftDriverUserId = '42583592044554662154154760653976070706375843797872425666273362826761';
-				const repoDriverUserId = '80907581203104634939800721083555800473270339779792920621438161136896';
+				const addressDriverAccountId = '846959513016227493489143736695218182523669298507';
+				const nftDriverAccountId = '42583592044554662154154760653976070706375843797872425666273362826761';
+				const repoDriverAccountId = '80907581203104634939800721083555800473270339779792920621438161136896';
 
 				// Act
-				const expectedNftDriverId = Utils.UserId.getDriver(nftDriverUserId);
-				const expectedRepoDriverId = Utils.UserId.getDriver(repoDriverUserId);
-				const expectedAddressDriverId = Utils.UserId.getDriver(addressDriverUserId);
+				const expectedNftDriverId = Utils.AccountId.getDriver(nftDriverAccountId);
+				const expectedRepoDriverId = Utils.AccountId.getDriver(repoDriverAccountId);
+				const expectedAddressDriverId = Utils.AccountId.getDriver(addressDriverAccountId);
 
 				// Assert
 				assert.equal(expectedNftDriverId, 'nft');
@@ -341,7 +341,7 @@ describe('Utils', () => {
 
 				// Act
 				try {
-					Utils.UserId.getDriver('0x5000000000000000000000000000000000000000000000000000000000000000');
+					Utils.AccountId.getDriver('0x5000000000000000000000000000000000000000000000000000000000000000');
 				} catch (error: any) {
 					// Assert
 					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);

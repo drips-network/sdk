@@ -64,15 +64,15 @@ export default class RepoDriverQueries {
 	}
 
 	/**
-	 * Returns the `RepoAccount` for the given `userId`.
-	 * @param userId The ID of the repository.
-	 * @returns The `RepoAccount` for the given `userId` or `null` if no `RepoAccount` was found.
-	 * @throws {@link DripsErrors.argumentError} if `userId` is missing.
+	 * Returns the `RepoAccount` for the given `accountId`.
+	 * @param accountId The ID of the repository.
+	 * @returns The `RepoAccount` for the given `accountId` or `null` if no `RepoAccount` was found.
+	 * @throws {@link DripsErrors.argumentError} if `accountId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
-	public async getRepoAccountById(userId: string) {
-		if (!userId) {
-			throw DripsErrors.argumentError(`Could not get repo account: userId is missing.`);
+	public async getRepoAccountById(accountId: string) {
+		if (!accountId) {
+			throw DripsErrors.argumentError(`Could not get repo account: accountId is missing.`);
 		}
 
 		type QueryResponse = {
@@ -82,7 +82,7 @@ export default class RepoDriverQueries {
 		const response = await this.#queryExecutor<QueryResponse>(
 			gql.repoDriverQueries.getRepoAccountById,
 			{
-				userId
+				accountId
 			},
 			this.#apiUrl
 		);
@@ -101,18 +101,18 @@ export default class RepoDriverQueries {
 
 		type QueryResponse = {
 			repoAccounts: SubgraphTypes.RepoAccount[];
-		}
+		};
 
 		const response = await this.#queryExecutor<QueryResponse>(
 			gql.repoDriverQueries.getRepoAccountsByOwnerAddress,
 			{
-				address,
+				address
 			},
 			this.#apiUrl
 		);
 
 		if (!response?.data?.repoAccounts) {
-			return []
+			return [];
 		}
 
 		return response.data.repoAccounts.map((ra) => mapRepoAccountToDto(ra));

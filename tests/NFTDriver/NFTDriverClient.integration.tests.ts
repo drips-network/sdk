@@ -7,7 +7,12 @@ import DripsClient from '../../src/Drips/DripsClient';
 import Utils from '../../src/utils';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
 import { expect } from '../../src/common/internals';
-import type { NftSubAccount, SplitsEntry, UserAssetConfig, UserMetadataEntry } from '../../src/DripsSubgraph/types';
+import type {
+	NftSubAccount,
+	SplitsEntry,
+	AccountAssetConfig,
+	AccountMetadataEntry
+} from '../../src/DripsSubgraph/types';
 import type { CollectableBalance } from '../../src/Drips/types';
 import constants from '../../src/constants';
 
@@ -86,7 +91,7 @@ describe('NFTDriver integration tests', () => {
 		);
 		assert.equal(senderSubAccount.ownerAddress, account2);
 
-		const wEthConfigurationBefore = await subgraphClient.getUserAssetConfigById(
+		const wEthConfigurationBefore = await subgraphClient.getAccountAssetConfigById(
 			senderSubAccount.tokenId,
 			Utils.Asset.getIdFromAddress(WETH)
 		);
@@ -94,7 +99,9 @@ describe('NFTDriver integration tests', () => {
 		console.log(
 			`Current WETH Drips configuration has the following receivers: ${
 				wEthConfigurationBefore?.streamsEntries.length
-					? wEthConfigurationBefore?.streamsEntries.map((d) => `id: ${d.id}, userId: ${d.userId}, config: ${d.config}`)
+					? wEthConfigurationBefore?.streamsEntries.map(
+							(d) => `id: ${d.id}, accountId: ${d.accountId}, config: ${d.config}`
+					  )
 					: '[no receivers or no configuration found]'
 			}`
 		);
@@ -118,18 +125,18 @@ describe('NFTDriver integration tests', () => {
 			senderSubAccount.tokenId,
 			WETH,
 			await subgraphClient.getCurrentStreamsReceivers(senderSubAccount.tokenId, WETH, provider),
-			[{ config, userId: receiverSubAccount.tokenId }],
+			[{ config, accountId: receiverSubAccount.tokenId }],
 			account2
 		);
 
 		console.log(`Querying the Subgraph until the new WETH Drips configuration is the expected...`);
 		const expectedConfig = (await expect(
-			() => subgraphClient.getUserAssetConfigById(senderSubAccount.tokenId, Utils.Asset.getIdFromAddress(WETH)),
+			() => subgraphClient.getAccountAssetConfigById(senderSubAccount.tokenId, Utils.Asset.getIdFromAddress(WETH)),
 			(configuration) => {
 				const found =
 					configuration?.streamsEntries.length === 1 &&
 					configuration.streamsEntries[0].config === config &&
-					configuration.streamsEntries[0].userId === receiverSubAccount.tokenId;
+					configuration.streamsEntries[0].accountId === receiverSubAccount.tokenId;
 
 				if (!found) {
 					console.log('New Drips configuration not found yet.');
@@ -141,9 +148,9 @@ describe('NFTDriver integration tests', () => {
 			},
 			60000,
 			5000
-		)) as UserAssetConfig;
+		)) as AccountAssetConfig;
 
-		assert.equal(expectedConfig.streamsEntries[0].userId, receiverSubAccount.tokenId);
+		assert.equal(expectedConfig.streamsEntries[0].accountId, receiverSubAccount.tokenId);
 
 		console.log(`Clearing WETH configuration receivers to stop dripping...`);
 		await account2NftDriverClient.setStreams(
@@ -172,12 +179,12 @@ describe('NFTDriver integration tests', () => {
 		);
 		assert.equal(senderSubAccount.ownerAddress, account2);
 
-		const splitsConfigurationBefore = await subgraphClient.getSplitsConfigByUserId(senderSubAccount.tokenId);
+		const splitsConfigurationBefore = await subgraphClient.getSplitsConfigByAccountId(senderSubAccount.tokenId);
 		console.log(
 			`Current Splits configuration has the following receivers: ${
 				splitsConfigurationBefore?.length
 					? splitsConfigurationBefore.map(
-							(d) => `id: ${d.id}, userId: ${d.userId}, senderId: ${d.senderId}, weight: ${d.weight}`
+							(d) => `id: ${d.id}, accountId: ${d.accountId}, senderId: ${d.senderId}, weight: ${d.weight}`
 					  )
 					: '[no receivers or no configuration found]'
 			}`
@@ -193,19 +200,19 @@ describe('NFTDriver integration tests', () => {
 		console.log(`Updating Splits configuration...`);
 		await account2NftDriverClient.setSplits(senderSubAccount.tokenId, [
 			{
-				userId: receiverSubAccount.tokenId,
+				accountId: receiverSubAccount.tokenId,
 				weight: 1
 			}
 		]);
 
 		console.log(`Querying the Subgraph until the new Splits configuration is the expected...`);
 		const expectedConfig = (await expect(
-			() => subgraphClient.getSplitsConfigByUserId(senderSubAccount.tokenId),
+			() => subgraphClient.getSplitsConfigByAccountId(senderSubAccount.tokenId),
 			(configuration) => {
 				const found =
 					configuration?.length === 1 &&
 					configuration[0].weight === 1n &&
-					configuration[0].userId === receiverSubAccount.tokenId;
+					configuration[0].accountId === receiverSubAccount.tokenId;
 
 				if (!found) {
 					console.log('New Splits configuration not found yet.');
@@ -219,7 +226,7 @@ describe('NFTDriver integration tests', () => {
 			5000
 		)) as SplitsEntry[];
 
-		assert.equal(expectedConfig[0].userId, receiverSubAccount.tokenId);
+		assert.equal(expectedConfig[0].accountId, receiverSubAccount.tokenId);
 
 		console.log(`Clearing Splits configuration receivers for stop splitting...`);
 		await account2NftDriverClient.setSplits(senderSubAccount.tokenId, []);
@@ -246,10 +253,10 @@ describe('NFTDriver integration tests', () => {
 		const value = `${key}-value`;
 		const metadata = Utils.Metadata.createFromStrings(key, value);
 
-		assert.isNull(await subgraphClient.getLatestUserMetadata(emitterSubAccount.tokenId, key));
+		assert.isNull(await subgraphClient.getLatestAccountMetadata(emitterSubAccount.tokenId, key));
 
 		console.log(`Emitting metadata with key: ${key} (${metadata.key}) and value: ${value} (${metadata.value})...`);
-		await account2NftDriverClient.emitUserMetadata(emitterSubAccount.tokenId, [
+		await account2NftDriverClient.emitAccountMetadata(emitterSubAccount.tokenId, [
 			{
 				key,
 				value
@@ -259,12 +266,12 @@ describe('NFTDriver integration tests', () => {
 
 		console.log(`Querying the subgraph until the new metadata is found...`);
 		const expectedMetadata = (await expect(
-			() => subgraphClient.getLatestUserMetadata(emitterSubAccount.tokenId, key),
+			() => subgraphClient.getLatestAccountMetadata(emitterSubAccount.tokenId, key),
 			(latestMetadataEntry) => {
 				const found =
 					latestMetadataEntry?.key === key &&
 					latestMetadataEntry.value === value &&
-					latestMetadataEntry.userId === emitterSubAccount.tokenId &&
+					latestMetadataEntry.accountId === emitterSubAccount.tokenId &&
 					latestMetadataEntry.id === `${emitterSubAccount.tokenId}-${key}`;
 
 				if (!found) {
@@ -277,7 +284,7 @@ describe('NFTDriver integration tests', () => {
 			},
 			60000,
 			5000
-		)) as UserMetadataEntry;
+		)) as AccountMetadataEntry;
 
 		assert.equal(expectedMetadata.id, `${emitterSubAccount.tokenId}-${key}`);
 	}).timeout(THREE_MINS);
@@ -320,7 +327,7 @@ describe('NFTDriver integration tests', () => {
 
 		console.log("Querying the Subgraph until receiver's Splits are cleared...");
 		(await expect(
-			() => subgraphClient.getSplitsConfigByUserId(receiveSubAccount.tokenId),
+			() => subgraphClient.getSplitsConfigByAccountId(receiveSubAccount.tokenId),
 			(configuration) => configuration.length === 0,
 			60000,
 			5000
@@ -360,14 +367,14 @@ describe('NFTDriver integration tests', () => {
 			30000
 		);
 
-		const receiverSplitConfig = await subgraphClient.getSplitsConfigByUserId(receiveSubAccount.tokenId);
+		const receiverSplitConfig = await subgraphClient.getSplitsConfigByAccountId(receiveSubAccount.tokenId);
 
 		console.log('Splitting before collecting...');
 		await dripsHubClient.split(
 			receiveSubAccount.tokenId,
 			WETH,
 			receiverSplitConfig.map((r) => ({
-				userId: r.userId,
+				accountId: r.accountId,
 				weight: r.weight
 			}))
 		);

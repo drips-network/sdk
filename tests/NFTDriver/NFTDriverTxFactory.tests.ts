@@ -9,7 +9,7 @@ import { NFTDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
 import * as validators from '../../src/common/validators';
-import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadataStruct } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamReceiverStruct, AccountMetadataStruct } from '../../src/common/types';
 import { formatStreamReceivers } from '../../src/common/internals';
 
 describe('NFTDriverTxFactory', () => {
@@ -91,14 +91,14 @@ describe('NFTDriverTxFactory', () => {
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			nftDriverContractStub.populateTransaction.mint = stub.resolves(expectedTx);
-			const userMetadata = [] as UserMetadataStruct[];
+			const accountMetadata = [] as AccountMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			const tx = await testNftDriverTxFactory.mint('0x1234', userMetadata, overrides);
+			const tx = await testNftDriverTxFactory.mint('0x1234', accountMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', userMetadata, overrides));
+			assert(stub.calledOnceWithExactly('0x1234', accountMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -110,14 +110,14 @@ describe('NFTDriverTxFactory', () => {
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			nftDriverContractStub.populateTransaction.safeMint = stub.resolves(expectedTx);
-			const userMetadata = [] as UserMetadataStruct[];
+			const accountMetadata = [] as AccountMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			const tx = await testNftDriverTxFactory.safeMint('0x1234', userMetadata, overrides);
+			const tx = await testNftDriverTxFactory.safeMint('0x1234', accountMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', userMetadata, overrides));
+			assert(stub.calledOnceWithExactly('0x1234', accountMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -129,14 +129,14 @@ describe('NFTDriverTxFactory', () => {
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			nftDriverContractStub.populateTransaction.safeMintWithSalt = stub.resolves(expectedTx);
-			const userMetadata = [] as UserMetadataStruct[];
+			const accountMetadata = [] as AccountMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			const tx = await testNftDriverTxFactory.safeMintWithSalt(1, '0x1234', userMetadata, overrides);
+			const tx = await testNftDriverTxFactory.safeMintWithSalt(1, '0x1234', accountMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(1, '0x1234', userMetadata, overrides));
+			assert(stub.calledOnceWithExactly(1, '0x1234', accountMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -203,8 +203,8 @@ describe('NFTDriverTxFactory', () => {
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
 			nftDriverContractStub.populateTransaction.setStreams = stub.resolves(expectedTx);
-			const currReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
-			const newReceivers = [{ userId: 2 }, { userId: 1 }] as StreamReceiverStruct[];
+			const currReceivers = [{ accountId: 2 }, { accountId: 1 }] as StreamReceiverStruct[];
+			const newReceivers = [{ accountId: 2 }, { accountId: 1 }] as StreamReceiverStruct[];
 
 			nftDriverContractStub.estimateGas.setStreams = sinon.stub().resolves(BigNumber.from(100));
 
@@ -239,20 +239,20 @@ describe('NFTDriverTxFactory', () => {
 		});
 	});
 
-	describe('emitUserMetadata', () => {
+	describe('emitAccountMetadata', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			nftDriverContractStub.populateTransaction.emitUserMetadata = stub.resolves(expectedTx);
-			const userMetadata = [] as UserMetadataStruct[];
+			nftDriverContractStub.populateTransaction.emitAccountMetadata = stub.resolves(expectedTx);
+			const accountMetadata = [] as AccountMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			const tx = await testNftDriverTxFactory.emitUserMetadata('0xdef0', userMetadata, overrides);
+			const tx = await testNftDriverTxFactory.emitAccountMetadata('0xdef0', accountMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0xdef0', userMetadata, overrides));
+			assert(stub.calledOnceWithExactly('0xdef0', accountMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});

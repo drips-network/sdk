@@ -1,29 +1,29 @@
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, StreamConfig, UserMetadataStruct } from './common/types';
+import type { NetworkConfig, CycleInfo, StreamConfig, AccountMetadataStruct } from './common/types';
 import { validateAddress, validateStreamConfig } from './common/validators';
 import { isNullOrUndefined } from './common/internals';
 
 type Driver = 'address' | 'nft' | 'immutableSplits' | 'repo';
 
 namespace Utils {
-	export namespace UserId {
-		export const getDriver = (userId: string): Driver => {
-			if (isNullOrUndefined(userId)) {
-				throw DripsErrors.argumentError(`Could not get bits: userId is missing.`);
+	export namespace AccountId {
+		export const getDriver = (accountId: string): Driver => {
+			if (isNullOrUndefined(accountId)) {
+				throw DripsErrors.argumentError(`Could not get bits: accountId is missing.`);
 			}
 
-			const userIdAsBn = ethers.BigNumber.from(userId);
+			const accountIdAsBn = ethers.BigNumber.from(accountId);
 
-			if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
+			if (accountIdAsBn.lt(0) || accountIdAsBn.gt(ethers.constants.MaxUint256)) {
 				throw DripsErrors.argumentError(
-					`Could not get bits: ${userId} is not a valid positive number within the range of a uint256.`
+					`Could not get bits: ${accountId} is not a valid positive number within the range of a uint256.`
 				);
 			}
 
 			const mask = ethers.BigNumber.from(2).pow(32).sub(1); // 32 bits mask
-			const bits = userIdAsBn.shr(224).and(mask); // shift right to bring the first 32 bits to the end and apply the mask
+			const bits = accountIdAsBn.shr(224).and(mask); // shift right to bring the first 32 bits to the end and apply the mask
 
 			switch (bits.toNumber()) {
 				case 0:
@@ -35,7 +35,7 @@ namespace Utils {
 				case 3:
 					return 'repo';
 				default:
-					throw DripsErrors.argumentError(`Unknown driver for userId: ${userId}.`);
+					throw DripsErrors.argumentError(`Unknown driver for accountId: ${accountId}.`);
 			}
 		};
 	}
@@ -76,21 +76,23 @@ namespace Utils {
 		});
 
 		/**
-		 * Parses the `UserMetadataStruct` and converts the key and value from `BytesLike` to `string` format.
+		 * Parses the `AccountMetadataStruct` and converts the key and value from `BytesLike` to `string` format.
 		 *
-		 * @param userMetadata - The `UserMetadataStruct` containing the key and value in `BytesLike` format.
+		 * @param accountMetadata - The `AccountMetadataStruct` containing the key and value in `BytesLike` format.
 		 * @returns An `object` containing the key and value as `string`s.
 		 */
-		export const convertMetadataBytesToString = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
-			if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
+		export const convertMetadataBytesToString = (
+			accountMetadata: AccountMetadataStruct
+		): { key: string; value: string } => {
+			if (!ethers.utils.isBytesLike(accountMetadata?.key) || !ethers.utils.isBytesLike(accountMetadata?.value)) {
 				throw DripsErrors.argumentError(
 					`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`
 				);
 			}
 
 			return {
-				key: ethers.utils.parseBytes32String(userMetadata.key),
-				value: ethers.utils.toUtf8String(userMetadata.value)
+				key: ethers.utils.parseBytes32String(accountMetadata.key),
+				value: ethers.utils.toUtf8String(accountMetadata.value)
 			};
 		};
 	}

@@ -6,7 +6,7 @@ import type { Network } from '@ethersproject/networks';
 import { BigNumber, constants, ethers, Wallet } from 'ethers';
 import type { AddressDriver, IERC20 } from '../../contracts';
 import { IERC20__factory, AddressDriver__factory } from '../../contracts';
-import type { SplitsReceiverStruct, StreamReceiverStruct, UserMetadata } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamReceiverStruct, AccountMetadata } from '../../src/common/types';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import Utils from '../../src/utils';
 import { DripsErrorCode } from '../../src/common/DripsError';
@@ -242,17 +242,17 @@ describe('AddressDriverClient', () => {
 		});
 	});
 
-	describe('getUserId()', () => {
+	describe('getAccountId()', () => {
 		it('should ensure the signer exists', async () => {
 			// Arrange
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
-			addressDriverContractStub.calcUserId
+			addressDriverContractStub.calcAccountId
 				.withArgs(await signerWithProviderStub.getAddress())
 				.resolves(BigNumber.from(111));
 
 			// Act
-			await testAddressDriverClient.getUserId();
+			await testAddressDriverClient.getAccountId();
 
 			// Assert
 			assert(
@@ -261,48 +261,48 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
-		it('should call the calcUserId() method of the AddressDriver contract', async () => {
+		it('should call the calcAccountId() method of the AddressDriver contract', async () => {
 			// Arrange
-			addressDriverContractStub.calcUserId
+			addressDriverContractStub.calcAccountId
 				.withArgs(await signerWithProviderStub.getAddress())
 				.resolves(BigNumber.from(111));
 
 			// Act
-			await testAddressDriverClient.getUserId();
+			await testAddressDriverClient.getAccountId();
 
 			// Assert
 			assert(
-				addressDriverContractStub.calcUserId.calledOnceWithExactly(await signerWithProviderStub.getAddress()),
+				addressDriverContractStub.calcAccountId.calledOnceWithExactly(await signerWithProviderStub.getAddress()),
 				'Expected method to be called with different arguments'
 			);
 		});
 	});
 
-	describe('getUserIdByAddress()', () => {
+	describe('getAccountIdByAddress()', () => {
 		it('should validate the user address', async () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-			addressDriverContractStub.calcUserId.resolves(BigNumber.from(1));
+			addressDriverContractStub.calcAccountId.resolves(BigNumber.from(1));
 
 			// Act
-			await testAddressDriverClient.getUserIdByAddress(userAddress);
+			await testAddressDriverClient.getAccountIdByAddress(userAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(userAddress));
 		});
 
-		it('should call the calcUserId() method of the AddressDriver contract', async () => {
+		it('should call the calcAccountId() method of the AddressDriver contract', async () => {
 			// Arrange
 			const userAddress = Wallet.createRandom().address;
-			addressDriverContractStub.calcUserId.withArgs(userAddress).resolves(BigNumber.from(111));
+			addressDriverContractStub.calcAccountId.withArgs(userAddress).resolves(BigNumber.from(111));
 
 			// Act
-			await testAddressDriverClient.getUserIdByAddress(userAddress);
+			await testAddressDriverClient.getAccountIdByAddress(userAddress);
 
 			// Assert
 			assert(
-				addressDriverContractStub.calcUserId.calledOnceWithExactly(userAddress),
+				addressDriverContractStub.calcAccountId.calledOnceWithExactly(userAddress),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -374,7 +374,7 @@ describe('AddressDriverClient', () => {
 			);
 		});
 
-		it('should throw argumentMissingError when receiverUserId is missing', async () => {
+		it('should throw argumentMissingError when receiverAccountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -425,14 +425,14 @@ describe('AddressDriverClient', () => {
 		it('should send the expected transaction', async () => {
 			// Arrange
 			const amount = 100n;
-			const receiverUserId = '1';
+			const receiverAccountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 
 			const tx = {};
-			addressDriverTxFactoryStub.give.withArgs(receiverUserId, tokenAddress, amount).resolves(tx);
+			addressDriverTxFactoryStub.give.withArgs(receiverAccountId, tokenAddress, amount).resolves(tx);
 
 			// Act
-			await testAddressDriverClient.give(receiverUserId, tokenAddress, amount);
+			await testAddressDriverClient.give(receiverAccountId, tokenAddress, amount);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');
@@ -457,8 +457,8 @@ describe('AddressDriverClient', () => {
 		it('should validate the splits receivers', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 1 },
-				{ userId: 2, weight: 2 }
+				{ accountId: 1, weight: 1 },
+				{ accountId: 2, weight: 2 }
 			];
 
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
@@ -472,9 +472,9 @@ describe('AddressDriverClient', () => {
 
 		it('should send the expected transaction', async () => {
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 2, weight: 100 },
-				{ userId: 1, weight: 1 },
-				{ userId: 1, weight: 1 }
+				{ accountId: 2, weight: 100 },
+				{ accountId: 1, weight: 1 },
+				{ accountId: 1, weight: 1 }
 			];
 
 			const tx = {};
@@ -512,21 +512,21 @@ describe('AddressDriverClient', () => {
 
 			const currentReceivers: StreamReceiverStruct[] = [
 				{
-					userId: '3',
+					accountId: '3',
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: '2',
+					accountId: '2',
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: '2',
+					accountId: '2',
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: '1',
+					accountId: '1',
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
@@ -542,13 +542,13 @@ describe('AddressDriverClient', () => {
 					tokenAddress,
 					sinon.match.array.deepEquals(
 						currentReceivers?.map((r) => ({
-							userId: r.userId.toString(),
+							accountId: r.accountId.toString(),
 							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
 					sinon.match.array.deepEquals(
 						receivers?.map((r) => ({
-							userId: r.userId.toString(),
+							accountId: r.accountId.toString(),
 							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
@@ -565,21 +565,21 @@ describe('AddressDriverClient', () => {
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: StreamReceiverStruct[] = [
 				{
-					userId: 3n,
+					accountId: 3n,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 3n, duration: 3n, start: 3n })
 				}
 			];
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 2n,
+					accountId: 2n,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 2n,
+					accountId: 2n,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				},
 				{
-					userId: 1n,
+					accountId: 1n,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 2n, duration: 2n, start: 2n })
 				}
 			];
@@ -620,10 +620,10 @@ describe('AddressDriverClient', () => {
 		});
 
 		it('should throw an error for a negative user ID', () => {
-			const invalidUserId = '-1234';
+			const invalidAccountId = '-1234';
 
 			try {
-				AddressDriverClient.getUserAddress(invalidUserId);
+				AddressDriverClient.getUserAddress(invalidAccountId);
 				assert.fail('Error was not thrown');
 			} catch (error: any) {
 				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -631,11 +631,11 @@ describe('AddressDriverClient', () => {
 		});
 
 		it('should throw an error for an out-of-bounds user ID', () => {
-			const invalidUserId =
+			const invalidAccountId =
 				'12324123241234123412342123241232412341234123421232412324123412341234212324123241234123412342';
 
 			try {
-				AddressDriverClient.getUserAddress(invalidUserId);
+				AddressDriverClient.getUserAddress(invalidAccountId);
 				assert.fail('Error was not thrown');
 			} catch (error: any) {
 				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -662,10 +662,10 @@ describe('AddressDriverClient', () => {
 		});
 
 		it('should throw an error for a non-numeric user ID', () => {
-			const invalidUserId = 'notanumber';
+			const invalidAccountId = 'notanumber';
 
 			try {
-				AddressDriverClient.getUserAddress(invalidUserId);
+				AddressDriverClient.getUserAddress(invalidAccountId);
 				assert.fail('Error was not thrown');
 			} catch (error: any) {
 				assert.strictEqual(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -673,13 +673,13 @@ describe('AddressDriverClient', () => {
 		});
 	});
 
-	describe('emitUserMetadata()', () => {
+	describe('emitAccountMetadata()', () => {
 		it('should ensure the signer exists', async () => {
 			// Arrange
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
 			// Act
-			await testAddressDriverClient.emitUserMetadata([]);
+			await testAddressDriverClient.emitAccountMetadata([]);
 
 			// Assert
 			assert(
@@ -690,26 +690,26 @@ describe('AddressDriverClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const metadata: UserMetadata[] = [];
-			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+			const metadata: AccountMetadata[] = [];
+			const validateEmitAccountMetadataInputStub = sinon.stub(validators, 'validateEmitAccountMetadataInput');
 
 			// Act
-			await testAddressDriverClient.emitUserMetadata(metadata);
+			await testAddressDriverClient.emitAccountMetadata(metadata);
 
 			// Assert
-			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
+			assert(validateEmitAccountMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
 		it('should send the expected transaction', async () => {
 			// Arrange
-			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadata: AccountMetadata[] = [{ key: 'key', value: 'value' }];
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const tx = {};
-			addressDriverTxFactoryStub.emitUserMetadata.withArgs(metadataAsBytes).resolves(tx);
+			addressDriverTxFactoryStub.emitAccountMetadata.withArgs(metadataAsBytes).resolves(tx);
 
 			// Act
-			await testAddressDriverClient.emitUserMetadata(metadata);
+			await testAddressDriverClient.emitAccountMetadata(metadata);
 
 			// Assert
 			assert(signerStub?.sendTransaction.calledOnceWithExactly(tx), 'Did not send the expected tx.');

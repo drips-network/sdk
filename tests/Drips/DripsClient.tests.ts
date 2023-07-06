@@ -194,18 +194,18 @@ describe('DripsClient', () => {
 	describe('receivableCyclesCount()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			await testDripsHubClient.receivableCyclesCount(userId, tokenAddress);
+			await testDripsHubClient.receivableCyclesCount(accountId, tokenAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -225,40 +225,40 @@ describe('DripsClient', () => {
 
 		it('return the expected count', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const expectedCount = 10;
 			const tokenAddress = Wallet.createRandom().address;
 
-			dripsContractStub.receivableStreamsCycles.withArgs(userId, tokenAddress).resolves(expectedCount);
+			dripsContractStub.receivableStreamsCycles.withArgs(accountId, tokenAddress).resolves(expectedCount);
 
 			// Act
-			const actualCount = await testDripsHubClient.receivableCyclesCount(userId, tokenAddress);
+			const actualCount = await testDripsHubClient.receivableCyclesCount(accountId, tokenAddress);
 
 			// Assert
 			assert.equal(actualCount, expectedCount);
-			assert(dripsContractStub.receivableStreamsCycles.calledOnceWithExactly(userId, tokenAddress));
+			assert(dripsContractStub.receivableStreamsCycles.calledOnceWithExactly(accountId, tokenAddress));
 		});
 	});
 
 	describe('getReceivableBalanceForUser()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
 			const expectedBalance = BigNumber.from(1);
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
-			dripsContractStub.receiveStreamsResult.withArgs(userId, tokenAddress, maxCycles).resolves(expectedBalance);
+			dripsContractStub.receiveStreamsResult.withArgs(accountId, tokenAddress, maxCycles).resolves(expectedBalance);
 
 			// Act
-			await testDripsHubClient.getReceivableBalanceForUser(userId, tokenAddress, maxCycles);
+			await testDripsHubClient.getReceivableBalanceForUser(accountId, tokenAddress, maxCycles);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -296,32 +296,32 @@ describe('DripsClient', () => {
 
 		it('should return the expected receivable balance', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
 			const expectedBalance = BigNumber.from(1);
 
-			dripsContractStub.receiveStreamsResult.withArgs(userId, tokenAddress, maxCycles).resolves(expectedBalance);
+			dripsContractStub.receiveStreamsResult.withArgs(accountId, tokenAddress, maxCycles).resolves(expectedBalance);
 
 			// Act
-			const actualBalance = await testDripsHubClient.getReceivableBalanceForUser(userId, tokenAddress, maxCycles);
+			const actualBalance = await testDripsHubClient.getReceivableBalanceForUser(accountId, tokenAddress, maxCycles);
 
 			// Assert
 			assert.equal(actualBalance.receivableAmount, expectedBalance.toBigInt());
-			assert(dripsContractStub.receiveStreamsResult.calledOnceWithExactly(userId, tokenAddress, maxCycles));
+			assert(dripsContractStub.receiveStreamsResult.calledOnceWithExactly(accountId, tokenAddress, maxCycles));
 		});
 	});
 
 	describe('receiveStreams()', () => {
 		it('should ensure the signer exists', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
 			// Act
-			await testDripsHubClient.receiveStreams(userId, tokenAddress, maxCycles);
+			await testDripsHubClient.receiveStreams(accountId, tokenAddress, maxCycles);
 
 			// Assert
 			assert(
@@ -332,36 +332,36 @@ describe('DripsClient', () => {
 
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 			const validateReceiveDripsInputStub = sinon.stub(validators, 'validateReceiveDripsInput');
 
 			// Act
-			await testDripsHubClient.receiveStreams(userId, tokenAddress, maxCycles);
+			await testDripsHubClient.receiveStreams(accountId, tokenAddress, maxCycles);
 
 			// Assert
-			assert(validateReceiveDripsInputStub.calledOnceWithExactly(userId, tokenAddress, maxCycles));
+			assert(validateReceiveDripsInputStub.calledOnceWithExactly(accountId, tokenAddress, maxCycles));
 		});
 
 		it('should call the receiveStreams() method of the AddressDriver contract', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1n;
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
-			await testDripsHubClient.receiveStreams(userId, tokenAddress, maxCycles);
+			await testDripsHubClient.receiveStreams(accountId, tokenAddress, maxCycles);
 
 			// Assert
-			assert(dripsContractStub.receiveStreams.calledOnceWithExactly(userId, tokenAddress, maxCycles));
+			assert(dripsContractStub.receiveStreams.calledOnceWithExactly(accountId, tokenAddress, maxCycles));
 		});
 	});
 
 	describe('squeezeStreams()', () => {
 		it('should validate input', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const senderId = '1';
 			const historyHash = '0x00';
 			const streamsHistory: StreamsHistoryStruct[] = [];
@@ -369,12 +369,12 @@ describe('DripsClient', () => {
 			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			// Act
-			await testDripsHubClient.squeezeStreams(userId, tokenAddress, senderId, historyHash, streamsHistory);
+			await testDripsHubClient.squeezeStreams(accountId, tokenAddress, senderId, historyHash, streamsHistory);
 
 			// Assert
 			assert(
 				validateSqueezeDripsInputStub.calledOnceWithExactly(
-					userId,
+					accountId,
 					tokenAddress,
 					senderId,
 					historyHash,
@@ -386,19 +386,19 @@ describe('DripsClient', () => {
 
 		it('should call the squeezeStreams() method of the Drips contract', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const senderId = '1';
 			const historyHash = '0x';
 			const streamsHistory: StreamsHistoryStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 
 			// Act
-			await testDripsHubClient.squeezeStreams(userId, tokenAddress, senderId, historyHash, streamsHistory);
+			await testDripsHubClient.squeezeStreams(accountId, tokenAddress, senderId, historyHash, streamsHistory);
 
 			// Assert
 			assert(
 				dripsContractStub.squeezeStreams.calledOnceWithExactly(
-					userId,
+					accountId,
 					tokenAddress,
 					senderId,
 					historyHash,
@@ -411,7 +411,7 @@ describe('DripsClient', () => {
 	describe('getSqueezableBalance()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const senderId = '1';
 			const historyHash = '0x';
 			const streamsHistory: StreamsHistoryStruct[] = [];
@@ -419,17 +419,17 @@ describe('DripsClient', () => {
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			dripsContractStub.squeezeStreamsResult
-				.withArgs(userId, tokenAddress, senderId, historyHash, streamsHistory)
+				.withArgs(accountId, tokenAddress, senderId, historyHash, streamsHistory)
 				.resolves(BigNumber.from(1));
 
 			// Act
-			await testDripsHubClient.getSqueezableBalance(userId, tokenAddress, senderId, historyHash, streamsHistory);
+			await testDripsHubClient.getSqueezableBalance(accountId, tokenAddress, senderId, historyHash, streamsHistory);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -509,7 +509,7 @@ describe('DripsClient', () => {
 
 		it('should return the expected squeezable balance', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const senderId = '1';
 			const historyHash = '0x';
 			const expectedBalance = BigNumber.from(10);
@@ -517,12 +517,12 @@ describe('DripsClient', () => {
 			const tokenAddress = Wallet.createRandom().address;
 
 			dripsContractStub.squeezeStreamsResult
-				.withArgs(userId, tokenAddress, senderId, historyHash, streamsHistory)
+				.withArgs(accountId, tokenAddress, senderId, historyHash, streamsHistory)
 				.resolves(expectedBalance);
 
 			// Act
 			const actualBalance = await testDripsHubClient.getSqueezableBalance(
-				userId,
+				accountId,
 				tokenAddress,
 				senderId,
 				historyHash,
@@ -533,7 +533,7 @@ describe('DripsClient', () => {
 			assert.equal(actualBalance, expectedBalance.toBigInt());
 			assert(
 				dripsContractStub.squeezeStreamsResult.calledOnceWithExactly(
-					userId,
+					accountId,
 					tokenAddress,
 					senderId,
 					historyHash,
@@ -546,20 +546,20 @@ describe('DripsClient', () => {
 	describe('getSplittableBalanceForUser()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
-			dripsContractStub.splittable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
+			dripsContractStub.splittable.withArgs(accountId, tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
-			await testDripsHubClient.getSplittableBalanceForUser(userId, tokenAddress);
+			await testDripsHubClient.getSplittableBalanceForUser(accountId, tokenAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -579,19 +579,19 @@ describe('DripsClient', () => {
 
 		it('should return the expected splittable balance', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const expectedBalance = BigNumber.from(10);
 
-			dripsContractStub.splittable.withArgs(userId, tokenAddress).resolves(expectedBalance);
+			dripsContractStub.splittable.withArgs(accountId, tokenAddress).resolves(expectedBalance);
 
 			// Act
-			const actualBalance = await testDripsHubClient.getSplittableBalanceForUser(userId, tokenAddress);
+			const actualBalance = await testDripsHubClient.getSplittableBalanceForUser(accountId, tokenAddress);
 
 			// Assert
 			assert.equal(actualBalance.tokenAddress, tokenAddress);
 			assert.equal(actualBalance.splittableAmount, expectedBalance.toBigInt());
-			assert(dripsContractStub.splittable.calledOnceWithExactly(userId, tokenAddress));
+			assert(dripsContractStub.splittable.calledOnceWithExactly(accountId, tokenAddress));
 		});
 	});
 
@@ -599,8 +599,8 @@ describe('DripsClient', () => {
 		it('validate split receivers', async () => {
 			// Arrange
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 1 },
-				{ userId: 2, weight: 2 }
+				{ accountId: 1, weight: 1 },
+				{ accountId: 2, weight: 2 }
 			];
 
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
@@ -671,7 +671,7 @@ describe('DripsClient', () => {
 		it('should return the expected split result', async () => {
 			// Arrange
 			const amount = 1;
-			const userId = '1';
+			const accountId = '1';
 			const expectedResult = {
 				collectableAmt: BigNumber.from(1),
 				splitAmt: BigNumber.from(1)
@@ -681,32 +681,32 @@ describe('DripsClient', () => {
 			};
 			const currentReceivers: SplitsReceiverStruct[] = [];
 
-			dripsContractStub.splitResult.withArgs(userId, currentReceivers, amount).resolves(expectedResult);
+			dripsContractStub.splitResult.withArgs(accountId, currentReceivers, amount).resolves(expectedResult);
 
 			// Act
-			const actualResult = await testDripsHubClient.getSplitResult(userId, currentReceivers, amount);
+			const actualResult = await testDripsHubClient.getSplitResult(accountId, currentReceivers, amount);
 
 			// Assert
 			assert.equal(actualResult.splitAmount, expectedResult.splitAmt.toBigInt());
 			assert.equal(actualResult.collectableAmount, expectedResult.collectableAmt.toBigInt());
-			assert(dripsContractStub.splitResult.calledOnceWithExactly(userId, currentReceivers, amount));
+			assert(dripsContractStub.splitResult.calledOnceWithExactly(accountId, currentReceivers, amount));
 		});
 	});
 
 	describe('split()', () => {
 		it('should ensure the signer exists', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 1 },
-				{ userId: 2, weight: 2 }
+				{ accountId: 1, weight: 1 },
+				{ accountId: 2, weight: 2 }
 			];
 
 			const ensureSignerExistsStub = sinon.stub(internals, 'ensureSignerExists');
 
 			// Act
-			await testDripsHubClient.split(userId, tokenAddress, receivers);
+			await testDripsHubClient.split(accountId, tokenAddress, receivers);
 
 			// Assert
 			assert(
@@ -717,37 +717,41 @@ describe('DripsClient', () => {
 
 		it('should validate the input', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 1, weight: 1 },
-				{ userId: 2, weight: 2 }
+				{ accountId: 1, weight: 1 },
+				{ accountId: 2, weight: 2 }
 			];
 
 			const validateSplitInputStub = sinon.stub(validators, 'validateSplitInput');
 
 			// Act
-			await testDripsHubClient.split(userId, tokenAddress, receivers);
+			await testDripsHubClient.split(accountId, tokenAddress, receivers);
 
 			// Assert
-			assert(validateSplitInputStub.calledOnceWithExactly(userId, tokenAddress, receivers));
+			assert(validateSplitInputStub.calledOnceWithExactly(accountId, tokenAddress, receivers));
 		});
 
 		it('should call the setStreams() method of the AddressDriver contract', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const receivers: SplitsReceiverStruct[] = [
-				{ userId: 2, weight: 2 },
-				{ userId: 1, weight: 1 }
+				{ accountId: 2, weight: 2 },
+				{ accountId: 1, weight: 1 }
 			];
 
 			// Act
-			await testDripsHubClient.split(userId, tokenAddress, receivers);
+			await testDripsHubClient.split(accountId, tokenAddress, receivers);
 
 			// Assert
 			assert(
-				dripsContractStub.split.calledOnceWithExactly(userId, tokenAddress, internals.formatSplitReceivers(receivers)),
+				dripsContractStub.split.calledOnceWithExactly(
+					accountId,
+					tokenAddress,
+					internals.formatSplitReceivers(receivers)
+				),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -756,20 +760,20 @@ describe('DripsClient', () => {
 	describe('getCollectableBalanceForUser()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
-			dripsContractStub.collectable.withArgs(userId, tokenAddress).resolves(BigNumber.from(1));
+			dripsContractStub.collectable.withArgs(accountId, tokenAddress).resolves(BigNumber.from(1));
 
 			// Act
-			await testDripsHubClient.getCollectableBalanceForUser(userId, tokenAddress);
+			await testDripsHubClient.getCollectableBalanceForUser(accountId, tokenAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -789,39 +793,39 @@ describe('DripsClient', () => {
 
 		it('should return the expected collectable balance', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const expectedBalance = BigNumber.from(1);
 			const tokenAddress = Wallet.createRandom().address;
 
-			dripsContractStub.collectable.withArgs(userId, tokenAddress).resolves(expectedBalance);
+			dripsContractStub.collectable.withArgs(accountId, tokenAddress).resolves(expectedBalance);
 
 			// Act
-			const actualBalance = await testDripsHubClient.getCollectableBalanceForUser(userId, tokenAddress);
+			const actualBalance = await testDripsHubClient.getCollectableBalanceForUser(accountId, tokenAddress);
 
 			// Assert
 			assert.equal(actualBalance.tokenAddress, tokenAddress);
 			assert.equal(actualBalance.collectableAmount, expectedBalance.toBigInt());
-			assert(dripsContractStub.collectable.calledOnceWithExactly(userId, tokenAddress));
+			assert(dripsContractStub.collectable.calledOnceWithExactly(accountId, tokenAddress));
 		});
 	});
 
 	describe('streamsState()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
-			dripsContractStub.streamsState.withArgs(userId, tokenAddress).resolves({} as any);
+			dripsContractStub.streamsState.withArgs(accountId, tokenAddress).resolves({} as any);
 
 			// Act
-			await testDripsHubClient.streamsState(userId, tokenAddress);
+			await testDripsHubClient.streamsState(accountId, tokenAddress);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -841,7 +845,7 @@ describe('DripsClient', () => {
 
 		it('should return the expected user state', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const expectedState = {
 				streamsHash: '0x00',
 				streamsHistoryHash: '0x01',
@@ -851,10 +855,10 @@ describe('DripsClient', () => {
 			} as any;
 			const tokenAddress = Wallet.createRandom().address;
 
-			dripsContractStub.streamsState.withArgs(userId, tokenAddress).resolves(expectedState);
+			dripsContractStub.streamsState.withArgs(accountId, tokenAddress).resolves(expectedState);
 
 			// Act
-			const actualState = await testDripsHubClient.streamsState(userId, tokenAddress);
+			const actualState = await testDripsHubClient.streamsState(accountId, tokenAddress);
 
 			// Assert
 			assert.equal(actualState.maxEnd, expectedState.maxEnd);
@@ -862,23 +866,23 @@ describe('DripsClient', () => {
 			assert.equal(actualState.streamsHash, expectedState.streamsHash);
 			assert.equal(actualState.updateTime, expectedState.updateTime);
 			assert.equal(actualState.streamsHistoryHash, expectedState.streamsHistoryHash);
-			assert(dripsContractStub.streamsState.calledOnceWithExactly(userId, tokenAddress));
+			assert(dripsContractStub.streamsState.calledOnceWithExactly(accountId, tokenAddress));
 		});
 	});
 
 	describe('getDripsBalanceAt()', () => {
 		it('should validate the ERC20 address', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const timestamp = 11111n;
 			const receivers: StreamReceiverStruct[] = [];
 			const tokenAddress = Wallet.createRandom().address;
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
-			dripsContractStub.balanceAt.withArgs(userId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
+			dripsContractStub.balanceAt.withArgs(accountId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
 
 			// Act
-			await testDripsHubClient.getDripsBalanceAt(userId, tokenAddress, receivers, timestamp);
+			await testDripsHubClient.getDripsBalanceAt(accountId, tokenAddress, receivers, timestamp);
 
 			// Assert
 			assert(validateAddressStub.calledOnceWithExactly(tokenAddress));
@@ -886,34 +890,34 @@ describe('DripsClient', () => {
 
 		it('should validate the drips receivers', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const timestamp = 11111n;
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 1,
+					accountId: 1,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 			const tokenAddress = Wallet.createRandom().address;
 			const validateStreamReceiversStub = sinon.stub(validators, 'validateStreamReceivers');
 
-			dripsContractStub.balanceAt.withArgs(userId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
+			dripsContractStub.balanceAt.withArgs(accountId, tokenAddress, receivers, timestamp).resolves(BigNumber.from(1));
 
 			// Act
-			await testDripsHubClient.getDripsBalanceAt(userId, tokenAddress, receivers, timestamp);
+			await testDripsHubClient.getDripsBalanceAt(accountId, tokenAddress, receivers, timestamp);
 
 			// Assert
 			assert(
 				validateStreamReceiversStub.calledOnceWithExactly(
 					sinon.match(
-						(r: { userId: string; config: StreamConfig }[]) =>
+						(r: { accountId: string; config: StreamConfig }[]) =>
 							Utils.StreamConfiguration.toUint256(r[0].config) === receivers[0].config
 					)
 				)
 			);
 		});
 
-		it('should throw argumentMissingError when userId is missing', async () => {
+		it('should throw argumentMissingError when accountId is missing', async () => {
 			// Arrange
 			let threw = false;
 			const tokenAddress = Wallet.createRandom().address;
@@ -951,25 +955,25 @@ describe('DripsClient', () => {
 
 		it('should return the expected result', async () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const timestamp = 11111n;
 			const tokenAddress = Wallet.createRandom().address;
 			const receivers: StreamReceiverStruct[] = [
 				{
-					userId: 1,
+					accountId: 1,
 					config: Utils.StreamConfiguration.toUint256({ dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n })
 				}
 			];
 			const expectedBalance = BigNumber.from(1);
 
-			dripsContractStub.balanceAt.withArgs(userId, tokenAddress, receivers, timestamp).resolves(expectedBalance);
+			dripsContractStub.balanceAt.withArgs(accountId, tokenAddress, receivers, timestamp).resolves(expectedBalance);
 
 			// Act
-			const actualBalance = await testDripsHubClient.getDripsBalanceAt(userId, tokenAddress, receivers, timestamp);
+			const actualBalance = await testDripsHubClient.getDripsBalanceAt(accountId, tokenAddress, receivers, timestamp);
 
 			// Assert
 			assert.equal(actualBalance, expectedBalance.toBigInt());
-			assert(dripsContractStub.balanceAt.calledOnceWithExactly(userId, tokenAddress, receivers, timestamp));
+			assert(dripsContractStub.balanceAt.calledOnceWithExactly(accountId, tokenAddress, receivers, timestamp));
 		});
 	});
 });

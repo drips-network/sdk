@@ -6,7 +6,7 @@ import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { StreamsHistoryStruct, StreamReceiver, StreamConfig, UserMetadata } from '../../src/common/types';
+import type { StreamsHistoryStruct, StreamReceiver, StreamConfig, AccountMetadata } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -21,11 +21,11 @@ describe('validators', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: {
-				userId: string;
+				accountId: string;
 				config: StreamConfig;
 			}[] = [];
 			const newReceivers: {
-				userId: string;
+				accountId: string;
 				config: StreamConfig;
 			}[] = [];
 			const balanceDelta = 1;
@@ -63,11 +63,11 @@ describe('validators', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: {
-				userId: string;
+				accountId: string;
 				config: StreamConfig;
 			}[] = [];
 			const newReceivers: {
-				userId: string;
+				accountId: string;
 				config: StreamConfig;
 			}[] = [];
 
@@ -97,7 +97,7 @@ describe('validators', () => {
 	describe('validateSplitInput', () => {
 		it('should validate all inputs', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const currentReceivers: SplitsReceiverStruct[] = [];
 
@@ -105,7 +105,7 @@ describe('validators', () => {
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
-			validators.validateSplitInput(userId, tokenAddress, currentReceivers);
+			validators.validateSplitInput(accountId, tokenAddress, currentReceivers);
 
 			// Assert
 			assert(
@@ -118,7 +118,7 @@ describe('validators', () => {
 			);
 		});
 
-		it('should throw an argumentMissingError when userId is missing', () => {
+		it('should throw an argumentMissingError when accountId is missing', () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const currentReceivers: SplitsReceiverStruct[] = [];
@@ -139,7 +139,7 @@ describe('validators', () => {
 		});
 	});
 
-	describe('validateEmitUserMetadataInput', () => {
+	describe('validateEmitAccountMetadataInput', () => {
 		it('should throw an argumentError when metadata are missing', () => {
 			// Arrange
 			let threw = false;
@@ -147,7 +147,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput(undefined as unknown as UserMetadata[]);
+				validators.validateEmitAccountMetadataInput(undefined as unknown as AccountMetadata[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -165,7 +165,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput([{ key: undefined as unknown as string, value: 'value' }]);
+				validators.validateEmitAccountMetadataInput([{ key: undefined as unknown as string, value: 'value' }]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -183,7 +183,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput([{ key: 'key', value: undefined as unknown as string }]);
+				validators.validateEmitAccountMetadataInput([{ key: 'key', value: undefined as unknown as string }]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -198,14 +198,14 @@ describe('validators', () => {
 	describe('validateReceiveDripsInput', () => {
 		it('should validate the tokenAddress', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
 
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			validators.validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+			validators.validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 
 			// Assert
 			assert(
@@ -214,7 +214,7 @@ describe('validators', () => {
 			);
 		});
 
-		it('should throw an argumentMissingError when userId is missing', () => {
+		it('should throw an argumentMissingError when accountId is missing', () => {
 			// Arrange
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
@@ -236,14 +236,14 @@ describe('validators', () => {
 
 		it('should throw an argumentError when maxCycles is missing', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			let threw = false;
 
 			// Act
 			try {
 				// Act
-				validators.validateReceiveDripsInput(userId, tokenAddress, undefined as unknown as BigNumberish);
+				validators.validateReceiveDripsInput(accountId, tokenAddress, undefined as unknown as BigNumberish);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -256,7 +256,7 @@ describe('validators', () => {
 
 		it('should throw an argumentError when maxCycles is less than 0', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = -1;
 			const tokenAddress = Wallet.createRandom().address;
 			let threw = false;
@@ -264,7 +264,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+				validators.validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -458,7 +458,7 @@ describe('validators', () => {
 			// Arrange
 			let threw = false;
 			const receivers = Array(101).fill({
-				userId: undefined as unknown as number,
+				accountId: undefined as unknown as number,
 				config: { amountPerSec: 1n, duration: 1n, start: 1n }
 			});
 
@@ -475,12 +475,12 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw streamsReceiverError when receiver userId is missing', () => {
+		it('should throw streamsReceiverError when receiver accountId is missing', () => {
 			// Arrange
 			let threw = false;
 			const receivers = [
 				{
-					userId: undefined as unknown as string,
+					accountId: undefined as unknown as string,
 					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
@@ -503,7 +503,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: StreamReceiver[] = [
 				{
-					userId: '123',
+					accountId: '123',
 					config: undefined as unknown as StreamConfig
 				}
 			];
@@ -525,7 +525,7 @@ describe('validators', () => {
 			// Arrange
 			const receivers: StreamReceiver[] = [
 				{
-					userId: '123',
+					accountId: '123',
 					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
@@ -570,7 +570,7 @@ describe('validators', () => {
 			// Arrange
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = Array(201).fill({
-				userId: undefined as unknown as number,
+				accountId: undefined as unknown as number,
 				weight: 1
 			});
 
@@ -587,13 +587,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw splitsReceiverError when receiver userId is missing', () => {
+		it('should throw splitsReceiverError when receiver accountId is missing', () => {
 			// Arrange
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
 					weight: 123,
-					userId: undefined as unknown as string
+					accountId: undefined as unknown as string
 				}
 			];
 
@@ -615,7 +615,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123,
+					accountId: 123,
 					weight: undefined as unknown as BigNumberish
 				}
 			];
@@ -638,7 +638,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123n,
+					accountId: 123n,
 					weight: 0
 				}
 			];
@@ -661,7 +661,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123n,
+					accountId: 123n,
 					weight: -1
 				}
 			];
@@ -742,7 +742,7 @@ describe('validators', () => {
 	});
 
 	describe('validateSqueezeDripsInput', () => {
-		it('should throw an argumentError when userId is missing', () => {
+		it('should throw an argumentError when accountId is missing', () => {
 			// Arrange
 			let threw = false;
 

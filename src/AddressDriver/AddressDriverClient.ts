@@ -2,13 +2,13 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { ethers, BigNumber, constants } from 'ethers';
-import type { StreamReceiverStruct, SplitsReceiverStruct, UserMetadata } from '../common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct, AccountMetadata } from '../common/types';
 import {
 	validateAddress,
 	validateClientProvider,
 	validateClientSigner,
 	validateCollectInput,
-	validateEmitUserMetadataInput,
+	validateEmitAccountMetadataInput,
 	validateSetStreamsInput,
 	validateSplitsReceivers
 } from '../common/validators';
@@ -168,14 +168,14 @@ export default class AddressDriverClient {
 	 * @returns A `Promise` which resolves to the user ID.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async getUserId(): Promise<string> {
+	public async getAccountId(): Promise<string> {
 		ensureSignerExists(this.#signer);
 
 		const signerAddress = await this.#signer.getAddress();
 
-		const userId = await this.#driver.calcUserId(signerAddress);
+		const accountId = await this.#driver.calcAccountId(signerAddress);
 
-		return userId.toString();
+		return accountId.toString();
 	}
 
 	/**
@@ -184,12 +184,12 @@ export default class AddressDriverClient {
 	 * @returns A `Promise` which resolves to the user ID.
 	 * @throws {@link DripsErrors.addressError} if the `userAddress` address is not valid.
 	 */
-	public async getUserIdByAddress(userAddress: string): Promise<string> {
+	public async getAccountIdByAddress(userAddress: string): Promise<string> {
 		validateAddress(userAddress);
 
-		const userId = await this.#driver.calcUserId(userAddress);
+		const accountId = await this.#driver.calcAccountId(userAddress);
 
-		return userId.toString();
+		return accountId.toString();
 	}
 
 	/**
@@ -219,7 +219,7 @@ export default class AddressDriverClient {
 	 * Gives funds to the receiver.
 	 * The receiver can collect them immediately.
 	 * Transfers funds from the user's wallet to the `Drips` contract.
-	 * @param receiverUserId The receiver user ID.
+	 * @param receiverAccountId The receiver user ID.
 	 * @param tokenAddress The ERC20 token address.
 	 *
 	 * It must preserve amounts, so if some amount of tokens is transferred to
@@ -229,18 +229,22 @@ export default class AddressDriverClient {
 	 * If you use such tokens in the protocol, they can get stuck or lost.
 	 * @param amount The amount to give (in the smallest unit, e.g., Wei). It must be greater than `0`.
 	 * @returns A `Promise` which resolves to the contract transaction.
-	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverUserId` is missing.
+	 * @throws {@link DripsErrors.argumentMissingError} if the `receiverAccountId` is missing.
 	 * @throws {@link DripsErrors.addressError} if the `tokenAddress` is not valid.
 	 * @throws {@link DripsErrors.argumentError} if the `amount` is less than or equal to `0`.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async give(receiverUserId: string, tokenAddress: string, amount: BigNumberish): Promise<ContractTransaction> {
+	public async give(
+		receiverAccountId: string,
+		tokenAddress: string,
+		amount: BigNumberish
+	): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
 
-		if (isNullOrUndefined(receiverUserId)) {
+		if (isNullOrUndefined(receiverAccountId)) {
 			throw DripsErrors.argumentMissingError(
-				`Could not give: '${nameOf({ receiverUserId })}' is missing.`,
-				nameOf({ receiverUserId })
+				`Could not give: '${nameOf({ receiverAccountId })}' is missing.`,
+				nameOf({ receiverAccountId })
 			);
 		}
 
@@ -254,7 +258,7 @@ export default class AddressDriverClient {
 			);
 		}
 
-		const tx = await this.#txFactory.give(receiverUserId, tokenAddress, amount);
+		const tx = await this.#txFactory.give(receiverAccountId, tokenAddress, amount);
 
 		return this.#signer.sendTransaction(tx);
 	}
@@ -321,11 +325,11 @@ export default class AddressDriverClient {
 		validateSetStreamsInput(
 			tokenAddress,
 			currentReceivers?.map((r) => ({
-				userId: r.userId.toString(),
+				accountId: r.accountId.toString(),
 				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			})),
 			newReceivers?.map((r) => ({
-				userId: r.userId.toString(),
+				accountId: r.accountId.toString(),
 				config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 			})),
 			transferToAddress,
@@ -348,53 +352,53 @@ export default class AddressDriverClient {
 	/**
 	 * Emits the user's metadata.
 	 * The key and the value are _not_ standardized by the protocol, it's up to the user to establish and follow conventions to ensure compatibility with the consumers.
-	 * @param userMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
+	 * @param accountMetadata The list of user metadata. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 * @throws {@link DripsErrors.argumentError} if any of the metadata entries is not valid.
 	 * @throws {@link DripsErrors.signerMissingError} if the provider's signer is missing.
 	 */
-	public async emitUserMetadata(userMetadata: UserMetadata[]): Promise<ContractTransaction> {
+	public async emitAccountMetadata(accountMetadata: AccountMetadata[]): Promise<ContractTransaction> {
 		ensureSignerExists(this.#signer);
-		validateEmitUserMetadataInput(userMetadata);
+		validateEmitAccountMetadataInput(accountMetadata);
 
-		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+		const accountMetadataAsBytes = accountMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
-		const tx = await this.#txFactory.emitUserMetadata(userMetadataAsBytes);
+		const tx = await this.#txFactory.emitAccountMetadata(accountMetadataAsBytes);
 
 		return this.#signer.sendTransaction(tx);
 	}
 
 	/**
 	 * Returns a user's address given a user ID.
-	 * @param userId The user ID.
+	 * @param accountId The user ID.
 	 * @returns The user's address.
 	 */
-	public static getUserAddress = (userId: string): string => {
-		if (isNullOrUndefined(userId)) {
-			throw DripsErrors.argumentError(`Could not get user address: userId is missing.`);
+	public static getUserAddress = (accountId: string): string => {
+		if (isNullOrUndefined(accountId)) {
+			throw DripsErrors.argumentError(`Could not get user address: accountId is missing.`);
 		}
 
-		const userIdAsBn = ethers.BigNumber.from(userId);
+		const accountIdAsBn = ethers.BigNumber.from(accountId);
 
-		if (userIdAsBn.lt(0) || userIdAsBn.gt(ethers.constants.MaxUint256)) {
+		if (accountIdAsBn.lt(0) || accountIdAsBn.gt(ethers.constants.MaxUint256)) {
 			throw DripsErrors.argumentError(
-				`Could not get user address: ${userId} is not a valid positive number within the range of a uint256.`
+				`Could not get user address: ${accountId} is not a valid positive number within the range of a uint256.`
 			);
 		}
 
-		if (Utils.UserId.getDriver(userId) === 'address') {
+		if (Utils.AccountId.getDriver(accountId) === 'address') {
 			const mid64BitsMask = ethers.BigNumber.from(2).pow(64).sub(1).shl(160);
 
-			if (!userIdAsBn.and(mid64BitsMask).isZero()) {
+			if (!accountIdAsBn.and(mid64BitsMask).isZero()) {
 				throw DripsErrors.argumentError(
-					`Could not get user address: ${userId} is not a valid user ID. The first 64 (after first 32) bits must be 0.`
+					`Could not get user address: ${accountId} is not a valid user ID. The first 64 (after first 32) bits must be 0.`
 				);
 			}
 		}
 
 		const mask = ethers.BigNumber.from(2).pow(160).sub(1);
-		const address = userIdAsBn.and(mask).toHexString();
+		const address = accountIdAsBn.and(mask).toHexString();
 
 		const paddedAddress = ethers.utils.hexZeroPad(address, 20);
 
