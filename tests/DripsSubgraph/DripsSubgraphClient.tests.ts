@@ -260,7 +260,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getAllAccountAssetConfigsByAccountId, { accountId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						user: {
+						account: {
 							assetConfigs: apiConfigs
 						}
 					}
@@ -297,7 +297,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getAllAccountAssetConfigsByAccountId, { accountId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						user: {}
+						account: {}
 					}
 				});
 
@@ -341,7 +341,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getSplitsConfigByAccountId, { accountId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						user: {
+						account: {
 							splitsEntries
 						}
 					}
@@ -374,7 +374,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getSplitsConfigByAccountId, { accountId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						user: {}
+						account: {}
 					}
 				});
 

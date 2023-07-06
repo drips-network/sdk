@@ -159,7 +159,7 @@ export default class DripsSubgraphClient {
 		}
 
 		type QueryResponse = {
-			user: {
+			account: {
 				assetConfigs: SubgraphTypes.AccountAssetConfig[];
 			};
 		};
@@ -170,7 +170,7 @@ export default class DripsSubgraphClient {
 			first
 		});
 
-		return response?.data?.user?.assetConfigs?.map(mapAccountAssetConfigToDto) || [];
+		return response?.data?.account?.assetConfigs?.map(mapAccountAssetConfigToDto) || [];
 	}
 
 	/**
@@ -195,14 +195,14 @@ export default class DripsSubgraphClient {
 		}
 
 		type QueryResponse = {
-			user: {
+			account: {
 				splitsEntries: SubgraphTypes.SplitsEntry[];
 			};
 		};
 
 		const response = await this.query<QueryResponse>(gql.getSplitsConfigByAccountId, { accountId, skip, first });
 
-		return response?.data?.user?.splitsEntries?.map(mapSplitEntryToDto) || [];
+		return response?.data?.account?.splitsEntries?.map(mapSplitEntryToDto) || [];
 	}
 
 	/**
