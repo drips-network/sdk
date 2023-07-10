@@ -1,9 +1,9 @@
 [
 	{
 		"inputs": [
-			{ "internalType": "contract Drips", "name": "_drips", "type": "address" },
+			{ "internalType": "contract Drips", "name": "drips_", "type": "address" },
 			{ "internalType": "address", "name": "forwarder", "type": "address" },
-			{ "internalType": "uint32", "name": "_driverId", "type": "uint32" }
+			{ "internalType": "uint32", "name": "driverId_", "type": "uint32" }
 		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"

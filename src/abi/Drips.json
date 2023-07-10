@@ -160,12 +160,7 @@
 			{ "indexed": true, "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{ "indexed": true, "internalType": "uint256", "name": "senderId", "type": "uint256" },
 			{ "indexed": false, "internalType": "uint128", "name": "amt", "type": "uint128" },
-			{
-				"indexed": false,
-				"internalType": "bytes32[]",
-				"name": "streamsHistoryHashes",
-				"type": "bytes32[]"
-			}
+			{ "indexed": false, "internalType": "bytes32[]", "name": "streamsHistoryHashes", "type": "bytes32[]" }
 		],
 		"name": "SqueezedStreams",
 		"type": "event"
@@ -186,12 +181,7 @@
 			{ "indexed": true, "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "indexed": true, "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{ "indexed": true, "internalType": "bytes32", "name": "receiversHash", "type": "bytes32" },
-			{
-				"indexed": false,
-				"internalType": "bytes32",
-				"name": "streamsHistoryHash",
-				"type": "bytes32"
-			},
+			{ "indexed": false, "internalType": "bytes32", "name": "streamsHistoryHash", "type": "bytes32" },
 			{ "indexed": false, "internalType": "uint128", "name": "balance", "type": "uint128" },
 			{ "indexed": false, "internalType": "uint32", "name": "maxEnd", "type": "uint32" }
 		],
@@ -269,13 +259,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{
-		"inputs": [],
-		"name": "acceptAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
+	{ "inputs": [], "name": "acceptAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [],
 		"name": "admin",
@@ -472,13 +456,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{
-		"inputs": [],
-		"name": "pause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
+	{ "inputs": [], "name": "pause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "newAdmin", "type": "address" }],
 		"name": "proposeNewAdmin",
@@ -539,13 +517,7 @@
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
-	{
-		"inputs": [],
-		"name": "renounceAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
+	{ "inputs": [], "name": "renounceAdmin", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [{ "internalType": "address", "name": "pauser", "type": "address" }],
 		"name": "revokePauser",
@@ -741,13 +713,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	},
-	{
-		"inputs": [],
-		"name": "unpause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
+	{ "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 	{
 		"inputs": [
 			{ "internalType": "uint32", "name": "driverId", "type": "uint32" },
