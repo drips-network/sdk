@@ -7,7 +7,7 @@ import {
 	mapReceivedStreamsEventToDto,
 	mapSplitEntryToDto,
 	mapSplitEventToDto,
-	mapSqueezedDripsToDto,
+	mapSqueezedStreamsToDto,
 	mapAccountAssetConfigToDto,
 	mapAccountMetadataEventToDto
 } from '../../src/DripsSubgraph/mappers';
@@ -114,7 +114,7 @@ describe('mappers', () => {
 		});
 	});
 
-	describe('mapSqueezedDripsToDto()', () => {
+	describe('mapSqueezedStreamsToDto()', () => {
 		it('should return the expected result', () => {
 			// Arrange
 			const event: SubgraphTypes.SqueezedStreamsEvent = {
@@ -128,7 +128,7 @@ describe('mappers', () => {
 			} as SubgraphTypes.SqueezedStreamsEvent;
 
 			// Act
-			const result = mapSqueezedDripsToDto(event);
+			const result = mapSqueezedStreamsToDto(event);
 
 			// Assert
 			assert.equal(result.id, event.id);

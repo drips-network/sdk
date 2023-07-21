@@ -34,7 +34,7 @@ import {
 	mapReceivedStreamsEventToDto,
 	mapSplitEntryToDto,
 	mapSplitEventToDto,
-	mapSqueezedDripsToDto,
+	mapSqueezedStreamsToDto,
 	mapAccountAssetConfigToDto,
 	mapAccountMetadataEventToDto
 } from './mappers';
@@ -554,11 +554,11 @@ export default class DripsSubgraphClient {
 	}
 
 	/**
-	 * Returns the user's `SqueezedDrips` events.
+	 * Returns the user's `SqueezedStreams` events.
 	 * @param  {string} accountId The user ID.
 	 * @param  {number} skip The number of database entries to skip. Defaults to `0`.
 	 * @param  {number} first The number of database entries to take. Defaults to `100`.
-	 * @returns A `Promise` which resolves to the user's `SqueezedDrips` events.
+	 * @returns A `Promise` which resolves to the user's `SqueezedStreams` events.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `accountId` is missing.
 	 * @throws {@link DripsErrors.subgraphQueryError} if the query fails.
 	 */
@@ -572,7 +572,7 @@ export default class DripsSubgraphClient {
 		}
 
 		type QueryResponse = {
-			squeezedDripsEvents: SubgraphTypes.SqueezedStreamsEvent[];
+			squeezedStreamsEvents: SubgraphTypes.SqueezedStreamsEvent[];
 		};
 
 		const response = await this.query<QueryResponse>(gql.getSqueezedStreamsEventsByAccountId, {
@@ -581,7 +581,7 @@ export default class DripsSubgraphClient {
 			first
 		});
 
-		return response?.data?.squeezedDripsEvents?.map(mapSqueezedDripsToDto) || [];
+		return response?.data?.squeezedStreamsEvents?.map(mapSqueezedStreamsToDto) || [];
 	}
 
 	/**

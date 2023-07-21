@@ -1251,7 +1251,7 @@ describe('DripsSubgraphClient', () => {
 				.withArgs(gql.getSqueezedStreamsEventsByAccountId, { accountId, skip: 0, first: 100 })
 				.resolves({
 					data: {
-						squeezedDripsEvents: events
+						squeezedStreamsEvents: events
 					}
 				});
 

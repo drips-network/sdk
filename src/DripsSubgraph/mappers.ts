@@ -98,16 +98,16 @@ export const mapCollectedEventToDto = (collectedEvent: SubgraphTypes.CollectedEv
 });
 
 /** @internal */
-export const mapSqueezedDripsToDto = (
-	squeezedDripsEvent: SubgraphTypes.SqueezedStreamsEvent
+export const mapSqueezedStreamsToDto = (
+	squeezedStreamsEvent: SubgraphTypes.SqueezedStreamsEvent
 ): SqueezedStreamsEvent => ({
-	amount: BigInt(squeezedDripsEvent.amt),
-	assetId: BigInt(squeezedDripsEvent.assetId),
-	blockTimestamp: BigInt(squeezedDripsEvent.blockTimestamp),
-	id: squeezedDripsEvent.id,
-	senderId: squeezedDripsEvent.senderId,
-	accountId: squeezedDripsEvent.accountId,
-	streamsHistoryHashes: squeezedDripsEvent.streamsHistoryHashes
+	amount: BigInt(squeezedStreamsEvent.amt),
+	assetId: BigInt(squeezedStreamsEvent.assetId),
+	blockTimestamp: BigInt(squeezedStreamsEvent.blockTimestamp),
+	id: squeezedStreamsEvent.id,
+	senderId: squeezedStreamsEvent.senderId,
+	accountId: squeezedStreamsEvent.accountId,
+	streamsHistoryHashes: squeezedStreamsEvent.streamsHistoryHashes
 });
 
 /** @internal */
