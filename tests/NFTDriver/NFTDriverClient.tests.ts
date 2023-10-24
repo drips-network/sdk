@@ -9,8 +9,8 @@ import NFTDriverClient from '../../src/NFTDriver/NFTDriverClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
 import NFTDriverTxFactory from '../../src/NFTDriver/NFTDriverTxFactory';
-import type { IERC20, NFTDriver } from '../../contracts';
-import { NFTDriver__factory, IERC20__factory } from '../../contracts';
+import type { IERC20, IERC721, NFTDriver } from '../../contracts';
+import { NFTDriver__factory, IERC20__factory, IERC721__factory } from '../../contracts';
 import type { StreamReceiverStruct, SplitsReceiverStruct, AccountMetadata } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
@@ -190,6 +190,100 @@ describe('NFTDriverClient', () => {
 			// Assert
 			assert(
 				erc20ContractStub.approve.calledOnceWithExactly(testNftDriverClient.driverAddress, constants.MaxUint256),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('safeTransferFrom()', () => {
+		it('should validate the address inputs', async () => {
+			// Arrange
+			const from = 'invalid address';
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const to = Wallet.createRandom().address;
+			const tokenId = '1';
+
+			const erc721ContractStub = stubInterface<IERC721>();
+
+			sinon
+				.stub(IERC721__factory, 'connect')
+				.withArgs(testNftDriverClient.driverAddress, signerWithProviderStub)
+				.returns(erc721ContractStub);
+
+			// Act
+			await testNftDriverClient.safeTransferFrom(from, to, tokenId);
+
+			// Assert
+			assert(validateAddressStub.calledWith(from));
+			assert(validateAddressStub.calledWith(from));
+		});
+
+		it('should call the safeTransferFrom() method of the ERC721 contract', async () => {
+			// Arrange
+			const to = Wallet.createRandom().address;
+			const from = Wallet.createRandom().address;
+			const tokenId = '1';
+
+			const erc721ContractStub = stubInterface<IERC721>();
+
+			sinon
+				.stub(IERC721__factory, 'connect')
+				.withArgs(testNftDriverClient.driverAddress, signerWithProviderStub)
+				.returns(erc721ContractStub);
+
+			// Act
+			await testNftDriverClient.safeTransferFrom(from, to, tokenId);
+
+			// Assert
+			assert(
+				erc721ContractStub['safeTransferFrom(address,address,uint256)'].calledOnceWithExactly(from, to, tokenId),
+				'Expected method to be called with different arguments'
+			);
+		});
+	});
+
+	describe('transferFrom()', () => {
+		it('should validate the address inputs', async () => {
+			// Arrange
+			const from = 'invalid address';
+			const validateAddressStub = sinon.stub(validators, 'validateAddress');
+			const to = Wallet.createRandom().address;
+			const tokenId = '1';
+
+			const erc721ContractStub = stubInterface<IERC721>();
+
+			sinon
+				.stub(IERC721__factory, 'connect')
+				.withArgs(testNftDriverClient.driverAddress, signerWithProviderStub)
+				.returns(erc721ContractStub);
+
+			// Act
+			await testNftDriverClient.transferFrom(from, to, tokenId);
+
+			// Assert
+			assert(validateAddressStub.calledWith(from));
+			assert(validateAddressStub.calledWith(from));
+		});
+
+		it('should call the transferFrom() method of the ERC721 contract', async () => {
+			// Arrange
+			const to = Wallet.createRandom().address;
+			const from = Wallet.createRandom().address;
+			const tokenId = '1';
+
+			const erc721ContractStub = stubInterface<IERC721>();
+
+			sinon
+				.stub(IERC721__factory, 'connect')
+				.withArgs(testNftDriverClient.driverAddress, signerWithProviderStub)
+				.returns(erc721ContractStub);
+
+			// Act
+			await testNftDriverClient.transferFrom(from, to, tokenId);
+
+			// Assert
+			assert(
+				erc721ContractStub.transferFrom.calledOnceWithExactly(from, to, tokenId),
 				'Expected method to be called with different arguments'
 			);
 		});

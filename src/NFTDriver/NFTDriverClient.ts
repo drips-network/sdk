@@ -2,9 +2,9 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, ContractTransaction, Signer } from 'ethers';
 import { constants, BigNumber } from 'ethers';
-import type { StreamReceiverStruct, SplitsReceiverStruct, AccountMetadata } from '../common/types';
+import type { StreamReceiverStruct, SplitsReceiverStruct, AccountMetadata, Address } from '../common/types';
 import type { NFTDriver } from '../../contracts';
-import { NFTDriver__factory, IERC20__factory } from '../../contracts';
+import { NFTDriver__factory, IERC20__factory, IERC721__factory } from '../../contracts';
 import { DripsErrors } from '../common/DripsError';
 import {
 	validateAddress,
@@ -146,6 +146,36 @@ export default class NFTDriverClient {
 		const signerAsErc20Contract = IERC20__factory.connect(tokenAddress, this.#signer);
 
 		return signerAsErc20Contract.approve(this.#driverAddress, constants.MaxUint256);
+	}
+
+	/**
+	 * @param from The current owner of the token.
+	 * @param to The new owner.
+	 * @param tokenId The token ID.
+	 * @see {@link https://docs.openzeppelin.com/contracts/4.x/api/token/erc721#IERC721-transferFrom-address-address-uint256-}
+	 */
+	public safeTransferFrom(from: Address, to: Address, tokenId: string): Promise<ContractTransaction> {
+		validateAddress(from);
+		validateAddress(to);
+
+		const signerAsErc721Contract = IERC721__factory.connect(this.#driverAddress, this.#signer);
+
+		return signerAsErc721Contract['safeTransferFrom(address,address,uint256)'](from, to, tokenId);
+	}
+
+	/**
+	 * @param from The current owner of the token.
+	 * @param to The new owner.
+	 * @param tokenId The token ID.
+	 * @see {@link https://docs.openzeppelin.com/contracts/4.x/api/token/erc721#IERC721-safeTransferFrom-address-address-uint256-}
+	 */
+	public transferFrom(from: Address, to: Address, tokenId: string): Promise<ContractTransaction> {
+		validateAddress(from);
+		validateAddress(to);
+
+		const signerAsErc721Contract = IERC721__factory.connect(this.#driverAddress, this.#signer);
+
+		return signerAsErc721Contract.transferFrom(from, to, tokenId);
 	}
 
 	/**
