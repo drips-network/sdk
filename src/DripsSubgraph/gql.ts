@@ -141,6 +141,7 @@ query getNftSubAccountsByOwner($ownerAddress: Bytes!, $skip: Int, $first: Int) {
 	nftsubAccounts(where: {ownerAddress: $ownerAddress}, skip: $skip, first: $first) {
 		id
 		ownerAddress
+		originalOwnerAddress
 	}
 }
 `;
@@ -150,6 +151,7 @@ query getNftSubAccountOwnerByTokenId($tokenId: ID!) {
 	nftsubAccount(id: $tokenId) {
 		id
 		ownerAddress
+		originalOwnerAddress
 	}
 }
 `;
