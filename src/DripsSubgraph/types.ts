@@ -103,6 +103,7 @@ export type AccountMetadataEntry = {
 export type NftSubAccount = {
 	tokenId: string;
 	ownerAddress: string;
+	originalOwnerAddress: string;
 };
 
 export type StreamsSetEventWithFullReceivers = {

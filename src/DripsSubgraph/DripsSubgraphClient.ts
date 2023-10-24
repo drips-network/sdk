@@ -447,7 +447,8 @@ export default class DripsSubgraphClient {
 		return nftSubAccounts
 			? nftSubAccounts.map((s) => ({
 					tokenId: s.id,
-					ownerAddress: ethers.utils.getAddress(s.ownerAddress)
+					ownerAddress: ethers.utils.getAddress(s.ownerAddress),
+					originalOwnerAddress: ethers.utils.getAddress(s.originalOwnerAddress)
 			  }))
 			: [];
 	}
@@ -473,7 +474,11 @@ export default class DripsSubgraphClient {
 		const nftSubAccount = response?.data?.nftsubAccount;
 
 		return nftSubAccount
-			? { tokenId: nftSubAccount.id, ownerAddress: ethers.utils.getAddress(nftSubAccount.ownerAddress) }
+			? {
+					tokenId: nftSubAccount.id,
+					ownerAddress: ethers.utils.getAddress(nftSubAccount.ownerAddress),
+					originalOwnerAddress: ethers.utils.getAddress(nftSubAccount.originalOwnerAddress)
+			  }
 			: null;
 	}
 

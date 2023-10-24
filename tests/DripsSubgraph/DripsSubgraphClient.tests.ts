@@ -957,7 +957,8 @@ describe('DripsSubgraphClient', () => {
 			const nftsubAccounts: SubgraphTypes.NftSubAccount[] = [
 				{
 					id: '1',
-					ownerAddress: Wallet.createRandom().address
+					ownerAddress: Wallet.createRandom().address,
+					originalOwnerAddress: Wallet.createRandom().address
 				}
 			];
 
@@ -976,6 +977,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result![0].tokenId, nftsubAccounts[0].id);
 			assert.equal(result![0].ownerAddress, nftsubAccounts[0].ownerAddress);
+			assert.equal(result![0].originalOwnerAddress, nftsubAccounts[0].originalOwnerAddress);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getNftSubAccountsByOwner, { ownerAddress, skip: 0, first: 100 }),
 				'Expected method to be called with different arguments'
@@ -1009,7 +1011,8 @@ describe('DripsSubgraphClient', () => {
 			const tokenId = '1';
 			const nftsubAccount: SubgraphTypes.NftSubAccount = {
 				id: tokenId,
-				ownerAddress: Wallet.createRandom().address
+				ownerAddress: Wallet.createRandom().address,
+				originalOwnerAddress: Wallet.createRandom().address
 			};
 
 			const clientStub = sinon
@@ -1027,6 +1030,7 @@ describe('DripsSubgraphClient', () => {
 			// Assert
 			assert.equal(result!.tokenId, nftsubAccount.id);
 			assert.equal(result!.ownerAddress, nftsubAccount.ownerAddress);
+			assert.equal(result!.originalOwnerAddress, nftsubAccount.originalOwnerAddress);
 			assert(
 				clientStub.calledOnceWithExactly(gql.getNftSubAccountOwnerByTokenId, { tokenId }),
 				'Expected method to be called with different arguments'
