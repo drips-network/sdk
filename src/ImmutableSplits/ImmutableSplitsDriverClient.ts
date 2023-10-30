@@ -1,5 +1,5 @@
 import type { Provider } from '@ethersproject/providers';
-import type { SplitsReceiverStruct, UserMetadata } from 'src/common/types';
+import type { SplitsReceiverStruct, AccountMetadata } from 'src/common/types';
 import type { Signer } from 'ethers';
 import { DripsErrors } from '../common/DripsError';
 import type { ImmutableSplitsDriver } from '../../contracts/ImmutableSplitsDriver';
@@ -8,14 +8,14 @@ import Utils from '../utils';
 import {
 	validateClientProvider,
 	validateClientSigner,
-	validateEmitUserMetadataInput,
+	validateEmitAccountMetadataInput,
 	validateSplitsReceivers
 } from '../common/validators';
 
 /**
  * A client for creating immutable splits configurations.
  *
- * Anybody can create a new `userId` and configure its splits configuration,
+ * Anybody can create a new `accountId` and configure its splits configuration,
  * but nobody can update its configuration afterwards, it's immutable.
  * @see {@link https://github.com/radicle-dev/drips-contracts/blob/master/src/ImmutableSplitsDriver.sol ImmutableSplitsDriver} contract.
  */
@@ -98,20 +98,20 @@ export default class ImmutableSplitsDriverClient {
 	 * The configuration is immutable and nobody can control the user ID after its creation.
 	 * Calling this function is the only way and the only chance to emit metadata for that user.
 	 * @param  {SplitsReceiverStruct[]} receivers The splits receivers.
-	 * @param  {UserMetadata[]} userMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
+	 * @param  {AccountMetadata[]} accountMetadata The list of user metadata to emit for the created user. Note that a metadata `key` needs to be 32bytes.
 	 *
 	 * @returns A `Promise` which resolves to the new user ID.
 	 * @throws {@link DripsErrors.argumentMissingError} if the `receivers` are missing.
 	 * @throws {@link DripsErrors.splitsReceiverError} if any of the `receivers` is not valid.
 	 * @throws {@link DripsErrors.txEventNotFound} if the expected transaction event is not found.
 	 */
-	public async createSplits(receivers: SplitsReceiverStruct[], userMetadata: UserMetadata[]): Promise<string> {
+	public async createSplits(receivers: SplitsReceiverStruct[], accountMetadata: AccountMetadata[]): Promise<string> {
 		validateSplitsReceivers(receivers);
-		validateEmitUserMetadataInput(userMetadata);
+		validateEmitAccountMetadataInput(accountMetadata);
 
-		const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+		const accountMetadataAsBytes = accountMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
-		const txResponse = await this.#driver.createSplits(receivers, userMetadataAsBytes);
+		const txResponse = await this.#driver.createSplits(receivers, accountMetadataAsBytes);
 
 		const txReceipt = await txResponse.wait();
 
@@ -128,8 +128,8 @@ export default class ImmutableSplitsDriverClient {
 			);
 		}
 
-		const { userId } = createdSplitsEvent.args!;
+		const { accountId } = createdSplitsEvent.args!;
 
-		return BigInt(userId).toString();
+		return BigInt(accountId).toString();
 	}
 }

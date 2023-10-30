@@ -1,9 +1,9 @@
 [
 	{
 		"inputs": [
-			{ "internalType": "contract DripsHub", "name": "_dripsHub", "type": "address" },
+			{ "internalType": "contract Drips", "name": "drips_", "type": "address" },
 			{ "internalType": "address", "name": "forwarder", "type": "address" },
-			{ "internalType": "uint32", "name": "_driverId", "type": "uint32" }
+			{ "internalType": "uint32", "name": "driverId_", "type": "uint32" }
 		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
@@ -160,8 +160,8 @@
 	},
 	{
 		"inputs": [],
-		"name": "dripsHub",
-		"outputs": [{ "internalType": "contract DripsHub", "name": "", "type": "address" }],
+		"name": "drips",
+		"outputs": [{ "internalType": "contract Drips", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -180,12 +180,12 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
-		"name": "emitUserMetadata",
+		"name": "emitAccountMetadata",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -272,8 +272,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -291,8 +291,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -360,8 +360,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -379,8 +379,8 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
@@ -425,41 +425,9 @@
 	{
 		"inputs": [
 			{ "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
-					{ "internalType": "DripsConfig", "name": "config", "type": "uint256" }
-				],
-				"internalType": "struct DripsReceiver[]",
-				"name": "currReceivers",
-				"type": "tuple[]"
-			},
-			{ "internalType": "int128", "name": "balanceDelta", "type": "int128" },
-			{
-				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
-					{ "internalType": "DripsConfig", "name": "config", "type": "uint256" }
-				],
-				"internalType": "struct DripsReceiver[]",
-				"name": "newReceivers",
-				"type": "tuple[]"
-			},
-			{ "internalType": "uint32", "name": "maxEndHint1", "type": "uint32" },
-			{ "internalType": "uint32", "name": "maxEndHint2", "type": "uint32" },
-			{ "internalType": "address", "name": "transferTo", "type": "address" }
-		],
-		"name": "setDrips",
-		"outputs": [{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{ "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-			{
-				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
 				],
 				"internalType": "struct SplitsReceiver[]",
@@ -469,6 +437,38 @@
 		],
 		"name": "setSplits",
 		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{ "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+			{ "internalType": "contract IERC20", "name": "erc20", "type": "address" },
+			{
+				"components": [
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
+					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
+				],
+				"internalType": "struct StreamReceiver[]",
+				"name": "currReceivers",
+				"type": "tuple[]"
+			},
+			{ "internalType": "int128", "name": "balanceDelta", "type": "int128" },
+			{
+				"components": [
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
+					{ "internalType": "StreamConfig", "name": "config", "type": "uint256" }
+				],
+				"internalType": "struct StreamReceiver[]",
+				"name": "newReceivers",
+				"type": "tuple[]"
+			},
+			{ "internalType": "uint32", "name": "maxEndHint1", "type": "uint32" },
+			{ "internalType": "uint32", "name": "maxEndHint2", "type": "uint32" },
+			{ "internalType": "address", "name": "transferTo", "type": "address" }
+		],
+		"name": "setStreams",
+		"outputs": [{ "internalType": "int128", "name": "realBalanceDelta", "type": "int128" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},

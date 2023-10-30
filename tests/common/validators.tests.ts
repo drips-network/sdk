@@ -6,7 +6,7 @@ import { JsonRpcSigner, JsonRpcProvider } from '@ethersproject/providers';
 import type { Network } from '@ethersproject/networks';
 import * as validators from '../../src/common/validators';
 import { DripsErrorCode } from '../../src/common/DripsError';
-import type { DripsHistoryStruct, DripsReceiver, DripsReceiverConfig, UserMetadata } from '../../src/common/types';
+import type { StreamsHistoryStruct, StreamReceiver, StreamConfig, AccountMetadata } from '../../src/common/types';
 import type { SplitsReceiverStruct } from '../../contracts/AddressDriver';
 import Utils from '../../src/utils';
 
@@ -15,26 +15,26 @@ describe('validators', () => {
 		sinon.restore();
 	});
 
-	describe('validateSetDripsInput', () => {
+	describe('validateSetStreamsInput', () => {
 		it('should validate all inputs', () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: {
-				userId: string;
-				config: DripsReceiverConfig;
+				accountId: string;
+				config: StreamConfig;
 			}[] = [];
 			const newReceivers: {
-				userId: string;
-				config: DripsReceiverConfig;
+				accountId: string;
+				config: StreamConfig;
 			}[] = [];
 			const balanceDelta = 1;
 
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
-			const validateDripsReceiversStub = sinon.stub(validators, 'validateDripsReceivers');
+			const validateStreamReceiversStub = sinon.stub(validators, 'validateStreamReceivers');
 
 			// Act
-			validators.validateSetDripsInput(tokenAddress, currentReceivers, newReceivers, transferToAddress, balanceDelta);
+			validators.validateSetStreamsInput(tokenAddress, currentReceivers, newReceivers, transferToAddress, balanceDelta);
 
 			// Assert
 			assert(validateAddressStub.calledTwice);
@@ -47,13 +47,13 @@ describe('validators', () => {
 				'Expected method to be called with different arguments'
 			);
 
-			assert(validateDripsReceiversStub.calledTwice);
+			assert(validateStreamReceiversStub.calledTwice);
 			assert(
-				validateDripsReceiversStub.calledWithExactly(newReceivers),
+				validateStreamReceiversStub.calledWithExactly(newReceivers),
 				'Expected method to be called with different arguments'
 			);
 			assert(
-				validateDripsReceiversStub.calledWithExactly(currentReceivers),
+				validateStreamReceiversStub.calledWithExactly(currentReceivers),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -63,12 +63,12 @@ describe('validators', () => {
 			const tokenAddress = Wallet.createRandom().address;
 			const transferToAddress = Wallet.createRandom().address;
 			const currentReceivers: {
-				userId: string;
-				config: DripsReceiverConfig;
+				accountId: string;
+				config: StreamConfig;
 			}[] = [];
 			const newReceivers: {
-				userId: string;
-				config: DripsReceiverConfig;
+				accountId: string;
+				config: StreamConfig;
 			}[] = [];
 
 			let threw = false;
@@ -76,7 +76,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateSetDripsInput(
+				validators.validateSetStreamsInput(
 					tokenAddress,
 					currentReceivers,
 					newReceivers,
@@ -97,7 +97,7 @@ describe('validators', () => {
 	describe('validateSplitInput', () => {
 		it('should validate all inputs', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			const currentReceivers: SplitsReceiverStruct[] = [];
 
@@ -105,7 +105,7 @@ describe('validators', () => {
 			const validateSplitsReceiversStub = sinon.stub(validators, 'validateSplitsReceivers');
 
 			// Act
-			validators.validateSplitInput(userId, tokenAddress, currentReceivers);
+			validators.validateSplitInput(accountId, tokenAddress, currentReceivers);
 
 			// Assert
 			assert(
@@ -118,7 +118,7 @@ describe('validators', () => {
 			);
 		});
 
-		it('should throw an argumentMissingError when userId is missing', () => {
+		it('should throw an argumentMissingError when accountId is missing', () => {
 			// Arrange
 			const tokenAddress = Wallet.createRandom().address;
 			const currentReceivers: SplitsReceiverStruct[] = [];
@@ -139,7 +139,7 @@ describe('validators', () => {
 		});
 	});
 
-	describe('validateEmitUserMetadataInput', () => {
+	describe('validateEmitAccountMetadataInput', () => {
 		it('should throw an argumentError when metadata are missing', () => {
 			// Arrange
 			let threw = false;
@@ -147,7 +147,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput(undefined as unknown as UserMetadata[]);
+				validators.validateEmitAccountMetadataInput(undefined as unknown as AccountMetadata[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -165,7 +165,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput([{ key: undefined as unknown as string, value: 'value' }]);
+				validators.validateEmitAccountMetadataInput([{ key: undefined as unknown as string, value: 'value' }]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -183,7 +183,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateEmitUserMetadataInput([{ key: 'key', value: undefined as unknown as string }]);
+				validators.validateEmitAccountMetadataInput([{ key: 'key', value: undefined as unknown as string }]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -198,14 +198,14 @@ describe('validators', () => {
 	describe('validateReceiveDripsInput', () => {
 		it('should validate the tokenAddress', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
 
 			const validateAddressStub = sinon.stub(validators, 'validateAddress');
 
 			// Act
-			validators.validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+			validators.validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 
 			// Assert
 			assert(
@@ -214,7 +214,7 @@ describe('validators', () => {
 			);
 		});
 
-		it('should throw an argumentMissingError when userId is missing', () => {
+		it('should throw an argumentMissingError when accountId is missing', () => {
 			// Arrange
 			const maxCycles = 1;
 			const tokenAddress = Wallet.createRandom().address;
@@ -236,14 +236,14 @@ describe('validators', () => {
 
 		it('should throw an argumentError when maxCycles is missing', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const tokenAddress = Wallet.createRandom().address;
 			let threw = false;
 
 			// Act
 			try {
 				// Act
-				validators.validateReceiveDripsInput(userId, tokenAddress, undefined as unknown as BigNumberish);
+				validators.validateReceiveDripsInput(accountId, tokenAddress, undefined as unknown as BigNumberish);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -256,7 +256,7 @@ describe('validators', () => {
 
 		it('should throw an argumentError when maxCycles is less than 0', () => {
 			// Arrange
-			const userId = '1';
+			const accountId = '1';
 			const maxCycles = -1;
 			const tokenAddress = Wallet.createRandom().address;
 			let threw = false;
@@ -264,7 +264,7 @@ describe('validators', () => {
 			// Act
 			try {
 				// Act
-				validators.validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+				validators.validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -338,14 +338,14 @@ describe('validators', () => {
 		});
 	});
 
-	describe('validateDripsReceiverConfig()', () => {
+	describe('validateStreamConfig()', () => {
 		it('should throw argumentMissingError when config is missing', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				validators.validateDripsReceiverConfig(undefined as unknown as DripsReceiverConfig);
+				validators.validateStreamConfig(undefined as unknown as StreamConfig);
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
 				threw = true;
@@ -355,13 +355,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when drips receiver configuration dripId is less than 0', () => {
+		it('should throw streamsReceiverError when drips receiver configuration dripId is less than 0', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				validators.validateDripsReceiverConfig({ dripId: -1n, start: 1n, duration: 1n, amountPerSec: 1n });
+				validators.validateStreamConfig({ dripId: -1n, start: 1n, duration: 1n, amountPerSec: 1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
@@ -371,13 +371,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when drips receiver configuration start is less than 0', () => {
+		it('should throw streamsReceiverError when drips receiver configuration start is less than 0', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				validators.validateDripsReceiverConfig({ dripId: 1n, start: -1n, duration: 1n, amountPerSec: 1n });
+				validators.validateStreamConfig({ dripId: 1n, start: -1n, duration: 1n, amountPerSec: 1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
@@ -387,13 +387,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when drips receiver configuration duration is less than 0', () => {
+		it('should throw streamsReceiverError when drips receiver configuration duration is less than 0', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				validators.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: -1n, amountPerSec: 1n });
+				validators.validateStreamConfig({ dripId: 1n, start: 1n, duration: -1n, amountPerSec: 1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
@@ -403,13 +403,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when drips receiver configuration amountPerSec is equal to 0', () => {
+		it('should throw streamsReceiverError when drips receiver configuration amountPerSec is equal to 0', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				validators.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: 0n });
+				validators.validateStreamConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: 0n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
@@ -419,13 +419,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when drips receiver configuration amountPerSec is less than 0', () => {
+		it('should throw streamsReceiverError when drips receiver configuration amountPerSec is less than 0', () => {
 			// Arrange
 			let threw = false;
 
 			// Act
 			try {
-				validators.validateDripsReceiverConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: -1n });
+				validators.validateStreamConfig({ dripId: 1n, start: 1n, duration: 1n, amountPerSec: -1n });
 			} catch (error: any) {
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER_CONFIG);
 				threw = true;
@@ -436,14 +436,14 @@ describe('validators', () => {
 		});
 	});
 
-	describe('validateDripsReceivers()', () => {
+	describe('validateStreamReceivers()', () => {
 		it('should throw argumentMissingError when receivers are missing', () => {
 			// Arrange
 			let threw = false;
 
 			try {
 				// Act
-				validators.validateDripsReceivers(undefined as unknown as DripsReceiver[]);
+				validators.validateStreamReceivers(undefined as unknown as StreamReceiver[]);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.MISSING_ARGUMENT);
@@ -458,13 +458,13 @@ describe('validators', () => {
 			// Arrange
 			let threw = false;
 			const receivers = Array(101).fill({
-				userId: undefined as unknown as number,
+				accountId: undefined as unknown as number,
 				config: { amountPerSec: 1n, duration: 1n, start: 1n }
 			});
 
 			try {
 				// Act
-				validators.validateDripsReceivers(receivers);
+				validators.validateStreamReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
@@ -475,19 +475,19 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when receiver userId is missing', () => {
+		it('should throw streamsReceiverError when receiver accountId is missing', () => {
 			// Arrange
 			let threw = false;
 			const receivers = [
 				{
-					userId: undefined as unknown as string,
+					accountId: undefined as unknown as string,
 					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
 
 			try {
 				// Act
-				validators.validateDripsReceivers(receivers);
+				validators.validateStreamReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -498,19 +498,19 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw dripsReceiverError when receiver config is missing', () => {
+		it('should throw streamsReceiverError when receiver config is missing', () => {
 			// Arrange
 			let threw = false;
-			const receivers: DripsReceiver[] = [
+			const receivers: StreamReceiver[] = [
 				{
-					userId: '123',
-					config: undefined as unknown as DripsReceiverConfig
+					accountId: '123',
+					config: undefined as unknown as StreamConfig
 				}
 			];
 
 			try {
 				// Act
-				validators.validateDripsReceivers(receivers);
+				validators.validateStreamReceivers(receivers);
 			} catch (error: any) {
 				// Assert
 				assert.equal(error.code, DripsErrorCode.INVALID_DRIPS_RECEIVER);
@@ -523,25 +523,24 @@ describe('validators', () => {
 
 		it("should validate receivers' configs", () => {
 			// Arrange
-			const receivers: DripsReceiver[] = [
+			const receivers: StreamReceiver[] = [
 				{
-					userId: '123',
+					accountId: '123',
 					config: { dripId: 1n, amountPerSec: 1n, duration: 1n, start: 1n }
 				}
 			];
 
-			const validateDripsReceiverConfigObjStub = sinon.stub(validators, 'validateDripsReceiverConfig');
+			const validateStreamConfigObjStub = sinon.stub(validators, 'validateStreamConfig');
 
 			// Act
-			validators.validateDripsReceivers(receivers);
+			validators.validateStreamReceivers(receivers);
 
 			// Assert
 			assert(
-				validateDripsReceiverConfigObjStub.calledWithExactly(
+				validateStreamConfigObjStub.calledWithExactly(
 					sinon.match(
-						(config: DripsReceiverConfig) =>
-							Utils.DripsReceiverConfiguration.toUint256(config) ===
-							Utils.DripsReceiverConfiguration.toUint256(receivers[0].config)
+						(config: StreamConfig) =>
+							Utils.StreamConfiguration.toUint256(config) === Utils.StreamConfiguration.toUint256(receivers[0].config)
 					)
 				),
 				'Expected method to be called with different arguments'
@@ -571,7 +570,7 @@ describe('validators', () => {
 			// Arrange
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = Array(201).fill({
-				userId: undefined as unknown as number,
+				accountId: undefined as unknown as number,
 				weight: 1
 			});
 
@@ -588,13 +587,13 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw splitsReceiverError when receiver userId is missing', () => {
+		it('should throw splitsReceiverError when receiver accountId is missing', () => {
 			// Arrange
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
 					weight: 123,
-					userId: undefined as unknown as string
+					accountId: undefined as unknown as string
 				}
 			];
 
@@ -616,7 +615,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123,
+					accountId: 123,
 					weight: undefined as unknown as BigNumberish
 				}
 			];
@@ -639,7 +638,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123n,
+					accountId: 123n,
 					weight: 0
 				}
 			];
@@ -662,7 +661,7 @@ describe('validators', () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [
 				{
-					userId: 123n,
+					accountId: 123n,
 					weight: -1
 				}
 			];
@@ -743,7 +742,7 @@ describe('validators', () => {
 	});
 
 	describe('validateSqueezeDripsInput', () => {
-		it('should throw an argumentError when userId is missing', () => {
+		it('should throw an argumentError when accountId is missing', () => {
 			// Arrange
 			let threw = false;
 
@@ -830,7 +829,7 @@ describe('validators', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should throw an argumentError when dripsHistory is missing in a metadata entry', () => {
+		it('should throw an argumentError when streamsHistory is missing in a metadata entry', () => {
 			// Arrange
 			let threw = false;
 
@@ -842,7 +841,7 @@ describe('validators', () => {
 					Wallet.createRandom().address,
 					'1',
 					'0x00',
-					undefined as unknown as DripsHistoryStruct[]
+					undefined as unknown as StreamsHistoryStruct[]
 				);
 			} catch (error: any) {
 				// Assert

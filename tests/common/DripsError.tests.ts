@@ -132,7 +132,7 @@ describe('DripsErrors', () => {
 		});
 	});
 
-	describe('dripsReceiverError()', () => {
+	describe('streamsReceiverError()', () => {
 		it('should return expected error details', () => {
 			// Act
 			const expectedMessage = 'Error';
@@ -140,7 +140,7 @@ describe('DripsErrors', () => {
 			const expectedInvalidPropertyName = 'Property';
 
 			// Act
-			const { code, message, context } = DripsErrors.dripsReceiverError(
+			const { code, message, context } = DripsErrors.streamsReceiverError(
 				expectedMessage,
 				expectedInvalidPropertyName,
 				expectedInvalidPropertyValue
@@ -154,7 +154,7 @@ describe('DripsErrors', () => {
 		});
 	});
 
-	describe('dripsReceiverError()', () => {
+	describe('streamsReceiverError()', () => {
 		it('should return expected error details', () => {
 			// Act
 			const eventName = 'Event';
@@ -186,7 +186,7 @@ describe('DripsErrors', () => {
 		});
 	});
 
-	describe('dripsReceiverConfigError()', () => {
+	describe('streamConfigError()', () => {
 		it('should return expected error details', () => {
 			// Act
 			const expectedMessage = 'Error';
@@ -194,7 +194,7 @@ describe('DripsErrors', () => {
 			const expectedInvalidPropertyName = 'Property';
 
 			// Act
-			const { code, message, context } = DripsErrors.dripsReceiverConfigError(
+			const { code, message, context } = DripsErrors.streamConfigError(
 				expectedMessage,
 				expectedInvalidPropertyName,
 				expectedInvalidPropertyValue

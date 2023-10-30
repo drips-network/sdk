@@ -1,13 +1,13 @@
-export type DripsState = {
-	/** The current drips receivers list hash. */
-	dripsHash: string;
-	/** The current drips history hash. */
-	dripsHistoryHash: string;
-	/** The time when drips have been configured for the last time. */
+export type StreamsState = {
+	/** The current streams receivers list hash. */
+	streamsHash: string;
+	/** The current streams history hash. */
+	streamsHistoryHash: string;
+	/** The time when streams have been configured for the last time. */
 	updateTime: number;
-	/** The balance when drips have been configured for the last time. */
+	/** The balance when streams have been configured for the last time. */
 	balance: bigint;
-	/** The current maximum end time of drips. */
+	/** The current maximum end time of streams. */
 	maxEnd: number;
 };
 

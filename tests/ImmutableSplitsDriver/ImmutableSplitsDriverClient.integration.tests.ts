@@ -5,9 +5,9 @@ import { assert } from 'chai';
 import ImmutableSplitsDriver from '../../src/ImmutableSplits/ImmutableSplitsDriverClient';
 import AddressDriverClient from '../../src/AddressDriver/AddressDriverClient';
 import DripsSubgraphClient from '../../src/DripsSubgraph/DripsSubgraphClient';
-import type { SplitsReceiverStruct, UserMetadata } from '../../src/common/types';
+import type { SplitsReceiverStruct, AccountMetadata } from '../../src/common/types';
 import { expect } from '../../src/common/internals';
-import type { SplitsEntry, UserMetadataEntry } from '../../src/DripsSubgraph/types';
+import type { SplitsEntry, AccountMetadataEntry } from '../../src/DripsSubgraph/types';
 
 dotenv.config();
 
@@ -22,23 +22,23 @@ describe('ImmutableSplitsDriver integration tests', () => {
 
 		const account1addressDriverClient = await AddressDriverClient.create(provider, account1AsSigner);
 
-		const userId1 = await account1addressDriverClient.getUserId();
-		const userId2 = await account1addressDriverClient.getUserIdByAddress(account2);
+		const accountId1 = await account1addressDriverClient.getAccountId();
+		const accountId2 = await account1addressDriverClient.getAccountIdByAddress(account2);
 
 		console.log(
-			`'${account1}' (user ID: '${userId1}') will create an Immutable Splits configuration with sole receiver '${account2}' (user ID: '${userId2}').`
+			`'${account1}' (user ID: '${accountId1}') will create an Immutable Splits configuration with sole receiver '${account2}' (user ID: '${accountId2}').`
 		);
 
 		const client = await ImmutableSplitsDriver.create(provider, account1AsSigner);
 
 		const receivers: SplitsReceiverStruct[] = [
 			{
-				userId: userId2,
+				accountId: accountId2,
 				weight: 1000000
 			}
 		];
 
-		const metadata: UserMetadata[] = [
+		const metadata: AccountMetadata[] = [
 			{
 				key: 'key',
 				value: 'immutable splits'
@@ -46,19 +46,19 @@ describe('ImmutableSplitsDriver integration tests', () => {
 		];
 
 		console.log('Creating...');
-		const newUserId = await client.createSplits(receivers, metadata);
-		console.log(`Created. New User ID is '${newUserId}'.`);
+		const newAccountId = await client.createSplits(receivers, metadata);
+		console.log(`Created. New User ID is '${newAccountId}'.`);
 
 		const subgraphClient = DripsSubgraphClient.create((await provider.getNetwork()).chainId);
 
 		console.log('Querying the Subgraph until the new Immutable Splits configuration is found...');
 		const immutableSplits = (await expect(
-			() => subgraphClient.getSplitsConfigByUserId(newUserId),
+			() => subgraphClient.getSplitsConfigByAccountId(newAccountId),
 			(currentImmutableSplits) => {
 				const found =
 					currentImmutableSplits.length === 1 &&
-					currentImmutableSplits[0].senderId === newUserId &&
-					currentImmutableSplits[0].userId === userId2 &&
+					currentImmutableSplits[0].senderId === newAccountId &&
+					currentImmutableSplits[0].accountId === accountId2 &&
 					currentImmutableSplits[0].weight === 1000000n;
 
 				if (!found) {
@@ -75,13 +75,13 @@ describe('ImmutableSplitsDriver integration tests', () => {
 
 		console.log(`Querying the subgraph until the new metadata is found...`);
 		const latestMetadata = (await expect(
-			() => subgraphClient.getLatestUserMetadata(newUserId, 'key'),
+			() => subgraphClient.getLatestAccountMetadata(newAccountId, 'key'),
 			(currentLatestMetadata) => {
 				const found =
 					currentLatestMetadata?.key === metadata[0].key &&
 					currentLatestMetadata.value === metadata[0].value &&
-					currentLatestMetadata.userId === newUserId &&
-					currentLatestMetadata.id === `${newUserId}-${metadata[0].key}`;
+					currentLatestMetadata.accountId === newAccountId &&
+					currentLatestMetadata.id === `${newAccountId}-${metadata[0].key}`;
 
 				if (!found) {
 					console.log('Emitted metadata not found yet.');
@@ -93,9 +93,9 @@ describe('ImmutableSplitsDriver integration tests', () => {
 			},
 			60000,
 			5000
-		)) as UserMetadataEntry;
+		)) as AccountMetadataEntry;
 
-		assert.equal(immutableSplits[0].userId, userId2);
-		assert.equal(latestMetadata.userId, newUserId);
+		assert.equal(immutableSplits[0].accountId, accountId2);
+		assert.equal(latestMetadata.accountId, newAccountId);
 	}).timeout(THREE_MINS);
 });

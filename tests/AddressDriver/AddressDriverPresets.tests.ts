@@ -10,20 +10,20 @@ import { DripsErrorCode } from '../../src/common/DripsError';
 import * as validators from '../../src/common/validators';
 import Utils from '../../src/utils';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
-import DripsHubTxFactory from '../../src/DripsHub/DripsHubTxFactory';
+import DripsTxFactory from '../../src/Drips/DripsTxFactory';
 
 describe('AddressDriverPresets', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let dripsHubTxFactoryStub: StubbedInstance<DripsHubTxFactory>;
+	let dripsHubTxFactoryStub: StubbedInstance<DripsTxFactory>;
 	let addressDriverFactoryStub: StubbedInstance<AddressDriverTxFactory>;
 
 	beforeEach(async () => {
-		dripsHubTxFactoryStub = stubInterface<DripsHubTxFactory>();
+		dripsHubTxFactoryStub = stubInterface<DripsTxFactory>();
 		addressDriverFactoryStub = stubInterface<AddressDriverTxFactory>();
 
 		providerStub = sinon.createStubInstance(JsonRpcProvider);
@@ -39,7 +39,7 @@ describe('AddressDriverPresets', () => {
 		signerStub.connect.withArgs(providerStub).returns(signerWithProviderStub);
 
 		sinon.stub(AddressDriverTxFactory, 'create').resolves(addressDriverFactoryStub);
-		sinon.stub(DripsHubTxFactory, 'create').resolves(dripsHubTxFactoryStub);
+		sinon.stub(DripsTxFactory, 'create').resolves(dripsHubTxFactoryStub);
 	});
 
 	afterEach(() => {
@@ -83,18 +83,18 @@ describe('AddressDriverPresets', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should validate the setDrips input', async () => {
+		it('should validate the setStreams input', async () => {
 			// Arrange
-			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetDripsInput');
+			const validateSetDripsInputStub = sinon.stub(validators, 'validateSetStreamsInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
-				userMetadata: [],
+				accountMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
-						userId: 1n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						accountId: 1n,
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
 							dripId: 1n,
@@ -104,8 +104,8 @@ describe('AddressDriverPresets', () => {
 				],
 				newReceivers: [
 					{
-						userId: 2n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						accountId: 2n,
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
 							dripId: 2n,
@@ -127,14 +127,14 @@ describe('AddressDriverPresets', () => {
 					payload.tokenAddress,
 					sinon.match.array.deepEquals(
 						payload.currentReceivers?.map((r) => ({
-							userId: r.userId.toString(),
-							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+							accountId: r.accountId.toString(),
+							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
 					sinon.match.array.deepEquals(
 						payload.newReceivers?.map((r) => ({
-							userId: r.userId.toString(),
-							config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+							accountId: r.accountId.toString(),
+							config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 						}))
 					),
 					payload.transferToAddress,
@@ -144,18 +144,18 @@ describe('AddressDriverPresets', () => {
 			);
 		});
 
-		it('should validate the emitUserMetadata input', async () => {
+		it('should validate the emitAccountMetadata input', async () => {
 			// Arrange
-			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+			const validateEmitAccountMetadataInputStub = sinon.stub(validators, 'validateEmitAccountMetadataInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
-				userMetadata: [],
+				accountMetadata: [],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
-						userId: 1n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						accountId: 1n,
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
 							dripId: 1n,
@@ -165,8 +165,8 @@ describe('AddressDriverPresets', () => {
 				],
 				newReceivers: [
 					{
-						userId: 2n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						accountId: 2n,
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
 							dripId: 2n,
@@ -184,24 +184,24 @@ describe('AddressDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateEmitUserMetadataInputStub.calledOnceWithExactly(payload.userMetadata),
+				validateEmitAccountMetadataInputStub.calledOnceWithExactly(payload.accountMetadata),
 				'Expected method to be called with different arguments'
 			);
 		});
 
 		it('should return the expected preset', async () => {
 			// Arrange
-			sinon.stub(validators, 'validateSetDripsInput');
-			sinon.stub(validators, 'validateEmitUserMetadataInput');
+			sinon.stub(validators, 'validateSetStreamsInput');
+			sinon.stub(validators, 'validateEmitAccountMetadataInput');
 
 			const payload: AddressDriverPresets.NewStreamFlowPayload = {
 				signer: signerWithProviderStub,
-				userMetadata: [{ key: 'key', value: 'value' }],
+				accountMetadata: [{ key: 'key', value: 'value' }],
 				balanceDelta: 1,
 				currentReceivers: [
 					{
-						userId: 1n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						accountId: 1n,
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 1n,
 							start: 1n,
 							dripId: 1n,
@@ -211,8 +211,8 @@ describe('AddressDriverPresets', () => {
 				],
 				newReceivers: [
 					{
-						userId: 2n,
-						config: Utils.DripsReceiverConfiguration.toUint256({
+						accountId: 2n,
+						config: Utils.StreamConfiguration.toUint256({
 							amountPerSec: 2n,
 							start: 2n,
 							dripId: 2n,
@@ -225,7 +225,7 @@ describe('AddressDriverPresets', () => {
 				transferToAddress: Wallet.createRandom().address
 			};
 
-			addressDriverFactoryStub.setDrips
+			addressDriverFactoryStub.setStreams
 				.withArgs(
 					payload.tokenAddress,
 					payload.currentReceivers,
@@ -235,30 +235,30 @@ describe('AddressDriverPresets', () => {
 					0,
 					payload.transferToAddress
 				)
-				.resolves({ data: 'setDrips' } as PopulatedTransaction);
+				.resolves({ data: 'setStreams' } as PopulatedTransaction);
 
-			addressDriverFactoryStub.emitUserMetadata
+			addressDriverFactoryStub.emitAccountMetadata
 				.withArgs(
 					sinon.match(
 						(
-							userMetadataAsBytes: {
+							accountMetadataAsBytes: {
 								key: BytesLike;
 								value: BytesLike;
 							}[]
 						) =>
-							userMetadataAsBytes[0].key === Utils.Metadata.keyFromString(payload.userMetadata[0].key) &&
-							userMetadataAsBytes[0].value === Utils.Metadata.valueFromString(payload.userMetadata[0].value)
+							accountMetadataAsBytes[0].key === Utils.Metadata.keyFromString(payload.accountMetadata[0].key) &&
+							accountMetadataAsBytes[0].value === Utils.Metadata.valueFromString(payload.accountMetadata[0].value)
 					)
 				)
-				.resolves({ data: 'emitUserMetadata' } as PopulatedTransaction);
+				.resolves({ data: 'emitAccountMetadata' } as PopulatedTransaction);
 
 			// Act
 			const preset = await AddressDriverPresets.Presets.createNewStreamFlow(payload);
 
 			// Assert
 			assert.equal(preset.length, 2);
-			assert.equal(preset[0].data, 'setDrips');
-			assert.equal(preset[1].data, 'emitUserMetadata');
+			assert.equal(preset[0].data, 'setStreams');
+			assert.equal(preset[1].data, 'emitAccountMetadata');
 		});
 	});
 
@@ -299,31 +299,31 @@ describe('AddressDriverPresets', () => {
 			assert.isTrue(threw, 'Expected type of exception was not thrown');
 		});
 
-		it('should validate the squeezeDrips input', async () => {
+		it('should validate the squeezeStreams input', async () => {
 			// Arrange
 			const validateSqueezeDripsInputStub = sinon.stub(validators, 'validateSqueezeDripsInput');
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
-						dripsHistory: []
+						streamsHistory: []
 					}
 				]
 			};
@@ -334,31 +334,31 @@ describe('AddressDriverPresets', () => {
 			// Assert
 			assert(
 				validateSqueezeDripsInputStub.calledOnceWithExactly(
-					payload.squeezeArgs![0].userId,
+					payload.squeezeArgs![0].accountId,
 					payload.squeezeArgs![0].tokenAddress,
 					payload.squeezeArgs![0].senderId,
 					payload.squeezeArgs![0].historyHash,
-					payload.squeezeArgs![0].dripsHistory
+					payload.squeezeArgs![0].streamsHistory
 				),
 				'Expected method to be called with different arguments'
 			);
 		});
 
-		it('should validate the receiveDrips input', async () => {
+		it('should validate the receiveStreams input', async () => {
 			// Arrange
 			const validateReceiveDripsInputStub = sinon.stub(validators, 'validateReceiveDripsInput');
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
@@ -369,7 +369,7 @@ describe('AddressDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateReceiveDripsInputStub.calledOnceWithExactly(payload.userId, payload.tokenAddress, payload.maxCycles),
+				validateReceiveDripsInputStub.calledOnceWithExactly(payload.accountId, payload.tokenAddress, payload.maxCycles),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -380,15 +380,15 @@ describe('AddressDriverPresets', () => {
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
@@ -399,7 +399,7 @@ describe('AddressDriverPresets', () => {
 
 			// Assert
 			assert(
-				validateSplitInputStub.calledOnceWithExactly(payload.userId, payload.tokenAddress, payload.currentReceivers),
+				validateSplitInputStub.calledOnceWithExactly(payload.accountId, payload.tokenAddress, payload.currentReceivers),
 				'Expected method to be called with different arguments'
 			);
 		});
@@ -410,15 +410,15 @@ describe('AddressDriverPresets', () => {
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
@@ -443,48 +443,48 @@ describe('AddressDriverPresets', () => {
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 2n,
+						accountId: 2n,
 						weight: 2n
 					},
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				],
 				squeezeArgs: [
 					{
-						userId: '1',
+						accountId: '1',
 						senderId: '1',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
-						dripsHistory: []
+						streamsHistory: []
 					},
 					{
-						userId: '2',
+						accountId: '2',
 						senderId: '2',
 						tokenAddress: Wallet.createRandom().address,
 						historyHash: '0x00',
-						dripsHistory: []
+						streamsHistory: []
 					}
 				]
 			};
 
-			dripsHubTxFactoryStub.squeezeDrips.resolves({ data: 'squeezeDrips' } as PopulatedTransaction);
+			dripsHubTxFactoryStub.squeezeStreams.resolves({ data: 'squeezeStreams' } as PopulatedTransaction);
 
-			dripsHubTxFactoryStub.receiveDrips
-				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
-				.resolves({ data: 'receiveDrips' } as PopulatedTransaction);
+			dripsHubTxFactoryStub.receiveStreams
+				.withArgs(payload.accountId, payload.tokenAddress, payload.maxCycles)
+				.resolves({ data: 'receiveStreams' } as PopulatedTransaction);
 
 			dripsHubTxFactoryStub.split
-				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
+				.withArgs(payload.accountId, payload.tokenAddress, payload.currentReceivers)
 				.resolves({ data: 'split' } as PopulatedTransaction);
 
 			addressDriverFactoryStub.collect
@@ -496,14 +496,14 @@ describe('AddressDriverPresets', () => {
 
 			// Assert
 			assert.equal(preset.length, 5);
-			assert.equal(preset[0].data, 'squeezeDrips');
-			assert.equal(preset[1].data, 'squeezeDrips');
-			assert.equal(preset[2].data, 'receiveDrips');
+			assert.equal(preset[0].data, 'squeezeStreams');
+			assert.equal(preset[1].data, 'squeezeStreams');
+			assert.equal(preset[2].data, 'receiveStreams');
 			assert.equal(preset[3].data, 'split');
 			assert.equal(preset[4].data, 'collect');
 		});
 
-		it('should return the expected preset when skip receiveDrips is true', async () => {
+		it('should return the expected preset when skip receiveStreams is true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
@@ -512,22 +512,22 @@ describe('AddressDriverPresets', () => {
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
 			};
 
 			dripsHubTxFactoryStub.split
-				.withArgs(payload.userId, payload.tokenAddress, payload.currentReceivers)
+				.withArgs(payload.accountId, payload.tokenAddress, payload.currentReceivers)
 				.resolves({ data: 'split' } as PopulatedTransaction);
 
 			addressDriverFactoryStub.collect
@@ -552,23 +552,23 @@ describe('AddressDriverPresets', () => {
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]
 			};
 
-			dripsHubTxFactoryStub.receiveDrips
-				.withArgs(payload.userId, payload.tokenAddress, payload.maxCycles)
-				.resolves({ data: 'receiveDrips' } as PopulatedTransaction);
+			dripsHubTxFactoryStub.receiveStreams
+				.withArgs(payload.accountId, payload.tokenAddress, payload.maxCycles)
+				.resolves({ data: 'receiveStreams' } as PopulatedTransaction);
 
 			addressDriverFactoryStub.collect
 				.withArgs(payload.tokenAddress, payload.transferToAddress)
@@ -579,11 +579,11 @@ describe('AddressDriverPresets', () => {
 
 			// Assert
 			assert.equal(preset.length, 2);
-			assert.equal(preset[0].data, 'receiveDrips');
+			assert.equal(preset[0].data, 'receiveStreams');
 			assert.equal(preset[1].data, 'collect');
 		});
 
-		it('should return the expected preset when skip receiveDrips and split are true', async () => {
+		it('should return the expected preset when skip receiveStreams and split are true', async () => {
 			// Arrange
 			sinon.stub(validators, 'validateSplitInput');
 			sinon.stub(validators, 'validateCollectInput');
@@ -592,15 +592,15 @@ describe('AddressDriverPresets', () => {
 
 			const payload: AddressDriverPresets.CollectFlowPayload = {
 				signer: signerWithProviderStub,
-				userId: '1',
+				accountId: '1',
 				maxCycles: 1,
 				tokenAddress: Wallet.createRandom().address,
 				driverAddress: Wallet.createRandom().address,
-				dripsHubAddress: Wallet.createRandom().address,
+				dripsAddress: Wallet.createRandom().address,
 				transferToAddress: Wallet.createRandom().address,
 				currentReceivers: [
 					{
-						userId: 1n,
+						accountId: 1n,
 						weight: 1n
 					}
 				]

@@ -1,5 +1,5 @@
 overwrite: true
-schema: 'https://api.thegraph.com/subgraphs/name/gh0stwheel/drips-v02-on-goerli'
+schema: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-goerli/version/latest'
 generates:
   src/DripsSubgraph/generated/graphql-types.ts:
     plugins:

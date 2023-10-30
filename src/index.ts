@@ -1,44 +1,47 @@
 import {
+	Forge,
 	Preset,
 	CycleInfo,
 	CallStruct,
 	SqueezeArgs,
-	UserMetadata,
+	AccountMetadata,
 	NetworkConfig,
-	DripsReceiver,
+	StreamReceiver,
 	CallerInterface,
-	DripsHubInterface,
+	DripsInterface,
 	NFTDriverInterface,
-	UserMetadataStruct,
-	DripsHistoryStruct,
-	DripsReceiverConfig,
-	DripsReceiverStruct,
+	AccountMetadataStruct,
+	StreamsHistoryStruct,
+	StreamConfig,
+	StreamReceiverStruct,
 	SplitsReceiverStruct,
 	AddressDriverInterface,
 	ImmutableSplitsDriverInterface
 } from './common/types';
-import { DripsState, ReceivableBalance, SplittableBalance, CollectableBalance, SplitResult } from './DripsHub/types';
+import { StreamsState, ReceivableBalance, SplittableBalance, CollectableBalance, SplitResult } from './Drips/types';
 import {
 	GivenEvent,
 	SplitEvent,
+	RepoAccount,
 	SplitsEntry,
 	NftSubAccount,
-	DripsSetEvent,
+	StreamsSetEvent,
 	CollectedEvent,
-	UserAssetConfig,
-	UserMetadataEntry,
-	SqueezedDripsEvent,
-	ReceivedDripsEvent,
-	DripsReceiverSeenEvent,
-	DripsSetEventWithFullReceivers
+	AccountAssetConfig,
+	AccountMetadataEntry,
+	SqueezedStreamsEvent,
+	ReceivedStreamsEvent,
+	StreamReceiverSeenEvent,
+	StreamsSetEventWithFullReceivers
 } from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
 // TX Factories
 export { default as ERC20TxFactory } from './ERC20/ERC20TxFactory';
-export { default as DripsHubTxFactory } from './DripsHub/DripsHubTxFactory';
+export { default as DripsTxFactory } from './Drips/DripsTxFactory';
 export { default as NFTDriverTxFactory } from './NFTDriver/NFTDriverTxFactory';
+export { default as RepoDriverTxFactory } from './RepoDriver/RepoDriverTxFactory';
 export { default as AddressDriverTxFactory } from './AddressDriver/AddressDriverTxFactory';
 
 // AddressDriver
@@ -50,8 +53,8 @@ export { default as CallerClient } from './Caller/CallerClient';
 // Common
 export { DripsErrorCode, DripsError } from './common/DripsError';
 
-// DripsHub
-export { default as DripsHubClient } from './DripsHub/DripsHubClient';
+// Drips
+export { default as DripsClient } from './Drips/DripsClient';
 
 // Drips Subgraph
 export { default as DripsSubgraphClient } from './DripsSubgraph/DripsSubgraphClient';
@@ -62,6 +65,9 @@ export { default as ImmutableSplitsDriverClient } from './ImmutableSplits/Immuta
 // NFTDriver
 export { default as NFTDriverClient } from './NFTDriver/NFTDriverClient';
 
+// RepoDriver
+export { default as RepoDriverClient } from './RepoDriver/RepoDriverClient';
+
 // constants
 export { default as constants } from './constants';
 
@@ -70,40 +76,42 @@ export { default as Utils } from './utils';
 
 // Types
 export {
+	Forge,
 	Preset,
 	CycleInfo,
 	SplitEvent,
 	CallStruct,
-	DripsState,
+	StreamsState,
 	GivenEvent,
 	SqueezeArgs,
 	SplitResult,
+	RepoAccount,
 	SplitsEntry,
-	UserMetadata,
+	AccountMetadata,
 	NftSubAccount,
-	DripsSetEvent,
+	StreamsSetEvent,
 	NetworkConfig,
-	DripsReceiver,
+	StreamReceiver,
 	CollectedEvent,
-	UserAssetConfig,
+	AccountAssetConfig,
 	CallerInterface,
 	NFTDriverPresets,
 	ReceivableBalance,
-	DripsHubInterface,
-	UserMetadataEntry,
+	DripsInterface,
+	AccountMetadataEntry,
 	SplittableBalance,
-	UserMetadataStruct,
-	ReceivedDripsEvent,
+	AccountMetadataStruct,
+	ReceivedStreamsEvent,
 	NFTDriverInterface,
-	SqueezedDripsEvent,
-	DripsHistoryStruct,
+	SqueezedStreamsEvent,
+	StreamsHistoryStruct,
 	CollectableBalance,
-	DripsReceiverStruct,
-	DripsReceiverConfig,
+	StreamReceiverStruct,
+	StreamConfig,
 	AddressDriverPresets,
 	SplitsReceiverStruct,
-	DripsReceiverSeenEvent,
+	StreamReceiverSeenEvent,
 	AddressDriverInterface,
 	ImmutableSplitsDriverInterface,
-	DripsSetEventWithFullReceivers
+	StreamsSetEventWithFullReceivers
 };

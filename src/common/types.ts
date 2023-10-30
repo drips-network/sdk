@@ -1,19 +1,19 @@
 import type { PopulatedTransaction } from 'ethers';
-import type { DripsHistoryStruct } from '../../contracts/DripsHub';
+import type { StreamsHistoryStruct } from '../../contracts/Drips';
 
 export {
-	DripsReceiverStruct,
+	StreamReceiverStruct,
 	SplitsReceiverStruct,
-	DripsHistoryStruct,
-	DripsHubInterface,
-	UserMetadataStruct
-} from '../../contracts/DripsHub';
+	StreamsHistoryStruct,
+	DripsInterface,
+	AccountMetadataStruct
+} from '../../contracts/Drips';
 export { NFTDriverInterface } from '../../contracts/NFTDriver';
 export { CallStruct, CallerInterface } from '../../contracts/Caller';
 export { AddressDriverInterface } from '../../contracts/AddressDriver';
 export { ImmutableSplitsDriverInterface } from '../../contracts/ImmutableSplitsDriver';
 
-export type DripsReceiverConfig = {
+export type StreamConfig = {
 	/** An arbitrary number used to identify a drip. When setting a config, it must be greater than or equal to `0`. It's a part of the configuration but the protocol doesn't use it. */
 	dripId: bigint;
 
@@ -32,12 +32,14 @@ export type NetworkConfig = {
 	DEPLOYMENT_TIME: string;
 	COMMIT_HASH: string;
 	WALLET: string;
-	WALLET_NONCE: string;
-	DEPLOYER: string;
-	DRIPS_HUB: string;
-	DRIPS_HUB_CYCLE_SECONDS: string;
-	DRIPS_HUB_LOGIC: string;
-	DRIPS_HUB_ADMIN: string;
+	DETERMINISTIC_DEPLOYER: string;
+	CREATE3_FACTORY: string;
+	DRIPS_DEPLOYER: string;
+	DRIPS_DEPLOYER_SALT: string;
+	DRIPS: string;
+	DRIPS_CYCLE_SECONDS: string;
+	DRIPS_LOGIC: string;
+	DRIPS_ADMIN: string;
 	CALLER: string;
 	ADDRESS_DRIVER: string;
 	ADDRESS_DRIVER_LOGIC: string;
@@ -51,6 +53,13 @@ export type NetworkConfig = {
 	IMMUTABLE_SPLITS_DRIVER_LOGIC: string;
 	IMMUTABLE_SPLITS_DRIVER_ADMIN: string;
 	IMMUTABLE_SPLITS_DRIVER_ID: string;
+	REPO_DRIVER: string;
+	REPO_DRIVER_LOGIC: string;
+	REPO_DRIVER_ADMIN: string;
+	REPO_DRIVER_ID: string;
+	REPO_DRIVER_ANYAPI_OPERATOR: string;
+	REPO_DRIVER_ANYAPI_JOB_ID: string;
+	REPO_DRIVER_ANYAPI_DEFAULT_FEE: string;
 	SUBGRAPH_URL: string;
 };
 
@@ -61,19 +70,26 @@ export type CycleInfo = {
 	nextCycleStartDate: Date;
 };
 
-export type DripsReceiver = { userId: string; config: DripsReceiverConfig };
+export type StreamReceiver = { accountId: string; config: StreamConfig };
 
 export type Preset = PopulatedTransaction[];
 
-export type UserMetadata = {
+export type AccountMetadata = {
 	key: string;
 	value: string;
 };
 
 export type SqueezeArgs = {
-	userId: string;
+	accountId: string;
 	tokenAddress: string;
 	senderId: string;
 	historyHash: string;
-	dripsHistory: DripsHistoryStruct[];
+	streamsHistory: StreamsHistoryStruct[];
 };
+
+export enum Forge {
+	GitHub,
+	GitLab
+}
+
+export type Address = string;

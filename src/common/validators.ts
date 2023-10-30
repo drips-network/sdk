@@ -1,9 +1,9 @@
 import type { Provider } from '@ethersproject/providers';
 import type { BigNumberish, Signer } from 'ethers';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './DripsError';
 import { isNullOrUndefined, nameOf } from './internals';
-import type { DripsReceiverConfig, SplitsReceiverStruct, DripsHistoryStruct, UserMetadata } from './types';
+import type { StreamConfig, SplitsReceiverStruct, StreamsHistoryStruct, AccountMetadata } from './types';
 
 const MAX_DRIPS_RECEIVERS = 100;
 const MAX_SPLITS_RECEIVERS = 200;
@@ -16,18 +16,18 @@ export const validateAddress = (address: string) => {
 };
 
 /** @internal */
-export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverConfig): void => {
-	if (!dripsReceiverConfig) {
+export const validateStreamConfig = (streamConfig: StreamConfig): void => {
+	if (!streamConfig) {
 		throw DripsErrors.argumentMissingError(
-			`Drips receiver config validation failed: '${nameOf({ dripsReceiverConfig })}' is missing.`,
-			nameOf({ dripsReceiverConfig })
+			`Drips receiver config validation failed: '${nameOf({ streamConfig })}' is missing.`,
+			nameOf({ streamConfig })
 		);
 	}
 
-	const { dripId, start, duration, amountPerSec } = dripsReceiverConfig;
+	const { dripId, start, duration, amountPerSec } = streamConfig;
 
 	if (isNullOrUndefined(dripId) || dripId < 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ dripId })}' must be greater than or equal to 0`,
 			nameOf({ start }),
 			start
@@ -35,7 +35,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 	}
 
 	if (isNullOrUndefined(start) || start < 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ start })}' must be greater than or equal to 0`,
 			nameOf({ start }),
 			start
@@ -43,7 +43,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 	}
 
 	if (isNullOrUndefined(duration) || duration < 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ duration })}' must be greater than or equal to 0`,
 			nameOf({ duration }),
 			duration
@@ -51,7 +51,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 	}
 
 	if (isNullOrUndefined(amountPerSec) || amountPerSec <= 0) {
-		throw DripsErrors.dripsReceiverConfigError(
+		throw DripsErrors.streamConfigError(
 			`Drips receiver config validation failed: '${nameOf({ amountPerSec })}' must be greater than 0.`,
 			nameOf({ amountPerSec }),
 			amountPerSec
@@ -60,7 +60,7 @@ export const validateDripsReceiverConfig = (dripsReceiverConfig: DripsReceiverCo
 };
 
 /** @internal */
-export const validateDripsReceivers = (receivers: { userId: string; config: DripsReceiverConfig }[]) => {
+export const validateStreamReceivers = (receivers: { accountId: string; config: StreamConfig }[]) => {
 	if (!receivers) {
 		throw DripsErrors.argumentMissingError(
 			`Drips receivers validation failed: '${nameOf({ receivers })}' is missing.`,
@@ -78,24 +78,24 @@ export const validateDripsReceivers = (receivers: { userId: string; config: Drip
 
 	if (receivers.length) {
 		receivers.forEach((receiver) => {
-			const { userId, config } = receiver;
+			const { accountId, config } = receiver;
 
-			if (isNullOrUndefined(userId)) {
-				throw DripsErrors.dripsReceiverError(
-					`Drips receivers validation failed: '${nameOf({ userId })}' is missing.`,
-					nameOf({ userId }),
-					userId
+			if (isNullOrUndefined(accountId)) {
+				throw DripsErrors.streamsReceiverError(
+					`Drips receivers validation failed: '${nameOf({ accountId })}' is missing.`,
+					nameOf({ accountId }),
+					accountId
 				);
 			}
 			if (isNullOrUndefined(config)) {
-				throw DripsErrors.dripsReceiverError(
+				throw DripsErrors.streamsReceiverError(
 					`Drips receivers validation failed: '${nameOf({ config })}' is missing.`,
 					nameOf({ config }),
 					config
 				);
 			}
 
-			validateDripsReceiverConfig(config);
+			validateStreamConfig(config);
 		});
 	}
 };
@@ -119,13 +119,13 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 
 	if (receivers.length) {
 		receivers.forEach((receiver) => {
-			const { userId, weight } = receiver;
+			const { accountId, weight } = receiver;
 
-			if (!userId) {
+			if (!accountId) {
 				throw DripsErrors.splitsReceiverError(
-					`Splits receivers validation failed: '${nameOf({ userId })}' is missing.`,
-					nameOf({ userId }),
-					userId
+					`Splits receivers validation failed: '${nameOf({ accountId })}' is missing.`,
+					nameOf({ accountId }),
+					accountId
 				);
 			}
 
@@ -137,7 +137,7 @@ export const validateSplitsReceivers = (receivers: SplitsReceiverStruct[]) => {
 				);
 			}
 
-			if (weight <= 0) {
+			if (BigNumber.from(weight).lte(0)) {
 				throw DripsErrors.splitsReceiverError(
 					`Splits receiver config validation failed: : '${nameOf({ weight })}' must be greater than 0.`,
 					nameOf({ weight }),
@@ -187,23 +187,23 @@ export const validateClientSigner = async (signer: Signer, supportedChains: read
 };
 
 /** @internal */
-export const validateSetDripsInput = (
+export const validateSetStreamsInput = (
 	tokenAddress: string,
 	currentReceivers: {
-		userId: string;
-		config: DripsReceiverConfig;
+		accountId: string;
+		config: StreamConfig;
 	}[],
 	newReceivers: {
-		userId: string;
-		config: DripsReceiverConfig;
+		accountId: string;
+		config: StreamConfig;
 	}[],
 	transferToAddress: string,
 	balanceDelta: BigNumberish
 ) => {
 	validateAddress(tokenAddress);
 	validateAddress(transferToAddress);
-	validateDripsReceivers(newReceivers);
-	validateDripsReceivers(currentReceivers);
+	validateStreamReceivers(newReceivers);
+	validateStreamReceivers(currentReceivers);
 	if (isNullOrUndefined(balanceDelta)) {
 		throw DripsErrors.argumentMissingError(
 			`Could not set drips: '${nameOf({ balanceDelta })}' is missing.`,
@@ -213,7 +213,7 @@ export const validateSetDripsInput = (
 };
 
 /** @internal */
-export const validateEmitUserMetadataInput = (metadata: UserMetadata[]) => {
+export const validateEmitAccountMetadataInput = (metadata: AccountMetadata[]) => {
 	if (!metadata) {
 		throw DripsErrors.argumentError(`Invalid user metadata: '${nameOf({ metadata })}' is missing.`);
 	}
@@ -232,17 +232,17 @@ export const validateEmitUserMetadataInput = (metadata: UserMetadata[]) => {
 };
 
 /** @internal */
-export const validateReceiveDripsInput = (userId: string, tokenAddress: string, maxCycles: BigNumberish) => {
+export const validateReceiveDripsInput = (accountId: string, tokenAddress: string, maxCycles: BigNumberish) => {
 	validateAddress(tokenAddress);
 
-	if (isNullOrUndefined(userId)) {
+	if (isNullOrUndefined(accountId)) {
 		throw DripsErrors.argumentMissingError(
-			`Could not receive drips: '${nameOf({ userId })}' is missing.`,
-			nameOf({ userId })
+			`Could not receive drips: '${nameOf({ accountId })}' is missing.`,
+			nameOf({ accountId })
 		);
 	}
 
-	if (!maxCycles || maxCycles < 0) {
+	if (!maxCycles || BigNumber.from(maxCycles).lte(0)) {
 		throw DripsErrors.argumentError(
 			`Could not receive drips: '${nameOf({ maxCycles })}' must be greater than 0.`,
 			nameOf({ maxCycles }),
@@ -253,15 +253,18 @@ export const validateReceiveDripsInput = (userId: string, tokenAddress: string, 
 
 /** @internal */
 export const validateSplitInput = (
-	userId: BigNumberish,
+	accountId: BigNumberish,
 	tokenAddress: string,
 	currentReceivers: SplitsReceiverStruct[]
 ) => {
 	validateAddress(tokenAddress);
 	validateSplitsReceivers(currentReceivers);
 
-	if (isNullOrUndefined(userId)) {
-		throw DripsErrors.argumentMissingError(`Could not split: '${nameOf({ userId })}' is missing.`, nameOf({ userId }));
+	if (isNullOrUndefined(accountId)) {
+		throw DripsErrors.argumentMissingError(
+			`Could not split: '${nameOf({ accountId })}' is missing.`,
+			nameOf({ accountId })
+		);
 	}
 };
 
@@ -273,16 +276,16 @@ export const validateCollectInput = (tokenAddress: string, transferToAddress: st
 
 /** @internal */
 export const validateSqueezeDripsInput = (
-	userId: string,
+	accountId: string,
 	tokenAddress: string,
 	senderId: BigNumberish,
 	historyHash: string,
-	dripsHistory: DripsHistoryStruct[]
+	streamsHistory: StreamsHistoryStruct[]
 ) => {
 	validateAddress(tokenAddress);
 
-	if (!userId) {
-		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ userId })}' is missing.`);
+	if (!accountId) {
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ accountId })}' is missing.`);
 	}
 
 	if (!senderId) {
@@ -293,7 +296,7 @@ export const validateSqueezeDripsInput = (
 		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ historyHash })}' is missing.`);
 	}
 
-	if (!dripsHistory) {
-		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ dripsHistory })}' is missing.`);
+	if (!streamsHistory) {
+		throw DripsErrors.argumentError(`Invalid input for squeezing: '${nameOf({ streamsHistory })}' is missing.`);
 	}
 };

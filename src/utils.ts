@@ -1,10 +1,45 @@
 import type { BigNumberish, BytesLike } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 import { DripsErrors } from './common/DripsError';
-import type { NetworkConfig, CycleInfo, DripsReceiverConfig, UserMetadataStruct } from './common/types';
-import { validateAddress, validateDripsReceiverConfig } from './common/validators';
+import type { NetworkConfig, CycleInfo, StreamConfig, AccountMetadataStruct } from './common/types';
+import { validateAddress, validateStreamConfig } from './common/validators';
+import { isNullOrUndefined } from './common/internals';
+
+type Driver = 'address' | 'nft' | 'immutableSplits' | 'repo';
 
 namespace Utils {
+	export namespace AccountId {
+		export const getDriver = (accountId: string): Driver => {
+			if (isNullOrUndefined(accountId)) {
+				throw DripsErrors.argumentError(`Could not get bits: accountId is missing.`);
+			}
+
+			const accountIdAsBn = ethers.BigNumber.from(accountId);
+
+			if (accountIdAsBn.lt(0) || accountIdAsBn.gt(ethers.constants.MaxUint256)) {
+				throw DripsErrors.argumentError(
+					`Could not get bits: ${accountId} is not a valid positive number within the range of a uint256.`
+				);
+			}
+
+			const mask = ethers.BigNumber.from(2).pow(32).sub(1); // 32 bits mask
+			const bits = accountIdAsBn.shr(224).and(mask); // shift right to bring the first 32 bits to the end and apply the mask
+
+			switch (bits.toNumber()) {
+				case 0:
+					return 'address';
+				case 1:
+					return 'nft';
+				case 2:
+					return 'immutableSplits';
+				case 3:
+					return 'repo';
+				default:
+					throw DripsErrors.argumentError(`Unknown driver for accountId: ${accountId}.`);
+			}
+		};
+	}
+
 	export namespace Metadata {
 		/**
 		 * Converts a `string` to a `BytesLike` representation.
@@ -41,108 +76,138 @@ namespace Utils {
 		});
 
 		/**
-		 * Parses the `UserMetadataStruct` and converts the key and value from `BytesLike` to `string` format.
+		 * Parses the `AccountMetadataStruct` and converts the key and value from `BytesLike` to `string` format.
 		 *
-		 * @param userMetadata - The `UserMetadataStruct` containing the key and value in `BytesLike` format.
+		 * @param accountMetadata - The `AccountMetadataStruct` containing the key and value in `BytesLike` format.
 		 * @returns An `object` containing the key and value as `string`s.
 		 */
-		export const convertMetadataBytesToString = (userMetadata: UserMetadataStruct): { key: string; value: string } => {
-			if (!ethers.utils.isBytesLike(userMetadata?.key) || !ethers.utils.isBytesLike(userMetadata?.value)) {
+		export const convertMetadataBytesToString = (
+			accountMetadata: AccountMetadataStruct
+		): { key: string; value: string } => {
+			if (!ethers.utils.isBytesLike(accountMetadata?.key) || !ethers.utils.isBytesLike(accountMetadata?.value)) {
 				throw DripsErrors.argumentError(
 					`Invalid key-value user metadata pair: key or value is not a valid BytesLike object.`
 				);
 			}
 
 			return {
-				key: ethers.utils.parseBytes32String(userMetadata.key),
-				value: ethers.utils.toUtf8String(userMetadata.value)
+				key: ethers.utils.parseBytes32String(accountMetadata.key),
+				value: ethers.utils.toUtf8String(accountMetadata.value)
 			};
 		};
 	}
 
 	// TODO: Update the Subgraph URL after hosted service is shut down.
+	// TODO: simplify the config to only what's needed for the SDK.
 	export namespace Network {
 		export const configs: Record<number, NetworkConfig> = {
 			// Mainnet
 			1: {
 				CHAIN: 'mainnet',
-				DEPLOYMENT_TIME: '2023-03-16T14:44:43+00:00',
-				COMMIT_HASH: 'e19ecb17246eae744e76caef522c117de0ec9aaf',
-				WALLET: '0xDdEa8D3444e125478cbaA6a678509DfbACef123f',
-				WALLET_NONCE: '0',
-				DEPLOYER: '0x804DCBe1bf0E6A742eaFbB12f6e53acd92e3CA5a',
-				DRIPS_HUB: '0xd4DE319ed8B07e05FC0b2df16d749229478e494b',
-				DRIPS_HUB_CYCLE_SECONDS: '604800',
-				DRIPS_HUB_LOGIC: '0x9819a3848c60999C37b20a0639bA11d87609564d',
-				DRIPS_HUB_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
-				CALLER: '0x00529bCC11F0284ca2Af26878dCE6592bb42D3CA',
-				ADDRESS_DRIVER: '0x78df097cA1eC714727aB6c2Bd479Ce1A0f5d58d1',
-				ADDRESS_DRIVER_LOGIC: '0x7091Bdf0D952CB2A8480d065d37467eed45D410E',
-				ADDRESS_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				DEPLOYMENT_TIME: '2023-07-13T12:30:27Z',
+				COMMIT_HASH: 'afeba55f70a968ded7c0797a4211faa856e28fa0',
+				WALLET: '0x823204FFd4fAa09fbf2AAc51A290233e829991a1',
+				DETERMINISTIC_DEPLOYER: '0x4e59b44847b379578588920cA78FbF26c0B4956C',
+				CREATE3_FACTORY: '0x6aa3d87e99286946161dca02b97c5806fc5ed46f',
+				DRIPS_DEPLOYER_SALT: 'DripsDeployer',
+				DRIPS_DEPLOYER: '0x0c1Ea3a5434Bf8F135fD0c7258F0f25219fDB27f',
+				DRIPS: '0xd0Dd053392db676D57317CD4fe96Fc2cCf42D0b4',
+				DRIPS_CYCLE_SECONDS: '604800',
+				DRIPS_LOGIC: '0xb0C9B6D67608bE300398d0e4FB0cCa3891E1B33F',
+				DRIPS_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				CALLER: '0x60F25ac5F289Dc7F640f948521d486C964A248e5',
+				ADDRESS_DRIVER: '0x1455d9bD6B98f95dd8FEB2b3D60ed825fcef0610',
 				ADDRESS_DRIVER_ID: '0',
-				NFT_DRIVER: '0x80039B721387C9Faa2c5910115d68C634eF893C8',
-				NFT_DRIVER_LOGIC: '0x93d3486be1A381B03C0BC8696249a00de55683eA',
-				NFT_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				ADDRESS_DRIVER_LOGIC: '0x3Ea1e774f98cc4C6359bbCB3238E3e60365Fa5c9',
+				ADDRESS_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				NFT_DRIVER: '0xcf9c49B0962EDb01Cdaa5326299ba85D72405258',
 				NFT_DRIVER_ID: '1',
-				IMMUTABLE_SPLITS_DRIVER: '0x752200A8E70D9D25787E920C18d8Cf9D94301c36',
-				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x5BCeF0D71274b0623F1E5A354F3BADb60Fd4e29C',
-				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				NFT_DRIVER_LOGIC: '0x3B11537D0d4276Ba9e41FFe04e9034280bd7af50',
+				NFT_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				IMMUTABLE_SPLITS_DRIVER: '0x1212975c0642B07F696080ec1916998441c2b774',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/drips-network-dev/drips-v2-on-ethereum'
+				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x2c338CDf00dFd5A9B3B6b0b78BB95352079AAF71',
+				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				REPO_DRIVER: '0x770023d55D09A9C110694827F1a6B32D5c2b373E',
+				REPO_DRIVER_ID: '3',
+				REPO_DRIVER_ANYAPI_OPERATOR: '0xa928d4b087AD35C46BA83331d8eEddb83152319b',
+				REPO_DRIVER_ANYAPI_JOB_ID: '9af746c7cfbc415c9737b239df9a30ab',
+				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '1620000000000000000',
+				REPO_DRIVER_LOGIC: '0xfC446dB5E1255e837E95dB90c818C6fEb8e93ab0',
+				REPO_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
+				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/drips-network-dev/drips-on-ethereum'
+			},
+			// Sepolia
+			11155111: {
+				CHAIN: 'sepolia',
+				DEPLOYMENT_TIME: '2023-07-15T10:41:56Z',
+				COMMIT_HASH: 'afeba55f70a968ded7c0797a4211faa856e28fa0',
+				WALLET: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				DETERMINISTIC_DEPLOYER: '0x4e59b44847b379578588920cA78FbF26c0B4956C',
+				CREATE3_FACTORY: '0x6aa3d87e99286946161dca02b97c5806fc5ed46f',
+				DRIPS_DEPLOYER_SALT: 'DripsDeployerTest1',
+				DRIPS_DEPLOYER: '0xa6030dD9D31FA2333Ee9f7feaCa6FB23c42a1d96',
+				DRIPS: '0x74A32a38D945b9527524900429b083547DeB9bF4',
+				DRIPS_CYCLE_SECONDS: '604800',
+				DRIPS_LOGIC: '0xf103BDDB82B6177e5fE53c50351E33F4f3df955B',
+				DRIPS_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				CALLER: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
+				ADDRESS_DRIVER: '0x70E1E1437AeFe8024B6780C94490662b45C3B567',
+				ADDRESS_DRIVER_ID: '0',
+				ADDRESS_DRIVER_LOGIC: '0x298F37fFd4B31d216B8954968cEe7EC5273CB891',
+				ADDRESS_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				NFT_DRIVER: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
+				NFT_DRIVER_ID: '1',
+				NFT_DRIVER_LOGIC: '0xa6bD78d98720E2eA4B3E2887be7bA212C3aC5977',
+				NFT_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				IMMUTABLE_SPLITS_DRIVER: '0xC3C1955bb50AdA4dC8a55aBC6d4d2a39242685c1',
+				IMMUTABLE_SPLITS_DRIVER_ID: '2',
+				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0xf5573880ECB9975E1645C8D18ef1A0393c685CC1',
+				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				REPO_DRIVER: '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B',
+				REPO_DRIVER_ID: '3',
+				REPO_DRIVER_ANYAPI_OPERATOR: '0x0F9c6BCdE15dfFFD95Cfa8F9167b19B433af1abE',
+				REPO_DRIVER_ANYAPI_JOB_ID: '9af746c7cfbc415c9737b239df9a30ab',
+				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '150000000000000000',
+				REPO_DRIVER_LOGIC: '0x7A9a2a29B8d98922Ea2E70c73B123e36C95d1515',
+				REPO_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-sepolia/version/latest'
 			},
 			// Goerli
 			5: {
 				CHAIN: 'goerli',
-				DEPLOYMENT_TIME: '2023-03-14T11:23:53+00:00',
-				COMMIT_HASH: '8980ce57a29f797b53b9f30755f6628185b66c57',
+				DEPLOYMENT_TIME: '2023-07-15T10:34:39Z',
+				COMMIT_HASH: 'afeba55f70a968ded7c0797a4211faa856e28fa0',
 				WALLET: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
-				WALLET_NONCE: '232',
-				DEPLOYER: '0xC881Ee954895f1743FEFF7e6014E98BEf988FDc8',
-				DRIPS_HUB: '0x86f226e817aEbf5a4a3ebFA293454Df14460f360',
-				DRIPS_HUB_CYCLE_SECONDS: '604800',
-				DRIPS_HUB_LOGIC: '0xb26378302cd1Bd939C619F7a3fD23F4a646627bD',
-				DRIPS_HUB_ADMIN: '0x000000000000000000000000000000000000dEaD',
-				CALLER: '0x7545723692a352a3742Bc967610B55a136E91F16',
-				ADDRESS_DRIVER: '0x6441C3F2b29c44eDB14F3660C255Aca7bCC40ccE',
-				ADDRESS_DRIVER_LOGIC: '0x5C3D4bcFB934ECa7D98fa288E445f1659372FB59',
-				ADDRESS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
+				DETERMINISTIC_DEPLOYER: '0x4e59b44847b379578588920cA78FbF26c0B4956C',
+				CREATE3_FACTORY: '0x6aa3d87e99286946161dca02b97c5806fc5ed46f',
+				DRIPS_DEPLOYER_SALT: 'DripsDeployerTest1',
+				DRIPS_DEPLOYER: '0xa6030dD9D31FA2333Ee9f7feaCa6FB23c42a1d96',
+				DRIPS: '0x74A32a38D945b9527524900429b083547DeB9bF4',
+				DRIPS_CYCLE_SECONDS: '604800',
+				DRIPS_LOGIC: '0xf103BDDB82B6177e5fE53c50351E33F4f3df955B',
+				DRIPS_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				CALLER: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
+				ADDRESS_DRIVER: '0x70E1E1437AeFe8024B6780C94490662b45C3B567',
 				ADDRESS_DRIVER_ID: '0',
-				NFT_DRIVER: '0x53e019FD9DecF907d314dA416BfA816C2CAEeDef',
-				NFT_DRIVER_LOGIC: '0x84B81DB7e1543e8b9B3212dca8D845eEC5c2B17D',
-				NFT_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
+				ADDRESS_DRIVER_LOGIC: '0x298F37fFd4B31d216B8954968cEe7EC5273CB891',
+				ADDRESS_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				NFT_DRIVER: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
 				NFT_DRIVER_ID: '1',
-				IMMUTABLE_SPLITS_DRIVER: '0xBBA6dbC0a8f7a3c58C9b275d8EDb5F7c6319AA25',
-				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0x9e30F316D1F9CC07CD17E9DAB41e71f7aD51DBA8',
-				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
+				NFT_DRIVER_LOGIC: '0xa6bD78d98720E2eA4B3E2887be7bA212C3aC5977',
+				NFT_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				IMMUTABLE_SPLITS_DRIVER: '0xC3C1955bb50AdA4dC8a55aBC6d4d2a39242685c1',
 				IMMUTABLE_SPLITS_DRIVER_ID: '2',
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/jtourkos/drips-v2-on-goerli'
-			},
-			// Mumbai
-			80001: {
-				CHAIN: 'polygon-mumbai',
-				DEPLOYMENT_TIME: '2023-03-14T11:30:31+00:00',
-				COMMIT_HASH: '8980ce57a29f797b53b9f30755f6628185b66c57',
-				WALLET: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
-				WALLET_NONCE: '268',
-				DEPLOYER: '0xBbF3b3e55c127439bd23db86E9910B4B994C68a2',
-				DRIPS_HUB: '0x6e335Eb7a4ABcdf17a507F423eF61150e758f85b',
-				DRIPS_HUB_CYCLE_SECONDS: '604800',
-				DRIPS_HUB_LOGIC: '0xA273651C0f5D7Ba232C8cF3A7E186A3315860182',
-				DRIPS_HUB_ADMIN: '0x000000000000000000000000000000000000dEaD',
-				CALLER: '0x94e921D64cfEC517028D394B2136d31Cfa863293',
-				ADDRESS_DRIVER: '0x2112Bb5FCC299c5ae07E06c23268f104c81fB1E9',
-				ADDRESS_DRIVER_LOGIC: '0x11256f2A0d21EAeF2802Bc82a8F0Cd24ef40d3b4',
-				ADDRESS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
-				ADDRESS_DRIVER_ID: '0',
-				NFT_DRIVER: '0xf070fc0DB76B1ee70237b71587cf36C37D2EB745',
-				NFT_DRIVER_LOGIC: '0x56a978edc17a0B62003CE294B6feE753792545cb',
-				NFT_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
-				NFT_DRIVER_ID: '1',
-				IMMUTABLE_SPLITS_DRIVER: '0xc6996db7F1772f17Ab99b5919b2e1354d4847535',
-				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0xbe06FC324068323c19BD9264D731596706e1eccE',
-				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x000000000000000000000000000000000000dEaD',
-				IMMUTABLE_SPLITS_DRIVER_ID: '2',
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/jtourkos/drips-v2-on-mumbai'
+				IMMUTABLE_SPLITS_DRIVER_LOGIC: '0xf5573880ECB9975E1645C8D18ef1A0393c685CC1',
+				IMMUTABLE_SPLITS_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				REPO_DRIVER: '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B',
+				REPO_DRIVER_ID: '3',
+				REPO_DRIVER_ANYAPI_OPERATOR: '0x7ecFBD6CB2D3927Aa68B5F2f477737172F11190a',
+				REPO_DRIVER_ANYAPI_JOB_ID: '9af746c7cfbc415c9737b239df9a30ab',
+				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '50000000000000000',
+				REPO_DRIVER_LOGIC: '0x7A9a2a29B8d98922Ea2E70c73B123e36C95d1515',
+				REPO_DRIVER_ADMIN: '0x341a08926dCa7fa7D135F96E4d76b696e5f6d38d',
+				SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/47690/drips-v2-on-goerli/version/latest'
 			}
 		};
 
@@ -169,7 +234,7 @@ namespace Utils {
 				);
 			}
 
-			const cycleDurationSecs = BigInt(Network.configs[chainId].DRIPS_HUB_CYCLE_SECONDS);
+			const cycleDurationSecs = BigInt(Network.configs[chainId].DRIPS_CYCLE_SECONDS);
 
 			const currentCycleSecs = BigInt(Math.floor(getUnixTime(new Date()))) % cycleDurationSecs;
 
@@ -208,18 +273,18 @@ namespace Utils {
 		};
 	}
 
-	export namespace DripsReceiverConfiguration {
+	export namespace StreamConfiguration {
 		/**
 		 * Converts a drips receiver configuration object to a `uint256`.
-		 * @param  {DripsReceiverConfigDto} dripsReceiverConfig The drips receiver configuration object.
+		 * @param  {StreamConfigDto} streamConfig The drips receiver configuration object.
 		 * @returns The drips receiver configuration as a `uint256`.
-		 * @throws {@link DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {@link DripsErrors.dripsReceiverConfigError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if the `streamConfig` is missing.
+		 * @throws {@link DripsErrors.streamConfigError} if the `streamConfig` is not valid.
 		 */
-		export const toUint256 = (dripsReceiverConfig: DripsReceiverConfig): bigint => {
-			validateDripsReceiverConfig(dripsReceiverConfig);
+		export const toUint256 = (streamConfig: StreamConfig): bigint => {
+			validateStreamConfig(streamConfig);
 
-			const { dripId, start, duration, amountPerSec } = dripsReceiverConfig;
+			const { dripId, start, duration, amountPerSec } = streamConfig;
 
 			let config = BigNumber.from(dripId);
 			config = config.shl(160);
@@ -234,13 +299,13 @@ namespace Utils {
 
 		/**
 		 * Converts a `uint256` that represent a drips receiver configuration to an object.
-		 * @param  {BigNumberish} dripsReceiverConfig The drips receiver configuration as`uint256`.
+		 * @param  {BigNumberish} streamConfig The drips receiver configuration as`uint256`.
 		 * @returns The drips receiver configuration object.
-		 * @throws {@link DripsErrors.argumentMissingError} if the `dripsReceiverConfig` is missing.
-		 * @throws {@link DripsErrors.argumentError} if the `dripsReceiverConfig` is not valid.
+		 * @throws {@link DripsErrors.argumentMissingError} if the `streamConfig` is missing.
+		 * @throws {@link DripsErrors.argumentError} if the `streamConfig` is not valid.
 		 */
-		export const fromUint256 = (dripsReceiverConfig: BigNumberish): DripsReceiverConfig => {
-			const configAsBn = BigNumber.from(dripsReceiverConfig);
+		export const fromUint256 = (streamConfig: BigNumberish): StreamConfig => {
+			const configAsBn = BigNumber.from(streamConfig);
 
 			const dripId = configAsBn.shr(160 + 32 + 32);
 			const amountPerSec = configAsBn.shr(32 + 32).and(BigNumber.from(1).shl(160).sub(1));
@@ -254,7 +319,7 @@ namespace Utils {
 				start: start.toBigInt()
 			};
 
-			validateDripsReceiverConfig(config);
+			validateStreamConfig(config);
 
 			return config;
 		};

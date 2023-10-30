@@ -15,7 +15,7 @@ import type { Preset } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('CallerClient', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
@@ -126,7 +126,7 @@ describe('CallerClient', () => {
 
 			await testCallerClient.callBatched(input);
 
-			assert(callerContractStub.callBatched.calledOnceWithExactly(expectedCallStructs));
+			assert(callerContractStub.callBatched.calledOnceWithExactly(expectedCallStructs, {}));
 		});
 
 		it('should call callBatched with the correct input for CallStruct[]', async () => {
@@ -142,7 +142,7 @@ describe('CallerClient', () => {
 
 			await testCallerClient.callBatched(input);
 
-			assert(callerContractStub.callBatched.calledOnceWithExactly(input));
+			assert(callerContractStub.callBatched.calledOnceWithExactly(input, {}));
 		});
 
 		it('should set value to 0 when value is not provided', async () => {
@@ -155,9 +155,9 @@ describe('CallerClient', () => {
 
 			callerContractStub.callBatched.resolves({} as ContractTransaction);
 
-			await testCallerClient.callBatched(input);
+			await testCallerClient.callBatched(input, {});
 
-			assert(callerContractStub.callBatched.calledOnceWithExactly([{ target: '0x111', data: '0x222', value: 0 }]));
+			assert(callerContractStub.callBatched.calledOnceWithExactly([{ target: '0x111', data: '0x222', value: 0 }], {}));
 		});
 
 		it('should call callBatched with the correct input for PopulatedTransaction[]', async () => {
@@ -181,7 +181,7 @@ describe('CallerClient', () => {
 
 			await testCallerClient.callBatched(input);
 
-			assert(callerContractStub.callBatched.calledOnceWithExactly(expectedCallStructs));
+			assert(callerContractStub.callBatched.calledOnceWithExactly(expectedCallStructs, {}));
 		});
 
 		it('should throw an error for empty input array', async () => {

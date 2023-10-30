@@ -1,17 +1,17 @@
 import type { BigNumberish, PopulatedTransaction, Signer } from 'ethers';
 import { BigNumber } from 'ethers';
-import DripsHubTxFactory from '../DripsHub/DripsHubTxFactory';
+import DripsTxFactory from '../Drips/DripsTxFactory';
 import {
 	validateCollectInput,
-	validateEmitUserMetadataInput,
+	validateEmitAccountMetadataInput,
 	validateReceiveDripsInput,
-	validateSetDripsInput,
+	validateSetStreamsInput,
 	validateSplitInput,
 	validateSqueezeDripsInput
 } from '../common/validators';
 import { isNullOrUndefined, nameOf } from '../common/internals';
 import Utils from '../utils';
-import type { DripsReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, UserMetadata } from '../common/types';
+import type { StreamReceiverStruct, Preset, SplitsReceiverStruct, SqueezeArgs, AccountMetadata } from '../common/types';
 import { DripsErrors } from '../common/DripsError';
 import AddressDriverTxFactory from './AddressDriverTxFactory';
 
@@ -20,18 +20,18 @@ export namespace AddressDriverPresets {
 		signer: Signer;
 		driverAddress: string;
 		tokenAddress: string;
-		currentReceivers: DripsReceiverStruct[];
-		newReceivers: DripsReceiverStruct[];
+		currentReceivers: StreamReceiverStruct[];
+		newReceivers: StreamReceiverStruct[];
 		balanceDelta: BigNumberish;
 		transferToAddress: string;
-		userMetadata: UserMetadata[];
+		accountMetadata: AccountMetadata[];
 	};
 
 	export type CollectFlowPayload = {
 		signer: Signer;
 		driverAddress: string;
-		dripsHubAddress: string;
-		userId: string;
+		dripsAddress: string;
+		accountId: string;
 		tokenAddress: string;
 		maxCycles: BigNumberish;
 		currentReceivers: SplitsReceiverStruct[];
@@ -51,8 +51,8 @@ export namespace AddressDriverPresets {
  * // Populate the flow's payload.
 	const flowPayload: AddressDriverPresets.CollectFlowPayload = {
 		driverAddress,
-		dripsHubAddress,
-		userId,
+		dripsAddress,
+		accountId,
 		tokenAddress,
 		maxCycles,
 		currentReceivers,
@@ -69,8 +69,8 @@ export namespace AddressDriverPresets {
 	export class Presets {
 		/**
 		 * Creates a new batch with the following sequence of calls:
-		 * 1. `setDrips`
-		 * 2. `emitUserMetadata`
+		 * 1. `setStreams`
+		 * 2. `emitAccountMetadata`
 		 *
 		 * @see `AddressDriverClient`'s API for more details.
 		 * @param  {CreateStreamFlowPayload} payload the flow's payload.
@@ -78,8 +78,8 @@ export namespace AddressDriverPresets {
 		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or `payload.transferToAddress` is not valid.
 		 * @throws {@link DripsErrors.argumentMissingError} if any of the required parameters is missing.
 		 * @throws {@link DripsErrors.argumentError} if `payload.currentReceivers`' or `payload.newReceivers`' count exceeds the max allowed drips receivers.
-		 * @throws {@link DripsErrors.dripsReceiverError} if any of the `payload.currentReceivers` or the `payload.newReceivers` is not valid.
-		 * @throws {@link DripsErrors.dripsReceiverConfigError} if any of the receivers' configuration is not valid.
+		 * @throws {@link DripsErrors.streamsReceiverError} if any of the `payload.currentReceivers` or the `payload.newReceivers` is not valid.
+		 * @throws {@link DripsErrors.streamConfigError} if any of the receivers' configuration is not valid.
 		 */
 		public static async createNewStreamFlow(payload: NewStreamFlowPayload): Promise<Preset> {
 			if (isNullOrUndefined(payload)) {
@@ -91,7 +91,7 @@ export namespace AddressDriverPresets {
 
 			const {
 				signer,
-				userMetadata,
+				accountMetadata,
 				tokenAddress,
 				driverAddress,
 				newReceivers,
@@ -104,24 +104,24 @@ export namespace AddressDriverPresets {
 				throw DripsErrors.argumentError(`Could not create collect flow: signer is not connected to a provider.`);
 			}
 
-			validateSetDripsInput(
+			validateSetStreamsInput(
 				tokenAddress,
 				currentReceivers?.map((r) => ({
-					userId: r.userId.toString(),
-					config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+					accountId: r.accountId.toString(),
+					config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 				})),
 				newReceivers?.map((r) => ({
-					userId: r.userId.toString(),
-					config: Utils.DripsReceiverConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
+					accountId: r.accountId.toString(),
+					config: Utils.StreamConfiguration.fromUint256(BigNumber.from(r.config).toBigInt())
 				})),
 				transferToAddress,
 				balanceDelta
 			);
-			validateEmitUserMetadataInput(userMetadata);
+			validateEmitAccountMetadataInput(accountMetadata);
 
 			const addressDriverTxFactory = await AddressDriverTxFactory.create(signer, driverAddress);
 
-			const setDripsTx = await addressDriverTxFactory.setDrips(
+			const setStreamsTx = await addressDriverTxFactory.setStreams(
 				tokenAddress,
 				currentReceivers,
 				balanceDelta,
@@ -131,23 +131,23 @@ export namespace AddressDriverPresets {
 				transferToAddress
 			);
 
-			const userMetadataAsBytes = userMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
+			const accountMetadataAsBytes = accountMetadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
-			const emitUserMetadataTx = await addressDriverTxFactory.emitUserMetadata(userMetadataAsBytes);
+			const emitAccountMetadataTx = await addressDriverTxFactory.emitAccountMetadata(accountMetadataAsBytes);
 
-			return [setDripsTx, emitUserMetadataTx];
+			return [setStreamsTx, emitAccountMetadataTx];
 		}
 
 		/**
 		 * Creates a new batch with the following sequence of calls:
-		 * 1. `squeezeDrips` (optional) for each provided sender
-		 * 2. `receiveDrips` (optional)
+		 * 1. `squeezeStreams` (optional) for each provided sender
+		 * 2. `receiveStreams` (optional)
 		 * 3. `split` (optional)
 		 * 4. `collect`
 		 *
-		 * @see `AddressDriverClient` and `DripsHubClient`'s API for more details.
+		 * @see `AddressDriverClient` and `DripsClient`'s API for more details.
 		 * @param  {CollectFlowPayload} payload the flow's payload.
-		 * @param  {boolean} skipReceive skips the `receiveDrips` step.
+		 * @param  {boolean} skipReceive skips the `receiveStreams` step.
 		 * @param  {boolean} skipSplit  skips the `split` step.
 		 * @returns The preset.
 		 * @throws {@link DripsErrors.addressError} if `payload.tokenAddress` or the `payload.transferToAddress` address is not valid.
@@ -170,8 +170,8 @@ export namespace AddressDriverPresets {
 			const {
 				signer,
 				driverAddress,
-				dripsHubAddress,
-				userId,
+				dripsAddress,
+				accountId,
 				tokenAddress,
 				maxCycles,
 				currentReceivers,
@@ -185,34 +185,40 @@ export namespace AddressDriverPresets {
 
 			const flow: PopulatedTransaction[] = [];
 
-			const dripsHubTxFactory = await DripsHubTxFactory.create(signer.provider, dripsHubAddress);
+			const dripsTxFactory = await DripsTxFactory.create(signer.provider, dripsAddress);
 
 			squeezeArgs?.forEach(async (args) => {
-				validateSqueezeDripsInput(args.userId, args.tokenAddress, args.senderId, args.historyHash, args.dripsHistory);
+				validateSqueezeDripsInput(
+					args.accountId,
+					args.tokenAddress,
+					args.senderId,
+					args.historyHash,
+					args.streamsHistory
+				);
 
-				const squeezeTx = await dripsHubTxFactory.squeezeDrips(
-					userId,
+				const squeezeTx = await dripsTxFactory.squeezeStreams(
+					accountId,
 					tokenAddress,
 					args.senderId,
 					args.historyHash,
-					args.dripsHistory
+					args.streamsHistory
 				);
 
 				flow.push(squeezeTx);
 			});
 
 			if (!skipReceive) {
-				validateReceiveDripsInput(userId, tokenAddress, maxCycles);
+				validateReceiveDripsInput(accountId, tokenAddress, maxCycles);
 
-				const receiveTx = await dripsHubTxFactory.receiveDrips(userId, tokenAddress, maxCycles);
+				const receiveTx = await dripsTxFactory.receiveStreams(accountId, tokenAddress, maxCycles);
 
 				flow.push(receiveTx);
 			}
 
 			if (!skipSplit) {
-				validateSplitInput(userId, tokenAddress, currentReceivers);
+				validateSplitInput(accountId, tokenAddress, currentReceivers);
 
-				const splitTx = await dripsHubTxFactory.split(userId, tokenAddress, currentReceivers);
+				const splitTx = await dripsTxFactory.split(accountId, tokenAddress, currentReceivers);
 
 				flow.push(splitTx);
 			}

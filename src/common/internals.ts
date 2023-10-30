@@ -6,7 +6,7 @@
 import type { PopulatedTransaction, Signer } from 'ethers';
 import { BigNumber } from 'ethers';
 import { DripsErrors } from './DripsError';
-import type { DripsReceiverStruct, SplitsReceiverStruct } from './types';
+import type { StreamReceiverStruct, SplitsReceiverStruct } from './types';
 
 /** @internal */
 export const nameOf = (obj: any) => Object.keys(obj)[0];
@@ -15,13 +15,14 @@ export const nameOf = (obj: any) => Object.keys(obj)[0];
 export const isNullOrUndefined = (obj: any) => obj == null;
 
 /** @internal */
-export const formatDripsReceivers = (receivers: DripsReceiverStruct[]) => {
+export const formatStreamReceivers = (receivers: StreamReceiverStruct[]) => {
 	// Drips receivers must be sorted by user ID and config, deduplicated, and without amount per second <= 0.
 
-	const uniqueReceivers = receivers.reduce((unique: DripsReceiverStruct[], o) => {
+	const uniqueReceivers = receivers.reduce((unique: StreamReceiverStruct[], o) => {
 		if (
 			!unique.some(
-				(obj: DripsReceiverStruct) => obj.userId === o.userId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
+				(obj: StreamReceiverStruct) =>
+					obj.accountId === o.accountId && BigNumber.from(obj.config).eq(BigNumber.from(o.config))
 			)
 		) {
 			unique.push(o);
@@ -30,11 +31,11 @@ export const formatDripsReceivers = (receivers: DripsReceiverStruct[]) => {
 	}, []);
 
 	const sortedReceivers = uniqueReceivers
-		// Sort by userId.
+		// Sort by accountId.
 		.sort((a, b) =>
-			BigNumber.from(a.userId).gt(BigNumber.from(b.userId))
+			BigNumber.from(a.accountId).gt(BigNumber.from(b.accountId))
 				? 1
-				: BigNumber.from(a.userId).lt(BigNumber.from(b.userId))
+				: BigNumber.from(a.accountId).lt(BigNumber.from(b.accountId))
 				? -1
 				: // Sort by config.
 				BigNumber.from(a.config).gt(BigNumber.from(b.config))
@@ -51,7 +52,7 @@ export const formatSplitReceivers = (receivers: SplitsReceiverStruct[]): SplitsR
 	// Splits receivers must be sorted by user ID, deduplicated, and without weights <= 0.
 
 	const uniqueReceivers = receivers.reduce((unique: SplitsReceiverStruct[], o) => {
-		if (!unique.some((obj: SplitsReceiverStruct) => obj.userId === o.userId && obj.weight === o.weight)) {
+		if (!unique.some((obj: SplitsReceiverStruct) => obj.accountId === o.accountId && obj.weight === o.weight)) {
 			unique.push(o);
 		}
 		return unique;
@@ -59,9 +60,9 @@ export const formatSplitReceivers = (receivers: SplitsReceiverStruct[]): SplitsR
 
 	const sortedReceivers = uniqueReceivers.sort((a, b) =>
 		// Sort by user ID.
-		BigNumber.from(a.userId).gt(BigNumber.from(b.userId))
+		BigNumber.from(a.accountId).gt(BigNumber.from(b.accountId))
 			? 1
-			: BigNumber.from(a.userId).lt(BigNumber.from(b.userId))
+			: BigNumber.from(a.accountId).lt(BigNumber.from(b.accountId))
 			? -1
 			: 0
 	);

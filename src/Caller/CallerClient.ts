@@ -1,6 +1,6 @@
 /* eslint-disable no-dupe-class-members */
 import type { Provider } from '@ethersproject/providers';
-import type { PopulatedTransaction, ContractTransaction, Signer } from 'ethers';
+import type { PopulatedTransaction, ContractTransaction, Signer, PayableOverrides } from 'ethers';
 import type { Preset } from 'src/common/types';
 import { DripsErrors } from '../common/DripsError';
 import type { CallStruct, Caller } from '../../contracts/Caller';
@@ -90,7 +90,10 @@ export default class CallerClient {
 	 * @param calls The calls to perform.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 */
-	public async callBatched(calls: CallStruct[]): Promise<ContractTransaction>;
+	public async callBatched(
+		calls: CallStruct[],
+		overrides?: PayableOverrides & { from?: string }
+	): Promise<ContractTransaction>;
 	/**
 	 * Executes a batch of calls.
 	 *
@@ -103,7 +106,10 @@ export default class CallerClient {
 	 * @param calls The calls to perform.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 */
-	public async callBatched(calls: Preset): Promise<ContractTransaction>;
+	public async callBatched(
+		calls: Preset,
+		overrides?: PayableOverrides & { from?: string }
+	): Promise<ContractTransaction>;
 	/**
 	 * Executes a batch of calls.
 	 *
@@ -116,8 +122,29 @@ export default class CallerClient {
 	 * @param calls The calls to perform.
 	 * @returns A `Promise` which resolves to the contract transaction.
 	 */
-	public async callBatched(calls: PopulatedTransaction[]): Promise<ContractTransaction>;
-	public async callBatched(calls: CallStruct[] | Preset | PopulatedTransaction[]): Promise<ContractTransaction> {
+	public async callBatched(
+		calls: PopulatedTransaction[],
+		overrides: PayableOverrides & { from?: string }
+	): Promise<ContractTransaction>;
+	public async callBatched(
+		calls: CallStruct[] | Preset | PopulatedTransaction[],
+		overrides: PayableOverrides & { from?: string } = {}
+	): Promise<ContractTransaction> {
+		const transformedCalls: CallStruct[] = this._getCalls(calls);
+
+		return this.#caller.callBatched(transformedCalls, overrides);
+	}
+
+	public async populateCallBatchedTx(
+		calls: CallStruct[] | Preset | PopulatedTransaction[],
+		overrides: PayableOverrides & { from?: string } = {}
+	): Promise<PopulatedTransaction> {
+		const transformedCalls: CallStruct[] = this._getCalls(calls);
+
+		return this.#caller.populateTransaction.callBatched(transformedCalls, overrides);
+	}
+
+	private _getCalls(calls: CallStruct[] | Preset | PopulatedTransaction[]) {
 		let transformedCalls: CallStruct[];
 
 		if (Array.isArray(calls)) {
@@ -158,6 +185,6 @@ export default class CallerClient {
 			...call,
 			value: call.value ?? 0
 		}));
-		return this.#caller.callBatched(transformedCalls);
+		return transformedCalls;
 	}
 }

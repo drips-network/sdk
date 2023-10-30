@@ -1,36 +1,36 @@
-import type { DripsSetEvent, DripsSetEventWithFullReceivers } from './types';
+import type { StreamsSetEvent, StreamsSetEventWithFullReceivers } from './types';
 
 type ReceiversHash = string;
 
-interface DripsReceiverSeenEvent {
+interface StreamReceiverSeenEvent {
 	id: string;
-	receiverUserId: string;
+	receiverAccountId: string;
 	config: bigint;
 }
 
-export const sortDripsSetEvents = <T extends DripsSetEvent>(dripsSetEvents: T[]): T[] =>
-	dripsSetEvents.sort((a, b) => Number(a.blockTimestamp) - Number(b.blockTimestamp));
+export const sortStreamsSetEvents = <T extends StreamsSetEvent>(streamsSetEvents: T[]): T[] =>
+	streamsSetEvents.sort((a, b) => Number(a.blockTimestamp) - Number(b.blockTimestamp));
 
 export const deduplicateArray = <T>(array: T[], key: keyof T): T[] => [
 	...new Map(array.map((item) => [item[key], item])).values()
 ];
 
-export const reconcileDripsSetReceivers = (dripsSetEvents: DripsSetEvent[]): DripsSetEventWithFullReceivers[] => {
-	const sortedDripsSetEvents = sortDripsSetEvents(dripsSetEvents);
+export const reconcileDripsSetReceivers = (streamsSetEvents: StreamsSetEvent[]): StreamsSetEventWithFullReceivers[] => {
+	const sortedStreamsSetEvents = sortStreamsSetEvents(streamsSetEvents);
 
-	const receiversHashes = sortedDripsSetEvents.reduce<ReceiversHash[]>((acc, dripsSetEvent) => {
-		const { receiversHash } = dripsSetEvent;
+	const receiversHashes = sortedStreamsSetEvents.reduce<ReceiversHash[]>((acc, streamsSetEvent) => {
+		const { receiversHash } = streamsSetEvent;
 
 		return !acc.includes(receiversHash) ? [...acc, receiversHash] : acc;
 	}, []);
 
-	const dripsReceiverSeenEventsByReceiversHash = receiversHashes.reduce<{
-		[receiversHash: string]: DripsReceiverSeenEvent[];
+	const streamReceiverSeenEventsByReceiversHash = receiversHashes.reduce<{
+		[receiversHash: string]: StreamReceiverSeenEvent[];
 	}>((acc, receiversHash) => {
 		const receivers = deduplicateArray(
-			sortedDripsSetEvents
+			sortedStreamsSetEvents
 				.filter((event) => event.receiversHash === receiversHash)
-				.reduce<DripsReceiverSeenEvent[]>((accc, event) => [...accc, ...event.dripsReceiverSeenEvents], []),
+				.reduce<StreamReceiverSeenEvent[]>((accc, event) => [...accc, ...event.streamReceiverSeenEvents], []),
 			'config'
 		);
 
@@ -40,12 +40,12 @@ export const reconcileDripsSetReceivers = (dripsSetEvents: DripsSetEvent[]): Dri
 		};
 	}, {});
 
-	return sortedDripsSetEvents.reduce<DripsSetEventWithFullReceivers[]>(
-		(acc, dripsSetEvent) => [
+	return sortedStreamsSetEvents.reduce<StreamsSetEventWithFullReceivers[]>(
+		(acc, streamsSetEvent) => [
 			...acc,
 			{
-				...dripsSetEvent,
-				currentReceivers: dripsReceiverSeenEventsByReceiversHash[dripsSetEvent.receiversHash] ?? []
+				...streamsSetEvent,
+				currentReceivers: streamReceiverSeenEventsByReceiversHash[streamsSetEvent.receiversHash] ?? []
 			}
 		],
 		[]

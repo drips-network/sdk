@@ -9,11 +9,11 @@ import { AddressDriver__factory } from '../../contracts';
 import Utils from '../../src/utils';
 import AddressDriverTxFactory from '../../src/AddressDriver/AddressDriverTxFactory';
 import * as validators from '../../src/common/validators';
-import type { SplitsReceiverStruct, DripsReceiverStruct, UserMetadataStruct } from '../../src/common/types';
-import { formatDripsReceivers } from '../../src/common/internals';
+import type { SplitsReceiverStruct, StreamReceiverStruct, AccountMetadataStruct } from '../../src/common/types';
+import { formatStreamReceivers } from '../../src/common/internals';
 
 describe('AddressDriverTxFactory', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
@@ -141,19 +141,19 @@ describe('AddressDriverTxFactory', () => {
 		});
 	});
 
-	describe('setDrips', () => {
+	describe('setStreams', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			addressDriverContractStub.populateTransaction.setDrips = stub.resolves(expectedTx);
-			const currReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
-			const newReceivers = [{ userId: 2 }, { userId: 1 }] as DripsReceiverStruct[];
+			addressDriverContractStub.populateTransaction.setStreams = stub.resolves(expectedTx);
+			const currReceivers = [{ accountId: 2 }, { accountId: 1 }] as StreamReceiverStruct[];
+			const newReceivers = [{ accountId: 2 }, { accountId: 1 }] as StreamReceiverStruct[];
 
-			addressDriverContractStub.estimateGas.setDrips = sinon.stub().resolves(BigNumber.from(100));
+			addressDriverContractStub.estimateGas.setStreams = sinon.stub().resolves(BigNumber.from(100));
 
 			// Act
-			const tx = await testAddressDriverTxFactory.setDrips(
+			const tx = await testAddressDriverTxFactory.setStreams(
 				'0x1234',
 				currReceivers,
 				'0x5678',
@@ -167,9 +167,9 @@ describe('AddressDriverTxFactory', () => {
 			assert(
 				stub.calledOnceWithExactly(
 					'0x1234',
-					formatDripsReceivers(currReceivers),
+					formatStreamReceivers(currReceivers),
 					'0x5678',
-					formatDripsReceivers(newReceivers),
+					formatStreamReceivers(newReceivers),
 					0,
 					0,
 					'0x9abc',
@@ -181,20 +181,20 @@ describe('AddressDriverTxFactory', () => {
 		});
 	});
 
-	describe('emitUserMetadata', () => {
+	describe('emitAccountMetadata', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			addressDriverContractStub.populateTransaction.emitUserMetadata = stub.resolves(expectedTx);
-			const userMetadata = [] as UserMetadataStruct[];
+			addressDriverContractStub.populateTransaction.emitAccountMetadata = stub.resolves(expectedTx);
+			const accountMetadata = [] as AccountMetadataStruct[];
 			const overrides = {};
 
 			// Act
-			const tx = await testAddressDriverTxFactory.emitUserMetadata(userMetadata, overrides);
+			const tx = await testAddressDriverTxFactory.emitAccountMetadata(accountMetadata, overrides);
 
 			// Assert
-			assert(stub.calledOnceWithExactly(userMetadata, overrides));
+			assert(stub.calledOnceWithExactly(accountMetadata, overrides));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});

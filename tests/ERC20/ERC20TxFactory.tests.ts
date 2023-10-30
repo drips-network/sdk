@@ -23,7 +23,7 @@ describe('ERC20TxFactory', () => {
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
-		const TEST_CHAIN_ID = 5; // Goerli.
+		const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 		providerStub = sinon.createStubInstance(JsonRpcProvider);
 

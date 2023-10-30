@@ -4,21 +4,21 @@ import { assert } from 'chai';
 import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubObject, stubInterface } from 'ts-sinon';
 import { Wallet } from 'ethers';
-import type { DripsHub } from '../../contracts';
-import { DripsHub__factory } from '../../contracts';
+import type { Drips } from '../../contracts';
+import { Drips__factory } from '../../contracts';
 import Utils from '../../src/utils';
-import DripsHubTxFactory from '../../src/DripsHub/DripsHubTxFactory';
+import DripsTxFactory from '../../src/Drips/DripsTxFactory';
 import * as validators from '../../src/common/validators';
-import type { SplitsReceiverStruct, DripsHistoryStruct } from '../../src/common/types';
+import type { SplitsReceiverStruct, StreamsHistoryStruct } from '../../src/common/types';
 
-describe('DripsHubTxFactory', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+describe('DripsTxFactory', () => {
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
-	let dripsHubContractStub: StubbedInstance<DripsHub>;
+	let dripsContractStub: StubbedInstance<Drips>;
 
-	let testDripsHubTxFactory: DripsHubTxFactory;
+	let testDripsHubTxFactory: DripsTxFactory;
 
 	// Acts also as the "base Arrange step".
 	beforeEach(async () => {
@@ -26,13 +26,13 @@ describe('DripsHubTxFactory', () => {
 		networkStub = stubObject<Network>({ chainId: TEST_CHAIN_ID } as Network);
 		providerStub.getNetwork.resolves(networkStub);
 
-		dripsHubContractStub = stubInterface<DripsHub>();
+		dripsContractStub = stubInterface<Drips>();
 		sinon
-			.stub(DripsHub__factory, 'connect')
+			.stub(Drips__factory, 'connect')
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].ADDRESS_DRIVER, providerStub)
-			.returns(dripsHubContractStub);
+			.returns(dripsContractStub);
 
-		testDripsHubTxFactory = await DripsHubTxFactory.create(providerStub);
+		testDripsHubTxFactory = await DripsTxFactory.create(providerStub);
 	});
 
 	afterEach(() => {
@@ -45,7 +45,7 @@ describe('DripsHubTxFactory', () => {
 			const validateClientProviderStub = sinon.stub(validators, 'validateClientProvider');
 
 			// Act
-			await DripsHubTxFactory.create(providerStub);
+			await DripsTxFactory.create(providerStub);
 
 			// Assert
 			assert(
@@ -59,7 +59,7 @@ describe('DripsHubTxFactory', () => {
 			const customDriverAddress = Wallet.createRandom().address;
 
 			// Act
-			const client = await DripsHubTxFactory.create(providerStub, customDriverAddress);
+			const client = await DripsTxFactory.create(providerStub, customDriverAddress);
 
 			// Assert
 			assert.equal(client.driverAddress, customDriverAddress);
@@ -74,15 +74,15 @@ describe('DripsHubTxFactory', () => {
 		});
 	});
 
-	describe('receiveDrips', () => {
+	describe('receiveStreams', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			dripsHubContractStub.populateTransaction.receiveDrips = stub.resolves(expectedTx);
+			dripsContractStub.populateTransaction.receiveStreams = stub.resolves(expectedTx);
 
 			// Act
-			const tx = await testDripsHubTxFactory.receiveDrips('0x1234', '0x5678', '0x9abc');
+			const tx = await testDripsHubTxFactory.receiveStreams('0x1234', '0x5678', '0x9abc');
 
 			// Assert
 			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc'));
@@ -91,19 +91,19 @@ describe('DripsHubTxFactory', () => {
 		});
 	});
 
-	describe('squeezeDrips', () => {
+	describe('squeezeStreams', () => {
 		it('should return the expected transaction', async () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			dripsHubContractStub.populateTransaction.squeezeDrips = stub.resolves(expectedTx);
-			const dripsHistory = [] as DripsHistoryStruct[];
+			dripsContractStub.populateTransaction.squeezeStreams = stub.resolves(expectedTx);
+			const streamsHistory = [] as StreamsHistoryStruct[];
 
 			// Act
-			const tx = await testDripsHubTxFactory.squeezeDrips('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory);
+			const tx = await testDripsHubTxFactory.squeezeStreams('0x1234', '0x5678', '0x9abc', '0xdef0', streamsHistory);
 
 			// Assert
-			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', '0xdef0', dripsHistory));
+			assert(stub.calledOnceWithExactly('0x1234', '0x5678', '0x9abc', '0xdef0', streamsHistory));
 			assert.deepEqual(tx.from, expectedTx.from);
 			assert.isTrue(tx.value!.toNumber() === 0);
 		});
@@ -114,7 +114,7 @@ describe('DripsHubTxFactory', () => {
 			// Arrange
 			const stub = sinon.stub();
 			const expectedTx = { from: '0x1234' };
-			dripsHubContractStub.populateTransaction.split = stub.resolves(expectedTx);
+			dripsContractStub.populateTransaction.split = stub.resolves(expectedTx);
 			const receivers = [] as SplitsReceiverStruct[];
 
 			// Act

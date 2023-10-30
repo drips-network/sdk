@@ -1,55 +1,69 @@
 import Utils from '../utils';
 import type {
-	DripsReceiverSeenEvent,
-	DripsSetEvent,
+	StreamReceiverSeenEvent,
+	StreamsSetEvent,
 	SplitsEntry,
-	UserAssetConfig,
-	UserMetadataEntry,
+	AccountAssetConfig,
+	AccountMetadataEntry,
 	SplitEvent,
-	ReceivedDripsEvent,
+	ReceivedStreamsEvent,
 	GivenEvent,
 	CollectedEvent,
-	SqueezedDripsEvent
+	SqueezedStreamsEvent,
+	RepoAccount,
+	RepoAccountStatus
 } from './types';
 import type * as SubgraphTypes from './generated/graphql-types';
 
 /** @internal */
-export const mapUserAssetConfigToDto = (userAssetConfig: SubgraphTypes.UserAssetConfig): UserAssetConfig => ({
-	id: userAssetConfig.id,
-	assetId: BigInt(userAssetConfig.assetId),
-	dripsEntries: userAssetConfig.dripsEntries?.map((d) => ({
+export const mapRepoAccountToDto = (repoAccount: SubgraphTypes.RepoAccount): RepoAccount => ({
+	accountId: repoAccount.id,
+	name: repoAccount.name,
+	status: repoAccount.status ? (repoAccount.status as RepoAccountStatus) : null,
+	forge: BigInt(repoAccount.forge),
+	ownerAddress: repoAccount.ownerAddress ? repoAccount.ownerAddress : null,
+	lastUpdatedBlockTimestamp: BigInt(repoAccount.lastUpdatedBlockTimestamp)
+});
+
+/** @internal */
+export const mapAccountAssetConfigToDto = (
+	accountAssetConfig: SubgraphTypes.AccountAssetConfig
+): AccountAssetConfig => ({
+	id: accountAssetConfig.id,
+	assetId: BigInt(accountAssetConfig.assetId),
+	streamsEntries: accountAssetConfig.streamsEntries?.map((d) => ({
 		id: d.id,
-		userId: d.userId,
+		accountId: d.accountId,
 		config: BigInt(d.config)
 	})),
-	balance: BigInt(userAssetConfig.balance),
-	amountCollected: BigInt(userAssetConfig.amountCollected),
-	lastUpdatedBlockTimestamp: BigInt(userAssetConfig.lastUpdatedBlockTimestamp)
+	balance: BigInt(accountAssetConfig.balance),
+	amountCollected: BigInt(accountAssetConfig.amountCollected),
+	lastUpdatedBlockTimestamp: BigInt(accountAssetConfig.lastUpdatedBlockTimestamp)
 });
 
 /** @internal */
 export const mapSplitEntryToDto = (splitEntry: SubgraphTypes.SplitsEntry): SplitsEntry => ({
 	id: splitEntry.id,
-	userId: splitEntry.userId,
+	accountId: splitEntry.accountId,
 	senderId: splitEntry.sender.id,
 	weight: BigInt(splitEntry.weight)
 });
 
 /** @internal */
-export const mapDripsSetEventToDto = (dripsSetEvent: SubgraphTypes.DripsSetEvent): DripsSetEvent => ({
-	id: dripsSetEvent.id,
-	userId: dripsSetEvent.userId,
-	assetId: BigInt(dripsSetEvent.assetId),
-	dripsReceiverSeenEvents: dripsSetEvent.dripsReceiverSeenEvents?.map((r) => ({
+export const mapStreamsSetEventToDto = (streamsSetEvent: SubgraphTypes.StreamsSetEvent): StreamsSetEvent => ({
+	id: streamsSetEvent.id,
+	accountId: streamsSetEvent.accountId,
+	assetId: BigInt(streamsSetEvent.assetId),
+	streamReceiverSeenEvents: streamsSetEvent.streamReceiverSeenEvents?.map((r) => ({
 		id: r.id,
-		receiverUserId: r.receiverUserId,
+		receiverAccountId: r.receiverAccountId,
 		config: BigInt(r.config)
 	})),
-	dripsHistoryHash: dripsSetEvent.dripsHistoryHash,
-	balance: BigInt(dripsSetEvent.balance),
-	blockTimestamp: BigInt(dripsSetEvent.blockTimestamp),
-	maxEnd: BigInt(dripsSetEvent.maxEnd),
-	receiversHash: dripsSetEvent.receiversHash
+	streamsHistoryHash: streamsSetEvent.streamsHistoryHash,
+	balance: BigInt(streamsSetEvent.balance),
+	blockTimestamp: BigInt(streamsSetEvent.blockTimestamp),
+	maxEnd: BigInt(streamsSetEvent.maxEnd),
+	receiversHash: streamsSetEvent.receiversHash
 });
 
 /** @internal */
@@ -59,19 +73,19 @@ export const mapSplitEventToDto = (splitEvent: SubgraphTypes.SplitEvent): SplitE
 	assetId: BigInt(splitEvent.assetId),
 	blockTimestamp: BigInt(splitEvent.blockTimestamp),
 	receiverId: splitEvent.receiverId,
-	userId: splitEvent.userId
+	accountId: splitEvent.accountId
 });
 
 /** @internal */
-export const mapReceivedDripsEventToDto = (
-	receivedDripsEvent: SubgraphTypes.ReceivedDripsEvent
-): ReceivedDripsEvent => ({
+export const mapReceivedStreamsEventToDto = (
+	receivedDripsEvent: SubgraphTypes.ReceivedStreamsEvent
+): ReceivedStreamsEvent => ({
 	id: receivedDripsEvent.id,
 	amount: BigInt(receivedDripsEvent.amt),
 	assetId: BigInt(receivedDripsEvent.assetId),
 	blockTimestamp: BigInt(receivedDripsEvent.blockTimestamp),
 	receivableCycles: BigInt(receivedDripsEvent.receivableCycles),
-	userId: receivedDripsEvent.userId
+	accountId: receivedDripsEvent.accountId
 });
 
 /** @internal */
@@ -80,18 +94,20 @@ export const mapCollectedEventToDto = (collectedEvent: SubgraphTypes.CollectedEv
 	collected: BigInt(collectedEvent.collected),
 	assetId: BigInt(collectedEvent.assetId),
 	blockTimestamp: BigInt(collectedEvent.blockTimestamp),
-	userId: collectedEvent.user.id
+	accountId: collectedEvent.account.id
 });
 
 /** @internal */
-export const mapSqueezedDripsToDto = (squeezedDripsEvent: SubgraphTypes.SqueezedDripsEvent): SqueezedDripsEvent => ({
-	amount: BigInt(squeezedDripsEvent.amt),
-	assetId: BigInt(squeezedDripsEvent.assetId),
-	blockTimestamp: BigInt(squeezedDripsEvent.blockTimestamp),
-	id: squeezedDripsEvent.id,
-	senderId: squeezedDripsEvent.senderId,
-	userId: squeezedDripsEvent.userId,
-	dripsHistoryHashes: squeezedDripsEvent.dripsHistoryHashes
+export const mapSqueezedStreamsToDto = (
+	squeezedStreamsEvent: SubgraphTypes.SqueezedStreamsEvent
+): SqueezedStreamsEvent => ({
+	amount: BigInt(squeezedStreamsEvent.amt),
+	assetId: BigInt(squeezedStreamsEvent.assetId),
+	blockTimestamp: BigInt(squeezedStreamsEvent.blockTimestamp),
+	id: squeezedStreamsEvent.id,
+	senderId: squeezedStreamsEvent.senderId,
+	accountId: squeezedStreamsEvent.accountId,
+	streamsHistoryHashes: squeezedStreamsEvent.streamsHistoryHashes
 });
 
 /** @internal */
@@ -100,35 +116,37 @@ export const mapGivenEventToDto = (givenEvent: SubgraphTypes.GivenEvent): GivenE
 	amount: BigInt(givenEvent.amt),
 	assetId: BigInt(givenEvent.assetId),
 	blockTimestamp: BigInt(givenEvent.blockTimestamp),
-	receiverUserId: givenEvent.receiverUserId,
-	userId: givenEvent.userId
+	receiverAccountId: givenEvent.receiverAccountId,
+	accountId: givenEvent.accountId
 });
 
 /** @internal */
-export const mapDripsReceiverSeenEventToDto = (
-	dripsReceiverSeenEvent: SubgraphTypes.DripsReceiverSeenEvent
-): DripsReceiverSeenEvent => ({
-	id: dripsReceiverSeenEvent.id,
-	config: BigInt(dripsReceiverSeenEvent.config),
-	senderUserId: BigInt(dripsReceiverSeenEvent.senderUserId),
-	receiverUserId: BigInt(dripsReceiverSeenEvent.receiverUserId),
-	dripsSetEvent: {
-		id: dripsReceiverSeenEvent.dripsSetEvent.id,
-		assetId: BigInt(dripsReceiverSeenEvent.dripsSetEvent.assetId),
-		receiversHash: dripsReceiverSeenEvent.dripsSetEvent.receiversHash
+export const mapStreamReceiverSeenEventToDto = (
+	streamsReceiverSeenEvent: SubgraphTypes.StreamReceiverSeenEvent
+): StreamReceiverSeenEvent => ({
+	id: streamsReceiverSeenEvent.id,
+	config: BigInt(streamsReceiverSeenEvent.config),
+	senderAccountId: BigInt(streamsReceiverSeenEvent.senderAccountId),
+	receiverAccountId: BigInt(streamsReceiverSeenEvent.receiverAccountId),
+	streamsSetEvent: {
+		id: streamsReceiverSeenEvent.streamsSetEvent.id,
+		assetId: BigInt(streamsReceiverSeenEvent.streamsSetEvent.assetId),
+		receiversHash: streamsReceiverSeenEvent.streamsSetEvent.receiversHash
 	},
-	blockTimestamp: BigInt(dripsReceiverSeenEvent.blockTimestamp)
+	blockTimestamp: BigInt(streamsReceiverSeenEvent.blockTimestamp)
 });
 
 /** @internal */
-export const mapUserMetadataEventToDto = (userMetadata: SubgraphTypes.UserMetadataEvent): UserMetadataEntry => {
-	const { key, value } = Utils.Metadata.convertMetadataBytesToString(userMetadata);
+export const mapAccountMetadataEventToDto = (
+	accountMetadata: SubgraphTypes.AccountMetadataEvent
+): AccountMetadataEntry => {
+	const { key, value } = Utils.Metadata.convertMetadataBytesToString(accountMetadata);
 
 	return {
 		key,
 		value,
-		id: userMetadata.id,
-		userId: userMetadata.userId,
-		lastUpdatedBlockTimestamp: BigInt(userMetadata.lastUpdatedBlockTimestamp)
+		id: accountMetadata.id,
+		accountId: accountMetadata.accountId,
+		lastUpdatedBlockTimestamp: BigInt(accountMetadata.lastUpdatedBlockTimestamp)
 	};
 };

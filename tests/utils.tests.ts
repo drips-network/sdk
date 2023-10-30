@@ -5,7 +5,7 @@ import sinon from 'ts-sinon';
 import { DripsErrorCode } from '../src/common/DripsError';
 import * as internals from '../src/common/internals';
 import * as validators from '../src/common/validators';
-import type { DripsReceiverConfig } from '../src/common/types';
+import type { StreamConfig } from '../src/common/types';
 import Utils from '../src/utils';
 
 describe('Utils', () => {
@@ -102,7 +102,7 @@ describe('Utils', () => {
 
 				// Act
 				try {
-					await Utils.Cycle.getInfo(100);
+					Utils.Cycle.getInfo(100);
 				} catch (error: any) {
 					// Assert
 					assert.equal(error.code, DripsErrorCode.UNSUPPORTED_NETWORK);
@@ -120,7 +120,7 @@ describe('Utils', () => {
 				// assertions
 
 				// Act
-				const result = Utils.Cycle.getInfo(5);
+				const result = Utils.Cycle.getInfo(11155111);
 
 				// Assert
 				assert.equal(result.cycleDurationSecs, 604800n);
@@ -176,20 +176,20 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('DripsReceiverConfiguration', () => {
+	describe('StreamConfiguration', () => {
 		describe('toUint256()', () => {
 			it('should validate drips receiver config', () => {
 				// Arrange
-				const config: DripsReceiverConfig = { dripId: 1n, start: 1n, duration: 1n, amountPerSec: 1n };
+				const config: StreamConfig = { dripId: 1n, start: 1n, duration: 1n, amountPerSec: 1n };
 
-				const validateDripsReceiverConfigObjStub = sinon.stub(validators, 'validateDripsReceiverConfig');
+				const validateStreamConfigObjStub = sinon.stub(validators, 'validateStreamConfig');
 
 				// Act
-				Utils.DripsReceiverConfiguration.toUint256(config);
+				Utils.StreamConfiguration.toUint256(config);
 
 				// Assert
 				assert(
-					validateDripsReceiverConfigObjStub.calledOnceWithExactly(config),
+					validateStreamConfigObjStub.calledOnceWithExactly(config),
 					'Expected method to be called with different arguments'
 				);
 			});
@@ -199,7 +199,7 @@ describe('Utils', () => {
 				const expectedConfig = 269599466671506397946670150870196306736371444226143594574070383902750000n;
 
 				// Act
-				const config: bigint = Utils.DripsReceiverConfiguration.toUint256({
+				const config: bigint = Utils.StreamConfiguration.toUint256({
 					dripId: 10000n,
 					start: 20000n,
 					duration: 30000n,
@@ -217,18 +217,18 @@ describe('Utils', () => {
 				const config =
 					BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toBigInt();
 
-				const configObj = Utils.DripsReceiverConfiguration.fromUint256(config);
+				const configObj = Utils.StreamConfiguration.fromUint256(config);
 
-				const validateDripsReceiverConfigBNStub = sinon.stub(validators, 'validateDripsReceiverConfig');
+				const validateStreamConfigBNStub = sinon.stub(validators, 'validateStreamConfig');
 
 				// Act
-				Utils.DripsReceiverConfiguration.fromUint256(config);
+				Utils.StreamConfiguration.fromUint256(config);
 
 				// Assert
 				assert(
-					validateDripsReceiverConfigBNStub.calledOnceWithExactly(
+					validateStreamConfigBNStub.calledOnceWithExactly(
 						sinon.match(
-							(c: DripsReceiverConfig) =>
+							(c: StreamConfig) =>
 								c.dripId === configObj.dripId &&
 								c.start === configObj.start &&
 								c.duration === configObj.duration &&
@@ -241,7 +241,7 @@ describe('Utils', () => {
 
 			it('should return the expected result', async () => {
 				// Arrange
-				const expectedConfig: DripsReceiverConfig = {
+				const expectedConfig: StreamConfig = {
 					dripId: 10000n,
 					start: 20000n,
 					duration: 30000n,
@@ -250,7 +250,7 @@ describe('Utils', () => {
 				const { start, duration, amountPerSec } = expectedConfig;
 
 				// Act
-				const config: DripsReceiverConfig = Utils.DripsReceiverConfiguration.fromUint256(
+				const config: StreamConfig = Utils.StreamConfiguration.fromUint256(
 					BigNumber.from(269599466671506397946670150870196306736371444226143594574070383902750000n).toBigInt()
 				);
 
@@ -281,7 +281,7 @@ describe('Utils', () => {
 		describe('networkConfig', () => {
 			it('should export only unique and supported chain IDs', () => {
 				// Arrange
-				const chainIds = [1, 5, 80001];
+				const chainIds = [1, 11155111, 5];
 
 				// Assert
 				assert.includeMembers(Utils.Network.SUPPORTED_CHAINS as number[], chainIds);
@@ -294,7 +294,7 @@ describe('Utils', () => {
 				// Arrange
 
 				// Act
-				const isSupported = Utils.Network.isSupportedChain(5);
+				const isSupported = Utils.Network.isSupportedChain(11155111);
 
 				// Assert
 				assert.isTrue(isSupported);
@@ -308,6 +308,48 @@ describe('Utils', () => {
 
 				// Assert
 				assert.isFalse(isSupported);
+			});
+		});
+	});
+
+	describe('AccountId', () => {
+		describe('getDriver', () => {
+			it('should return the expected result', () => {
+				// TODO: Add test case for immutable address driver user ID.
+
+				// Arrange
+				const addressDriverAccountId = '846959513016227493489143736695218182523669298507';
+				const nftDriverAccountId = '42583592044554662154154760653976070706375843797872425666273362826761';
+				const repoDriverAccountId = '80907581203104634939800721083555800473270339779792920621438161136896';
+
+				// Act
+				const expectedNftDriverId = Utils.AccountId.getDriver(nftDriverAccountId);
+				const expectedRepoDriverId = Utils.AccountId.getDriver(repoDriverAccountId);
+				const expectedAddressDriverId = Utils.AccountId.getDriver(addressDriverAccountId);
+
+				// Assert
+				assert.equal(expectedNftDriverId, 'nft');
+				assert.equal(expectedRepoDriverId, 'repo');
+				assert.equal(expectedAddressDriverId, 'address');
+			});
+
+			it('should throw an error when the driver ID of the user ID is unknown', () => {
+				// TODO: Add test case for immutable address driver user ID.
+
+				// Arrange
+				let threw = false;
+
+				// Act
+				try {
+					Utils.AccountId.getDriver('0x5000000000000000000000000000000000000000000000000000000000000000');
+				} catch (error: any) {
+					// Assert
+					assert.equal(error.code, DripsErrorCode.INVALID_ARGUMENT);
+					threw = true;
+				}
+
+				// Assert
+				assert.isTrue(threw, 'Expected type of exception was not thrown');
 			});
 		});
 	});

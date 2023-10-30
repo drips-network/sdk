@@ -1,7 +1,7 @@
 [
 	{
 		"inputs": [
-			{ "internalType": "contract DripsHub", "name": "_dripsHub", "type": "address" },
+			{ "internalType": "contract Drips", "name": "_drips", "type": "address" },
 			{ "internalType": "uint32", "name": "_driverId", "type": "uint32" }
 		],
 		"stateMutability": "nonpayable",
@@ -25,7 +25,7 @@
 	{
 		"anonymous": false,
 		"inputs": [
-			{ "indexed": true, "internalType": "uint256", "name": "userId", "type": "uint256" },
+			{ "indexed": true, "internalType": "uint256", "name": "accountId", "type": "uint256" },
 			{ "indexed": true, "internalType": "bytes32", "name": "receiversHash", "type": "bytes32" }
 		],
 		"name": "CreatedSplits",
@@ -95,7 +95,7 @@
 		"inputs": [
 			{
 				"components": [
-					{ "internalType": "uint256", "name": "userId", "type": "uint256" },
+					{ "internalType": "uint256", "name": "accountId", "type": "uint256" },
 					{ "internalType": "uint32", "name": "weight", "type": "uint32" }
 				],
 				"internalType": "struct SplitsReceiver[]",
@@ -107,20 +107,20 @@
 					{ "internalType": "bytes32", "name": "key", "type": "bytes32" },
 					{ "internalType": "bytes", "name": "value", "type": "bytes" }
 				],
-				"internalType": "struct UserMetadata[]",
-				"name": "userMetadata",
+				"internalType": "struct AccountMetadata[]",
+				"name": "accountMetadata",
 				"type": "tuple[]"
 			}
 		],
 		"name": "createSplits",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "dripsHub",
-		"outputs": [{ "internalType": "contract DripsHub", "name": "", "type": "address" }],
+		"name": "drips",
+		"outputs": [{ "internalType": "contract Drips", "name": "", "type": "address" }],
 		"stateMutability": "view",
 		"type": "function"
 	},
@@ -161,8 +161,8 @@
 	},
 	{
 		"inputs": [],
-		"name": "nextUserId",
-		"outputs": [{ "internalType": "uint256", "name": "userId", "type": "uint256" }],
+		"name": "nextAccountId",
+		"outputs": [{ "internalType": "uint256", "name": "accountId", "type": "uint256" }],
 		"stateMutability": "view",
 		"type": "function"
 	},

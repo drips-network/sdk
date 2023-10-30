@@ -7,19 +7,19 @@ import type { StubbedInstance } from 'ts-sinon';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import { ImmutableSplitsDriver__factory } from '../../contracts/factories/ImmutableSplitsDriver__factory';
 import type { ImmutableSplitsDriver, SplitsReceiverStruct } from '../../contracts/ImmutableSplitsDriver';
-import DripsHubClient from '../../src/DripsHub/DripsHubClient';
+import DripsClient from '../../src/Drips/DripsClient';
 import ImmutableSplitsDriverClient from '../../src/ImmutableSplits/ImmutableSplitsDriverClient';
 import Utils from '../../src/utils';
 import * as validators from '../../src/common/validators';
-import type { UserMetadata } from '../../src/common/types';
+import type { AccountMetadata } from '../../src/common/types';
 import { DripsErrorCode } from '../../src/common/DripsError';
 
 describe('ImmutableSplitsDriverClient', () => {
-	const TEST_CHAIN_ID = 5; // Goerli.
+	const TEST_CHAIN_ID = 11155111; // Sepolia.
 
 	let networkStub: StubbedInstance<Network>;
 	let signerStub: StubbedInstance<JsonRpcSigner>;
-	let dripsHubClientStub: StubbedInstance<DripsHubClient>;
+	let dripsHubClientStub: StubbedInstance<DripsClient>;
 	let signerWithProviderStub: StubbedInstance<JsonRpcSigner>;
 	let providerStub: sinon.SinonStubbedInstance<JsonRpcProvider>;
 	let immutableSplitsDriverContractStub: StubbedInstance<ImmutableSplitsDriver>;
@@ -46,8 +46,8 @@ describe('ImmutableSplitsDriverClient', () => {
 			.withArgs(Utils.Network.configs[TEST_CHAIN_ID].IMMUTABLE_SPLITS_DRIVER, signerWithProviderStub)
 			.returns(immutableSplitsDriverContractStub);
 
-		dripsHubClientStub = stubInterface<DripsHubClient>();
-		sinon.stub(DripsHubClient, 'create').resolves(dripsHubClientStub);
+		dripsHubClientStub = stubInterface<DripsClient>();
+		sinon.stub(DripsClient, 'create').resolves(dripsHubClientStub);
 
 		testImmutableSplitsDriverClient = await ImmutableSplitsDriverClient.create(providerStub, signerStub);
 	});
@@ -128,14 +128,14 @@ describe('ImmutableSplitsDriverClient', () => {
 	describe('createSplits()', () => {
 		it('should validate the splits receivers', async () => {
 			// Arrange
-			const expectedUserId = '1';
+			const expectedAccountId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadata: AccountMetadata[] = [{ key: 'key', value: 'value' }];
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ event: 'CreatedSplits', args: { userId: expectedUserId } } as unknown as Event]
+					events: [{ event: 'CreatedSplits', args: { accountId: expectedAccountId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
@@ -151,31 +151,31 @@ describe('ImmutableSplitsDriverClient', () => {
 
 		it('should validate the user metadata', async () => {
 			// Arrange
-			const expectedUserId = '1';
+			const expectedAccountId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadata: AccountMetadata[] = [{ key: 'key', value: 'value' }];
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ event: 'CreatedSplits', args: { userId: expectedUserId } } as unknown as Event]
+					events: [{ event: 'CreatedSplits', args: { accountId: expectedAccountId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
 
-			const validateEmitUserMetadataInputStub = sinon.stub(validators, 'validateEmitUserMetadataInput');
+			const validateEmitAccountMetadataInputStub = sinon.stub(validators, 'validateEmitAccountMetadataInput');
 
 			// Act
 			await testImmutableSplitsDriverClient.createSplits(receivers, metadata);
 
 			// Assert
-			assert(validateEmitUserMetadataInputStub.calledOnceWithExactly(metadata));
+			assert(validateEmitAccountMetadataInputStub.calledOnceWithExactly(metadata));
 		});
 
 		it('should throw a txEventNotFound when a transfer event is not found in the transaction', async () => {
 			let threw = false;
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadata: AccountMetadata[] = [{ key: 'key', value: 'value' }];
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
@@ -200,14 +200,14 @@ describe('ImmutableSplitsDriverClient', () => {
 
 		it('should call the createSplits() method of the AddressDriver contract', async () => {
 			// Arrange
-			const expectedUserId = '1';
+			const expectedAccountId = '1';
 			const receivers: SplitsReceiverStruct[] = [];
-			const metadata: UserMetadata[] = [{ key: 'key', value: 'value' }];
+			const metadata: AccountMetadata[] = [{ key: 'key', value: 'value' }];
 			const metadataAsBytes = metadata.map((m) => Utils.Metadata.createFromStrings(m.key, m.value));
 
 			const waitFake = async () =>
 				Promise.resolve({
-					events: [{ event: 'CreatedSplits', args: { userId: expectedUserId } } as unknown as Event]
+					events: [{ event: 'CreatedSplits', args: { accountId: expectedAccountId } } as unknown as Event]
 				} as unknown as ContractReceipt);
 			const txResponse = { wait: waitFake } as ContractTransaction;
 			immutableSplitsDriverContractStub.createSplits.withArgs(receivers, metadataAsBytes).resolves(txResponse);
