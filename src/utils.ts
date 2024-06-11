@@ -135,7 +135,8 @@ namespace Utils {
 				REPO_DRIVER_ANYAPI_DEFAULT_FEE: '1620000000000000000',
 				REPO_DRIVER_LOGIC: '0xfC446dB5E1255e837E95dB90c818C6fEb8e93ab0',
 				REPO_DRIVER_ADMIN: '0x8dA8f82d2BbDd896822de723F55D6EdF416130ba',
-				SUBGRAPH_URL: 'https://api.thegraph.com/subgraphs/name/drips-network-dev/drips-on-ethereum'
+				// Temporarily public API key. Low spending limit, will be removed after our app is using the Drips GQL API exclusively.
+				SUBGRAPH_URL: 'https://gateway-arbitrum.network.thegraph.com/api/bee9052682e183cb3778a6999adf8943/subgraphs/id/Cd6WEAYjRCcKMQRf2M7GDF4TEpac6zQGiXXHd6PyhaLC'
 			},
 			// Sepolia
 			11155111: {
