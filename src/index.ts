@@ -19,21 +19,6 @@ import {
 	ImmutableSplitsDriverInterface
 } from './common/types';
 import { StreamsState, ReceivableBalance, SplittableBalance, CollectableBalance, SplitResult } from './Drips/types';
-import {
-	GivenEvent,
-	SplitEvent,
-	RepoAccount,
-	SplitsEntry,
-	NftSubAccount,
-	StreamsSetEvent,
-	CollectedEvent,
-	AccountAssetConfig,
-	AccountMetadataEntry,
-	SqueezedStreamsEvent,
-	ReceivedStreamsEvent,
-	StreamReceiverSeenEvent,
-	StreamsSetEventWithFullReceivers
-} from './DripsSubgraph/types';
 import { AddressDriverPresets } from './AddressDriver/AddressDriverPresets';
 import { NFTDriverPresets } from './NFTDriver/NFTDriverPresets';
 
@@ -56,9 +41,6 @@ export { DripsErrorCode, DripsError } from './common/DripsError';
 // Drips
 export { default as DripsClient } from './Drips/DripsClient';
 
-// Drips Subgraph
-export { default as DripsSubgraphClient } from './DripsSubgraph/DripsSubgraphClient';
-
 // ImmutableSplitsDriver
 export { default as ImmutableSplitsDriverClient } from './ImmutableSplits/ImmutableSplitsDriverClient';
 
@@ -79,39 +61,26 @@ export {
 	Forge,
 	Preset,
 	CycleInfo,
-	SplitEvent,
 	CallStruct,
 	StreamsState,
-	GivenEvent,
 	SqueezeArgs,
 	SplitResult,
-	RepoAccount,
-	SplitsEntry,
 	AccountMetadata,
-	NftSubAccount,
-	StreamsSetEvent,
 	NetworkConfig,
 	StreamReceiver,
-	CollectedEvent,
-	AccountAssetConfig,
 	CallerInterface,
 	NFTDriverPresets,
 	ReceivableBalance,
 	DripsInterface,
-	AccountMetadataEntry,
 	SplittableBalance,
 	AccountMetadataStruct,
-	ReceivedStreamsEvent,
 	NFTDriverInterface,
-	SqueezedStreamsEvent,
 	StreamsHistoryStruct,
 	CollectableBalance,
 	StreamReceiverStruct,
 	StreamConfig,
 	AddressDriverPresets,
 	SplitsReceiverStruct,
-	StreamReceiverSeenEvent,
 	AddressDriverInterface,
-	ImmutableSplitsDriverInterface,
-	StreamsSetEventWithFullReceivers
+	ImmutableSplitsDriverInterface
 };

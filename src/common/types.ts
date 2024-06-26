@@ -60,7 +60,6 @@ export type NetworkConfig = {
 	REPO_DRIVER_ANYAPI_OPERATOR: string;
 	REPO_DRIVER_ANYAPI_JOB_ID: string;
 	REPO_DRIVER_ANYAPI_DEFAULT_FEE: string;
-	SUBGRAPH_URL: string;
 };
 
 export type CycleInfo = {
