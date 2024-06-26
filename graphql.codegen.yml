@@ -1,9 +1,0 @@
-overwrite: true
-schema: 'https://api.thegraph.com/subgraphs/name/drips-network-dev/drips-on-ethereum'
-generates:
-  src/DripsSubgraph/generated/graphql-types.ts:
-    plugins:
-      - 'typescript'
-  src/DripsSubgraph/generated/graphql.schema.json:
-    plugins:
-      - 'introspection'
