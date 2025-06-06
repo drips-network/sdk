@@ -1,0 +1,16 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "build",
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": [
+    "*.ts",
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts",
+    "scripts/**/*.ts"
+  ]
+}

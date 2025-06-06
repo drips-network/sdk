@@ -1,0 +1,14 @@
+{
+  "extends": "./node_modules/gts/",
+  "rules": {
+    "object-shorthand": ["error", "always"],
+    "n/no-unsupported-features/es-builtins": [
+      "error",
+      {
+        "version": ">=14.4.0",
+        "ignores": []
+      }
+    ],
+    "n/no-unpublished-import": "off"
+  }
+}

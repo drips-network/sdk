@@ -1,0 +1,415 @@
+interface Account {
+  accountId: ID!
+  driver: Driver!
+}
+
+type AddressDriverAccount implements Account {
+  accountId: ID!
+  address: String!
+  driver: Driver!
+}
+
+type AddressReceiver implements Receiver {
+  account: AddressDriverAccount!
+  driver: Driver!
+  weight: Int!
+}
+
+type Amount {
+  amount: String!
+  tokenAddress: String!
+}
+
+union Avatar = EmojiAvatar | ImageAvatar
+
+type ChainAmount {
+  amount: String!
+  chain: SupportedChain!
+  tokenAddress: String!
+}
+
+type ClaimedProjectData {
+  avatar: Avatar!
+  chain: SupportedChain!
+  claimedAt: Date!
+  color: String!
+  description: String
+  emoji: String! @deprecated(reason: "Use avatar instead")
+  lastProcessedIpfsHash: String
+  latestMetadataIpfsHash: String!
+  owner: AddressDriverAccount!
+  splits: Splits!
+  support: [SupportItem!]!
+  totalEarned: [Amount!]!
+  verificationStatus: ProjectVerificationStatus!
+  withdrawableBalances: [WithdrawableBalance!]!
+  withdrawableSubAccountBalances: [WithdrawableBalance!]!
+}
+
+"""Date custom scalar type"""
+scalar Date
+
+type DripList {
+  account: NftDriverAccount!
+  chain: SupportedChain!
+  creator: String!
+  description: String
+  isVisible: Boolean!
+  lastProcessedIpfsHash: String
+  latestMetadataIpfsHash: String
+  latestVotingRoundId: String
+  name: String!
+  owner: AddressDriverAccount!
+  previousOwnerAddress: String!
+  splits: [SplitsReceiver!]!
+  support: [SupportItem!]!
+  totalEarned: [Amount!]!
+}
+
+type DripListReceiver implements Receiver {
+  account: NftDriverAccount!
+  dripList: DripList!
+  driver: Driver!
+  weight: Int!
+}
+
+type DripListSupport {
+  account: NftDriverAccount!
+  date: Date!
+  dripList: DripList!
+  totalSplit: [Amount!]!
+  weight: Int!
+}
+
+input DripListWhereInput {
+  accountId: String
+  ownerAddress: String
+}
+
+enum Driver {
+  ADDRESS
+  IMMUTABLE_SPLITS
+  NFT
+  REPO
+}
+
+type EcosystemMainAccount {
+  account: NftDriverAccount!
+  avatar: Avatar!
+  chain: SupportedChain!
+  color: String!
+  creator: String!
+  description: String
+  isVisible: Boolean!
+  lastProcessedIpfsHash: String
+  latestMetadataIpfsHash: String
+  name: String!
+  owner: AddressDriverAccount!
+  previousOwnerAddress: String!
+  splits: [SplitsReceiver!]!
+  support: [EcosystemSupportItem!]!
+  totalEarned: [Amount!]!
+}
+
+type EcosystemMainAccountReceiver implements Receiver {
+  account: NftDriverAccount!
+  driver: Driver!
+  ecosystemMainAccount: EcosystemMainAccount!
+  weight: Int!
+}
+
+type EcosystemSupport {
+  account: NftDriverAccount!
+  date: Date!
+  ecosystemMainAccount: EcosystemMainAccount!
+  totalSplit: [Amount!]!
+  weight: Int!
+}
+
+union EcosystemSupportItem = OneTimeDonationSupport | StreamSupport
+
+type EmojiAvatar {
+  emoji: String!
+}
+
+enum Forge {
+  GitHub
+  GitLab
+}
+
+type Give {
+  chainData: [GiveChainData!]!
+  receiver: Account!
+  sender: Account!
+}
+
+type GiveChainData {
+  chain: SupportedChain!
+  data: GiveData
+}
+
+type GiveData {
+  amount: Amount!
+  blockTimestamp: String!
+}
+
+input GiveWhereInput {
+  receiverAccountId: String
+  senderAccountId: String
+  tokenAddress: String
+}
+
+type ImageAvatar {
+  cid: String!
+}
+
+type ImmutableSplitsDriverAccount implements Account {
+  accountId: ID!
+  driver: Driver!
+}
+
+type MintedTokens {
+  chain: SupportedChain!
+  total: Int!
+}
+
+type NftDriverAccount implements Account {
+  accountId: ID!
+  driver: Driver!
+}
+
+type OneTimeDonationSupport {
+  account: AddressDriverAccount!
+  amount: Amount!
+  date: Date!
+}
+
+type Project {
+  account: RepoDriverAccount!
+  chainData: [ProjectData!]!
+  isVisible: Boolean!
+  source: Source
+}
+
+union ProjectData = ClaimedProjectData | UnClaimedProjectData
+
+type ProjectReceiver implements Receiver {
+  account: RepoDriverAccount!
+  driver: Driver!
+  project: Project!
+  splitsToSubAccount: Boolean
+  weight: Int!
+}
+
+enum ProjectSortField {
+  claimed_at
+}
+
+input ProjectSortInput {
+  direction: SortDirection
+  field: ProjectSortField!
+}
+
+type ProjectSupport {
+  account: RepoDriverAccount!
+  date: Date!
+  project: Project!
+  totalSplit: [Amount!]!
+  weight: Int!
+}
+
+enum ProjectVerificationStatus {
+  claimed
+  pending_metadata
+  unclaimed
+}
+
+input ProjectWhereInput {
+  accountId: String
+  ownerAddress: String
+  url: String
+  verificationStatus: ProjectVerificationStatus
+}
+
+type Query {
+  dripList(chain: SupportedChain!, id: ID!): DripList
+  dripLists(chains: [SupportedChain!], where: DripListWhereInput): [DripList!]!
+  earnedFunds(chains: [SupportedChain!], projectId: String!): [ChainAmount!]!
+  ecosystemMainAccount(chain: SupportedChain!, id: ID!): EcosystemMainAccount
+  mintedTokensCountByOwnerAddress(chain: SupportedChain!, ownerAddress: String!): MintedTokens!
+  projectById(chains: [SupportedChain!], id: ID!): Project
+  projectByUrl(chains: [SupportedChain!], url: String!): Project
+  projects(chains: [SupportedChain!], sort: ProjectSortInput, where: ProjectWhereInput): [Project!]!
+  streams(chains: [SupportedChain!], where: StreamWhereInput): [Stream!]!
+  userByAddress(address: String!, chains: [SupportedChain!]): User!
+  userById(accountId: ID!, chains: [SupportedChain!]): User!
+}
+
+interface Receiver {
+  account: Account!
+  driver: Driver!
+  weight: Int!
+}
+
+type RepoDriverAccount implements Account {
+  accountId: ID!
+  driver: Driver!
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+type Source {
+  forge: Forge!
+  ownerName: String!
+  repoName: String!
+  url: String!
+}
+
+type Splits {
+  dependencies: [SplitsReceiver!]!
+  maintainers: [AddressReceiver!]!
+}
+
+union SplitsReceiver = AddressReceiver | DripListReceiver | EcosystemMainAccountReceiver | ProjectReceiver | SubListReceiver
+
+type Stream {
+  chain: SupportedChain!
+  config: StreamConfig!
+  createdAt: Date!
+  description: String
+  endsAt: Date
+  id: ID!
+  isArchived: Boolean
+  isManaged: Boolean!
+  isPaused: Boolean!
+  name: String
+  receiver: StreamReceiver!
+  sender: User!
+  timeline: [TimelineItem!]!
+}
+
+type StreamConfig {
+  amountPerSecond: Amount!
+  dripId: String!
+  durationSeconds: Int
+  raw: String!
+  startDate: Date
+}
+
+union StreamReceiver = DripList | EcosystemMainAccount | User
+
+type StreamSupport {
+  account: AddressDriverAccount!
+  date: Date!
+  stream: Stream!
+}
+
+input StreamWhereInput {
+  receiverId: ID
+  senderId: ID
+}
+
+type SubList {
+  account: ImmutableSplitsDriverAccount!
+  chain: SupportedChain!
+  lastProcessedIpfsHash: String
+  latestMetadataIpfsHash: String
+  parentAccountId: String!
+  parentAccountType: String!
+  rootAccountId: String!
+  rootAccountType: String!
+}
+
+type SubListReceiver implements Receiver {
+  account: ImmutableSplitsDriverAccount!
+  driver: Driver!
+  subList: SubList!
+  weight: Int!
+}
+
+union Support = DripListSupport | EcosystemSupport | OneTimeDonationSupport | ProjectSupport | StreamSupport
+
+type SupportGroup {
+  items: [Support!]
+}
+
+union SupportItem = DripListSupport | EcosystemSupport | OneTimeDonationSupport | ProjectSupport | StreamSupport
+
+enum SupportedChain {
+  BASE_SEPOLIA
+  FILECOIN
+  LOCALTESTNET
+  MAINNET
+  METIS
+  OPTIMISM
+  OPTIMISM_SEPOLIA
+  POLYGON_AMOY
+  SEPOLIA
+  ZKSYNC_ERA_SEPOLIA
+}
+
+type TimelineItem {
+  currentAmount: Amount!
+  deltaPerSecond: Amount!
+  timestamp: Date!
+  type: TimelineItemType!
+}
+
+enum TimelineItemType {
+  END
+  OUT_OF_FUNDS
+  PAUSE
+  START
+}
+
+type UnClaimedProjectData {
+  chain: SupportedChain!
+  owner: AddressDriverAccount!
+  support: [SupportItem!]!
+  verificationStatus: ProjectVerificationStatus!
+  withdrawableBalances: [WithdrawableBalance!]!
+  withdrawableSubAccountBalances: [WithdrawableBalance!]!
+}
+
+type User {
+  account: AddressDriverAccount!
+  chainData: [UserData!]!
+}
+
+type UserBalanceTimelineItem {
+  currentAmount: Amount!
+  deltaPerSecond: Amount!
+  timestamp: Date!
+}
+
+type UserBalances {
+  incoming: [UserBalanceTimelineItem!]!
+  outgoing: [UserBalanceTimelineItem!]!
+  tokenAddress: String!
+}
+
+type UserData {
+  balances: [UserBalances!]!
+  chain: SupportedChain!
+  dripLists: [DripList]!
+  latestMetadataIpfsHash: String
+  projects: [Project]!
+  streams: UserStreams!
+  support: [SupportItem!]!
+  withdrawableBalances: [WithdrawableBalance!]!
+}
+
+type UserStreams {
+  incoming: [Stream!]!
+  outgoing: [Stream!]!
+}
+
+type WithdrawableBalance {
+  collectableAmount: String!
+  receivableAmount: String!
+  splittableAmount: String!
+  tokenAddress: String!
+}
