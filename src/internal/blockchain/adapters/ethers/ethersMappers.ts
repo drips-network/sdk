@@ -4,7 +4,7 @@ import type {
   TransactionResponse,
   TransactionReceipt as EthersTransactionReceipt,
 } from 'ethers';
-import {DripsError} from '../../../../sdk/DripsError';
+import {DripsError} from '../../../DripsError';
 import {PreparedTx, TxResponse, TxReceipt} from '../../BlockchainAdapter';
 
 export function mapToEthersTransactionRequest(

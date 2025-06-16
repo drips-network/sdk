@@ -3,7 +3,7 @@ import {
   validateAndFormatSplitsReceivers,
   MAX_SPLITS_RECEIVERS,
 } from '../../../src/internal/utils/validateAndFormatSplitsReceivers';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 import type {SdkSplitsReceiver} from '../../../src/internal/metadata/createPinataIpfsUploader';
 
 describe('validateAndFormatSplitsReceivers', () => {

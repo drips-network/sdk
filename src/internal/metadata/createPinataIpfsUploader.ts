@@ -4,7 +4,7 @@ import {
   nftDriverAccountMetadataParser,
   repoDriverAccountMetadataParser,
 } from './schemas';
-import {DripsError} from '../../sdk/DripsError';
+import {DripsError} from '../DripsError';
 import {PinataSDK} from 'pinata';
 
 export type DripListMetadata = Extract<

@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {calcDripListId} from '../../../src/internal/drip-lists/calcDripListId';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 import type {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 
 // Only mock what cannot be injected

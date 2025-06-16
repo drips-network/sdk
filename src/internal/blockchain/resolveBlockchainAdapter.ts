@@ -1,7 +1,7 @@
 import {WalletClient} from 'viem';
 import type {Provider, Signer} from 'ethers';
 import {SupportedBlockchainClient} from '../../sdk/createDripsSdk';
-import {DripsError} from '../../sdk/DripsError';
+import {DripsError} from '../DripsError';
 import {
   createEthersReadAdapter,
   createEthersWriteAdapter,

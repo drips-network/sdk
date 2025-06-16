@@ -5,7 +5,7 @@ import {
 } from '../../../../../src/internal/blockchain/adapters/viem/viemAdapters';
 import {PreparedTx} from '../../../../../src/internal/blockchain/BlockchainAdapter';
 import {PublicClient, WalletClient, Account, Hash, Hex} from 'viem';
-import {DripsError} from '../../../../../src/sdk/DripsError';
+import {DripsError} from '../../../../../src/internal/DripsError';
 
 // Mock the dependencies
 vi.mock(

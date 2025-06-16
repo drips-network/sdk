@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {getDripListById} from '../../../src/internal/drip-lists/getDripListById';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 import type {DripsGraphQLClient} from '../../../src/internal/graphql/createGraphQLClient';
 
 // Only mock what cannot be injected

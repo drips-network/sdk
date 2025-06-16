@@ -1,5 +1,5 @@
 import {stringToHex, pad, toBytes, toHex} from 'viem';
-import {DripsError} from '../../sdk/DripsError';
+import {DripsError} from '../DripsError';
 
 export const USER_METADATA_KEY = 'ipfs';
 

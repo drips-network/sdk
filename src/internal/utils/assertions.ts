@@ -1,5 +1,5 @@
 import {WalletClient, Account} from 'viem';
-import {DripsError} from '../../sdk/DripsError';
+import {DripsError} from '../DripsError';
 import {SupportedChain, contractsRegistry} from '../config/contractsRegistry';
 import {graphqlChainMap} from '../config/graphqlChainMap';
 import {

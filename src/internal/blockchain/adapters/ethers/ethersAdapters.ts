@@ -6,7 +6,7 @@ import {
   TxResponse,
   WriteBlockchainAdapter,
 } from '../../BlockchainAdapter';
-import {DripsError} from '../../../../sdk/DripsError';
+import {DripsError} from '../../../DripsError';
 import {
   mapToEthersTransactionRequest,
   mapFromEthersResponse,

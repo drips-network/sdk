@@ -1,4 +1,4 @@
-import {DripsError} from '../../sdk/DripsError';
+import {DripsError} from '../DripsError';
 
 export function unreachable(message?: string): never {
   let fullMessage = 'Unreachable code reached';

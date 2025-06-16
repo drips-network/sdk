@@ -4,7 +4,7 @@ import {
   PublicClient,
   CallParameters,
 } from 'viem';
-import {DripsError} from '../../../../sdk/DripsError';
+import {DripsError} from '../../../DripsError';
 import {PreparedTx, TxResponse, TxReceipt} from '../../BlockchainAdapter';
 
 export function mapToViemCallParameters(tx: PreparedTx): CallParameters {

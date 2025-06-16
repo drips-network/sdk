@@ -6,7 +6,7 @@ import {
   DEFAULT_GRAPHQL_URL,
   type DripsGraphQLClient,
 } from '../../../src/internal/graphql/createGraphQLClient';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 
 // Mock the GraphQLClient from graphql-request
 vi.mock('graphql-request', () => ({

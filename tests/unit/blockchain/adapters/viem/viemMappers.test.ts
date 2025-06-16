@@ -5,7 +5,7 @@ import {
 } from '../../../../../src/internal/blockchain/adapters/viem/viemMappers';
 import {PreparedTx} from '../../../../../src/internal/blockchain/BlockchainAdapter';
 import {PublicClient, Hash, TransactionReceipt as ViemTxReceipt} from 'viem';
-import {DripsError} from '../../../../../src/sdk/DripsError';
+import {DripsError} from '../../../../../src/internal/DripsError';
 
 describe('viemMappers', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as const;

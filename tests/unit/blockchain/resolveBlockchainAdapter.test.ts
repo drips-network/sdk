@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {resolveBlockchainAdapter} from '../../../src/internal/blockchain/resolveBlockchainAdapter';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 import type {WalletClient, PublicClient} from 'viem';
 import type {Provider, Signer} from 'ethers';
 import type {

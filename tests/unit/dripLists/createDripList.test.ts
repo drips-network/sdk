@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 import type {
   WriteBlockchainAdapter,
   TxResponse,

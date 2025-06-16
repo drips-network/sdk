@@ -5,7 +5,7 @@ import {
   requireGraphQLSupportedChain,
   requireWriteAccess,
 } from '../../../src/internal/utils/assertions';
-import {DripsError} from '../../../src/sdk/DripsError';
+import {DripsError} from '../../../src/internal/DripsError';
 import type {WalletClient, Account} from 'viem';
 import type {
   ReadBlockchainAdapter,
