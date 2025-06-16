@@ -2,9 +2,9 @@ import {Address, Hash} from 'viem';
 import {callerAbi} from '../abis/callerAbi';
 import {nftDriverAbi} from '../abis/nftDriverAbi';
 import {buildDripListMetadata} from '../metadata/buildDripListMetadata';
-import {buildTx} from '../utils/buildTx';
-import {calculateRandomSalt} from '../utils/calculateRandomSalt';
-import {convertToCallerCall} from '../utils/convertToCallerCall';
+import {buildTx} from '../shared/buildTx';
+import {calculateRandomSalt} from '../shared/calculateRandomSalt';
+import {convertToCallerCall} from '../shared/convertToCallerCall';
 import {
   SdkSplitsReceiver,
   IpfsUploaderFn,
@@ -13,8 +13,8 @@ import {
 import {
   USER_METADATA_KEY,
   encodeMetadataKeyValue,
-} from '../utils/encodeMetadataKeyValue';
-import {validateAndFormatSplitsReceivers} from '../utils/validateAndFormatSplitsReceivers';
+} from '../shared/encodeMetadataKeyValue';
+import {validateAndFormatSplitsReceivers} from '../shared/validateAndFormatSplitsReceivers';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {
   PreparedTx,
@@ -22,7 +22,7 @@ import {
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
 import {calcDripListId} from './calcDripListId';
-import {requireSupportedChain, requireWriteAccess} from '../utils/assertions';
+import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
 
 export type CreateDripListParams = {
   isVisible: boolean;

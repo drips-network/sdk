@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {convertToCallerCall} from '../../../src/internal/utils/convertToCallerCall';
+import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
 import type {PreparedTx} from '../../../src/internal/blockchain/BlockchainAdapter';
 import type {Address, Hex} from 'viem';
 

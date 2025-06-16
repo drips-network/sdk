@@ -1,8 +1,8 @@
 // TODO: document all public API.
-import {buildTx} from './internal/utils/buildTx';
-import {encodeMetadataKeyValue} from './internal/utils/encodeMetadataKeyValue';
+import {buildTx} from './internal/shared/buildTx';
+import {encodeMetadataKeyValue} from './internal/shared/encodeMetadataKeyValue';
 import {DEFAULT_GRAPHQL_URL} from './internal/graphql/createGraphQLClient';
-import {MAX_SPLITS_RECEIVERS} from './internal/utils/validateAndFormatSplitsReceivers';
+import {MAX_SPLITS_RECEIVERS} from './internal/shared/validateAndFormatSplitsReceivers';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
@@ -49,4 +49,4 @@ export {
   IpfsUploaderFn,
 } from './internal/metadata/createPinataIpfsUploader';
 export {DripsGraphQLClient} from './internal/graphql/createGraphQLClient';
-export {OnChainSplitsReceiver} from './internal/utils/validateAndFormatSplitsReceivers';
+export {OnChainSplitsReceiver} from './internal/shared/validateAndFormatSplitsReceivers';

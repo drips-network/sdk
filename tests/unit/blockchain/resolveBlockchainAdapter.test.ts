@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {resolveBlockchainAdapter} from '../../../src/internal/blockchain/resolveBlockchainAdapter';
-import {DripsError} from '../../../src/internal/DripsError';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {WalletClient, PublicClient} from 'viem';
 import type {Provider, Signer} from 'ethers';
 import type {
@@ -22,7 +22,7 @@ vi.mock(
   }),
 );
 
-vi.mock('../../../src/internal/utils/assertions', () => ({
+vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWalletHasAccount: vi.fn(),
 }));
 
@@ -34,7 +34,7 @@ import {
   createEthersReadAdapter,
   createEthersWriteAdapter,
 } from '../../../src/internal/blockchain/adapters/ethers/ethersAdapters';
-import {requireWalletHasAccount} from '../../../src/internal/utils/assertions';
+import {requireWalletHasAccount} from '../../../src/internal/shared/assertions';
 
 describe('resolveBlockchainAdapter', () => {
   const mockReadAdapter: ReadBlockchainAdapter = {

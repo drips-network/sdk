@@ -4,7 +4,7 @@ import {
   mapFromEthersResponse,
 } from '../../../../../src/internal/blockchain/adapters/ethers/ethersMappers';
 import {PreparedTx} from '../../../../../src/internal/blockchain/BlockchainAdapter';
-import {DripsError} from '../../../../../src/internal/DripsError';
+import {DripsError} from '../../../../../src/internal/shared/DripsError';
 import type {TransactionResponse, TransactionReceipt} from 'ethers';
 import {Hex} from 'viem';
 

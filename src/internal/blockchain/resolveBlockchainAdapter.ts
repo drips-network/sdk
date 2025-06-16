@@ -1,7 +1,7 @@
 import {WalletClient} from 'viem';
 import type {Provider, Signer} from 'ethers';
 import {SupportedBlockchainClient} from '../../sdk/createDripsSdk';
-import {DripsError} from '../DripsError';
+import {DripsError} from '../shared/DripsError';
 import {
   createEthersReadAdapter,
   createEthersWriteAdapter,
@@ -14,8 +14,8 @@ import {
   ReadBlockchainAdapter,
   WriteBlockchainAdapter,
 } from './BlockchainAdapter';
-import {requireWalletHasAccount} from '../utils/assertions';
-import {hasRequiredMethods} from '../utils/hasRequiredMethods';
+import {requireWalletHasAccount} from '../shared/assertions';
+import {hasRequiredMethods} from '../shared/hasRequiredMethods';
 
 export function resolveBlockchainAdapter(
   client: SupportedBlockchainClient,

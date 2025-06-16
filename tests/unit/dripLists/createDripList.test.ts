@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
-import {DripsError} from '../../../src/internal/DripsError';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {
   WriteBlockchainAdapter,
   TxResponse,
@@ -10,8 +10,7 @@ import type {
   Metadata,
 } from '../../../src/internal/metadata/createPinataIpfsUploader';
 
-// Only mock what cannot be injected
-vi.mock('../../../src/internal/utils/assertions', () => ({
+vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWriteAccess: vi.fn(),
 }));
 
@@ -19,7 +18,7 @@ vi.mock('../../../src/internal/drip-lists/prepareDripListCreationCtx', () => ({
   prepareDripListCreationCtx: vi.fn(),
 }));
 
-import {requireWriteAccess} from '../../../src/internal/utils/assertions';
+import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {prepareDripListCreationCtx} from '../../../src/internal/drip-lists/prepareDripListCreationCtx';
 
 describe('createDripList', () => {

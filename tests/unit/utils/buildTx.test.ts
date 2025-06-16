@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {buildTx} from '../../../src/internal/utils/buildTx';
+import {buildTx} from '../../../src/internal/shared/buildTx';
 import type {Address, Abi} from 'viem';
 
 describe('buildTx', () => {

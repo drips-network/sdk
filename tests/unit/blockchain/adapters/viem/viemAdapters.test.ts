@@ -5,7 +5,7 @@ import {
 } from '../../../../../src/internal/blockchain/adapters/viem/viemAdapters';
 import {PreparedTx} from '../../../../../src/internal/blockchain/BlockchainAdapter';
 import {PublicClient, WalletClient, Account, Hash, Hex} from 'viem';
-import {DripsError} from '../../../../../src/internal/DripsError';
+import {DripsError} from '../../../../../src/internal/shared/DripsError';
 
 // Mock the dependencies
 vi.mock(
@@ -23,7 +23,7 @@ vi.mock(
   }),
 );
 
-vi.mock('../../../../../src/internal/utils/assertions', () => ({
+vi.mock('../../../../../src/internal/shared/assertions', () => ({
   requireWalletHasAccount: vi.fn(),
 }));
 
@@ -32,7 +32,7 @@ import {
   mapFromViemResponse,
 } from '../../../../../src/internal/blockchain/adapters/viem/viemMappers';
 import {createViemMeta} from '../../../../../src/internal/blockchain/adapters/viem/createViemMeta';
-import {requireWalletHasAccount} from '../../../../../src/internal/utils/assertions';
+import {requireWalletHasAccount} from '../../../../../src/internal/shared/assertions';
 
 describe('viemAdapters', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as const;

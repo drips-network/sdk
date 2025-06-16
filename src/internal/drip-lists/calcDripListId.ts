@@ -1,9 +1,9 @@
 import {Address, decodeFunctionResult} from 'viem';
 import {nftDriverAbi} from '../abis/nftDriverAbi';
-import {buildTx} from '../utils/buildTx';
+import {buildTx} from '../shared/buildTx';
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
 import {contractsRegistry} from '../config/contractsRegistry';
-import {requireSupportedChain} from '../utils/assertions';
+import {requireSupportedChain} from '../shared/assertions';
 
 export async function calcDripListId(
   adapter: ReadBlockchainAdapter,

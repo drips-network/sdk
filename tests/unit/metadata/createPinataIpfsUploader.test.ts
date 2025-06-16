@@ -7,7 +7,7 @@ import {
   type ProjectMetadata,
   type SubListMetadata,
 } from '../../../src/internal/metadata/createPinataIpfsUploader';
-import {DripsError} from '../../../src/internal/DripsError';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import {PinataSDK} from 'pinata';
 
 // Mock PinataSDK

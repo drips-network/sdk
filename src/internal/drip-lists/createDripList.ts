@@ -8,7 +8,7 @@ import {
   prepareDripListCreationCtx,
   CreateDripListParams,
 } from './prepareDripListCreationCtx';
-import {requireWriteAccess} from '../utils/assertions';
+import {requireWriteAccess} from '../shared/assertions';
 
 export type DripListCreationResult = {
   salt: bigint;

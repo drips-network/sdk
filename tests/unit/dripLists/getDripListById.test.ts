@@ -1,14 +1,13 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {getDripListById} from '../../../src/internal/drip-lists/getDripListById';
-import {DripsError} from '../../../src/internal/DripsError';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {DripsGraphQLClient} from '../../../src/internal/graphql/createGraphQLClient';
 
-// Only mock what cannot be injected
-vi.mock('../../../src/internal/utils/assertions', () => ({
+vi.mock('../../../src/internal/shared/assertions', () => ({
   requireGraphQLSupportedChain: vi.fn(),
 }));
 
-import {requireGraphQLSupportedChain} from '../../../src/internal/utils/assertions';
+import {requireGraphQLSupportedChain} from '../../../src/internal/shared/assertions';
 
 describe('getDripListById', () => {
   const mockGraphQLClient: DripsGraphQLClient = {

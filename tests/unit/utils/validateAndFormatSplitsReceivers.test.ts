@@ -2,8 +2,8 @@ import {describe, it, expect} from 'vitest';
 import {
   validateAndFormatSplitsReceivers,
   MAX_SPLITS_RECEIVERS,
-} from '../../../src/internal/utils/validateAndFormatSplitsReceivers';
-import {DripsError} from '../../../src/internal/DripsError';
+} from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {SdkSplitsReceiver} from '../../../src/internal/metadata/createPinataIpfsUploader';
 
 describe('validateAndFormatSplitsReceivers', () => {

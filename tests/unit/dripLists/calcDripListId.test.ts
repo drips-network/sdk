@@ -1,15 +1,13 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {calcDripListId} from '../../../src/internal/drip-lists/calcDripListId';
-import {DripsError} from '../../../src/internal/DripsError';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 
-// Only mock what cannot be injected
-vi.mock('../../../src/internal/utils/assertions', () => ({
+vi.mock('../../../src/internal/shared/assertions', () => ({
   requireSupportedChain: vi.fn(),
   requireMatchingChains: vi.fn(),
 }));
 
-// Mock viem's decodeFunctionResult since it's a pure utility function
 vi.mock('viem', async () => {
   const actual = await vi.importActual('viem');
   return {
@@ -18,14 +16,13 @@ vi.mock('viem', async () => {
   };
 });
 
-// Mock buildTx utility - this could potentially be injected in the future
-vi.mock('../../../src/internal/utils/buildTx', () => ({
+vi.mock('../../../src/internal/shared/buildTx', () => ({
   buildTx: vi.fn(),
 }));
 
-import {requireSupportedChain} from '../../../src/internal/utils/assertions';
+import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {decodeFunctionResult} from 'viem';
-import {buildTx} from '../../../src/internal/utils/buildTx';
+import {buildTx} from '../../../src/internal/shared/buildTx';
 
 describe('calcDripListId', () => {
   const mockAdapter: ReadBlockchainAdapter = {

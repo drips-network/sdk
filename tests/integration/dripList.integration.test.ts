@@ -7,7 +7,7 @@ import {
   createPinataIpfsUploader,
 } from '../../src/internal/metadata/createPinataIpfsUploader';
 import dotenv from 'dotenv';
-import {expect as expectUntil} from '../../src/internal/utils/expect';
+import {expect as expectUntil} from '../../src/internal/shared/expect';
 import {graphqlChainMap} from '../../src/internal/config/graphqlChainMap';
 import {privateKeyToAccount} from 'viem/accounts';
 

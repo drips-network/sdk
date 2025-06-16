@@ -1,4 +1,4 @@
-import {DripsError} from '../DripsError';
+import {DripsError} from './DripsError';
 import {SdkSplitsReceiver} from '../metadata/createPinataIpfsUploader';
 
 export type OnChainSplitsReceiver = {

@@ -1,5 +1,5 @@
 import {GraphQLClient} from 'graphql-request';
-import {DripsError} from '../DripsError';
+import {DripsError} from '../shared/DripsError';
 
 export interface DripsGraphQLClient {
   query<T, V extends object = Record<string, any>>(

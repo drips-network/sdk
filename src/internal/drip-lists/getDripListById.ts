@@ -1,5 +1,5 @@
 import {graphqlChainMap} from '../config/graphqlChainMap';
-import {requireGraphQLSupportedChain} from '../utils/assertions';
+import {requireGraphQLSupportedChain} from '../shared/assertions';
 import {
   DripsGraphQLClient,
   createGraphQLClient,

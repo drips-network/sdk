@@ -5,7 +5,7 @@ import {
 } from '../../../../../src/internal/blockchain/adapters/ethers/ethersAdapters';
 import {PreparedTx} from '../../../../../src/internal/blockchain/BlockchainAdapter';
 import type {Provider, Signer, TransactionResponse} from 'ethers';
-import {DripsError} from '../../../../../src/internal/DripsError';
+import {DripsError} from '../../../../../src/internal/shared/DripsError';
 import {Hex} from 'viem';
 
 // Mock the dependencies

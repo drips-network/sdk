@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {prepareDripListCreationCtx} from '../../../src/internal/drip-lists/prepareDripListCreationCtx';
-import {DripsError} from '../../../src/internal/DripsError';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {
   WriteBlockchainAdapter,
   PreparedTx,
@@ -10,33 +10,35 @@ import type {
   DripListMetadata,
 } from '../../../src/internal/metadata/createPinataIpfsUploader';
 
-// Only mock what cannot be injected
-vi.mock('../../../src/internal/utils/assertions', () => ({
+vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWriteAccess: vi.fn(),
   requireSupportedChain: vi.fn(),
   requireMatchingChains: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/utils/calculateRandomSalt', () => ({
+vi.mock('../../../src/internal/shared/calculateRandomSalt', () => ({
   calculateRandomSalt: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/utils/buildTx', () => ({
+vi.mock('../../../src/internal/shared/buildTx', () => ({
   buildTx: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/utils/convertToCallerCall', () => ({
+vi.mock('../../../src/internal/shared/convertToCallerCall', () => ({
   convertToCallerCall: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/utils/encodeMetadataKeyValue', () => ({
+vi.mock('../../../src/internal/shared/encodeMetadataKeyValue', () => ({
   encodeMetadataKeyValue: vi.fn(),
   USER_METADATA_KEY: 'user-metadata',
 }));
 
-vi.mock('../../../src/internal/utils/validateAndFormatSplitsReceivers', () => ({
-  validateAndFormatSplitsReceivers: vi.fn(),
-}));
+vi.mock(
+  '../../../src/internal/shared/validateAndFormatSplitsReceivers',
+  () => ({
+    validateAndFormatSplitsReceivers: vi.fn(),
+  }),
+);
 
 vi.mock('../../../src/internal/metadata/buildDripListMetadata', () => ({
   buildDripListMetadata: vi.fn(),
@@ -49,12 +51,12 @@ vi.mock('../../../src/internal/drip-lists/calcDripListId', () => ({
 import {
   requireWriteAccess,
   requireSupportedChain,
-} from '../../../src/internal/utils/assertions';
-import {calculateRandomSalt} from '../../../src/internal/utils/calculateRandomSalt';
-import {buildTx} from '../../../src/internal/utils/buildTx';
-import {convertToCallerCall} from '../../../src/internal/utils/convertToCallerCall';
-import {encodeMetadataKeyValue} from '../../../src/internal/utils/encodeMetadataKeyValue';
-import {validateAndFormatSplitsReceivers} from '../../../src/internal/utils/validateAndFormatSplitsReceivers';
+} from '../../../src/internal/shared/assertions';
+import {calculateRandomSalt} from '../../../src/internal/shared/calculateRandomSalt';
+import {buildTx} from '../../../src/internal/shared/buildTx';
+import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
+import {encodeMetadataKeyValue} from '../../../src/internal/shared/encodeMetadataKeyValue';
+import {validateAndFormatSplitsReceivers} from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
 import {buildDripListMetadata} from '../../../src/internal/metadata/buildDripListMetadata';
 import {calcDripListId} from '../../../src/internal/drip-lists/calcDripListId';
 

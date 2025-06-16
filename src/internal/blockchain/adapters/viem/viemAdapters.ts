@@ -13,8 +13,8 @@ import {
   WriteBlockchainAdapter,
 } from '../../BlockchainAdapter';
 import {mapToViemCallParameters, mapFromViemResponse} from './viemMappers';
-import {DripsError} from '../../../DripsError';
-import {requireWalletHasAccount} from '../../../utils/assertions';
+import {DripsError} from '../../../shared/DripsError';
+import {requireWalletHasAccount} from '../../../shared/assertions';
 import {createViemMeta} from './createViemMeta';
 
 export function createViemReadAdapter(
