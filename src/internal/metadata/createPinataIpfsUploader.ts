@@ -22,18 +22,7 @@ export type SubListMetadata = ReturnType<
 
 export type Metadata = DripListMetadata | ProjectMetadata | SubListMetadata;
 
-type ToBigInt<T, K extends PropertyKey> = T extends any
-  ? Omit<T, K & keyof T> & {
-      [P in K & keyof T]: bigint;
-    }
-  : never;
-
 export type SdkSplitsReceiver = DripListMetadata['recipients'][number];
-
-export type OnChainSplitsReceiver = ToBigInt<
-  DripListMetadata['recipients'][number],
-  'accountId'
->;
 
 export type IpfsUploaderFn<T extends Metadata> = (metadata: T) => Promise<Hash>;
 

@@ -45,8 +45,8 @@ export {
   Metadata,
   ProjectMetadata,
   SubListMetadata,
-  OnChainSplitsReceiver,
   SdkSplitsReceiver,
   IpfsUploaderFn,
 } from './internal/metadata/createPinataIpfsUploader';
 export {DripsGraphQLClient} from './internal/graphql/createGraphQLClient';
+export {OnChainSplitsReceiver} from './internal/utils/validateAndFormatSplitsReceivers';

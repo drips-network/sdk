@@ -1,7 +1,7 @@
 import {DripsError} from '../DripsError';
 import {SdkSplitsReceiver} from '../metadata/createPinataIpfsUploader';
 
-export type SplitsReceiver = {
+export type OnChainSplitsReceiver = {
   accountId: bigint;
   weight: number;
 };
@@ -10,8 +10,8 @@ export const MAX_SPLITS_RECEIVERS = 200;
 
 export function validateAndFormatSplitsReceivers(
   receivers: ReadonlyArray<SdkSplitsReceiver>,
-): SplitsReceiver[] {
-  const contractReceivers: SplitsReceiver[] = receivers.map(r => ({
+): OnChainSplitsReceiver[] {
+  const contractReceivers: OnChainSplitsReceiver[] = receivers.map(r => ({
     accountId: BigInt(r.accountId),
     weight: r.weight,
   }));
@@ -25,13 +25,15 @@ export function validateAndFormatSplitsReceivers(
   return sortedSplits;
 }
 
-function validateSplitsNotEmpty(receivers: SplitsReceiver[]): void {
+function validateSplitsNotEmpty(receivers: OnChainSplitsReceiver[]): void {
   if (receivers.length === 0) {
     throw new DripsError('Splits receivers cannot be empty');
   }
 }
 
-function validateMaxSplitsCount(receivers: SplitsReceiver[]): SplitsReceiver[] {
+function validateMaxSplitsCount(
+  receivers: OnChainSplitsReceiver[],
+): OnChainSplitsReceiver[] {
   if (receivers.length > MAX_SPLITS_RECEIVERS) {
     throw new DripsError(
       `Too many splits receivers: ${receivers.length}. Maximum is ${MAX_SPLITS_RECEIVERS}`,
@@ -41,8 +43,8 @@ function validateMaxSplitsCount(receivers: SplitsReceiver[]): SplitsReceiver[] {
 }
 
 function validatePositiveWeights(
-  receivers: SplitsReceiver[],
-): SplitsReceiver[] {
+  receivers: OnChainSplitsReceiver[],
+): OnChainSplitsReceiver[] {
   const invalidReceivers = receivers.filter(r => r.weight <= 0);
   if (invalidReceivers.length > 0) {
     throw new DripsError(
@@ -52,7 +54,9 @@ function validatePositiveWeights(
   return receivers;
 }
 
-function validateNoDuplicates(receivers: SplitsReceiver[]): SplitsReceiver[] {
+function validateNoDuplicates(
+  receivers: OnChainSplitsReceiver[],
+): OnChainSplitsReceiver[] {
   const seen = new Set<bigint>();
   const duplicates: bigint[] = [];
 
@@ -70,6 +74,8 @@ function validateNoDuplicates(receivers: SplitsReceiver[]): SplitsReceiver[] {
   return receivers;
 }
 
-function sortSplitsByAccountId(receivers: SplitsReceiver[]): SplitsReceiver[] {
+function sortSplitsByAccountId(
+  receivers: OnChainSplitsReceiver[],
+): OnChainSplitsReceiver[] {
   return [...receivers].sort((a, b) => (a.accountId > b.accountId ? 1 : -1));
 }
