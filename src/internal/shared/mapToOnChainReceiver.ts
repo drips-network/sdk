@@ -5,42 +5,42 @@ import {Address} from 'viem';
 import {destructProjectUrl} from '../projects/destructProjectUrl';
 import {calcAddressId} from './calcAddressId';
 
-export type ProjectReceiver = {
+export type ProjectSplitsReceiver = {
   type: 'project';
   url: string;
   weight: number;
 };
 
-export type DripListReceiver = {
+export type DripListSplitsReceiver = {
   type: 'drip-list';
   accountId: bigint;
   weight: number;
 };
 
-export type EcosystemMainAccountReceiver = {
+export type EcosystemMainAccountSplitsReceiver = {
   type: 'ecosystem-main-account';
   accountId: bigint;
   weight: number;
 };
 
-export type SubListReceiver = {
+export type SubListSplitsReceiver = {
   type: 'sub-list';
   accountId: bigint;
   weight: number;
 };
 
-export type AddressReceiver = {
+export type AddressSplitsReceiver = {
   type: 'address';
   address: Address;
   weight: number;
 };
 
 export type SdkSplitsReceiver =
-  | ProjectReceiver
-  | DripListReceiver
-  | SubListReceiver
-  | AddressReceiver
-  | EcosystemMainAccountReceiver;
+  | ProjectSplitsReceiver
+  | DripListSplitsReceiver
+  | SubListSplitsReceiver
+  | AddressSplitsReceiver
+  | EcosystemMainAccountSplitsReceiver;
 
 export type OnChainSplitsReceiver = {
   accountId: bigint;

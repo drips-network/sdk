@@ -8,9 +8,9 @@ import {expect as expectUntil} from '../../src/internal/shared/expect';
 import {graphqlChainMap} from '../../src/internal/config/graphqlChainMap';
 import {privateKeyToAccount} from 'viem/accounts';
 import {
-  AddressReceiver,
-  DripListReceiver,
-  ProjectReceiver,
+  AddressSplitsReceiver,
+  DripListSplitsReceiver,
+  ProjectSplitsReceiver,
   SdkSplitsReceiver,
 } from '../../src/internal/shared/mapToOnChainReceiver';
 
@@ -69,18 +69,18 @@ describe('Drip Lists', () => {
           type: 'project',
           url: 'https://github.com/drips-network/sdk',
           weight: 50,
-        } as ProjectReceiver, // 50% weight
+        } as ProjectSplitsReceiver, // 50% weight
         {
           type: 'drip-list',
           accountId:
             52616587671615462427509444020197501845441172922057966140772529247192n,
           weight: 25,
-        } as DripListReceiver, // 25% weight
+        } as DripListSplitsReceiver, // 25% weight
         {
           type: 'address',
           address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
           weight: 25,
-        } as AddressReceiver, // 25% weight
+        } as AddressSplitsReceiver, // 25% weight
       ];
 
       // Step 6: Create the drip list
@@ -175,18 +175,18 @@ describe('Drip Lists', () => {
         type: 'project',
         url: 'https://github.com/drips-network/sdk',
         weight: 50,
-      } as ProjectReceiver, // 50% weight
+      } as ProjectSplitsReceiver, // 50% weight
       {
         type: 'drip-list',
         accountId:
           52616587671615462427509444020197501845441172922057966140772529247192n,
         weight: 25,
-      } as DripListReceiver, // 25% weight
+      } as DripListSplitsReceiver, // 25% weight
       {
         type: 'address',
         address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
         weight: 25,
-      } as AddressReceiver, // 25% weight
+      } as AddressSplitsReceiver, // 25% weight
     ];
 
     // Step 6: Create the drip list

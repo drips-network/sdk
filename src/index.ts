@@ -59,9 +59,9 @@ export {DripsGraphQLClient} from './internal/graphql/createGraphQLClient';
 export {OnChainSplitsReceiver} from './internal/shared/mapToOnChainReceiver';
 export {
   SdkSplitsReceiver,
-  DripListReceiver,
-  ProjectReceiver,
-  SubListReceiver,
-  AddressReceiver,
+  DripListSplitsReceiver,
+  ProjectSplitsReceiver,
+  SubListSplitsReceiver,
+  AddressSplitsReceiver,
 } from './internal/shared/mapToOnChainReceiver';
 export {Forge, ProjectName} from './internal/projects/calcProjectId';
