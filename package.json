@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test:unit": "vitest run tests/unit",
+    "test": "vitest run tests/unit",
+    "test:coverage": "npm run test --coverage",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",

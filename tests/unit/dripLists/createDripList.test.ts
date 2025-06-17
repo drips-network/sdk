@@ -20,6 +20,7 @@ vi.mock('../../../src/internal/drip-lists/prepareDripListCreationCtx', () => ({
 
 import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {prepareDripListCreationCtx} from '../../../src/internal/drip-lists/prepareDripListCreationCtx';
+import {Address} from 'viem';
 
 describe('createDripList', () => {
   const mockAdapter: WriteBlockchainAdapter = {
@@ -37,12 +38,12 @@ describe('createDripList', () => {
     receivers: [
       {
         type: 'address' as const,
-        accountId: '123',
+        address: '0x1234567890123456789012345678901234567890' as Address,
         weight: 500000,
       },
       {
         type: 'address' as const,
-        accountId: '456',
+        address: '0x3334567890123456789012345678901234567890' as Address,
         weight: 500000,
       },
     ],
@@ -216,7 +217,7 @@ describe('createDripList', () => {
         ...validParams,
         receivers: Array.from({length: 100}, (_, i) => ({
           type: 'address' as const,
-          accountId: BigInt(i + 1).toString(),
+          address: `0x${i}${'1'.repeat(39)}` as Address,
           weight: 10000,
         })),
         name: 'A'.repeat(1000),
@@ -459,8 +460,16 @@ describe('createDripList', () => {
       const complexParams = {
         isVisible: false,
         receivers: [
-          {type: 'address' as const, accountId: '1', weight: 250000},
-          {type: 'address' as const, accountId: '2', weight: 750000},
+          {
+            type: 'address' as const,
+            address: '0x2222222222222222222222222222222222222222' as Address,
+            weight: 250000,
+          },
+          {
+            type: 'address' as const,
+            address: '0x4444444444444444444444444444444444444444' as Address,
+            weight: 250000,
+          },
         ],
         transferTo: '0x1111111111111111111111111111111111111111' as const,
         salt: 42n,

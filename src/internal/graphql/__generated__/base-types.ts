@@ -233,7 +233,7 @@ export type Project = {
   account: RepoDriverAccount;
   chainData: Array<ProjectData>;
   isVisible: Scalars['Boolean']['output'];
-  source?: Maybe<Source>;
+  source: Source;
 };
 
 export type ProjectData = ClaimedProjectData | UnClaimedProjectData;

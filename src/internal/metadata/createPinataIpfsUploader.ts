@@ -22,8 +22,6 @@ export type SubListMetadata = ReturnType<
 
 export type Metadata = DripListMetadata | ProjectMetadata | SubListMetadata;
 
-export type SdkSplitsReceiver = DripListMetadata['recipients'][number];
-
 export type IpfsUploaderFn<T extends Metadata> = (metadata: T) => Promise<Hash>;
 
 type IpfsClientLike = {

@@ -15,7 +15,6 @@ import {
   WriteBlockchainAdapter,
 } from './BlockchainAdapter';
 import {requireWalletHasAccount} from '../shared/assertions';
-import {hasRequiredMethods} from '../shared/hasRequiredMethods';
 
 export function resolveBlockchainAdapter(
   client: SupportedBlockchainClient,
@@ -30,7 +29,7 @@ export function resolveBlockchainAdapter(
     return client as ReadBlockchainAdapter | WriteBlockchainAdapter;
   }
 
-  // Viem write client - has `sendTransaction` but may not have call
+  // Viem write client
   if (
     'transport' in client &&
     hasRequiredMethods(client, ['sendTransaction']) &&
@@ -41,7 +40,7 @@ export function resolveBlockchainAdapter(
     return createViemWriteAdapter(walletClient);
   }
 
-  // Viem read-only client - has call but no `sendTransaction`
+  // Viem read-only client
   if (
     'transport' in client &&
     hasRequiredMethods(client, ['call']) &&
@@ -73,4 +72,13 @@ export function resolveBlockchainAdapter(
       clientKeys: Object.keys(client),
     },
   });
+}
+
+function hasRequiredMethods(obj: any, methods: string[]): boolean {
+  if (!obj) {
+    return false;
+  }
+  return methods.every(
+    method => method in obj && typeof obj[method] === 'function',
+  );
 }

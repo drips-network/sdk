@@ -2,16 +2,18 @@ import {describe, it, expect} from 'vitest';
 import {createDripsSdk} from '../../src/sdk/createDripsSdk';
 import {createWalletClient, http} from 'viem';
 import {JsonRpcProvider, Wallet} from 'ethers';
-import {
-  SdkSplitsReceiver,
-  createPinataIpfsUploader,
-} from '../../src/internal/metadata/createPinataIpfsUploader';
+import {createPinataIpfsUploader} from '../../src/internal/metadata/createPinataIpfsUploader';
 import dotenv from 'dotenv';
 import {expect as expectUntil} from '../../src/internal/shared/expect';
 import {graphqlChainMap} from '../../src/internal/config/graphqlChainMap';
 import {privateKeyToAccount} from 'viem/accounts';
+import {
+  AddressReceiver,
+  DripListReceiver,
+  ProjectReceiver,
+  SdkSplitsReceiver,
+} from '../../src/internal/shared/mapToOnChainReceiver';
 
-// Load environment variables
 dotenv.config();
 
 const localtestnet = {
@@ -63,8 +65,22 @@ describe('Drip Lists', () => {
       // Step 5: Define the split receivers (who gets the funds)
       console.log('Step 5: Defining split receivers...');
       const receivers: SdkSplitsReceiver[] = [
-        {accountId: BigInt(1).toString(), weight: 50, type: 'address'}, // 50% weight
-        {accountId: BigInt(2).toString(), weight: 50, type: 'address'}, // 50% weight
+        {
+          type: 'project',
+          url: 'https://github.com/drips-network/sdk',
+          weight: 50,
+        } as ProjectReceiver, // 50% weight
+        {
+          type: 'drip-list',
+          accountId:
+            52616587671615462427509444020197501845441172922057966140772529247192n,
+          weight: 25,
+        } as DripListReceiver, // 25% weight
+        {
+          type: 'address',
+          address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
+          weight: 25,
+        } as AddressReceiver, // 25% weight
       ];
 
       // Step 6: Create the drip list
@@ -155,8 +171,22 @@ describe('Drip Lists', () => {
     // Step 5: Define the split receivers (who gets the funds)
     console.log('Step 5: Defining split receivers...');
     const receivers: SdkSplitsReceiver[] = [
-      {accountId: BigInt(3).toString(), weight: 30, type: 'address'}, // 30% weight
-      {accountId: BigInt(4).toString(), weight: 70, type: 'address'}, // 70% weight
+      {
+        type: 'project',
+        url: 'https://github.com/drips-network/sdk',
+        weight: 50,
+      } as ProjectReceiver, // 50% weight
+      {
+        type: 'drip-list',
+        accountId:
+          52616587671615462427509444020197501845441172922057966140772529247192n,
+        weight: 25,
+      } as DripListReceiver, // 25% weight
+      {
+        type: 'address',
+        address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
+        weight: 25,
+      } as AddressReceiver, // 25% weight
     ];
 
     // Step 6: Create the drip list

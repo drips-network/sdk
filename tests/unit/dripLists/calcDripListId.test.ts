@@ -55,7 +55,7 @@ describe('calcDripListId', () => {
 
   describe('successful execution', () => {
     it('should calculate drip list ID successfully', async () => {
-      // Act - Inject the adapter dependency
+      // Act
       const result = await calcDripListId(mockAdapter, validParams);
 
       // Assert

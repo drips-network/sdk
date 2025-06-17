@@ -6,6 +6,7 @@ import {
   ReadBlockchainAdapter,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
+import {Forge, supportedForges} from '../projects/calcProjectId';
 
 export function requireWalletHasAccount(
   client: WalletClient,
@@ -75,5 +76,20 @@ export function requireWriteAccess(
         },
       },
     );
+  }
+}
+
+export function requireSupportedForge(
+  forge: string,
+  operation = 'requireSupportedForge',
+): asserts forge is Forge {
+  if (!supportedForges.includes(forge as Forge)) {
+    throw new DripsError(`Unsupported forge: ${forge}`, {
+      meta: {
+        operation,
+        forge,
+        supportedForges,
+      },
+    });
   }
 }

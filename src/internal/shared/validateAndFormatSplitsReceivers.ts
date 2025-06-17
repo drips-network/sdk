@@ -1,5 +1,4 @@
 import {DripsError} from './DripsError';
-import {SdkSplitsReceiver} from '../metadata/createPinataIpfsUploader';
 
 export type OnChainSplitsReceiver = {
   accountId: bigint;
@@ -7,18 +6,15 @@ export type OnChainSplitsReceiver = {
 };
 
 export const MAX_SPLITS_RECEIVERS = 200;
+export const TOTAL_SPLITS_WEIGHT = 100;
 
-export function validateAndFormatSplitsReceivers(
-  receivers: ReadonlyArray<SdkSplitsReceiver>,
-): OnChainSplitsReceiver[] {
-  const contractReceivers: OnChainSplitsReceiver[] = receivers.map(r => ({
-    accountId: BigInt(r.accountId),
-    weight: r.weight,
-  }));
-
-  validateSplitsNotEmpty(contractReceivers);
-  validateMaxSplitsCount(contractReceivers);
-  const validSplits = validatePositiveWeights(contractReceivers);
+export async function validateAndFormatSplitsReceivers(
+  onChainReceivers: OnChainSplitsReceiver[],
+): Promise<OnChainSplitsReceiver[]> {
+  validateSplitsNotEmpty(onChainReceivers);
+  validateMaxSplitsCount(onChainReceivers);
+  validateMaxSplitsWeightSum(onChainReceivers);
+  const validSplits = validatePositiveWeights(onChainReceivers);
   const uniqueSplits = validateNoDuplicates(validSplits);
   const sortedSplits = sortSplitsByAccountId(uniqueSplits);
 
@@ -37,6 +33,18 @@ function validateMaxSplitsCount(
   if (receivers.length > MAX_SPLITS_RECEIVERS) {
     throw new DripsError(
       `Too many splits receivers: ${receivers.length}. Maximum is ${MAX_SPLITS_RECEIVERS}`,
+    );
+  }
+  return receivers;
+}
+
+function validateMaxSplitsWeightSum(
+  receivers: OnChainSplitsReceiver[],
+): OnChainSplitsReceiver[] {
+  const totalWeight = receivers.reduce((sum, r) => sum + r.weight, 0);
+  if (totalWeight > TOTAL_SPLITS_WEIGHT) {
+    throw new DripsError(
+      `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: ${totalWeight}`,
     );
   }
   return receivers;

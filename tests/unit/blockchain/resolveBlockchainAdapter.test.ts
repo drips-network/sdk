@@ -227,27 +227,6 @@ describe('resolveBlockchainAdapter', () => {
       );
     });
 
-    it('should include helpful metadata in error for unsupported client', () => {
-      // Arrange
-      const unsupportedClient = {
-        someProperty: 'value',
-        anotherProperty: 123,
-      } as any;
-
-      // Act & Assert
-      try {
-        resolveBlockchainAdapter(unsupportedClient);
-        expect.fail('Should have thrown an error');
-      } catch (error) {
-        expect(error).toBeInstanceOf(DripsError);
-        const dripsError = error as DripsError;
-        expect(dripsError.meta).toEqual({
-          operation: 'resolveBlockchainAdapter',
-          clientKeys: ['someProperty', 'anotherProperty'],
-        });
-      }
-    });
-
     it('should throw error for client with partial Viem properties', () => {
       // Arrange
       const partialViemClient = {

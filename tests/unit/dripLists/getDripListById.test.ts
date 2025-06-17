@@ -32,6 +32,38 @@ describe('getDripListById', () => {
       address: '0x1234567890123456789012345678901234567890',
     },
     previousOwnerAddress: null,
+    splits: [
+      {
+        weight: 500000,
+        account: {
+          accountId: '789',
+          driver: 'ADDRESS',
+          address: '0x1111111111111111111111111111111111111111',
+        },
+      },
+      {
+        weight: 300000,
+        account: {
+          accountId: '101112',
+          driver: 'NFT',
+        },
+      },
+      {
+        weight: 200000,
+        account: {
+          accountId: '131415',
+          driver: 'REPO',
+        },
+        project: {
+          source: {
+            forge: 'GITHUB',
+            ownerName: 'testowner',
+            repoName: 'testrepo',
+            url: 'https://github.com/testowner/testrepo',
+          },
+        },
+      },
+    ],
   };
 
   beforeEach(() => {
@@ -294,6 +326,7 @@ describe('getDripListById', () => {
           address: '0x1234567890123456789012345678901234567890',
         },
         previousOwnerAddress: null,
+        splits: [],
       };
 
       vi.mocked(mockGraphQLClient.query).mockResolvedValue({
@@ -337,6 +370,174 @@ describe('getDripListById', () => {
       expect(query).toContain('owner');
       expect(query).toContain('address');
       expect(query).toContain('previousOwnerAddress');
+      expect(query).toContain('splits');
+      expect(query).toContain('weight');
+      expect(query).toContain('ProjectReceiver');
+      expect(query).toContain('DripListReceiver');
+      expect(query).toContain('AddressReceiver');
+      expect(query).toContain('SubListReceiver');
+      expect(query).toContain('EcosystemMainAccountReceiver');
+    });
+  });
+
+  describe('splits functionality', () => {
+    it('should return drip list with various split receiver types', async () => {
+      // Arrange
+      const dripListWithAllSplitTypes = {
+        ...mockDripList,
+        splits: [
+          {
+            weight: 200000,
+            account: {
+              accountId: '789',
+              driver: 'ADDRESS',
+              address: '0x1111111111111111111111111111111111111111',
+            },
+          },
+          {
+            weight: 200000,
+            account: {
+              accountId: '101112',
+              driver: 'NFT',
+            },
+          },
+          {
+            weight: 200000,
+            account: {
+              accountId: '131415',
+              driver: 'REPO',
+            },
+            project: {
+              source: {
+                forge: 'GITHUB',
+                ownerName: 'testowner',
+                repoName: 'testrepo',
+                url: 'https://github.com/testowner/testrepo',
+              },
+            },
+          },
+          {
+            weight: 200000,
+            account: {
+              accountId: '161718',
+              driver: 'NFT',
+            },
+          },
+          {
+            weight: 200000,
+            account: {
+              accountId: '192021',
+              driver: 'ADDRESS',
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithAllSplitTypes,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithAllSplitTypes);
+      expect(result?.splits).toHaveLength(5);
+      expect(result?.splits[0]).toHaveProperty('weight', 200000);
+      expect(result?.splits[0]).toHaveProperty('account');
+      expect(result?.splits[2]).toHaveProperty('project');
+      expect((result?.splits[2] as any).project).toBeDefined();
+    });
+
+    it('should handle drip list with empty splits array', async () => {
+      // Arrange
+      const dripListWithEmptySplits = {
+        ...mockDripList,
+        splits: [],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithEmptySplits,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithEmptySplits);
+      expect(result?.splits).toEqual([]);
+    });
+
+    it('should handle project receiver with complete source information', async () => {
+      // Arrange
+      const dripListWithProjectReceiver = {
+        ...mockDripList,
+        splits: [
+          {
+            weight: 1000000,
+            account: {
+              accountId: '131415',
+              driver: 'REPO',
+            },
+            project: {
+              source: {
+                forge: 'GITHUB',
+                ownerName: 'ethereum',
+                repoName: 'solidity',
+                url: 'https://github.com/ethereum/solidity',
+              },
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithProjectReceiver,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithProjectReceiver);
+      expect(result?.splits[0]).toHaveProperty('project');
+      expect((result?.splits[0] as any).project?.source).toEqual({
+        forge: 'GITHUB',
+        ownerName: 'ethereum',
+        repoName: 'solidity',
+        url: 'https://github.com/ethereum/solidity',
+      });
+    });
+
+    it('should handle address receiver with complete account information', async () => {
+      // Arrange
+      const dripListWithAddressReceiver = {
+        ...mockDripList,
+        splits: [
+          {
+            weight: 500000,
+            account: {
+              accountId: '789',
+              driver: 'ADDRESS',
+              address: '0x2222222222222222222222222222222222222222',
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithAddressReceiver,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithAddressReceiver);
+      expect(result?.splits[0].account).toHaveProperty('address');
+      expect((result?.splits[0].account as any).address).toBe(
+        '0x2222222222222222222222222222222222222222',
+      );
     });
   });
 

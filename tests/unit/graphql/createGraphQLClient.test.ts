@@ -8,7 +8,6 @@ import {
 } from '../../../src/internal/graphql/createGraphQLClient';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 
-// Mock the GraphQLClient from graphql-request
 vi.mock('graphql-request', () => ({
   GraphQLClient: vi.fn(),
 }));

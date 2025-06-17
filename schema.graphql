@@ -188,7 +188,7 @@ type Project {
   account: RepoDriverAccount!
   chainData: [ProjectData!]!
   isVisible: Boolean!
-  source: Source
+  source: Source!
 }
 
 union ProjectData = ClaimedProjectData | UnClaimedProjectData

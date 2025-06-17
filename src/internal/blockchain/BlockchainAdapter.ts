@@ -1,6 +1,5 @@
 import {Address, Hash, Hex} from 'viem';
 
-// TODO: Document that the overrides apply to the one/batch transaction as a whole, not to individual actions.
 export type TxOverrides = {
   nonce?: number;
   value?: bigint;

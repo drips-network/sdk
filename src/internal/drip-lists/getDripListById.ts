@@ -31,6 +31,52 @@ const GET_DRIP_LIST_QUERY = gql`
         address
       }
       previousOwnerAddress
+      splits {
+        ... on ProjectReceiver {
+          weight
+          account {
+            accountId
+            driver
+          }
+          project {
+            source {
+              forge
+              ownerName
+              repoName
+              url
+            }
+          }
+        }
+        ... on DripListReceiver {
+          weight
+          account {
+            accountId
+            driver
+          }
+        }
+        ... on AddressReceiver {
+          weight
+          account {
+            accountId
+            address
+            driver
+          }
+        }
+        ... on SubListReceiver {
+          weight
+          account {
+            accountId
+            driver
+          }
+        }
+        ... on EcosystemMainAccountReceiver {
+          weight
+          account {
+            accountId
+            driver
+          }
+        }
+      }
     }
   }
 `;

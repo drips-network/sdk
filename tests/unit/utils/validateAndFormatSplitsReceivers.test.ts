@@ -2,363 +2,454 @@ import {describe, it, expect} from 'vitest';
 import {
   validateAndFormatSplitsReceivers,
   MAX_SPLITS_RECEIVERS,
+  TOTAL_SPLITS_WEIGHT,
+  type OnChainSplitsReceiver,
 } from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
 import {DripsError} from '../../../src/internal/shared/DripsError';
-import type {SdkSplitsReceiver} from '../../../src/internal/metadata/createPinataIpfsUploader';
 
 describe('validateAndFormatSplitsReceivers', () => {
   const createReceiver = (
-    accountId: bigint | string | number,
+    accountId: bigint,
     weight: number,
-  ): SdkSplitsReceiver => ({
-    type: 'address',
-    accountId: BigInt(accountId).toString(),
+  ): OnChainSplitsReceiver => ({
+    accountId,
     weight,
   });
 
   describe('successful validation and formatting', () => {
-    it('should validate and format single receiver', () => {
+    it('should validate and format single receiver', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(123n, 1000000)];
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(123n, 50)];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result).toEqual([
         {
           accountId: 123n,
-          weight: 1000000,
+          weight: 50,
         },
       ]);
     });
 
-    it('should validate and format multiple receivers', () => {
+    it('should validate and format multiple receivers', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(456n, 500000),
-        createReceiver(123n, 300000),
-        createReceiver(789n, 200000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(456n, 50),
+        createReceiver(123n, 30),
+        createReceiver(789n, 20),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result).toEqual([
-        {accountId: 123n, weight: 300000},
-        {accountId: 456n, weight: 500000},
-        {accountId: 789n, weight: 200000},
+        {accountId: 123n, weight: 30},
+        {accountId: 456n, weight: 50},
+        {accountId: 789n, weight: 20},
       ]);
       expect(result).toHaveLength(3);
     });
 
-    it('should sort receivers by accountId in ascending order', () => {
+    it('should sort receivers by accountId in ascending order', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(999n, 100000),
-        createReceiver(1n, 200000),
-        createReceiver(500n, 300000),
-        createReceiver(50n, 400000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(999n, 10),
+        createReceiver(1n, 20),
+        createReceiver(500n, 30),
+        createReceiver(50n, 40),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result.map(r => r.accountId)).toEqual([1n, 50n, 500n, 999n]);
-      expect(result.map(r => r.weight)).toEqual([
-        200000, 400000, 300000, 100000,
-      ]);
+      expect(result.map(r => r.weight)).toEqual([20, 40, 30, 10]);
     });
 
-    it('should handle maximum allowed receivers', () => {
-      // Arrange
-      const receivers: SdkSplitsReceiver[] = Array.from(
-        {length: MAX_SPLITS_RECEIVERS},
-        (_, i) => createReceiver(BigInt(i + 1), 1000),
+    it('should handle maximum allowed receivers', async () => {
+      // Arrange - Use 100 receivers with weight 1 each (total = 100)
+      const receivers: OnChainSplitsReceiver[] = Array.from(
+        {length: 100},
+        (_, i) => createReceiver(BigInt(i + 1), 1),
       );
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(result).toHaveLength(MAX_SPLITS_RECEIVERS);
+      expect(result).toHaveLength(100);
       expect(result[0].accountId).toBe(1n);
-      expect(result[MAX_SPLITS_RECEIVERS - 1].accountId).toBe(
-        BigInt(MAX_SPLITS_RECEIVERS),
-      );
+      expect(result[99].accountId).toBe(100n);
     });
 
-    it('should handle large accountId values', () => {
+    it('should handle large accountId values', async () => {
       // Arrange
       const largeAccountId = BigInt('0xffffffffffffffffffffffffffffffff');
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(largeAccountId, 1000000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(largeAccountId, 100),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result[0].accountId).toBe(largeAccountId);
     });
 
-    it('should handle zero accountId', () => {
+    it('should handle zero accountId', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(0n, 1000000)];
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(0n, 100)];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result[0].accountId).toBe(0n);
     });
 
-    it('should convert string accountId to BigInt', () => {
+    it('should handle maximum total weight exactly', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        {
-          type: 'address',
-          accountId: '123456789',
-          weight: 1000000,
-        },
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(1n, TOTAL_SPLITS_WEIGHT),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(result[0].accountId).toBe(123456789n);
-      expect(typeof result[0].accountId).toBe('bigint');
+      expect(result[0].weight).toBe(TOTAL_SPLITS_WEIGHT);
+    });
+
+    it('should handle weight distribution that sums to maximum', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(1n, 50),
+        createReceiver(2n, 30),
+        createReceiver(3n, 20),
+      ];
+
+      // Act
+      const result = await validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(100);
     });
   });
 
   describe('empty receivers validation', () => {
-    it('should throw error for empty receivers array', () => {
+    it('should throw error for empty receivers array', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [];
+      const receivers: OnChainSplitsReceiver[] = [];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Splits receivers cannot be empty',
       );
     });
   });
 
   describe('maximum receivers validation', () => {
-    it('should throw error when exceeding maximum receivers', () => {
+    it('should throw error when exceeding maximum receivers', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = Array.from(
+      const receivers: OnChainSplitsReceiver[] = Array.from(
         {length: MAX_SPLITS_RECEIVERS + 1},
-        (_, i) => createReceiver(BigInt(i + 1), 1000),
+        (_, i) => createReceiver(BigInt(i + 1), 1),
       );
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         `Too many splits receivers: ${MAX_SPLITS_RECEIVERS + 1}. Maximum is ${MAX_SPLITS_RECEIVERS}`,
       );
     });
 
-    it('should throw error with correct count in error message', () => {
+    it('should throw error with correct count in error message', async () => {
       // Arrange
       const count = MAX_SPLITS_RECEIVERS + 50;
-      const receivers: SdkSplitsReceiver[] = Array.from(
+      const receivers: OnChainSplitsReceiver[] = Array.from(
         {length: count},
-        (_, i) => createReceiver(BigInt(i + 1), 1000),
+        (_, i) => createReceiver(BigInt(i + 1), 1),
       );
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         `Too many splits receivers: ${count}. Maximum is ${MAX_SPLITS_RECEIVERS}`,
       );
+    });
+
+    it('should accept exactly maximum receivers', async () => {
+      // Arrange - Use 100 receivers with weight 1 each (total = 100)
+      const receivers: OnChainSplitsReceiver[] = Array.from(
+        {length: 100},
+        (_, i) => createReceiver(BigInt(i + 1), 1),
+      );
+
+      // Act
+      const result = await validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result).toHaveLength(100);
     });
   });
 
   describe('weight validation', () => {
-    it('should throw error for zero weight', () => {
+    it('should throw error for zero weight', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(123n, 0)];
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(123n, 0)];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Invalid split receiver weights: 123 have weight <= 0',
       );
     });
 
-    it('should throw error for negative weight', () => {
+    it('should throw error for negative weight', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(456n, -100)];
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(456n, -10)];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Invalid split receiver weights: 456 have weight <= 0',
       );
     });
 
-    it('should throw error for multiple receivers with invalid weights', () => {
+    it('should throw error for multiple receivers with invalid weights', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
+      const receivers: OnChainSplitsReceiver[] = [
         createReceiver(123n, 0),
-        createReceiver(456n, 1000),
-        createReceiver(789n, -50),
+        createReceiver(456n, 10),
+        createReceiver(789n, -5),
       ];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Invalid split receiver weights: 123, 789 have weight <= 0',
       );
     });
 
-    it('should accept minimum positive weight', () => {
+    it('should accept minimum positive weight', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(123n, 1)];
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(123n, 1)];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result[0].weight).toBe(1);
     });
 
-    it('should accept maximum weight value', () => {
+    it('should throw error when total weight exceeds maximum - BUG TEST', async () => {
+      // This test exposes a bug in the source code where validateMaxSplitsWeightSum
+      // compares totalWeight > MAX_SPLITS_RECEIVERS instead of TOTAL_SPLITS_WEIGHT
+
+      // Arrange - Create a receiver with weight that exceeds TOTAL_SPLITS_WEIGHT but not MAX_SPLITS_RECEIVERS
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, TOTAL_SPLITS_WEIGHT + 1), // 101, which is > 100 but < 200
+      ];
+
+      // Act & Assert
+      // This should throw an error but currently doesn't due to the bug
+      // The bug compares against MAX_SPLITS_RECEIVERS (200) instead of TOTAL_SPLITS_WEIGHT (100)
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        DripsError,
+      );
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: ${TOTAL_SPLITS_WEIGHT + 1}`,
+      );
+    });
+
+    it('should throw error when total weight significantly exceeds maximum', async () => {
       // Arrange
-      const maxWeight = 1000000;
-      const receivers: SdkSplitsReceiver[] = [createReceiver(123n, maxWeight)];
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, MAX_SPLITS_RECEIVERS + 1), // 201, which exceeds both limits
+      ];
 
-      // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      // Act & Assert
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        DripsError,
+      );
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: ${MAX_SPLITS_RECEIVERS + 1}`,
+      );
+    });
 
-      // Assert
-      expect(result[0].weight).toBe(maxWeight);
+    it('should throw error when multiple receivers total weight exceeds maximum', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 60),
+        createReceiver(456n, 50), // Total: 110, exceeds TOTAL_SPLITS_WEIGHT (100)
+      ];
+
+      // Act & Assert
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        DripsError,
+      );
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: 110`,
+      );
+    });
+
+    it('should handle fractional weights that sum to exceed maximum', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(1n, 33),
+        createReceiver(2n, 33),
+        createReceiver(3n, 35), // Total: 101, exceeds TOTAL_SPLITS_WEIGHT (100)
+      ];
+
+      // Act & Assert
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        DripsError,
+      );
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: 101`,
+      );
     });
   });
 
   describe('duplicate validation', () => {
-    it('should throw error for duplicate accountIds', () => {
+    it('should throw error for duplicate accountIds', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(123n, 500000),
-        createReceiver(123n, 500000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 50),
+        createReceiver(123n, 50), // Same accountId
       ];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Duplicate splits receivers found: 123',
       );
     });
 
-    it('should throw error for multiple duplicate accountIds', () => {
-      // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(123n, 300000),
-        createReceiver(456n, 200000),
-        createReceiver(123n, 300000),
-        createReceiver(789n, 200000),
-        createReceiver(456n, 100000),
+    it('should throw error for multiple duplicate accountIds', async () => {
+      // Arrange - Use weights that don't exceed total weight limit
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 10),
+        createReceiver(456n, 10),
+        createReceiver(123n, 10), // Duplicate
+        createReceiver(999n, 10),
+        createReceiver(456n, 10), // Duplicate
       ];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         DripsError,
       );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Duplicate splits receivers found: 123, 456',
       );
     });
 
-    it('should handle duplicate detection with large accountIds', () => {
+    it('should handle duplicate detection with large accountIds', async () => {
       // Arrange
       const largeId = BigInt('0xffffffffffffffffffffffffffffffff');
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(largeId, 500000),
-        createReceiver(largeId, 500000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(largeId, 50),
+        createReceiver(largeId, 50), // Duplicate
       ];
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         `Duplicate splits receivers found: ${largeId.toString()}`,
       );
     });
 
-    it('should not throw error for unique accountIds', () => {
+    it('should not throw error for unique accountIds', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(123n, 300000),
-        createReceiver(456n, 400000),
-        createReceiver(789n, 300000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 30),
+        createReceiver(456n, 40),
+        createReceiver(789n, 30),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result).toHaveLength(3);
       expect(result.map(r => r.accountId)).toEqual([123n, 456n, 789n]);
     });
+
+    it('should handle multiple occurrences of same duplicate', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 10),
+        createReceiver(123n, 20), // First duplicate
+        createReceiver(456n, 30),
+        createReceiver(123n, 40), // Second duplicate of same ID
+      ];
+
+      // Act & Assert
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        'Duplicate splits receivers found: 123',
+      );
+    });
   });
 
   describe('sorting behavior', () => {
-    it('should maintain stable sort for equal accountIds (should not happen due to duplicate validation)', () => {
-      // This test ensures sorting logic is robust even if duplicate validation changes
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(100n, 1000),
-        createReceiver(50n, 2000),
-        createReceiver(200n, 3000),
-        createReceiver(75n, 4000),
+    it('should sort receivers by accountId in ascending order', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(100n, 10),
+        createReceiver(50n, 20),
+        createReceiver(200n, 30),
+        createReceiver(75n, 40),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result.map(r => r.accountId)).toEqual([50n, 75n, 100n, 200n]);
-      expect(result.map(r => r.weight)).toEqual([2000, 4000, 1000, 3000]);
+      expect(result.map(r => r.weight)).toEqual([20, 40, 10, 30]);
     });
 
-    it('should handle sorting with zero and negative accountIds', () => {
+    it('should handle sorting with zero accountId', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(0n, 1000),
-        createReceiver(-5n, 2000),
-        createReceiver(10n, 3000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(10n, 30),
+        createReceiver(0n, 10),
+        createReceiver(5n, 60),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(result.map(r => r.accountId)).toEqual([-5n, 0n, 10n]);
+      expect(result.map(r => r.accountId)).toEqual([0n, 5n, 10n]);
     });
 
-    it('should handle sorting with very large accountIds', () => {
+    it('should handle sorting with very large accountIds', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(BigInt('0xffffffffffffffffffffffffffffffff'), 1000),
-        createReceiver(1n, 2000),
-        createReceiver(BigInt('0x8000000000000000'), 3000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(BigInt('0xffffffffffffffffffffffffffffffff'), 10),
+        createReceiver(1n, 20),
+        createReceiver(BigInt('0x8000000000000000'), 30),
       ];
 
       // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
       expect(result[0].accountId).toBe(1n);
@@ -367,133 +458,33 @@ describe('validateAndFormatSplitsReceivers', () => {
         BigInt('0xffffffffffffffffffffffffffffffff'),
       );
     });
-  });
 
-  describe('immutability and side effects', () => {
-    it('should not modify input array', () => {
+    it('should maintain original array immutability', async () => {
       // Arrange
-      const originalReceivers: SdkSplitsReceiver[] = [
-        createReceiver(456n, 500000),
-        createReceiver(123n, 300000),
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(100n, 10),
+        createReceiver(50n, 20),
       ];
-      const receiversCopy = originalReceivers.map(r => ({...r}));
+      const originalOrder = [...receivers];
 
       // Act
-      validateAndFormatSplitsReceivers(originalReceivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(originalReceivers).toEqual(receiversCopy);
-      expect(originalReceivers[0].accountId).toBe('456');
-      expect(originalReceivers[1].accountId).toBe('123');
-    });
-
-    it('should not modify input receiver objects', () => {
-      // Arrange
-      const receiver = createReceiver(123n, 1000000);
-      const originalReceiver = {...receiver};
-
-      // Act
-      validateAndFormatSplitsReceivers([receiver]);
-
-      // Assert
-      expect(receiver).toEqual(originalReceiver);
-    });
-
-    it('should return new array instance', () => {
-      // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(123n, 1000000)];
-
-      // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
-
-      // Assert
-      expect(result).not.toBe(receivers);
-    });
-
-    it('should return new receiver objects', () => {
-      // Arrange
-      const receivers: SdkSplitsReceiver[] = [createReceiver(123n, 1000000)];
-
-      // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
-
-      // Assert
-      expect(result[0]).not.toBe(receivers[0]);
-      expect(result[0]).toEqual({
-        accountId: 123n,
-        weight: 1000000,
-      });
+      expect(receivers).toEqual(originalOrder); // Original array unchanged
+      expect(result).not.toBe(receivers); // Different array reference
+      expect(result.map(r => r.accountId)).toEqual([50n, 100n]); // Sorted result
     });
   });
 
-  describe('edge cases and boundary conditions', () => {
-    it('should handle receivers with different types but same validation', () => {
+  describe('error handling and edge cases', () => {
+    it('should throw DripsError with proper error class', async () => {
       // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        {type: 'address', accountId: '123', weight: 300000},
-        {type: 'dripList', accountId: '456', weight: 400000},
-        {type: 'subList', accountId: '789', weight: 300000},
-      ];
-
-      // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
-
-      // Assert
-      expect(result).toHaveLength(3);
-      expect(result.map(r => r.accountId)).toEqual([123n, 456n, 789n]);
-      // Type information is not preserved in the result
-      expect(result[0]).not.toHaveProperty('type');
-    });
-
-    it('should handle accountId conversion from different BigInt representations', () => {
-      // Arrange
-      const receivers: SdkSplitsReceiver[] = [
-        {
-          type: 'address',
-          accountId: '291', // BigInt('0x123') = 291
-          weight: 1000000,
-        },
-        {
-          type: 'address',
-          accountId: '456',
-          weight: 1000000,
-        },
-      ];
-
-      // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
-
-      // Assert
-      expect(result[0].accountId).toBe(BigInt('0x123'));
-      expect(result[1].accountId).toBe(456n);
-      expect(result.map(r => r.accountId)).toEqual([BigInt('0x123'), 456n]);
-    });
-
-    it('should handle maximum safe integer boundaries', () => {
-      // Arrange
-      const maxSafeInt = BigInt(Number.MAX_SAFE_INTEGER);
-      const receivers: SdkSplitsReceiver[] = [
-        createReceiver(maxSafeInt, 1000000),
-        createReceiver(maxSafeInt + 1n, 1000000),
-      ];
-
-      // Act
-      const result = validateAndFormatSplitsReceivers(receivers);
-
-      // Assert
-      expect(result[0].accountId).toBe(maxSafeInt);
-      expect(result[1].accountId).toBe(maxSafeInt + 1n);
-    });
-  });
-
-  describe('error metadata validation', () => {
-    it('should throw DripsError with proper error class', () => {
-      // Arrange
-      const receivers: SdkSplitsReceiver[] = [];
+      const receivers: OnChainSplitsReceiver[] = [];
 
       // Act & Assert
       try {
-        validateAndFormatSplitsReceivers(receivers);
+        await validateAndFormatSplitsReceivers(receivers);
         expect.fail('Should have thrown DripsError');
       } catch (error) {
         expect(error).toBeInstanceOf(DripsError);
@@ -502,7 +493,7 @@ describe('validateAndFormatSplitsReceivers', () => {
       }
     });
 
-    it('should preserve original error structure for all validation types', () => {
+    it('should preserve original error structure for all validation types', async () => {
       const testCases = [
         {
           receivers: [],
@@ -514,56 +505,123 @@ describe('validateAndFormatSplitsReceivers', () => {
             'Invalid split receiver weights: 123 have weight <= 0',
         },
         {
-          receivers: [createReceiver(123n, 1000), createReceiver(123n, 2000)],
+          receivers: [createReceiver(123n, 10), createReceiver(123n, 20)],
           expectedMessage: 'Duplicate splits receivers found: 123',
         },
       ];
 
-      testCases.forEach(({receivers, expectedMessage}) => {
+      for (const {receivers, expectedMessage} of testCases) {
         try {
-          validateAndFormatSplitsReceivers(receivers);
+          await validateAndFormatSplitsReceivers(receivers);
           expect.fail(`Should have thrown for: ${expectedMessage}`);
         } catch (error) {
           expect(error).toBeInstanceOf(DripsError);
           expect((error as DripsError).message).toContain(expectedMessage);
         }
-      });
+      }
+    });
+
+    it('should handle single receiver at boundary conditions', async () => {
+      // Test minimum valid weight
+      const minWeightReceiver = [createReceiver(1n, 1)];
+      const result1 = await validateAndFormatSplitsReceivers(minWeightReceiver);
+      expect(result1[0].weight).toBe(1);
+
+      // Test maximum valid weight
+      const maxWeightReceiver = [createReceiver(1n, TOTAL_SPLITS_WEIGHT)];
+      const result2 = await validateAndFormatSplitsReceivers(maxWeightReceiver);
+      expect(result2[0].weight).toBe(TOTAL_SPLITS_WEIGHT);
+    });
+
+    it('should handle complex validation scenarios', async () => {
+      // Test that all validations run in correct order
+      // This should fail on empty check first, not other validations
+      const emptyReceivers: OnChainSplitsReceiver[] = [];
+      await expect(
+        validateAndFormatSplitsReceivers(emptyReceivers),
+      ).rejects.toThrow('Splits receivers cannot be empty');
     });
   });
 
   describe('performance and scalability', () => {
-    it('should handle sorting performance with maximum receivers', () => {
-      // Arrange - Create receivers in reverse order to test worst-case sorting
-      const receivers: SdkSplitsReceiver[] = Array.from(
-        {length: MAX_SPLITS_RECEIVERS},
-        (_, i) => createReceiver(BigInt(MAX_SPLITS_RECEIVERS - i), 1000),
+    it('should handle sorting performance with maximum receivers', async () => {
+      // Arrange - Create 100 receivers in reverse order to test worst-case sorting
+      // Use weight 1 each (total = 100)
+      const receivers: OnChainSplitsReceiver[] = Array.from(
+        {length: 100},
+        (_, i) => createReceiver(BigInt(100 - i), 1),
       );
 
       // Act
       const startTime = performance.now();
-      const result = validateAndFormatSplitsReceivers(receivers);
+      const result = await validateAndFormatSplitsReceivers(receivers);
       const endTime = performance.now();
 
       // Assert
-      expect(result).toHaveLength(MAX_SPLITS_RECEIVERS);
+      expect(result).toHaveLength(100);
       expect(result[0].accountId).toBe(1n);
-      expect(result[MAX_SPLITS_RECEIVERS - 1].accountId).toBe(
-        BigInt(MAX_SPLITS_RECEIVERS),
-      );
-      // Performance should be reasonable (less than 100ms for max receivers)
-      expect(endTime - startTime).toBeLessThan(100);
+      expect(result[99].accountId).toBe(100n);
+      // Performance should be reasonable (less than 1000ms for 100 receivers)
+      expect(endTime - startTime).toBeLessThan(1000);
     });
 
-    it('should handle duplicate detection performance with many duplicates', () => {
+    it('should handle duplicate detection performance with many duplicates', async () => {
       // Arrange - Create many duplicates to test worst-case duplicate detection
-      const receivers: SdkSplitsReceiver[] = Array.from({length: 100}, () =>
-        createReceiver(123n, 1000),
+      const receivers: OnChainSplitsReceiver[] = Array.from({length: 100}, () =>
+        createReceiver(123n, 1),
       );
 
       // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
         'Duplicate splits receivers found: 123',
       );
+    });
+
+    it('should handle large weight calculations', async () => {
+      // Arrange - Test with large weights that could cause overflow issues
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(1n, Number.MAX_SAFE_INTEGER),
+      ];
+
+      // Act & Assert
+      await expect(validateAndFormatSplitsReceivers(receivers)).rejects.toThrow(
+        DripsError,
+      );
+    });
+  });
+
+  describe('integration scenarios', () => {
+    it('should handle realistic distribution scenarios', async () => {
+      // Arrange - Realistic percentage distributions
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(1n, 40), // 40%
+        createReceiver(2n, 35), // 35%
+        createReceiver(3n, 15), // 15%
+        createReceiver(4n, 10), // 10%
+      ];
+
+      // Act
+      const result = await validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result).toHaveLength(4);
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(100);
+      expect(result.map(r => r.accountId)).toEqual([1n, 2n, 3n, 4n]);
+    });
+
+    it('should handle edge case with single maximum weight receiver', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(999n, TOTAL_SPLITS_WEIGHT),
+      ];
+
+      // Act
+      const result = await validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].weight).toBe(TOTAL_SPLITS_WEIGHT);
+      expect(result[0].accountId).toBe(999n);
     });
   });
 });

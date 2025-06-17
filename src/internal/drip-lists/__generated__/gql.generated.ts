@@ -28,5 +28,63 @@ export type GetDripListQuery = {
       driver: Types.Driver;
       address: string;
     };
+    splits: Array<
+      | {
+          __typename: 'AddressReceiver';
+          weight: number;
+          account: {
+            __typename: 'AddressDriverAccount';
+            accountId: string;
+            address: string;
+            driver: Types.Driver;
+          };
+        }
+      | {
+          __typename: 'DripListReceiver';
+          weight: number;
+          account: {
+            __typename: 'NftDriverAccount';
+            accountId: string;
+            driver: Types.Driver;
+          };
+        }
+      | {
+          __typename: 'EcosystemMainAccountReceiver';
+          weight: number;
+          account: {
+            __typename: 'NftDriverAccount';
+            accountId: string;
+            driver: Types.Driver;
+          };
+        }
+      | {
+          __typename: 'ProjectReceiver';
+          weight: number;
+          account: {
+            __typename: 'RepoDriverAccount';
+            accountId: string;
+            driver: Types.Driver;
+          };
+          project: {
+            __typename: 'Project';
+            source: {
+              __typename: 'Source';
+              forge: Types.Forge;
+              ownerName: string;
+              repoName: string;
+              url: string;
+            };
+          };
+        }
+      | {
+          __typename: 'SubListReceiver';
+          weight: number;
+          account: {
+            __typename: 'ImmutableSplitsDriverAccount';
+            accountId: string;
+            driver: Types.Driver;
+          };
+        }
+    >;
   } | null;
 };
