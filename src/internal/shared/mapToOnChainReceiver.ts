@@ -1,9 +1,6 @@
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
-import {DripsError} from './DripsError';
-import {calcProjectId} from '../projects/calcProjectId';
 import {Address} from 'viem';
-import {destructProjectUrl} from '../projects/destructProjectUrl';
-import {calcAddressId} from './calcAddressId';
+import {resolveAccountId} from './resolveAccountId';
 
 export type ProjectSplitsReceiver = {
   type: 'project';
@@ -51,44 +48,10 @@ export async function mapToOnChainReceiver(
   adapter: ReadBlockchainAdapter,
   receiver: SdkSplitsReceiver,
 ): Promise<OnChainSplitsReceiver> {
-  if (receiver.type === 'project') {
-    const {url, weight} = receiver;
-    const {forge, ownerName, repoName} = destructProjectUrl(url);
-    const accountId = await calcProjectId(adapter, {
-      forge,
-      name: `${ownerName}/${repoName}`,
-    });
+  const accountId = await resolveAccountId(adapter, receiver);
 
-    return {
-      accountId,
-      weight,
-    };
-  } else if (receiver.type === 'drip-list') {
-    return {
-      accountId: receiver.accountId,
-      weight: receiver.weight,
-    };
-  } else if (receiver.type === 'sub-list') {
-    return {
-      accountId: receiver.accountId,
-      weight: receiver.weight,
-    };
-  } else if (receiver.type === 'address') {
-    return {
-      accountId: await calcAddressId(adapter, receiver.address),
-      weight: receiver.weight,
-    };
-  } else if (receiver.type === 'ecosystem-main-account') {
-    return {
-      accountId: receiver.accountId,
-      weight: receiver.weight,
-    };
-  }
-
-  throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
-    meta: {
-      operation: 'mapToOnChainReceiver',
-      receiver,
-    },
-  });
+  return {
+    accountId,
+    weight: receiver.weight,
+  };
 }

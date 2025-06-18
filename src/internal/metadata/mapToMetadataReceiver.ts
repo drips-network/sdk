@@ -1,7 +1,6 @@
 import z from 'zod';
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
 import {DripsError} from '../shared/DripsError';
-import {calcProjectId} from '../projects/calcProjectId';
 import {destructProjectUrl} from '../projects/destructProjectUrl';
 import {SdkSplitsReceiver} from '../shared/mapToOnChainReceiver';
 import {dripListSplitReceiverSchema} from './schemas/nft-driver/v2';
@@ -10,7 +9,7 @@ import {
   repoDriverSplitReceiverSchema,
 } from './schemas/repo-driver/v2';
 import {subListSplitReceiverSchema} from './schemas/immutable-splits-driver/v1';
-import {calcAddressId} from '../shared/calcAddressId';
+import {resolveAccountId} from '../shared/resolveAccountId';
 
 export type MetadataDripListReceiver = z.output<
   typeof dripListSplitReceiverSchema
@@ -38,13 +37,11 @@ export async function mapToMetadataReceiver(
   adapter: ReadBlockchainAdapter,
   receiver: SdkSplitsReceiver,
 ): Promise<MetadataSplitsReceiver> {
+  const accountId = await resolveAccountId(adapter, receiver);
+
   if (receiver.type === 'project') {
     const {url, weight} = receiver;
     const {forge, ownerName, repoName} = destructProjectUrl(url);
-    const accountId = await calcProjectId(adapter, {
-      forge,
-      name: `${ownerName}/${repoName}`,
-    });
 
     return {
       type: 'repoDriver',
@@ -61,19 +58,19 @@ export async function mapToMetadataReceiver(
     return {
       type: 'dripList',
       weight: receiver.weight,
-      accountId: receiver.accountId.toString(),
+      accountId: accountId.toString(),
     } as MetadataDripListReceiver;
   } else if (receiver.type === 'sub-list') {
     return {
       type: 'subList',
       weight: receiver.weight,
-      accountId: receiver.accountId.toString(),
+      accountId: accountId.toString(),
     };
   } else if (receiver.type === 'address') {
     return {
       type: 'address',
       weight: receiver.weight,
-      accountId: (await calcAddressId(adapter, receiver.address)).toString(),
+      accountId: accountId.toString(),
     };
   }
 

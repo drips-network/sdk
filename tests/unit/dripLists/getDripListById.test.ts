@@ -34,6 +34,7 @@ describe('getDripListById', () => {
     previousOwnerAddress: null,
     splits: [
       {
+        __typename: 'AddressReceiver',
         weight: 500000,
         account: {
           accountId: '789',
@@ -42,6 +43,7 @@ describe('getDripListById', () => {
         },
       },
       {
+        __typename: 'DripListReceiver',
         weight: 300000,
         account: {
           accountId: '101112',
@@ -49,6 +51,7 @@ describe('getDripListById', () => {
         },
       },
       {
+        __typename: 'ProjectReceiver',
         weight: 200000,
         account: {
           accountId: '131415',
@@ -61,6 +64,20 @@ describe('getDripListById', () => {
             repoName: 'testrepo',
             url: 'https://github.com/testowner/testrepo',
           },
+        },
+      },
+    ],
+    support: [
+      {
+        __typename: 'OneTimeDonationSupport',
+        account: {
+          accountId: '999',
+          address: '0x2222222222222222222222222222222222222222',
+          driver: 'ADDRESS',
+        },
+        amount: {
+          amount: '1000000',
+          tokenAddress: '0x3333333333333333333333333333333333333333',
         },
       },
     ],
@@ -377,6 +394,9 @@ describe('getDripListById', () => {
       expect(query).toContain('AddressReceiver');
       expect(query).toContain('SubListReceiver');
       expect(query).toContain('EcosystemMainAccountReceiver');
+      expect(query).toContain('support');
+      expect(query).toContain('OneTimeDonationSupport');
+      expect(query).toContain('__typename');
     });
   });
 
@@ -538,6 +558,103 @@ describe('getDripListById', () => {
       expect((result?.splits[0].account as any).address).toBe(
         '0x2222222222222222222222222222222222222222',
       );
+    });
+  });
+
+  describe('support functionality', () => {
+    it('should return drip list with one-time donation support', async () => {
+      // Arrange
+      const dripListWithSupport = {
+        ...mockDripList,
+        support: [
+          {
+            __typename: 'OneTimeDonationSupport',
+            account: {
+              accountId: '999',
+              address: '0x2222222222222222222222222222222222222222',
+              driver: 'ADDRESS',
+            },
+            amount: {
+              amount: '1000000',
+              tokenAddress: '0x3333333333333333333333333333333333333333',
+            },
+          },
+          {
+            __typename: 'OneTimeDonationSupport',
+            account: {
+              accountId: '888',
+              address: '0x4444444444444444444444444444444444444444',
+              driver: 'ADDRESS',
+            },
+            amount: {
+              amount: '2000000',
+              tokenAddress: '0x5555555555555555555555555555555555555555',
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithSupport,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithSupport);
+      expect(result?.support).toHaveLength(2);
+      expect(result?.support[0]).toHaveProperty(
+        '__typename',
+        'OneTimeDonationSupport',
+      );
+      expect(result?.support[0]).toHaveProperty('account');
+      expect(result?.support[0]).toHaveProperty('amount');
+      expect((result?.support[0] as any).account.address).toBe(
+        '0x2222222222222222222222222222222222222222',
+      );
+      expect((result?.support[0] as any).amount.amount).toBe('1000000');
+      expect((result?.support[0] as any).amount.tokenAddress).toBe(
+        '0x3333333333333333333333333333333333333333',
+      );
+    });
+
+    it('should handle drip list with empty support array', async () => {
+      // Arrange
+      const dripListWithEmptySupport = {
+        ...mockDripList,
+        support: [],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithEmptySupport,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithEmptySupport);
+      expect(result?.support).toEqual([]);
+    });
+
+    it('should handle drip list without support field', async () => {
+      // Arrange
+      const dripListWithoutSupport = {
+        ...mockDripList,
+      };
+      delete (dripListWithoutSupport as any).support;
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithoutSupport,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithoutSupport);
+      expect(result?.support).toBeUndefined();
     });
   });
 

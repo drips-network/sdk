@@ -86,5 +86,21 @@ export type GetDripListQuery = {
           };
         }
     >;
+    support: Array<
+      | {__typename: 'DripListSupport'}
+      | {__typename: 'EcosystemSupport'}
+      | {
+          __typename: 'OneTimeDonationSupport';
+          account: {
+            __typename: 'AddressDriverAccount';
+            accountId: string;
+            address: string;
+            driver: Types.Driver;
+          };
+          amount: {__typename: 'Amount'; amount: string; tokenAddress: string};
+        }
+      | {__typename: 'ProjectSupport'}
+      | {__typename: 'StreamSupport'}
+    >;
   } | null;
 };

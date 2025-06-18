@@ -15,11 +15,13 @@ import {
   createGraphQLClient,
   DEFAULT_GRAPHQL_URL,
 } from '../internal/graphql/createGraphQLClient';
+import {createDonationsModule, DonationsModule} from './createDonationsModule';
 
 export interface DripsSdk {
   readonly dripLists: DripListsModule;
-  readonly constants: typeof dripsConstants;
+  readonly donations: DonationsModule;
   readonly utils: typeof utils;
+  readonly constants: typeof dripsConstants;
 }
 
 type DripsSdkOptions = {
@@ -54,5 +56,6 @@ export function createDripsSdk(
       graphqlClient,
       ipfsUploaderFn,
     }),
+    donations: createDonationsModule({adapter}),
   };
 }

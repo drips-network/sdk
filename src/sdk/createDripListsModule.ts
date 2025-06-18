@@ -42,16 +42,14 @@ export function createDripListsModule(deps: Deps): DripListsModule {
   const {adapter, graphqlClient, ipfsUploaderFn} = deps;
 
   return {
-    calculateId: (salt: bigint, minter: Address) => {
-      return calcDripListId(adapter, {
+    calculateId: (salt: bigint, minter: Address) =>
+      calcDripListId(adapter, {
         salt,
         minter,
-      });
-    },
+      }),
 
-    getById: (accountId: bigint, chainId: number) => {
-      return getDripListById(accountId, chainId, graphqlClient);
-    },
+    getById: (accountId: bigint, chainId: number) =>
+      getDripListById(accountId, chainId, graphqlClient),
 
     prepareCreationCtx: (params: CreateDripListParams) =>
       prepareDripListCreationCtx(
@@ -60,12 +58,7 @@ export function createDripListsModule(deps: Deps): DripListsModule {
         params,
       ),
 
-    create: async (params: CreateDripListParams) => {
-      return createDripList(
-        adapter as WriteBlockchainAdapter,
-        ipfsUploaderFn,
-        params,
-      );
-    },
+    create: async (params: CreateDripListParams) =>
+      createDripList(adapter as WriteBlockchainAdapter, ipfsUploaderFn, params),
   };
 }

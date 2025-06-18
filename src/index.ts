@@ -26,6 +26,9 @@ export {calcAddressId} from './internal/shared/calcAddressId';
 
 export {calcProjectId} from './internal/projects/calcProjectId';
 
+export {prepareOneTimeDonationTx} from './internal/donations/prepareOneTimeDonationTx';
+export {sendOneTimeDonation} from './internal/donations/sendOneTimeDonation';
+
 export const utils = {
   buildTx,
   encodeMetadataKeyValue,
@@ -65,3 +68,5 @@ export {
   AddressSplitsReceiver,
 } from './internal/shared/mapToOnChainReceiver';
 export {Forge, ProjectName} from './internal/projects/calcProjectId';
+export {SendOneTimeDonationParams} from './internal/donations/prepareOneTimeDonationTx';
+export {OneTimeDonationReceiver} from './internal/donations/prepareOneTimeDonationTx';

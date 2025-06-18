@@ -33,6 +33,7 @@ const GET_DRIP_LIST_QUERY = gql`
       previousOwnerAddress
       splits {
         ... on ProjectReceiver {
+          __typename
           weight
           account {
             accountId
@@ -48,6 +49,7 @@ const GET_DRIP_LIST_QUERY = gql`
           }
         }
         ... on DripListReceiver {
+          __typename
           weight
           account {
             accountId
@@ -55,6 +57,7 @@ const GET_DRIP_LIST_QUERY = gql`
           }
         }
         ... on AddressReceiver {
+          __typename
           weight
           account {
             accountId
@@ -63,6 +66,7 @@ const GET_DRIP_LIST_QUERY = gql`
           }
         }
         ... on SubListReceiver {
+          __typename
           weight
           account {
             accountId
@@ -70,10 +74,25 @@ const GET_DRIP_LIST_QUERY = gql`
           }
         }
         ... on EcosystemMainAccountReceiver {
+          __typename
           weight
           account {
             accountId
             driver
+          }
+        }
+      }
+      support {
+        ... on OneTimeDonationSupport {
+          __typename
+          account {
+            accountId
+            address
+            driver
+          }
+          amount {
+            amount
+            tokenAddress
           }
         }
       }

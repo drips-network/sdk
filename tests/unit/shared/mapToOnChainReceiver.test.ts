@@ -1,21 +1,14 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {mapToOnChainReceiver} from '../../../src/internal/shared/mapToOnChainReceiver';
-import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import type {Address} from 'viem';
 
 // Mock dependencies
-vi.mock('../../../src/internal/projects/calcProjectId');
-vi.mock('../../../src/internal/projects/destructProjectUrl');
-vi.mock('../../../src/internal/shared/calcAddressId');
+vi.mock('../../../src/internal/shared/resolveAccountId');
 
-import {calcProjectId} from '../../../src/internal/projects/calcProjectId';
-import {destructProjectUrl} from '../../../src/internal/projects/destructProjectUrl';
-import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
+import {resolveAccountId} from '../../../src/internal/shared/resolveAccountId';
 
-const mockCalcProjectId = vi.mocked(calcProjectId);
-const mockDestructProjectUrl = vi.mocked(destructProjectUrl);
-const mockCalcAddressId = vi.mocked(calcAddressId);
+const mockResolveAccountId = vi.mocked(resolveAccountId);
 
 describe('mapToOnChainReceiver', () => {
   let mockAdapter: ReadBlockchainAdapter;
@@ -38,12 +31,7 @@ describe('mapToOnChainReceiver', () => {
         weight: 500000,
       };
 
-      mockDestructProjectUrl.mockReturnValue({
-        forge: 'github',
-        ownerName: 'owner',
-        repoName: 'repo',
-      });
-      mockCalcProjectId.mockResolvedValue(123n);
+      mockResolveAccountId.mockResolvedValue(123n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, projectReceiver);
@@ -53,16 +41,13 @@ describe('mapToOnChainReceiver', () => {
         accountId: 123n,
         weight: 500000,
       });
-      expect(mockDestructProjectUrl).toHaveBeenCalledWith(
-        'https://github.com/owner/repo',
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
+        mockAdapter,
+        projectReceiver,
       );
-      expect(mockCalcProjectId).toHaveBeenCalledWith(mockAdapter, {
-        forge: 'github',
-        name: 'owner/repo',
-      });
     });
 
-    it('should handle project receiver with different owner/repo names', async () => {
+    it('should handle project receiver with different weight', async () => {
       // Arrange
       const projectReceiver = {
         type: 'project' as const,
@@ -70,12 +55,7 @@ describe('mapToOnChainReceiver', () => {
         weight: 750000,
       };
 
-      mockDestructProjectUrl.mockReturnValue({
-        forge: 'github',
-        ownerName: 'myorg',
-        repoName: 'myrepo',
-      });
-      mockCalcProjectId.mockResolvedValue(456n);
+      mockResolveAccountId.mockResolvedValue(456n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, projectReceiver);
@@ -85,63 +65,13 @@ describe('mapToOnChainReceiver', () => {
         accountId: 456n,
         weight: 750000,
       });
-      expect(mockCalcProjectId).toHaveBeenCalledWith(mockAdapter, {
-        forge: 'github',
-        name: 'myorg/myrepo',
-      });
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
+        mockAdapter,
+        projectReceiver,
+      );
     });
 
-    it('should handle project receiver with zero weight', async () => {
-      // Arrange
-      const projectReceiver = {
-        type: 'project' as const,
-        url: 'https://github.com/owner/repo',
-        weight: 0,
-      };
-
-      mockDestructProjectUrl.mockReturnValue({
-        forge: 'github',
-        ownerName: 'owner',
-        repoName: 'repo',
-      });
-      mockCalcProjectId.mockResolvedValue(789n);
-
-      // Act
-      const result = await mapToOnChainReceiver(mockAdapter, projectReceiver);
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 789n,
-        weight: 0,
-      });
-    });
-
-    it('should handle project receiver with maximum weight', async () => {
-      // Arrange
-      const projectReceiver = {
-        type: 'project' as const,
-        url: 'https://github.com/owner/repo',
-        weight: 1000000,
-      };
-
-      mockDestructProjectUrl.mockReturnValue({
-        forge: 'github',
-        ownerName: 'owner',
-        repoName: 'repo',
-      });
-      mockCalcProjectId.mockResolvedValue(999n);
-
-      // Act
-      const result = await mapToOnChainReceiver(mockAdapter, projectReceiver);
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 999n,
-        weight: 1000000,
-      });
-    });
-
-    it('should propagate error from destructProjectUrl', async () => {
+    it('should propagate error from resolveAccountId', async () => {
       // Arrange
       const projectReceiver = {
         type: 'project' as const,
@@ -149,37 +79,13 @@ describe('mapToOnChainReceiver', () => {
         weight: 500000,
       };
 
-      const destructError = new Error('Invalid URL');
-      mockDestructProjectUrl.mockImplementation(() => {
-        throw destructError;
-      });
+      const resolveError = new Error('Failed to resolve account ID');
+      mockResolveAccountId.mockRejectedValue(resolveError);
 
       // Act & Assert
       await expect(
         mapToOnChainReceiver(mockAdapter, projectReceiver),
-      ).rejects.toThrow('Invalid URL');
-    });
-
-    it('should propagate error from calcProjectId', async () => {
-      // Arrange
-      const projectReceiver = {
-        type: 'project' as const,
-        url: 'https://github.com/owner/repo',
-        weight: 500000,
-      };
-
-      mockDestructProjectUrl.mockReturnValue({
-        forge: 'github',
-        ownerName: 'owner',
-        repoName: 'repo',
-      });
-      const calcError = new Error('Calculation failed');
-      mockCalcProjectId.mockRejectedValue(calcError);
-
-      // Act & Assert
-      await expect(
-        mapToOnChainReceiver(mockAdapter, projectReceiver),
-      ).rejects.toThrow('Calculation failed');
+      ).rejects.toThrow('Failed to resolve account ID');
     });
   });
 
@@ -192,6 +98,8 @@ describe('mapToOnChainReceiver', () => {
         weight: 500000,
       };
 
+      mockResolveAccountId.mockResolvedValue(123n);
+
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, dripListReceiver);
 
@@ -200,6 +108,10 @@ describe('mapToOnChainReceiver', () => {
         accountId: 123n,
         weight: 500000,
       });
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
+        mockAdapter,
+        dripListReceiver,
+      );
     });
 
     it('should handle drip-list receiver with zero accountId', async () => {
@@ -209,6 +121,8 @@ describe('mapToOnChainReceiver', () => {
         accountId: 0n,
         weight: 250000,
       };
+
+      mockResolveAccountId.mockResolvedValue(0n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, dripListReceiver);
@@ -228,6 +142,8 @@ describe('mapToOnChainReceiver', () => {
         accountId: largeAccountId,
         weight: 750000,
       };
+
+      mockResolveAccountId.mockResolvedValue(largeAccountId);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, dripListReceiver);
@@ -249,6 +165,8 @@ describe('mapToOnChainReceiver', () => {
         weight: 300000,
       };
 
+      mockResolveAccountId.mockResolvedValue(456n);
+
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, subListReceiver);
 
@@ -257,6 +175,10 @@ describe('mapToOnChainReceiver', () => {
         accountId: 456n,
         weight: 300000,
       });
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
+        mockAdapter,
+        subListReceiver,
+      );
     });
 
     it('should handle sub-list receiver with zero weight', async () => {
@@ -266,6 +188,8 @@ describe('mapToOnChainReceiver', () => {
         accountId: 789n,
         weight: 0,
       };
+
+      mockResolveAccountId.mockResolvedValue(789n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, subListReceiver);
@@ -288,7 +212,7 @@ describe('mapToOnChainReceiver', () => {
         weight: 400000,
       };
 
-      mockCalcAddressId.mockResolvedValue(999n);
+      mockResolveAccountId.mockResolvedValue(999n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, addressReceiver);
@@ -298,7 +222,10 @@ describe('mapToOnChainReceiver', () => {
         accountId: 999n,
         weight: 400000,
       });
-      expect(mockCalcAddressId).toHaveBeenCalledWith(mockAdapter, address);
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
+        mockAdapter,
+        addressReceiver,
+      );
     });
 
     it('should handle address receiver with zero address', async () => {
@@ -310,7 +237,7 @@ describe('mapToOnChainReceiver', () => {
         weight: 100000,
       };
 
-      mockCalcAddressId.mockResolvedValue(0n);
+      mockResolveAccountId.mockResolvedValue(0n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, addressReceiver);
@@ -320,36 +247,13 @@ describe('mapToOnChainReceiver', () => {
         accountId: 0n,
         weight: 100000,
       });
-      expect(mockCalcAddressId).toHaveBeenCalledWith(mockAdapter, zeroAddress);
-    });
-
-    it('should handle address receiver with checksummed address', async () => {
-      // Arrange
-      const checksummedAddress: Address =
-        '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed';
-      const addressReceiver = {
-        type: 'address' as const,
-        address: checksummedAddress,
-        weight: 600000,
-      };
-
-      mockCalcAddressId.mockResolvedValue(555n);
-
-      // Act
-      const result = await mapToOnChainReceiver(mockAdapter, addressReceiver);
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 555n,
-        weight: 600000,
-      });
-      expect(mockCalcAddressId).toHaveBeenCalledWith(
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
         mockAdapter,
-        checksummedAddress,
+        addressReceiver,
       );
     });
 
-    it('should propagate error from calcAddressId', async () => {
+    it('should propagate error from resolveAccountId', async () => {
       // Arrange
       const address: Address = '0x1234567890123456789012345678901234567890';
       const addressReceiver = {
@@ -358,8 +262,8 @@ describe('mapToOnChainReceiver', () => {
         weight: 400000,
       };
 
-      const calcError = new Error('Address calculation failed');
-      mockCalcAddressId.mockRejectedValue(calcError);
+      const resolveError = new Error('Address calculation failed');
+      mockResolveAccountId.mockRejectedValue(resolveError);
 
       // Act & Assert
       await expect(
@@ -377,6 +281,8 @@ describe('mapToOnChainReceiver', () => {
         weight: 800000,
       };
 
+      mockResolveAccountId.mockResolvedValue(777n);
+
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, ecosystemReceiver);
 
@@ -385,6 +291,10 @@ describe('mapToOnChainReceiver', () => {
         accountId: 777n,
         weight: 800000,
       });
+      expect(mockResolveAccountId).toHaveBeenCalledWith(
+        mockAdapter,
+        ecosystemReceiver,
+      );
     });
 
     it('should handle ecosystem-main-account receiver with maximum weight', async () => {
@@ -395,6 +305,8 @@ describe('mapToOnChainReceiver', () => {
         weight: 1000000,
       };
 
+      mockResolveAccountId.mockResolvedValue(888n);
+
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, ecosystemReceiver);
 
@@ -403,79 +315,6 @@ describe('mapToOnChainReceiver', () => {
         accountId: 888n,
         weight: 1000000,
       });
-    });
-  });
-
-  describe('unsupported receiver type', () => {
-    it('should throw DripsError for unsupported receiver type', async () => {
-      // Arrange
-      const unsupportedReceiver = {
-        type: 'unsupported-type',
-        accountId: 123n,
-        weight: 500000,
-      } as any;
-
-      // Act & Assert
-      await expect(
-        mapToOnChainReceiver(mockAdapter, unsupportedReceiver),
-      ).rejects.toThrow(DripsError);
-      await expect(
-        mapToOnChainReceiver(mockAdapter, unsupportedReceiver),
-      ).rejects.toThrow('Unsupported receiver type: unsupported-type');
-    });
-
-    it('should include receiver in error meta', async () => {
-      // Arrange
-      const unsupportedReceiver = {
-        type: 'invalid-type',
-        someProperty: 'value',
-      } as any;
-
-      // Act & Assert
-      try {
-        await mapToOnChainReceiver(mockAdapter, unsupportedReceiver);
-        expect.fail('Should have thrown an error');
-      } catch (error) {
-        expect(error).toBeInstanceOf(DripsError);
-        const dripsError = error as DripsError;
-        expect(dripsError.meta).toEqual({
-          operation: 'mapToOnChainReceiver',
-          receiver: unsupportedReceiver,
-        });
-      }
-    });
-
-    it('should handle receiver with undefined type', async () => {
-      // Arrange
-      const receiverWithUndefinedType = {
-        accountId: 123n,
-        weight: 500000,
-      } as any;
-
-      // Act & Assert
-      await expect(
-        mapToOnChainReceiver(mockAdapter, receiverWithUndefinedType),
-      ).rejects.toThrow(DripsError);
-      await expect(
-        mapToOnChainReceiver(mockAdapter, receiverWithUndefinedType),
-      ).rejects.toThrow('Unsupported receiver type: undefined');
-    });
-
-    it('should handle receiver with null type', async () => {
-      // Arrange
-      const receiverWithNullType = {
-        type: null,
-        accountId: 123n,
-        weight: 500000,
-      } as any;
-
-      // Act & Assert
-      await expect(
-        mapToOnChainReceiver(mockAdapter, receiverWithNullType),
-      ).rejects.toThrow(DripsError);
-      await expect(
-        mapToOnChainReceiver(mockAdapter, receiverWithNullType),
-      ).rejects.toThrow('Unsupported receiver type: null');
     });
   });
 
@@ -488,6 +327,8 @@ describe('mapToOnChainReceiver', () => {
         accountId: 123n,
         weight: largeWeight,
       };
+
+      mockResolveAccountId.mockResolvedValue(123n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, dripListReceiver);
@@ -507,6 +348,8 @@ describe('mapToOnChainReceiver', () => {
         accountId: 456n,
         weight: negativeWeight,
       };
+
+      mockResolveAccountId.mockResolvedValue(456n);
 
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, subListReceiver);
@@ -529,6 +372,8 @@ describe('mapToOnChainReceiver', () => {
         weight: 500000,
       };
 
+      mockResolveAccountId.mockResolvedValue(largeAccountId);
+
       // Act
       const result = await mapToOnChainReceiver(mockAdapter, ecosystemReceiver);
 
@@ -550,6 +395,8 @@ describe('mapToOnChainReceiver', () => {
       };
       const receiverCopy = {...originalReceiver};
 
+      mockResolveAccountId.mockResolvedValue(123n);
+
       // Act
       await mapToOnChainReceiver(mockAdapter, originalReceiver);
 
@@ -566,6 +413,8 @@ describe('mapToOnChainReceiver', () => {
       };
       const originalAdapter = {...mockAdapter};
 
+      mockResolveAccountId.mockResolvedValue(123n);
+
       // Act
       await mapToOnChainReceiver(mockAdapter, dripListReceiver);
 
@@ -580,6 +429,8 @@ describe('mapToOnChainReceiver', () => {
         accountId: 123n,
         weight: 500000,
       };
+
+      mockResolveAccountId.mockResolvedValue(123n);
 
       // Act
       const result1 = await mapToOnChainReceiver(mockAdapter, dripListReceiver);
@@ -603,6 +454,11 @@ describe('mapToOnChainReceiver', () => {
           weight: 300000,
         },
       ];
+
+      mockResolveAccountId
+        .mockResolvedValueOnce(1n)
+        .mockResolvedValueOnce(2n)
+        .mockResolvedValueOnce(3n);
 
       // Act
       const results = await Promise.all(
@@ -629,12 +485,9 @@ describe('mapToOnChainReceiver', () => {
         weight: 300000,
       };
 
-      mockDestructProjectUrl.mockReturnValue({
-        forge: 'github',
-        ownerName: 'owner',
-        repoName: 'repo',
-      });
-      mockCalcProjectId.mockRejectedValue(new Error('Project calc failed'));
+      mockResolveAccountId
+        .mockRejectedValueOnce(new Error('Project calc failed'))
+        .mockResolvedValueOnce(123n);
 
       // Act
       const projectPromise = mapToOnChainReceiver(mockAdapter, projectReceiver);
@@ -660,6 +513,11 @@ describe('mapToOnChainReceiver', () => {
         accountId: BigInt(i),
         weight: i * 1000,
       }));
+
+      // Mock resolveAccountId to return the expected accountId for each receiver
+      receivers.forEach((_, i) => {
+        mockResolveAccountId.mockResolvedValueOnce(BigInt(i));
+      });
 
       // Act
       const startTime = performance.now();
