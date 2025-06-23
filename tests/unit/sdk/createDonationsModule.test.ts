@@ -10,14 +10,25 @@ import {
   TxResponse,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 import {
-  prepareOneTimeDonationTx,
-  SendOneTimeDonationParams,
-} from '../../../src/internal/donations/prepareOneTimeDonationTx';
+  prepareOneTimeDonation,
+  OneTimeDonation,
+} from '../../../src/internal/donations/prepareOneTimeDonation';
 import {sendOneTimeDonation} from '../../../src/internal/donations/sendOneTimeDonation';
+import {
+  prepareContinuousDonation,
+  ContinuousDonation,
+  PrepareContinuousDonationResult,
+} from '../../../src/internal/donations/prepareContinuousDonation';
+import {
+  sendContinuousDonation,
+  SendContinuousDonationResult,
+} from '../../../src/internal/donations/sendContinuousDonation';
 import {Address, Hex} from 'viem';
 
-vi.mock('../../../src/internal/donations/prepareOneTimeDonationTx');
+vi.mock('../../../src/internal/donations/prepareOneTimeDonation');
 vi.mock('../../../src/internal/donations/sendOneTimeDonation');
+vi.mock('../../../src/internal/donations/prepareContinuousDonation');
+vi.mock('../../../src/internal/donations/sendContinuousDonation');
 
 describe('createDonationsModule', () => {
   let adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
@@ -28,19 +39,23 @@ describe('createDonationsModule', () => {
 
     adapter = {} as WriteBlockchainAdapter;
 
+    const mockGraphqlClient = {} as any;
+    const mockIpfsUploader = vi.fn();
+
     donationsModule = createDonationsModule({
       adapter,
+      graphqlClient: mockGraphqlClient,
+      ipfsUploaderFn: mockIpfsUploader,
     });
   });
 
-  describe('prepareOneTimeDonationTx', () => {
+  describe('prepareOneTimeDonation', () => {
     it('should prepare a one-time donation transaction', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
-          amount: 100n,
         },
         amount: 100n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -50,23 +65,22 @@ describe('createDonationsModule', () => {
         data: '0x123' as Hex,
         value: 0n,
       };
-      vi.mocked(prepareOneTimeDonationTx).mockResolvedValue(expectedPreparedTx);
+      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
       // Act
-      const result = await donationsModule.prepareOneTimeDonationTx(params);
+      const result = await donationsModule.prepareOneTimeDonation(params);
 
       // Assert
       expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(adapter, params);
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
     });
 
     it('should handle project receiver type', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'project',
           url: 'https://github.com/user/repo',
-          amount: 200n,
         },
         amount: 200n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -76,23 +90,22 @@ describe('createDonationsModule', () => {
         data: '0x456' as Hex,
         value: 0n,
       };
-      vi.mocked(prepareOneTimeDonationTx).mockResolvedValue(expectedPreparedTx);
+      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
       // Act
-      const result = await donationsModule.prepareOneTimeDonationTx(params);
+      const result = await donationsModule.prepareOneTimeDonation(params);
 
       // Assert
       expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(adapter, params);
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
     });
 
     it('should handle drip-list receiver type', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'drip-list',
           accountId: 123n,
-          amount: 300n,
         },
         amount: 300n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -102,23 +115,22 @@ describe('createDonationsModule', () => {
         data: '0x789' as Hex,
         value: 0n,
       };
-      vi.mocked(prepareOneTimeDonationTx).mockResolvedValue(expectedPreparedTx);
+      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
       // Act
-      const result = await donationsModule.prepareOneTimeDonationTx(params);
+      const result = await donationsModule.prepareOneTimeDonation(params);
 
       // Assert
       expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(adapter, params);
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
     });
 
     it('should handle ecosystem-main-account receiver type', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'ecosystem-main-account',
           accountId: 456n,
-          amount: 400n,
         },
         amount: 400n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -128,23 +140,22 @@ describe('createDonationsModule', () => {
         data: '0xabc' as Hex,
         value: 0n,
       };
-      vi.mocked(prepareOneTimeDonationTx).mockResolvedValue(expectedPreparedTx);
+      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
       // Act
-      const result = await donationsModule.prepareOneTimeDonationTx(params);
+      const result = await donationsModule.prepareOneTimeDonation(params);
 
       // Assert
       expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(adapter, params);
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
     });
 
     it('should handle sub-list receiver type', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'sub-list',
           accountId: 789n,
-          amount: 500n,
         },
         amount: 500n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -154,25 +165,24 @@ describe('createDonationsModule', () => {
         data: '0xdef' as Hex,
         value: 0n,
       };
-      vi.mocked(prepareOneTimeDonationTx).mockResolvedValue(expectedPreparedTx);
+      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
       // Act
-      const result = await donationsModule.prepareOneTimeDonationTx(params);
+      const result = await donationsModule.prepareOneTimeDonation(params);
 
       // Assert
       expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(adapter, params);
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
     });
   });
 
   describe('sendOneTime', () => {
     it('should send a one-time donation', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
-          amount: 100n,
         },
         amount: 100n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -193,11 +203,10 @@ describe('createDonationsModule', () => {
 
     it('should handle project receiver type for sending', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'project',
           url: 'https://github.com/user/repo',
-          amount: 200n,
         },
         amount: 200n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -218,11 +227,10 @@ describe('createDonationsModule', () => {
 
     it('should handle drip-list receiver type for sending', async () => {
       // Arrange
-      const params: SendOneTimeDonationParams = {
+      const params: OneTimeDonation = {
         receiver: {
           type: 'drip-list',
           accountId: 123n,
-          amount: 300n,
         },
         amount: 300n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
@@ -242,16 +250,290 @@ describe('createDonationsModule', () => {
     });
   });
 
+  describe('prepareContinuous', () => {
+    it('should prepare a continuous donation transaction', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amountPerSec: 100n,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      const expectedResult: PrepareContinuousDonationResult = {
+        ipfsHash: 'QmHash123',
+        preparedTx: {
+          to: '0x1234567890123456789012345678901234567890' as Address,
+          data: '0x123' as Hex,
+          value: 0n,
+        },
+        metadata: {
+          describes: {
+            driver: 'address',
+            accountId: '123',
+          },
+          assetConfigs: [],
+          timestamp: 123456789,
+          writtenByAddress: '0xSender456',
+        },
+      };
+      vi.mocked(prepareContinuousDonation).mockResolvedValue(expectedResult);
+
+      // Create a module with minimal dependencies for this test
+      const testAdapter = {} as WriteBlockchainAdapter;
+      const emptyGraphqlClient = {} as any;
+      const emptyIpfsUploader = vi.fn();
+
+      // Clear the mocks to ensure we're testing with a clean slate
+      vi.clearAllMocks();
+
+      const testModule = createDonationsModule({
+        adapter: testAdapter,
+        graphqlClient: emptyGraphqlClient,
+        ipfsUploaderFn: emptyIpfsUploader,
+      });
+
+      // Act
+      const result = await testModule.prepareContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(prepareContinuousDonation).toHaveBeenCalledWith(
+        testAdapter,
+        emptyIpfsUploader,
+        params,
+        emptyGraphqlClient,
+      );
+    });
+
+    it('should pass all dependencies to prepareContinuousDonation', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amountPerSec: 100n,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const expectedResult: PrepareContinuousDonationResult = {
+        ipfsHash: 'QmHash123',
+        preparedTx: {
+          to: '0x1234567890123456789012345678901234567890' as Address,
+          data: '0x123' as Hex,
+          value: 0n,
+        },
+        metadata: {
+          describes: {
+            driver: 'address',
+            accountId: '123',
+          },
+          assetConfigs: [],
+          timestamp: 123456789,
+          writtenByAddress: '0xSender456',
+        },
+      };
+      vi.mocked(prepareContinuousDonation).mockResolvedValue(expectedResult);
+
+      // Create a new module with all dependencies
+      const moduleWithDeps = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
+
+      // Act
+      const result = await moduleWithDeps.prepareContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(prepareContinuousDonation).toHaveBeenCalledWith(
+        adapter,
+        mockIpfsUploader,
+        params,
+        mockGraphqlClient,
+      );
+    });
+
+    it('should handle different receiver types', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amountPerSec: 100n,
+        receiver: {
+          type: 'project',
+          url: 'https://github.com/user/repo',
+        },
+      };
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const expectedResult: PrepareContinuousDonationResult = {
+        ipfsHash: 'QmHash123',
+        preparedTx: {
+          to: '0x1234567890123456789012345678901234567890' as Address,
+          data: '0x123' as Hex,
+          value: 0n,
+        },
+        metadata: {
+          describes: {
+            driver: 'address',
+            accountId: '123',
+          },
+          assetConfigs: [],
+          timestamp: 123456789,
+          writtenByAddress: '0xSender456',
+        },
+      };
+      vi.mocked(prepareContinuousDonation).mockResolvedValue(expectedResult);
+
+      // Create a new module with all dependencies
+      const moduleWithDeps = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
+
+      // Act
+      const result = await moduleWithDeps.prepareContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(prepareContinuousDonation).toHaveBeenCalledWith(
+        adapter,
+        mockIpfsUploader,
+        params,
+        mockGraphqlClient,
+      );
+    });
+  });
+
+  describe('sendContinuous', () => {
+    it('should send a continuous donation', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amountPerSec: 100n,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const expectedTxResponse: TxResponse = {
+        hash: '0x123456789abcdef' as Hex,
+        wait: vi.fn(),
+      };
+      const expectedResult: SendContinuousDonationResult = {
+        txResponse: expectedTxResponse,
+        ipfsHash: 'QmHash123',
+        metadata: {
+          describes: {
+            driver: 'address',
+            accountId: '123',
+          },
+          assetConfigs: [],
+          timestamp: 123456789,
+          writtenByAddress: '0xSender456',
+        },
+      };
+      vi.mocked(sendContinuousDonation).mockResolvedValue(expectedResult);
+
+      // Create a new module with all dependencies
+      const moduleWithDeps = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
+
+      // Act
+      const result = await moduleWithDeps.sendContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(sendContinuousDonation).toHaveBeenCalledWith(
+        adapter,
+        mockIpfsUploader,
+        params,
+        mockGraphqlClient,
+      );
+    });
+
+    it('should handle different receiver types for sending', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amountPerSec: 100n,
+        receiver: {
+          type: 'drip-list',
+          accountId: 123n,
+        },
+      };
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const expectedTxResponse: TxResponse = {
+        hash: '0x987654321fedcba' as Hex,
+        wait: vi.fn(),
+      };
+      const expectedResult: SendContinuousDonationResult = {
+        txResponse: expectedTxResponse,
+        ipfsHash: 'QmHash456',
+        metadata: {
+          describes: {
+            driver: 'address',
+            accountId: '456',
+          },
+          assetConfigs: [],
+          timestamp: 987654321,
+          writtenByAddress: '0xSender789',
+        },
+      };
+      vi.mocked(sendContinuousDonation).mockResolvedValue(expectedResult);
+
+      // Create a new module with all dependencies
+      const moduleWithDeps = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
+
+      // Act
+      const result = await moduleWithDeps.sendContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(sendContinuousDonation).toHaveBeenCalledWith(
+        adapter,
+        mockIpfsUploader,
+        params,
+        mockGraphqlClient,
+      );
+    });
+  });
+
   describe('module creation', () => {
     it('should create a donations module with the correct interface', () => {
       // Act
-      const module = createDonationsModule({adapter});
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const module = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
 
       // Assert
-      expect(module).toHaveProperty('prepareOneTimeDonationTx');
+      expect(module).toHaveProperty('prepareOneTimeDonation');
       expect(module).toHaveProperty('sendOneTime');
-      expect(typeof module.prepareOneTimeDonationTx).toBe('function');
+      expect(module).toHaveProperty('prepareContinuous');
+      expect(module).toHaveProperty('sendContinuous');
+      expect(typeof module.prepareOneTimeDonation).toBe('function');
       expect(typeof module.sendOneTime).toBe('function');
+      expect(typeof module.prepareContinuous).toBe('function');
+      expect(typeof module.sendContinuous).toBe('function');
     });
 
     it('should work with ReadBlockchainAdapter', () => {
@@ -259,10 +541,16 @@ describe('createDonationsModule', () => {
       const readAdapter = {} as ReadBlockchainAdapter;
 
       // Act
-      const module = createDonationsModule({adapter: readAdapter});
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const module = createDonationsModule({
+        adapter: readAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
 
       // Assert
-      expect(module).toHaveProperty('prepareOneTimeDonationTx');
+      expect(module).toHaveProperty('prepareOneTimeDonation');
       expect(module).toHaveProperty('sendOneTime');
     });
 
@@ -271,10 +559,16 @@ describe('createDonationsModule', () => {
       const writeAdapter = {} as WriteBlockchainAdapter;
 
       // Act
-      const module = createDonationsModule({adapter: writeAdapter});
+      const mockGraphqlClient = {} as any;
+      const mockIpfsUploader = vi.fn();
+      const module = createDonationsModule({
+        adapter: writeAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsUploaderFn: mockIpfsUploader,
+      });
 
       // Assert
-      expect(module).toHaveProperty('prepareOneTimeDonationTx');
+      expect(module).toHaveProperty('prepareOneTimeDonation');
       expect(module).toHaveProperty('sendOneTime');
     });
   });

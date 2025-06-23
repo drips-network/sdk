@@ -8,11 +8,11 @@ export type OnChainSplitsReceiver = {
 export const MAX_SPLITS_RECEIVERS = 200;
 export const TOTAL_SPLITS_WEIGHT = 100;
 
-export async function validateAndFormatSplitsReceivers(
+export function validateAndFormatSplitsReceivers(
   onChainReceivers: OnChainSplitsReceiver[],
-): Promise<OnChainSplitsReceiver[]> {
+): OnChainSplitsReceiver[] {
   validateSplitsNotEmpty(onChainReceivers);
-  validateMaxSplitsCount(onChainReceivers);
+  validateMaxReceiversCount(onChainReceivers);
   validateMaxSplitsWeightSum(onChainReceivers);
   const validSplits = validatePositiveWeights(onChainReceivers);
   const uniqueSplits = validateNoDuplicates(validSplits);
@@ -27,7 +27,7 @@ function validateSplitsNotEmpty(receivers: OnChainSplitsReceiver[]): void {
   }
 }
 
-function validateMaxSplitsCount(
+function validateMaxReceiversCount(
   receivers: OnChainSplitsReceiver[],
 ): OnChainSplitsReceiver[] {
   if (receivers.length > MAX_SPLITS_RECEIVERS) {

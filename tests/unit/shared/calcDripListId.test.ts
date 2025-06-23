@@ -1,5 +1,4 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {calcDripListId} from '../../../src/internal/drip-lists/calcDripListId';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 
@@ -23,6 +22,7 @@ vi.mock('../../../src/internal/shared/buildTx', () => ({
 import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {decodeFunctionResult} from 'viem';
 import {buildTx} from '../../../src/internal/shared/buildTx';
+import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 
 describe('calcDripListId', () => {
   const mockAdapter: ReadBlockchainAdapter = {

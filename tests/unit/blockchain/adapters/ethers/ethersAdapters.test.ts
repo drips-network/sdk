@@ -8,7 +8,6 @@ import type {Provider, Signer, TransactionResponse} from 'ethers';
 import {DripsError} from '../../../../../src/internal/shared/DripsError';
 import {Hex} from 'viem';
 
-// Mock the dependencies
 vi.mock(
   '../../../../../src/internal/blockchain/adapters/ethers/ethersMappers',
   () => ({

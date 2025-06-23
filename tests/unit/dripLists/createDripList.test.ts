@@ -14,12 +14,12 @@ vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWriteAccess: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/drip-lists/prepareDripListCreationCtx', () => ({
-  prepareDripListCreationCtx: vi.fn(),
+vi.mock('../../../src/internal/drip-lists/prepareDripListCreation', () => ({
+  prepareDripListCreation: vi.fn(),
 }));
 
 import {requireWriteAccess} from '../../../src/internal/shared/assertions';
-import {prepareDripListCreationCtx} from '../../../src/internal/drip-lists/prepareDripListCreationCtx';
+import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {Address} from 'viem';
 
 describe('createDripList', () => {
@@ -59,6 +59,19 @@ describe('createDripList', () => {
       to: '0x1234567890123456789012345678901234567890' as const,
       data: '0xdata' as const,
     },
+    metadata: {
+      type: 'dripList' as const,
+      describes: {
+        driver: 'nft' as const,
+        accountId: '999',
+      },
+      driver: 'nft' as const,
+      isVisible: true,
+      recipients: [],
+      name: 'Test Drip List',
+      description: 'A test drip list',
+      latestVersion: 'v2',
+    },
   };
 
   const mockTxResponse: TxResponse = {
@@ -70,15 +83,13 @@ describe('createDripList', () => {
     vi.clearAllMocks();
     // Reset mocks to default successful behavior
     vi.mocked(requireWriteAccess).mockImplementation(() => {});
-    vi.mocked(prepareDripListCreationCtx).mockResolvedValue(
-      mockCreationContext,
-    );
+    vi.mocked(prepareDripListCreation).mockResolvedValue(mockCreationContext);
     vi.mocked(mockAdapter.sendTx).mockResolvedValue(mockTxResponse);
   });
 
   describe('successful execution', () => {
     it('should create drip list successfully', async () => {
-      // Act - Inject all dependencies
+      // Act
       const result = await createDripList(
         mockAdapter,
         mockIpfsUploader,
@@ -90,7 +101,7 @@ describe('createDripList', () => {
         mockAdapter,
         'createDripList',
       );
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsUploader,
         validParams,
@@ -104,6 +115,7 @@ describe('createDripList', () => {
         ipfsHash: mockCreationContext.ipfsHash,
         dripListId: mockCreationContext.dripListId,
         txResponse: mockTxResponse,
+        metadata: mockCreationContext.metadata,
       });
     });
 
@@ -129,7 +141,7 @@ describe('createDripList', () => {
         customAdapter,
         'createDripList',
       );
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         customAdapter,
         mockIpfsUploader,
         validParams,
@@ -149,7 +161,7 @@ describe('createDripList', () => {
       await createDripList(mockAdapter, customIpfsUploader, validParams);
 
       // Assert
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         customIpfsUploader,
         validParams,
@@ -176,7 +188,7 @@ describe('createDripList', () => {
       await createDripList(mockAdapter, mockIpfsUploader, customParams);
 
       // Assert
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsUploader,
         customParams,
@@ -198,7 +210,7 @@ describe('createDripList', () => {
       );
 
       // Assert
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsUploader,
         minimalParams,
@@ -208,6 +220,7 @@ describe('createDripList', () => {
         ipfsHash: mockCreationContext.ipfsHash,
         dripListId: mockCreationContext.dripListId,
         txResponse: mockTxResponse,
+        metadata: mockCreationContext.metadata,
       });
     });
 
@@ -232,7 +245,7 @@ describe('createDripList', () => {
       );
 
       // Assert
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsUploader,
         largeParams,
@@ -250,8 +263,21 @@ describe('createDripList', () => {
           to: '0xabcdef1234567890abcdef1234567890abcdef12' as const,
           data: '0xcustomdata' as const,
         },
+        metadata: {
+          type: 'dripList' as const,
+          describes: {
+            driver: 'nft' as const,
+            accountId: '67890',
+          },
+          driver: 'nft' as const,
+          isVisible: true,
+          recipients: [],
+          name: 'Custom List',
+          description: 'Custom description',
+          latestVersion: 'v2',
+        },
       };
-      vi.mocked(prepareDripListCreationCtx).mockResolvedValue(customContext);
+      vi.mocked(prepareDripListCreation).mockResolvedValue(customContext);
 
       // Act
       const result = await createDripList(
@@ -282,14 +308,14 @@ describe('createDripList', () => {
       await expect(
         createDripList(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(accessError);
-      expect(prepareDripListCreationCtx).not.toHaveBeenCalled();
+      expect(prepareDripListCreation).not.toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
 
     it('should propagate preparation context errors', async () => {
       // Arrange
       const preparationError = new Error('Failed to prepare creation context');
-      vi.mocked(prepareDripListCreationCtx).mockRejectedValue(preparationError);
+      vi.mocked(prepareDripListCreation).mockRejectedValue(preparationError);
 
       // Act & Assert
       await expect(
@@ -309,7 +335,7 @@ describe('createDripList', () => {
         createDripList(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(txError);
       expect(requireWriteAccess).toHaveBeenCalled();
-      expect(prepareDripListCreationCtx).toHaveBeenCalled();
+      expect(prepareDripListCreation).toHaveBeenCalled();
     });
 
     it('should handle network errors during transaction', async () => {
@@ -349,8 +375,19 @@ describe('createDripList', () => {
           to: '0x0000000000000000000000000000000000000000' as const,
           data: '0x' as const,
         },
+        metadata: {
+          type: 'dripList' as const,
+          describes: {
+            driver: 'nft' as const,
+            accountId: '0',
+          },
+          driver: 'nft' as const,
+          isVisible: true,
+          recipients: [],
+          latestVersion: 'v2',
+        },
       };
-      vi.mocked(prepareDripListCreationCtx).mockResolvedValue(zeroContext);
+      vi.mocked(prepareDripListCreation).mockResolvedValue(zeroContext);
 
       // Act
       const result = await createDripList(
@@ -379,8 +416,22 @@ describe('createDripList', () => {
           to: '0xffffffffffffffffffffffffffffffffffffffff' as const,
           data: `0x${'f'.repeat(1000)}` as const,
         },
+        metadata: {
+          type: 'dripList' as const,
+          describes: {
+            driver: 'nft' as const,
+            accountId:
+              'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+          },
+          driver: 'nft' as const,
+          isVisible: true,
+          recipients: [],
+          name: 'Large List',
+          description: 'Large description',
+          latestVersion: 'v2',
+        },
       };
-      vi.mocked(prepareDripListCreationCtx).mockResolvedValue(largeContext);
+      vi.mocked(prepareDripListCreation).mockResolvedValue(largeContext);
 
       // Act
       const result = await createDripList(
@@ -405,7 +456,7 @@ describe('createDripList', () => {
       await createDripList(mockAdapter, mockIpfsUploader, emptyReceiversParams);
 
       // Assert
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsUploader,
         emptyReceiversParams,
@@ -420,8 +471,8 @@ describe('createDripList', () => {
       vi.mocked(requireWriteAccess).mockImplementation(() => {
         callOrder.push('requireWriteAccess');
       });
-      vi.mocked(prepareDripListCreationCtx).mockImplementation(async () => {
-        callOrder.push('prepareDripListCreationCtx');
+      vi.mocked(prepareDripListCreation).mockImplementation(async () => {
+        callOrder.push('prepareDripListCreation');
         return mockCreationContext;
       });
       vi.mocked(mockAdapter.sendTx).mockImplementation(async () => {
@@ -435,14 +486,14 @@ describe('createDripList', () => {
       // Assert
       expect(callOrder).toEqual([
         'requireWriteAccess',
-        'prepareDripListCreationCtx',
+        'prepareDripListCreation',
         'sendTx',
       ]);
     });
 
     it('should not call sendTx if preparation fails', async () => {
       // Arrange
-      vi.mocked(prepareDripListCreationCtx).mockRejectedValue(
+      vi.mocked(prepareDripListCreation).mockRejectedValue(
         new Error('Preparation failed'),
       );
 
@@ -455,7 +506,7 @@ describe('createDripList', () => {
   });
 
   describe('parameter validation', () => {
-    it('should pass through all parameters to prepareDripListCreationCtx', async () => {
+    it('should pass through all parameters to prepareDripListCreation', async () => {
       // Arrange
       const complexParams = {
         isVisible: false,
@@ -482,7 +533,7 @@ describe('createDripList', () => {
       await createDripList(mockAdapter, mockIpfsUploader, complexParams);
 
       // Assert
-      expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+      expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsUploader,
         complexParams,

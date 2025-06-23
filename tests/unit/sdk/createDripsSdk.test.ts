@@ -12,6 +12,7 @@ import {
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 import {resolveBlockchainAdapter} from '../../../src/internal/blockchain/resolveBlockchainAdapter';
 import {createDripListsModule} from '../../../src/sdk/createDripListsModule';
+import {createDonationsModule} from '../../../src/sdk/createDonationsModule';
 import {dripsConstants, utils} from '../../../src';
 import {
   createGraphQLClient,
@@ -20,11 +21,13 @@ import {
 
 vi.mock('../../../src/internal/blockchain/resolveBlockchainAdapter');
 vi.mock('../../../src/sdk/createDripListsModule');
+vi.mock('../../../src/sdk/createDonationsModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 
 describe('createDripsSdk', () => {
   const ipfsUploaderFn = vi.fn<IpfsUploaderFn<Metadata>>();
   const dripListsModule = {} as any;
+  const donationsModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
   const mockGraphqlClient = {
     query: vi.fn(),
@@ -35,6 +38,7 @@ describe('createDripsSdk', () => {
 
     vi.mocked(resolveBlockchainAdapter).mockReturnValue(mockAdapter);
     vi.mocked(createDripListsModule).mockReturnValue(dripListsModule);
+    vi.mocked(createDonationsModule).mockReturnValue(donationsModule);
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
   });
 
@@ -48,9 +52,15 @@ describe('createDripsSdk', () => {
     // Assert
     expect(sdk).toBeDefined();
     expect(sdk.dripLists).toBe(dripListsModule);
+    expect(sdk.donations).toBe(donationsModule);
     expect(sdk.constants).toBe(dripsConstants);
     expect(sdk.utils).toBe(utils);
     expect(createDripListsModule).toHaveBeenCalledWith({
+      adapter: mockAdapter,
+      graphqlClient: mockGraphqlClient,
+      ipfsUploaderFn,
+    });
+    expect(createDonationsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
       ipfsUploaderFn,

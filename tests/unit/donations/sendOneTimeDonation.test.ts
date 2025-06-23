@@ -1,13 +1,13 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {sendOneTimeDonation} from '../../../src/internal/donations/sendOneTimeDonation';
-import {prepareOneTimeDonationTx} from '../../../src/internal/donations/prepareOneTimeDonationTx';
+import {prepareOneTimeDonation} from '../../../src/internal/donations/prepareOneTimeDonation';
 import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {
   WriteBlockchainAdapter,
   TxResponse,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 
-vi.mock('../../../src/internal/donations/prepareOneTimeDonationTx');
+vi.mock('../../../src/internal/donations/prepareOneTimeDonation');
 vi.mock('../../../src/internal/shared/assertions');
 
 describe('sendOneTimeDonation', () => {
@@ -40,9 +40,7 @@ describe('sendOneTimeDonation', () => {
       signMsg: vi.fn(),
     } as any;
 
-    vi.mocked(prepareOneTimeDonationTx).mockResolvedValue(
-      mockPreparedTx as any,
-    );
+    vi.mocked(prepareOneTimeDonation).mockResolvedValue(mockPreparedTx as any);
     vi.mocked(requireWriteAccess).mockImplementation(() => {});
 
     vi.clearAllMocks();
@@ -67,10 +65,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
 
@@ -92,10 +87,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
 
@@ -117,10 +109,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
 
@@ -142,10 +131,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
 
@@ -167,10 +153,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
   });
@@ -199,13 +182,13 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).not.toHaveBeenCalled();
+      expect(prepareOneTimeDonation).not.toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
 
-    it('should propagate error from prepareOneTimeDonationTx', async () => {
+    it('should propagate error from prepareOneTimeDonation', async () => {
       const mockError = new Error('Failed to prepare transaction');
-      vi.mocked(prepareOneTimeDonationTx).mockRejectedValue(mockError);
+      vi.mocked(prepareOneTimeDonation).mockRejectedValue(mockError);
 
       const params = {
         receiver: {
@@ -224,10 +207,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
 
@@ -252,10 +232,7 @@ describe('sendOneTimeDonation', () => {
         mockAdapter,
         'sendOneTimeDonation',
       );
-      expect(prepareOneTimeDonationTx).toHaveBeenCalledWith(
-        mockAdapter,
-        params,
-      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
   });
@@ -268,8 +245,8 @@ describe('sendOneTimeDonation', () => {
         callOrder.push('requireWriteAccess');
       });
 
-      vi.mocked(prepareOneTimeDonationTx).mockImplementation(async () => {
-        callOrder.push('prepareOneTimeDonationTx');
+      vi.mocked(prepareOneTimeDonation).mockImplementation(async () => {
+        callOrder.push('prepareOneTimeDonation');
         return mockPreparedTx as any;
       });
 
@@ -292,7 +269,7 @@ describe('sendOneTimeDonation', () => {
 
       expect(callOrder).toEqual([
         'requireWriteAccess',
-        'prepareOneTimeDonationTx',
+        'prepareOneTimeDonation',
         'sendTx',
       ]);
     });

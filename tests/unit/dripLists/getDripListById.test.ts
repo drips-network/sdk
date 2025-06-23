@@ -70,6 +70,7 @@ describe('getDripListById', () => {
     support: [
       {
         __typename: 'OneTimeDonationSupport',
+        date: '2023-01-01T00:00:00Z',
         account: {
           accountId: '999',
           address: '0x2222222222222222222222222222222222222222',
@@ -78,6 +79,28 @@ describe('getDripListById', () => {
         amount: {
           amount: '1000000',
           tokenAddress: '0x3333333333333333333333333333333333333333',
+        },
+      },
+      {
+        __typename: 'StreamSupport',
+        account: {
+          accountId: '777',
+          address: '0x7777777777777777777777777777777777777777',
+          driver: 'ADDRESS',
+        },
+        stream: {
+          id: '12345',
+          name: 'Test Stream',
+          config: {
+            amountPerSecond: {
+              amount: '100',
+              tokenAddress: '0x8888888888888888888888888888888888888888',
+            },
+            dripId: '67890',
+            durationSeconds: '2592000', // 30 days
+            raw: '0xabcdef',
+            startDate: '2023-02-01T00:00:00Z',
+          },
         },
       },
     ],
@@ -396,6 +419,15 @@ describe('getDripListById', () => {
       expect(query).toContain('EcosystemMainAccountReceiver');
       expect(query).toContain('support');
       expect(query).toContain('OneTimeDonationSupport');
+      expect(query).toContain('StreamSupport');
+      expect(query).toContain('date');
+      expect(query).toContain('stream');
+      expect(query).toContain('config');
+      expect(query).toContain('amountPerSecond');
+      expect(query).toContain('dripId');
+      expect(query).toContain('durationSeconds');
+      expect(query).toContain('raw');
+      expect(query).toContain('startDate');
       expect(query).toContain('__typename');
     });
   });
@@ -569,6 +601,7 @@ describe('getDripListById', () => {
         support: [
           {
             __typename: 'OneTimeDonationSupport',
+            date: '2023-01-01T00:00:00Z',
             account: {
               accountId: '999',
               address: '0x2222222222222222222222222222222222222222',
@@ -581,6 +614,7 @@ describe('getDripListById', () => {
           },
           {
             __typename: 'OneTimeDonationSupport',
+            date: '2023-01-02T00:00:00Z',
             account: {
               accountId: '888',
               address: '0x4444444444444444444444444444444444444444',
@@ -610,6 +644,7 @@ describe('getDripListById', () => {
       );
       expect(result?.support[0]).toHaveProperty('account');
       expect(result?.support[0]).toHaveProperty('amount');
+      expect(result?.support[0]).toHaveProperty('date');
       expect((result?.support[0] as any).account.address).toBe(
         '0x2222222222222222222222222222222222222222',
       );
@@ -617,6 +652,126 @@ describe('getDripListById', () => {
       expect((result?.support[0] as any).amount.tokenAddress).toBe(
         '0x3333333333333333333333333333333333333333',
       );
+    });
+
+    it('should return drip list with stream support', async () => {
+      // Arrange
+      const dripListWithStreamSupport = {
+        ...mockDripList,
+        support: [
+          {
+            __typename: 'StreamSupport',
+            account: {
+              accountId: '777',
+              address: '0x7777777777777777777777777777777777777777',
+              driver: 'ADDRESS',
+            },
+            stream: {
+              id: '12345',
+              name: 'Test Stream',
+              config: {
+                amountPerSecond: {
+                  amount: '100',
+                  tokenAddress: '0x8888888888888888888888888888888888888888',
+                },
+                dripId: '67890',
+                durationSeconds: '2592000', // 30 days
+                raw: '0xabcdef',
+                startDate: '2023-02-01T00:00:00Z',
+              },
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithStreamSupport,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithStreamSupport);
+      expect(result?.support).toHaveLength(1);
+      expect(result?.support[0]).toHaveProperty('__typename', 'StreamSupport');
+      expect(result?.support[0]).toHaveProperty('account');
+      expect(result?.support[0]).toHaveProperty('stream');
+      expect((result?.support[0] as any).account.address).toBe(
+        '0x7777777777777777777777777777777777777777',
+      );
+      expect((result?.support[0] as any).stream.id).toBe('12345');
+      expect((result?.support[0] as any).stream.name).toBe('Test Stream');
+      expect(
+        (result?.support[0] as any).stream.config.amountPerSecond.amount,
+      ).toBe('100');
+      expect((result?.support[0] as any).stream.config.durationSeconds).toBe(
+        '2592000',
+      );
+    });
+
+    it('should return drip list with mixed support types', async () => {
+      // Arrange
+      const dripListWithMixedSupport = {
+        ...mockDripList,
+        support: [
+          {
+            __typename: 'OneTimeDonationSupport',
+            date: '2023-01-01T00:00:00Z',
+            account: {
+              accountId: '999',
+              address: '0x2222222222222222222222222222222222222222',
+              driver: 'ADDRESS',
+            },
+            amount: {
+              amount: '1000000',
+              tokenAddress: '0x3333333333333333333333333333333333333333',
+            },
+          },
+          {
+            __typename: 'StreamSupport',
+            account: {
+              accountId: '777',
+              address: '0x7777777777777777777777777777777777777777',
+              driver: 'ADDRESS',
+            },
+            stream: {
+              id: '12345',
+              name: 'Test Stream',
+              config: {
+                amountPerSecond: {
+                  amount: '100',
+                  tokenAddress: '0x8888888888888888888888888888888888888888',
+                },
+                dripId: '67890',
+                durationSeconds: '2592000',
+                raw: '0xabcdef',
+                startDate: '2023-02-01T00:00:00Z',
+              },
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockGraphQLClient.query).mockResolvedValue({
+        dripList: dripListWithMixedSupport,
+      });
+
+      // Act
+      const result = await getDripListById(123n, 11155111, mockGraphQLClient);
+
+      // Assert
+      expect(result).toEqual(dripListWithMixedSupport);
+      expect(result?.support).toHaveLength(2);
+      expect(result?.support[0]).toHaveProperty(
+        '__typename',
+        'OneTimeDonationSupport',
+      );
+      expect(result?.support[1]).toHaveProperty('__typename', 'StreamSupport');
+      expect((result?.support[0] as any).amount.amount).toBe('1000000');
+      expect(
+        (result?.support[1] as any).stream.config.amountPerSecond.amount,
+      ).toBe('100');
     });
 
     it('should handle drip list with empty support array', async () => {

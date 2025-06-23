@@ -1,12 +1,11 @@
 export function calculateRandomSalt(): bigint {
-  const randomBytes = new Uint8Array(32);
+  const randomBytes = new Uint8Array(8); // Only 64 bits
   globalThis.crypto.getRandomValues(randomBytes);
 
-  let result = 0n;
-  // Only use first 8 bytes (64 bits) as expected by tests
+  let salt = 0n;
   for (let i = 0; i < 8; i++) {
-    result |= BigInt(randomBytes[i]) << BigInt(i * 8);
+    salt |= BigInt(randomBytes[i]) << BigInt(i * 8); // Little-endian
   }
 
-  return result;
+  return salt;
 }

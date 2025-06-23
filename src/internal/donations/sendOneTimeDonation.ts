@@ -4,17 +4,17 @@ import {
 } from '../blockchain/BlockchainAdapter';
 import {requireWriteAccess} from '../shared/assertions';
 import {
-  prepareOneTimeDonationTx,
-  SendOneTimeDonationParams,
-} from './prepareOneTimeDonationTx';
+  prepareOneTimeDonation,
+  OneTimeDonation,
+} from './prepareOneTimeDonation';
 
 export async function sendOneTimeDonation(
   adapter: WriteBlockchainAdapter,
-  params: SendOneTimeDonationParams,
+  params: OneTimeDonation,
 ): Promise<TxResponse> {
   requireWriteAccess(adapter, sendOneTimeDonation.name);
 
-  const preparedTx = await prepareOneTimeDonationTx(adapter, params);
+  const preparedTx = await prepareOneTimeDonation(adapter, params);
 
   return adapter.sendTx(preparedTx);
 }

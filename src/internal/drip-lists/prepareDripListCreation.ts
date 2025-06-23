@@ -16,53 +16,55 @@ import {
   TxOverrides,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {calcDripListId} from './calcDripListId';
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
-import {
-  mapToOnChainReceiver,
-  SdkSplitsReceiver,
-} from '../shared/mapToOnChainReceiver';
 import {
   encodeMetadataKeyValue,
   USER_METADATA_KEY,
 } from '../metadata/encodeMetadataKeyValue';
+import {
+  mapToOnChainSplitsReceiver,
+  SdkSplitsReceiver,
+} from '../shared/receiverUtils';
+import {calcDripListId} from '../shared/calcDripListId';
 
-export type CreateDripListParams = {
-  isVisible: boolean;
-  receivers: ReadonlyArray<SdkSplitsReceiver>;
-  salt?: bigint;
-  name?: string;
-  description?: string;
+export type NewDripList = {
+  readonly isVisible: boolean;
+  readonly receivers: ReadonlyArray<SdkSplitsReceiver>;
+  readonly salt?: bigint;
+  readonly name?: string;
+  readonly description?: string;
   /** Optional address to transfer the drip list to. If not provided, the minter's address will be used. */
-  transferTo?: Address;
+  readonly transferTo?: Address;
   /** Optional overrides for the transaction. Applies to the *batched* transaction, not the individual transactions within it. */
-  txOverrides?: TxOverrides;
+  readonly txOverrides?: TxOverrides;
 };
 
-export type DripListCreationContext = {
-  salt: bigint;
-  ipfsHash: Hash;
-  dripListId: bigint;
-  preparedTx: PreparedTx;
+export type PrepareDripListCreationResult = {
+  readonly salt: bigint;
+  readonly ipfsHash: Hash;
+  readonly dripListId: bigint;
+  readonly preparedTx: PreparedTx;
+  readonly metadata: DripListMetadata;
 };
 
-export async function prepareDripListCreationCtx(
+export async function prepareDripListCreation(
   adapter: WriteBlockchainAdapter,
   ipfsUploaderFn: IpfsUploaderFn<DripListMetadata>,
-  params: CreateDripListParams,
-): Promise<DripListCreationContext> {
+  dripList: NewDripList,
+): Promise<PrepareDripListCreationResult> {
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId);
+  requireWriteAccess(adapter, prepareDripListCreation.name);
+
   const {
     name,
-    description,
     isVisible,
     receivers,
     transferTo,
+    description,
     txOverrides,
     salt: maybeSalt,
-  } = params;
-  const chainId = await adapter.getChainId();
-  requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareDripListCreationCtx.name);
+  } = dripList;
 
   const salt = maybeSalt ?? calculateRandomSalt();
   const {nftDriver, caller} = contractsRegistry[chainId];
@@ -94,10 +96,9 @@ export async function prepareDripListCreationCtx(
   });
 
   const onChainReceivers = await Promise.all(
-    receivers.map(r => mapToOnChainReceiver(adapter, r)),
+    receivers.map(r => mapToOnChainSplitsReceiver(adapter, r)),
   );
-  const formattedReceivers =
-    await validateAndFormatSplitsReceivers(onChainReceivers);
+  const formattedReceivers = validateAndFormatSplitsReceivers(onChainReceivers);
 
   const setSplitsTx = buildTx({
     abi: nftDriverAbi,
@@ -114,5 +115,5 @@ export async function prepareDripListCreationCtx(
     txOverrides,
   });
 
-  return {preparedTx, ipfsHash, salt, dripListId};
+  return {preparedTx, metadata, ipfsHash, salt, dripListId};
 }

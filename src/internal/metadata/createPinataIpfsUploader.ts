@@ -1,11 +1,13 @@
 import {Hash} from 'viem';
 import {
+  addressDriverAccountMetadataParser,
   immutableSplitsDriverMetadataParser,
   nftDriverAccountMetadataParser,
   repoDriverAccountMetadataParser,
 } from './schemas';
 import {DripsError} from '../shared/DripsError';
 import {PinataSDK} from 'pinata';
+import {buildStreamsMetadata} from './buildStreamsMetatada';
 
 export type DripListMetadata = Extract<
   ReturnType<typeof nftDriverAccountMetadataParser.parseLatest>,
@@ -20,7 +22,13 @@ export type SubListMetadata = ReturnType<
   typeof immutableSplitsDriverMetadataParser.parseLatest
 >;
 
-export type Metadata = DripListMetadata | ProjectMetadata | SubListMetadata;
+export type StreamsMetadata = Awaited<ReturnType<typeof buildStreamsMetadata>>;
+
+export type Metadata =
+  | DripListMetadata
+  | ProjectMetadata
+  | SubListMetadata
+  | StreamsMetadata;
 
 export type IpfsUploaderFn<T extends Metadata> = (metadata: T) => Promise<Hash>;
 
@@ -28,14 +36,27 @@ type IpfsClientLike = {
   uploadJson: (metadata: Metadata) => Promise<{cid: string}>;
 };
 
+function toJsonSafe<T>(value: T): T {
+  return JSON.parse(
+    JSON.stringify(value, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+  );
+}
+
 const parsers = {
   nft: nftDriverAccountMetadataParser,
   repo: repoDriverAccountMetadataParser,
   'immutable-splits': immutableSplitsDriverMetadataParser,
-} as const satisfies Record<Metadata['driver'], unknown>;
+  address: addressDriverAccountMetadataParser,
+} as const;
 
 function getMetadataParser(metadata: Metadata) {
-  const parser = parsers[metadata.driver];
+  let parser: (typeof parsers)[keyof typeof parsers] | undefined;
+  if ('describes' in metadata) {
+    parser = parsers[metadata.describes.driver];
+  } else if ('driver' in metadata) {
+    parser = parsers[metadata.driver as keyof typeof parsers];
+  }
+
   if (!parser) {
     throw new DripsError('Unsupported metadata driver', {
       meta: {
@@ -50,8 +71,8 @@ function getMetadataParser(metadata: Metadata) {
 function createIpfsUploader(client: IpfsClientLike): IpfsUploaderFn<Metadata> {
   return async (metadata: Metadata) => {
     try {
-      getMetadataParser(metadata);
-      const {cid} = await client.uploadJson(metadata);
+      getMetadataParser(metadata); // Type check
+      const {cid} = await client.uploadJson(metadata); // Upload to IPFS
       return cid as Hash;
     } catch (err: unknown) {
       throw new DripsError('IPFS upload failed', {
@@ -79,7 +100,8 @@ export function createPinataIpfsUploader({
 
   const client: IpfsClientLike = {
     uploadJson: async data => {
-      const {cid} = await pinata.upload.public.json(data);
+      const jsonSafeData = toJsonSafe(data);
+      const {cid} = await pinata.upload.public.json(jsonSafeData);
       return {cid};
     },
   };

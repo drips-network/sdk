@@ -10,12 +10,10 @@ import {
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import {PinataSDK} from 'pinata';
 
-// Mock PinataSDK
 vi.mock('pinata', () => ({
   PinataSDK: vi.fn(),
 }));
 
-// Mock the metadata parsers
 vi.mock('../../../src/internal/metadata/schemas', () => ({
   nftDriverAccountMetadataParser: {
     parseLatest: vi.fn(),
@@ -24,6 +22,9 @@ vi.mock('../../../src/internal/metadata/schemas', () => ({
     parseLatest: vi.fn(),
   },
   immutableSplitsDriverMetadataParser: {
+    parseLatest: vi.fn(),
+  },
+  addressDriverAccountMetadataParser: {
     parseLatest: vi.fn(),
   },
 }));

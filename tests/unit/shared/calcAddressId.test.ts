@@ -3,7 +3,6 @@ import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
 import type {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import type {Address} from 'viem';
 
-// Mock dependencies
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireSupportedChain: vi.fn(),
 }));

@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {prepareDripListCreationCtx} from '../../../src/internal/drip-lists/prepareDripListCreationCtx';
+import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {
   WriteBlockchainAdapter,
@@ -33,8 +33,8 @@ vi.mock('../../../src/internal/metadata/encodeMetadataKeyValue', () => ({
   USER_METADATA_KEY: 'user-metadata',
 }));
 
-vi.mock('../../../src/internal/shared/mapToOnChainReceiver', () => ({
-  mapToOnChainReceiver: vi.fn(),
+vi.mock('../../../src/internal/shared/receiverUtils', () => ({
+  mapToOnChainSplitsReceiver: vi.fn(),
 }));
 
 vi.mock(
@@ -48,7 +48,7 @@ vi.mock('../../../src/internal/metadata/buildDripListMetadata', () => ({
   buildDripListMetadata: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/drip-lists/calcDripListId', () => ({
+vi.mock('../../../src/internal/shared/calcDripListId', () => ({
   calcDripListId: vi.fn(),
 }));
 
@@ -60,12 +60,12 @@ import {calculateRandomSalt} from '../../../src/internal/drip-lists/calculateRan
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
 import {encodeMetadataKeyValue} from '../../../src/internal/metadata/encodeMetadataKeyValue';
-import {mapToOnChainReceiver} from '../../../src/internal/shared/mapToOnChainReceiver';
 import {validateAndFormatSplitsReceivers} from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
 import {buildDripListMetadata} from '../../../src/internal/metadata/buildDripListMetadata';
-import {calcDripListId} from '../../../src/internal/drip-lists/calcDripListId';
+import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
+import {mapToOnChainSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
 
-describe('prepareDripListCreationCtx', () => {
+describe('prepareDripListCreation', () => {
   const mockAdapter: WriteBlockchainAdapter = {
     call: vi.fn(),
     getChainId: vi.fn(),
@@ -157,10 +157,10 @@ describe('prepareDripListCreationCtx', () => {
     vi.mocked(calcDripListId).mockResolvedValue(mockDripListId);
     vi.mocked(buildDripListMetadata).mockResolvedValue(mockMetadata);
     vi.mocked(mockIpfsUploader).mockResolvedValue(mockIpfsHash);
-    vi.mocked(mapToOnChainReceiver)
+    vi.mocked(mapToOnChainSplitsReceiver)
       .mockResolvedValueOnce(mockOnChainReceivers[0])
       .mockResolvedValueOnce(mockOnChainReceivers[1]);
-    vi.mocked(validateAndFormatSplitsReceivers).mockResolvedValue(
+    vi.mocked(validateAndFormatSplitsReceivers).mockReturnValue(
       mockFormattedReceivers,
     );
     vi.mocked(encodeMetadataKeyValue).mockReturnValue(mockEncodedMetadata);
@@ -176,7 +176,7 @@ describe('prepareDripListCreationCtx', () => {
   describe('successful execution', () => {
     it('should prepare drip list creation context successfully', async () => {
       // Act
-      const result = await prepareDripListCreationCtx(
+      const result = await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         validParams,
@@ -186,7 +186,7 @@ describe('prepareDripListCreationCtx', () => {
       expect(mockAdapter.getChainId).toHaveBeenCalled();
       expect(requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
-        'prepareDripListCreationCtx',
+        'prepareDripListCreation',
       );
       expect(requireSupportedChain).toHaveBeenCalledWith(11155111);
       expect(mockAdapter.getAddress).toHaveBeenCalled();
@@ -203,13 +203,13 @@ describe('prepareDripListCreationCtx', () => {
         description: validParams.description,
       });
       expect(mockIpfsUploader).toHaveBeenCalledWith(mockMetadata);
-      expect(mapToOnChainReceiver).toHaveBeenCalledTimes(2);
-      expect(mapToOnChainReceiver).toHaveBeenNthCalledWith(
+      expect(mapToOnChainSplitsReceiver).toHaveBeenCalledTimes(2);
+      expect(mapToOnChainSplitsReceiver).toHaveBeenNthCalledWith(
         1,
         mockAdapter,
         validParams.receivers[0],
       );
-      expect(mapToOnChainReceiver).toHaveBeenNthCalledWith(
+      expect(mapToOnChainSplitsReceiver).toHaveBeenNthCalledWith(
         2,
         mockAdapter,
         validParams.receivers[1],
@@ -227,6 +227,7 @@ describe('prepareDripListCreationCtx', () => {
         ipfsHash: mockIpfsHash,
         dripListId: mockDripListId,
         preparedTx: mockBatchedTx,
+        metadata: mockMetadata,
       });
     });
 
@@ -241,7 +242,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      const result = await prepareDripListCreationCtx(
+      const result = await prepareDripListCreation(
         customAdapter,
         mockIpfsUploader,
         validParams,
@@ -251,7 +252,7 @@ describe('prepareDripListCreationCtx', () => {
       expect(customAdapter.getChainId).toHaveBeenCalled();
       expect(requireWriteAccess).toHaveBeenCalledWith(
         customAdapter,
-        'prepareDripListCreationCtx',
+        'prepareDripListCreation',
       );
       expect(customAdapter.getAddress).toHaveBeenCalled();
       expect(mockAdapter.getAddress).not.toHaveBeenCalled();
@@ -269,7 +270,7 @@ describe('prepareDripListCreationCtx', () => {
         .mockResolvedValue(mockIpfsHash);
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         customIpfsUploader,
         validParams,
@@ -288,7 +289,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithSalt,
@@ -312,7 +313,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithTransferTo,
@@ -331,11 +332,7 @@ describe('prepareDripListCreationCtx', () => {
       vi.mocked(mockAdapter.getChainId).mockResolvedValue(31337);
 
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
       expect(mockAdapter.getChainId).toHaveBeenCalled();
@@ -354,14 +351,14 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithEmptyReceivers,
       );
 
       // Assert
-      expect(mapToOnChainReceiver).not.toHaveBeenCalled();
+      expect(mapToOnChainSplitsReceiver).not.toHaveBeenCalled();
       expect(validateAndFormatSplitsReceivers).toHaveBeenCalledWith([]);
       expect(buildDripListMetadata).toHaveBeenCalledWith(mockAdapter, {
         name: validParams.name,
@@ -380,7 +377,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         minimalParams,
@@ -407,7 +404,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithOverrides,
@@ -449,32 +446,32 @@ describe('prepareDripListCreationCtx', () => {
         {accountId: 333n, weight: 300000},
       ];
 
-      vi.mocked(mapToOnChainReceiver).mockReset();
-      vi.mocked(mapToOnChainReceiver)
+      vi.mocked(mapToOnChainSplitsReceiver).mockReset();
+      vi.mocked(mapToOnChainSplitsReceiver)
         .mockResolvedValueOnce(mockMixedOnChainReceivers[0])
         .mockResolvedValueOnce(mockMixedOnChainReceivers[1])
         .mockResolvedValueOnce(mockMixedOnChainReceivers[2]);
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithMixedReceivers,
       );
 
       // Assert
-      expect(mapToOnChainReceiver).toHaveBeenCalledTimes(3);
-      expect(mapToOnChainReceiver).toHaveBeenNthCalledWith(
+      expect(mapToOnChainSplitsReceiver).toHaveBeenCalledTimes(3);
+      expect(mapToOnChainSplitsReceiver).toHaveBeenNthCalledWith(
         1,
         mockAdapter,
         paramsWithMixedReceivers.receivers[0],
       );
-      expect(mapToOnChainReceiver).toHaveBeenNthCalledWith(
+      expect(mapToOnChainSplitsReceiver).toHaveBeenNthCalledWith(
         2,
         mockAdapter,
         paramsWithMixedReceivers.receivers[1],
       );
-      expect(mapToOnChainReceiver).toHaveBeenNthCalledWith(
+      expect(mapToOnChainSplitsReceiver).toHaveBeenNthCalledWith(
         3,
         mockAdapter,
         paramsWithMixedReceivers.receivers[2],
@@ -498,21 +495,21 @@ describe('prepareDripListCreationCtx', () => {
       };
       const mockSingleOnChainReceiver = {accountId: 123n, weight: 1000000};
 
-      vi.mocked(mapToOnChainReceiver).mockReset();
-      vi.mocked(mapToOnChainReceiver).mockResolvedValueOnce(
+      vi.mocked(mapToOnChainSplitsReceiver).mockReset();
+      vi.mocked(mapToOnChainSplitsReceiver).mockResolvedValueOnce(
         mockSingleOnChainReceiver,
       );
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithSingleReceiver,
       );
 
       // Assert
-      expect(mapToOnChainReceiver).toHaveBeenCalledTimes(1);
-      expect(mapToOnChainReceiver).toHaveBeenCalledWith(
+      expect(mapToOnChainSplitsReceiver).toHaveBeenCalledTimes(1);
+      expect(mapToOnChainSplitsReceiver).toHaveBeenCalledWith(
         mockAdapter,
         paramsWithSingleReceiver.receivers[0],
       );
@@ -530,7 +527,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(chainIdError);
       expect(requireWriteAccess).not.toHaveBeenCalled();
       expect(requireSupportedChain).not.toHaveBeenCalled();
@@ -547,7 +544,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(accessError);
       expect(mockAdapter.getChainId).toHaveBeenCalled();
       expect(requireSupportedChain).toHaveBeenCalled();
@@ -562,7 +559,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(chainError);
       expect(mockAdapter.getAddress).not.toHaveBeenCalled();
     });
@@ -574,7 +571,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(addressError);
       expect(calcDripListId).not.toHaveBeenCalled();
     });
@@ -586,7 +583,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(calcError);
       expect(buildDripListMetadata).not.toHaveBeenCalled();
     });
@@ -598,7 +595,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(ipfsError);
       expect(validateAndFormatSplitsReceivers).not.toHaveBeenCalled();
     });
@@ -612,7 +609,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(validationError);
       // Note: encodeMetadataKeyValue is called before validateAndFormatSplitsReceivers
       // so we can't assert it wasn't called
@@ -627,19 +624,19 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(encodingError);
     });
 
-    it('should propagate mapToOnChainReceiver errors', async () => {
+    it('should propagate mapToOnChainSplitsReceiver errors', async () => {
       // Arrange
       const mapError = new Error('Failed to map receiver to on-chain format');
-      vi.mocked(mapToOnChainReceiver).mockReset();
-      vi.mocked(mapToOnChainReceiver).mockRejectedValueOnce(mapError);
+      vi.mocked(mapToOnChainSplitsReceiver).mockReset();
+      vi.mocked(mapToOnChainSplitsReceiver).mockRejectedValueOnce(mapError);
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(mapError);
       expect(validateAndFormatSplitsReceivers).not.toHaveBeenCalled();
     });
@@ -655,7 +652,7 @@ describe('prepareDripListCreationCtx', () => {
 
       // Act & Assert
       await expect(
-        prepareDripListCreationCtx(mockAdapter, mockIpfsUploader, validParams),
+        prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams),
       ).rejects.toThrow(txError);
     });
   });
@@ -669,7 +666,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      const result = await prepareDripListCreationCtx(
+      const result = await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithZeroSalt,
@@ -688,7 +685,7 @@ describe('prepareDripListCreationCtx', () => {
       vi.mocked(calcDripListId).mockResolvedValue(0n);
 
       // Act
-      const result = await prepareDripListCreationCtx(
+      const result = await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         validParams,
@@ -710,11 +707,7 @@ describe('prepareDripListCreationCtx', () => {
       vi.mocked(mockAdapter.getAddress).mockResolvedValue(zeroAddress);
 
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
       expect(calcDripListId).toHaveBeenCalledWith(mockAdapter, {
@@ -734,7 +727,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      const result = await prepareDripListCreationCtx(
+      const result = await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithLargeSalt,
@@ -757,7 +750,7 @@ describe('prepareDripListCreationCtx', () => {
       };
 
       // Act
-      await prepareDripListCreationCtx(
+      await prepareDripListCreation(
         mockAdapter,
         mockIpfsUploader,
         paramsWithEmptyStrings,
@@ -777,11 +770,7 @@ describe('prepareDripListCreationCtx', () => {
   describe('transaction structure validation', () => {
     it('should build mint transaction with correct parameters', async () => {
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(1, {
@@ -794,28 +783,23 @@ describe('prepareDripListCreationCtx', () => {
 
     it('should build setSplits transaction with correct parameters', async () => {
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
-      expect(buildTx).toHaveBeenNthCalledWith(2, {
-        abi: expect.any(Array), // nftDriverAbi
-        contract: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
-        functionName: 'setSplits',
-        args: [mockDripListId, mockFormattedReceivers],
-      });
+      expect(buildTx).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          abi: expect.any(Array), // nftDriverAbi
+          contract: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
+          functionName: 'setSplits',
+          args: [mockDripListId, mockFormattedReceivers],
+        }),
+      );
     });
 
     it('should build batched transaction with correct parameters', async () => {
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(3, {
@@ -829,11 +813,7 @@ describe('prepareDripListCreationCtx', () => {
 
     it('should convert transactions to caller calls', async () => {
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
       expect(convertToCallerCall).toHaveBeenCalledTimes(2);
@@ -883,11 +863,7 @@ describe('prepareDripListCreationCtx', () => {
       });
 
       // Act
-      await prepareDripListCreationCtx(
-        mockAdapter,
-        mockIpfsUploader,
-        validParams,
-      );
+      await prepareDripListCreation(mockAdapter, mockIpfsUploader, validParams);
 
       // Assert
       expect(callOrder).toEqual([

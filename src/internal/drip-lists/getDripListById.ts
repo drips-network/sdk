@@ -85,6 +85,7 @@ const GET_DRIP_LIST_QUERY = gql`
       support {
         ... on OneTimeDonationSupport {
           __typename
+          date
           account {
             accountId
             address
@@ -93,6 +94,28 @@ const GET_DRIP_LIST_QUERY = gql`
           amount {
             amount
             tokenAddress
+          }
+        }
+        ... on StreamSupport {
+          __typename
+          account {
+            accountId
+            address
+            driver
+          }
+          stream {
+            id
+            name
+            config {
+              amountPerSecond {
+                amount
+                tokenAddress
+              }
+              dripId
+              durationSeconds
+              raw
+              startDate
+            }
           }
         }
       }
@@ -110,13 +133,12 @@ export async function getDripListById(
   requireGraphQLSupportedChain(chainId, getDripListById.name);
 
   const chain = graphqlChainMap[chainId] as ChainName;
-
   const variables: GetDripListQueryVariables = {
     chain,
     accountId: accountId.toString(),
   };
-
   const client = graphqlClient || createGraphQLClient();
+
   const res = await client.query<GetDripListQuery>(
     GET_DRIP_LIST_QUERY,
     variables,

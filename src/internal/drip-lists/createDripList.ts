@@ -3,33 +3,35 @@ import {
   TxResponse,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {IpfsUploaderFn, Metadata} from '../metadata/createPinataIpfsUploader';
 import {
-  prepareDripListCreationCtx,
-  CreateDripListParams,
-} from './prepareDripListCreationCtx';
+  DripListMetadata,
+  IpfsUploaderFn,
+} from '../metadata/createPinataIpfsUploader';
+import {prepareDripListCreation, NewDripList} from './prepareDripListCreation';
 import {requireWriteAccess} from '../shared/assertions';
 
-export type DripListCreationResult = {
+export type CreateDripListResult = {
   salt: bigint;
   ipfsHash: Hash;
   dripListId: bigint;
   txResponse: TxResponse;
+  metadata: DripListMetadata;
 };
 export async function createDripList(
   adapter: WriteBlockchainAdapter,
-  ipfsUploaderFn: IpfsUploaderFn<Metadata>,
-  params: CreateDripListParams,
-): Promise<DripListCreationResult> {
+  ipfsUploaderFn: IpfsUploaderFn<DripListMetadata>,
+  params: NewDripList,
+): Promise<CreateDripListResult> {
   requireWriteAccess(adapter, createDripList.name);
 
-  const {salt, ipfsHash, dripListId, preparedTx} =
-    await prepareDripListCreationCtx(adapter, ipfsUploaderFn, params);
+  const {salt, ipfsHash, dripListId, preparedTx, metadata} =
+    await prepareDripListCreation(adapter, ipfsUploaderFn, params);
 
   const txResponse = await adapter.sendTx(preparedTx);
 
   return {
     salt,
+    metadata,
     ipfsHash,
     dripListId,
     txResponse,

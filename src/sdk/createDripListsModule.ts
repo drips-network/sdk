@@ -4,7 +4,7 @@ import {
   WriteBlockchainAdapter,
 } from '../internal/blockchain/BlockchainAdapter';
 import {
-  DripListCreationResult,
+  CreateDripListResult,
   createDripList,
 } from '../internal/drip-lists/createDripList';
 import {
@@ -12,24 +12,24 @@ import {
   getDripListById,
 } from '../internal/drip-lists/getDripListById';
 import {
-  CreateDripListParams,
-  DripListCreationContext,
-  prepareDripListCreationCtx,
-} from '../internal/drip-lists/prepareDripListCreationCtx';
-import {calcDripListId} from '../internal/drip-lists/calcDripListId';
+  NewDripList,
+  PrepareDripListCreationResult,
+} from '../internal/drip-lists/prepareDripListCreation';
 import {
   IpfsUploaderFn,
   Metadata,
 } from '../internal/metadata/createPinataIpfsUploader';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
+import {prepareDripListCreation} from '../internal/drip-lists/prepareDripListCreation';
+import {calcDripListId} from '../internal/shared/calcDripListId';
 
 export interface DripListsModule {
   calculateId(salt: bigint, minter: Address, chainId: number): Promise<bigint>;
   getById(accountId: bigint, chainId: number): Promise<DripList | null>;
-  prepareCreationCtx(
-    params: CreateDripListParams,
-  ): Promise<DripListCreationContext>;
-  create(params: CreateDripListParams): Promise<DripListCreationResult>;
+  prepareCreation(
+    dripList: NewDripList,
+  ): Promise<PrepareDripListCreationResult>;
+  create(dripList: NewDripList): Promise<CreateDripListResult>;
 }
 
 type Deps = {
@@ -51,14 +51,18 @@ export function createDripListsModule(deps: Deps): DripListsModule {
     getById: (accountId: bigint, chainId: number) =>
       getDripListById(accountId, chainId, graphqlClient),
 
-    prepareCreationCtx: (params: CreateDripListParams) =>
-      prepareDripListCreationCtx(
+    prepareCreation: (dripList: NewDripList) =>
+      prepareDripListCreation(
         adapter as WriteBlockchainAdapter,
         ipfsUploaderFn,
-        params,
+        dripList,
       ),
 
-    create: async (params: CreateDripListParams) =>
-      createDripList(adapter as WriteBlockchainAdapter, ipfsUploaderFn, params),
+    create: async (dripList: NewDripList) =>
+      createDripList(
+        adapter as WriteBlockchainAdapter,
+        ipfsUploaderFn,
+        dripList,
+      ),
   };
 }

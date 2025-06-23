@@ -1,10 +1,8 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {buildDripListMetadata} from '../../../src/internal/metadata/buildDripListMetadata';
-import {SdkSplitsReceiver} from '../../../src/internal/shared/mapToOnChainReceiver';
 import {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import {Address} from 'viem';
 
-// Mock dependencies
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireSupportedChain: vi.fn(),
 }));
@@ -24,6 +22,7 @@ vi.mock('../../../src/internal/shared/buildTx', () => ({
 import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {decodeFunctionResult} from 'viem';
 import {buildTx} from '../../../src/internal/shared/buildTx';
+import {SdkSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
 
 describe('buildDripListMetadata', () => {
   const mockAdapter: ReadBlockchainAdapter = {

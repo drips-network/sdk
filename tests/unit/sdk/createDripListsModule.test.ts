@@ -12,15 +12,15 @@ import {
   IpfsUploaderFn,
   Metadata,
 } from '../../../src/internal/metadata/createPinataIpfsUploader';
-import {calcDripListId} from '../../../src/internal/drip-lists/calcDripListId';
 import {getDripListById} from '../../../src/internal/drip-lists/getDripListById';
-import {prepareDripListCreationCtx} from '../../../src/internal/drip-lists/prepareDripListCreationCtx';
+import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
 import {Address} from 'viem';
+import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 
-vi.mock('../../../src/internal/drip-lists/calcDripListId');
+vi.mock('../../../src/internal/shared/calcDripListId');
 vi.mock('../../../src/internal/drip-lists/getDripListById');
-vi.mock('../../../src/internal/drip-lists/prepareDripListCreationCtx');
+vi.mock('../../../src/internal/drip-lists/prepareDripListCreation');
 vi.mock('../../../src/internal/drip-lists/createDripList');
 
 describe('createDripListsModule', () => {
@@ -49,6 +49,7 @@ describe('createDripListsModule', () => {
     const minter = '0x1234' as Address;
     const chainId = 1;
     const expectedId = 456n;
+
     vi.mocked(calcDripListId).mockResolvedValue(expectedId);
 
     // Act
@@ -85,14 +86,14 @@ describe('createDripListsModule', () => {
     // Arrange
     const params = {name: 'test'} as any;
     const expectedContext = {context: 'test'} as any;
-    vi.mocked(prepareDripListCreationCtx).mockResolvedValue(expectedContext);
+    vi.mocked(prepareDripListCreation).mockResolvedValue(expectedContext);
 
     // Act
-    const result = await dripListsModule.prepareCreationCtx(params);
+    const result = await dripListsModule.prepareCreation(params);
 
     // Assert
     expect(result).toBe(expectedContext);
-    expect(prepareDripListCreationCtx).toHaveBeenCalledWith(
+    expect(prepareDripListCreation).toHaveBeenCalledWith(
       adapter,
       ipfsUploaderFn,
       params,

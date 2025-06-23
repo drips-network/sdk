@@ -48,14 +48,16 @@ export function createDripsSdk(
     options?.graphqlUrl || DEFAULT_GRAPHQL_URL,
   );
 
+  const deps = {
+    adapter,
+    graphqlClient,
+    ipfsUploaderFn,
+  };
+
   return {
     utils,
     constants: dripsConstants,
-    dripLists: createDripListsModule({
-      adapter,
-      graphqlClient,
-      ipfsUploaderFn,
-    }),
-    donations: createDonationsModule({adapter}),
+    dripLists: createDripListsModule(deps),
+    donations: createDonationsModule(deps),
   };
 }

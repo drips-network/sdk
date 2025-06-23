@@ -5,29 +5,66 @@ import {
   WriteBlockchainAdapter,
 } from '../internal/blockchain/BlockchainAdapter';
 import {
-  prepareOneTimeDonationTx,
-  SendOneTimeDonationParams,
-} from '../internal/donations/prepareOneTimeDonationTx';
+  ContinuousDonation,
+  PrepareContinuousDonationResult,
+  prepareContinuousDonation,
+} from '../internal/donations/prepareContinuousDonation';
+import {
+  prepareOneTimeDonation,
+  OneTimeDonation,
+} from '../internal/donations/prepareOneTimeDonation';
+import {
+  sendContinuousDonation,
+  SendContinuousDonationResult,
+} from '../internal/donations/sendContinuousDonation';
 import {sendOneTimeDonation} from '../internal/donations/sendOneTimeDonation';
+import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
+import {
+  IpfsUploaderFn,
+  Metadata,
+} from '../internal/metadata/createPinataIpfsUploader';
 
 export interface DonationsModule {
-  prepareOneTimeDonationTx: (
-    params: SendOneTimeDonationParams,
-  ) => Promise<PreparedTx>;
-  sendOneTime(params: SendOneTimeDonationParams): Promise<TxResponse>;
+  prepareOneTimeDonation: (donation: OneTimeDonation) => Promise<PreparedTx>;
+  sendOneTime(donation: OneTimeDonation): Promise<TxResponse>;
+  prepareContinuous: (
+    donation: ContinuousDonation,
+  ) => Promise<PrepareContinuousDonationResult>;
+  sendContinuous(
+    donation: ContinuousDonation,
+  ): Promise<SendContinuousDonationResult>;
 }
 
 type Deps = {
+  readonly graphqlClient: DripsGraphQLClient;
+  readonly ipfsUploaderFn: IpfsUploaderFn<Metadata>;
   readonly adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
 };
 
 export function createDonationsModule(deps: Deps): DonationsModule {
-  const {adapter} = deps;
+  const {adapter, graphqlClient, ipfsUploaderFn} = deps;
 
   return {
-    prepareOneTimeDonationTx: (params: SendOneTimeDonationParams) =>
-      prepareOneTimeDonationTx(adapter as WriteBlockchainAdapter, params),
-    sendOneTime: async (params: SendOneTimeDonationParams) =>
-      sendOneTimeDonation(adapter as WriteBlockchainAdapter, params),
+    prepareOneTimeDonation: (donation: OneTimeDonation) =>
+      prepareOneTimeDonation(adapter as WriteBlockchainAdapter, donation),
+
+    sendOneTime: async (donation: OneTimeDonation) =>
+      sendOneTimeDonation(adapter as WriteBlockchainAdapter, donation),
+
+    prepareContinuous: (donation: ContinuousDonation) =>
+      prepareContinuousDonation(
+        adapter as WriteBlockchainAdapter,
+        ipfsUploaderFn,
+        donation,
+        graphqlClient,
+      ),
+
+    sendContinuous: async (donation: ContinuousDonation) =>
+      sendContinuousDonation(
+        adapter as WriteBlockchainAdapter,
+        ipfsUploaderFn,
+        donation,
+        graphqlClient,
+      ),
   };
 }

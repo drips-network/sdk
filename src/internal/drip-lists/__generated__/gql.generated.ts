@@ -91,6 +91,7 @@ export type GetDripListQuery = {
       | {__typename: 'EcosystemSupport'}
       | {
           __typename: 'OneTimeDonationSupport';
+          date: any;
           account: {
             __typename: 'AddressDriverAccount';
             accountId: string;
@@ -100,7 +101,32 @@ export type GetDripListQuery = {
           amount: {__typename: 'Amount'; amount: string; tokenAddress: string};
         }
       | {__typename: 'ProjectSupport'}
-      | {__typename: 'StreamSupport'}
+      | {
+          __typename: 'StreamSupport';
+          account: {
+            __typename: 'AddressDriverAccount';
+            accountId: string;
+            address: string;
+            driver: Types.Driver;
+          };
+          stream: {
+            __typename: 'Stream';
+            id: string;
+            name?: string | null;
+            config: {
+              __typename: 'StreamConfig';
+              dripId: string;
+              durationSeconds?: number | null;
+              raw: string;
+              startDate?: any | null;
+              amountPerSecond: {
+                __typename: 'Amount';
+                amount: string;
+                tokenAddress: string;
+              };
+            };
+          };
+        }
     >;
   } | null;
 };

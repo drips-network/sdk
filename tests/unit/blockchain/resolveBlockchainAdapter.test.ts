@@ -8,7 +8,6 @@ import type {
   WriteBlockchainAdapter,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 
-// Mock the adapter creation functions
 vi.mock('../../../src/internal/blockchain/adapters/viem/viemAdapters', () => ({
   createViemReadAdapter: vi.fn(),
   createViemWriteAdapter: vi.fn(),
