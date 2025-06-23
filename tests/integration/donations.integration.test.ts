@@ -85,7 +85,9 @@ describe('Donations', () => {
         // Step 4: Create the Drips SDK instance
         console.log('Step 4: Creating Drips SDK...');
         const sdk = createDripsSdk(walletClient, ipfsUploader, {
-          graphqlUrl: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          graphql: {
+            url: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          },
         });
 
         // Step 5: Create a Drip List to receive donations
@@ -247,7 +249,9 @@ describe('Donations', () => {
         // Step 4: Create the Drips SDK instance
         console.log('Step 4: Creating Drips SDK with Ethers...');
         const sdk = createDripsSdk(wallet, ipfsUploader, {
-          graphqlUrl: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          graphql: {
+            url: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          },
         });
 
         // Step 5: Create a Drip List to receive donations
@@ -444,7 +448,9 @@ describe('Donations', () => {
         // Step 4: Create the Drips SDK instance
         console.log('Step 4: Creating Drips SDK...');
         const sdk = createDripsSdk(walletClient, ipfsUploader, {
-          graphqlUrl: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          graphql: {
+            url: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          },
         });
 
         // Step 5: Create a Drip List to receive donations
@@ -619,7 +625,9 @@ describe('Donations', () => {
         // Step 4: Create the Drips SDK instance with Ethers wallet
         console.log('Step 4: Creating Drips SDK with Ethers...');
         const sdk = createDripsSdk(wallet, ipfsUploader, {
-          graphqlUrl: process.env.GRAPHQL_URL!,
+          graphql: {
+            url: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          },
         });
 
         // Step 5: Create a drip list to receive donations

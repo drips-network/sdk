@@ -25,7 +25,10 @@ export interface DripsSdk {
 }
 
 type DripsSdkOptions = {
-  readonly graphqlUrl?: string;
+  readonly graphql?: {
+    readonly url?: string;
+    readonly apiKey?: string;
+  };
 };
 
 export type SupportedBlockchainClient =
@@ -45,7 +48,8 @@ export function createDripsSdk(
 ): DripsSdk {
   const adapter = resolveBlockchainAdapter(blockchainClient);
   const graphqlClient = createGraphQLClient(
-    options?.graphqlUrl || DEFAULT_GRAPHQL_URL,
+    options?.graphql?.url || DEFAULT_GRAPHQL_URL,
+    options?.graphql?.apiKey,
   );
 
   const deps = {

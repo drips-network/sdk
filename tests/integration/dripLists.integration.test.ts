@@ -8,6 +8,7 @@ import {expect as expectUntil} from '../../src/internal/shared/expect';
 import {graphqlChainMap} from '../../src/internal/config/graphqlChainMap';
 import {privateKeyToAccount} from 'viem/accounts';
 import {SdkSplitsReceiver} from '../../src/internal/shared/receiverUtils';
+import {randomUUID} from 'crypto';
 
 // Test constants
 const TEST_TIMEOUT = 120_000; // 2 minutes
@@ -59,7 +60,9 @@ describe('Drip Lists', () => {
         // Step 4: Create the Drips SDK instance
         console.log('Step 4: Creating Drips SDK...');
         const sdk = createDripsSdk(walletClient, ipfsUploader, {
-          graphqlUrl: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          graphql: {
+            url: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          },
         });
 
         // Step 5: Define the split receivers (who gets the funds)
@@ -85,9 +88,10 @@ describe('Drip Lists', () => {
 
         // Step 6: Create the drip list
         console.log('Step 6: Creating drip list...');
+        const dripListName = `Test Drip List (Viem) - ${randomUUID()}`;
         const {dripListId, salt, ipfsHash, txResponse} =
           await sdk.dripLists.create({
-            name: 'Test Drip List (Viem)',
+            name: dripListName,
             description: 'A test drip list created using Viem adapter',
             isVisible: true,
             receivers,
@@ -108,7 +112,7 @@ describe('Drip Lists', () => {
           () => sdk.dripLists.getById(dripListId, localtestnet.id),
           dripList =>
             dripList !== null &&
-            dripList.name === 'Test Drip List (Viem)' &&
+            dripList.name === dripListName &&
             dripList.description ===
               'A test drip list created using Viem adapter',
           INDEXING_TIMEOUT,
@@ -125,7 +129,7 @@ describe('Drip Lists', () => {
         // Step 9: Verify all fields
         console.log('Step 9: Verifying drip list fields...');
         expect(dripList).not.toBeNull();
-        expect(dripList?.name).toBe('Test Drip List (Viem)');
+        expect(dripList?.name).toBe(dripListName);
         expect(dripList?.description).toBe(
           'A test drip list created using Viem adapter',
         );
@@ -168,7 +172,9 @@ describe('Drip Lists', () => {
         // Step 4: Create the Drips SDK instance with Ethers wallet
         console.log('Step 4: Creating Drips SDK with Ethers...');
         const sdk = createDripsSdk(wallet, ipfsUploader, {
-          graphqlUrl: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          graphql: {
+            url: process.env.GRAPHQL_URL!, // optional, we override for testing.
+          },
         });
 
         // Step 5: Define the split receivers (who gets the funds)
@@ -194,9 +200,10 @@ describe('Drip Lists', () => {
 
         // Step 6: Create the drip list
         console.log('Step 6: Creating drip list...');
+        const dripListName = `Test Drip List (Ethers) - ${randomUUID()}`;
         const {dripListId, salt, ipfsHash, txResponse} =
           await sdk.dripLists.create({
-            name: 'Test Drip List (Ethers)',
+            name: dripListName,
             description: 'A test drip list created using Ethers adapter',
             isVisible: true,
             receivers,
@@ -217,7 +224,7 @@ describe('Drip Lists', () => {
           () => sdk.dripLists.getById(dripListId, localtestnet.id),
           dripList =>
             dripList !== null &&
-            dripList.name === 'Test Drip List (Ethers)' &&
+            dripList.name === dripListName &&
             dripList.description ===
               'A test drip list created using Ethers adapter',
           INDEXING_TIMEOUT,
@@ -234,7 +241,7 @@ describe('Drip Lists', () => {
         // Step 9: Verify all fields
         console.log('Step 9: Verifying drip list fields...');
         expect(dripList).not.toBeNull();
-        expect(dripList?.name).toBe('Test Drip List (Ethers)');
+        expect(dripList?.name).toBe(dripListName);
         expect(dripList?.description).toBe(
           'A test drip list created using Ethers adapter',
         );

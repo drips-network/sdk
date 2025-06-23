@@ -36,7 +36,9 @@ describe('createGraphQLClient', () => {
       const client = createGraphQLClient();
 
       // Assert
-      expect(GraphQLClient).toHaveBeenCalledWith(DEFAULT_GRAPHQL_URL);
+      expect(GraphQLClient).toHaveBeenCalledWith(DEFAULT_GRAPHQL_URL, {
+        headers: {},
+      });
       expect(client).toBeDefined();
       expect(typeof client.query).toBe('function');
     });
@@ -49,7 +51,25 @@ describe('createGraphQLClient', () => {
       const client = createGraphQLClient(customUrl);
 
       // Assert
-      expect(GraphQLClient).toHaveBeenCalledWith(customUrl);
+      expect(GraphQLClient).toHaveBeenCalledWith(customUrl, {headers: {}});
+      expect(client).toBeDefined();
+      expect(typeof client.query).toBe('function');
+    });
+
+    it('should create GraphQLClient with authorization header when apiKey is provided', () => {
+      // Arrange
+      const customUrl = 'https://custom.graphql.endpoint';
+      const apiKey = 'test-api-key';
+
+      // Act
+      const client = createGraphQLClient(customUrl, apiKey);
+
+      // Assert
+      expect(GraphQLClient).toHaveBeenCalledWith(customUrl, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      });
       expect(client).toBeDefined();
       expect(typeof client.query).toBe('function');
     });
@@ -86,7 +106,9 @@ describe('createGraphQLClient', () => {
       const client = createGraphQLClient(undefined);
 
       // Assert
-      expect(GraphQLClient).toHaveBeenCalledWith(DEFAULT_GRAPHQL_URL);
+      expect(GraphQLClient).toHaveBeenCalledWith(DEFAULT_GRAPHQL_URL, {
+        headers: {},
+      });
       expect(client).toBeDefined();
       expect(typeof client.query).toBe('function');
     });
@@ -96,7 +118,7 @@ describe('createGraphQLClient', () => {
       const client = createGraphQLClient('   ');
 
       // Assert
-      expect(GraphQLClient).toHaveBeenCalledWith('   ');
+      expect(GraphQLClient).toHaveBeenCalledWith('   ', {headers: {}});
       expect(client).toBeDefined();
       expect(typeof client.query).toBe('function');
     });
@@ -112,7 +134,7 @@ describe('createGraphQLClient', () => {
       // Act & Assert
       validUrls.forEach(url => {
         expect(() => createGraphQLClient(url)).not.toThrow();
-        expect(GraphQLClient).toHaveBeenCalledWith(url);
+        expect(GraphQLClient).toHaveBeenCalledWith(url, {headers: {}});
       });
     });
   });
@@ -394,8 +416,8 @@ describe('createGraphQLClient', () => {
       const client2 = createGraphQLClient(url2);
 
       // Assert
-      expect(GraphQLClient).toHaveBeenCalledWith(url1);
-      expect(GraphQLClient).toHaveBeenCalledWith(url2);
+      expect(GraphQLClient).toHaveBeenCalledWith(url1, {headers: {}});
+      expect(GraphQLClient).toHaveBeenCalledWith(url2, {headers: {}});
       expect(GraphQLClient).toHaveBeenCalledTimes(2);
       expect(client1).not.toBe(client2);
     });

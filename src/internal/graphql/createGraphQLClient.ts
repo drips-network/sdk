@@ -12,12 +12,19 @@ export const DEFAULT_GRAPHQL_URL = 'https://graphql.drips.network';
 
 export function createGraphQLClient(
   url: string = DEFAULT_GRAPHQL_URL,
+  apiKey?: string,
 ): DripsGraphQLClient {
   if (!url) {
     throw new DripsError('Missing required GraphQL endpoint');
   }
 
-  const client = new GraphQLClient(url);
+  const headers: Record<string, string> = {};
+
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  const client = new GraphQLClient(url, {headers});
 
   return {
     query: async <T, V extends object = Record<string, any>>(

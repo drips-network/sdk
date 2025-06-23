@@ -75,19 +75,63 @@ describe('createDripsSdk', () => {
     createDripsSdk(client, ipfsUploaderFn);
 
     // Assert
-    expect(createGraphQLClient).toHaveBeenCalledWith(DEFAULT_GRAPHQL_URL);
+    expect(createGraphQLClient).toHaveBeenCalledWith(
+      DEFAULT_GRAPHQL_URL,
+      undefined,
+    );
   });
 
   it('should use the provided GraphQL URL', () => {
     // Arrange
     const client = {} as PublicClient;
-    const graphqlUrl = 'https://my-custom-graphql.url';
+    const customUrl = 'https://my-custom-graphql.url';
 
     // Act
-    createDripsSdk(client, ipfsUploaderFn, {graphqlUrl});
+    createDripsSdk(client, ipfsUploaderFn, {
+      graphql: {
+        url: customUrl,
+      },
+    });
 
     // Assert
-    expect(createGraphQLClient).toHaveBeenCalledWith(graphqlUrl);
+    expect(createGraphQLClient).toHaveBeenCalledWith(customUrl, undefined);
+  });
+
+  it('should pass the API key to the GraphQL client when provided', () => {
+    // Arrange
+    const client = {} as PublicClient;
+    const customUrl = 'https://my-custom-graphql.url';
+    const apiKey = 'test-api-key';
+
+    // Act
+    createDripsSdk(client, ipfsUploaderFn, {
+      graphql: {
+        url: customUrl,
+        apiKey,
+      },
+    });
+
+    // Assert
+    expect(createGraphQLClient).toHaveBeenCalledWith(customUrl, apiKey);
+  });
+
+  it('should pass the API key to the GraphQL client with default URL', () => {
+    // Arrange
+    const client = {} as PublicClient;
+    const apiKey = 'test-api-key';
+
+    // Act
+    createDripsSdk(client, ipfsUploaderFn, {
+      graphql: {
+        apiKey,
+      },
+    });
+
+    // Assert
+    expect(createGraphQLClient).toHaveBeenCalledWith(
+      DEFAULT_GRAPHQL_URL,
+      apiKey,
+    );
   });
 
   it.each([
