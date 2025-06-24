@@ -10,7 +10,7 @@ export function filterCurrentChain<T extends {chain: string}>(
       `Expected an array of items for chain "${chain}", but got invalid input.`,
       {
         meta: {
-          operation: 'filterCurrentChain',
+          operation: filterCurrentChain.name,
         },
       },
     );
@@ -23,7 +23,7 @@ export function filterCurrentChain<T extends {chain: string}>(
   if (matches.length === 0) {
     throw new DripsError(`No item found for chain "${chain}".`, {
       meta: {
-        operation: 'filterCurrentChain',
+        operation: filterCurrentChain.name,
       },
     });
   }
@@ -32,7 +32,7 @@ export function filterCurrentChain<T extends {chain: string}>(
     `Expected exactly one item for chain "${chain}", but found ${matches.length}.`,
     {
       meta: {
-        operation: 'filterCurrentChain',
+        operation: filterCurrentChain.name,
       },
     },
   );

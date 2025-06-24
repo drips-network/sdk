@@ -68,7 +68,7 @@ export function resolveBlockchainAdapter(
 
   throw new DripsError('Unsupported client type for blockchain adapter', {
     meta: {
-      operation: 'resolveBlockchainAdapter',
+      operation: resolveBlockchainAdapter.name,
       clientKeys: Object.keys(client),
     },
   });

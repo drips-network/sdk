@@ -81,7 +81,7 @@ export async function resolveReceiverAccountId(
     if (!receiver.url) {
       throw new DripsError('Project receiver must have a url', {
         meta: {
-          operation: 'resolveReceiverAccountId',
+          operation: resolveReceiverAccountId.name,
           receiver,
         },
       });
@@ -95,7 +95,7 @@ export async function resolveReceiverAccountId(
     if (!receiver.address) {
       throw new DripsError('Address receiver must have an address', {
         meta: {
-          operation: 'resolveReceiverAccountId',
+          operation: resolveReceiverAccountId.name,
           receiver,
         },
       });
@@ -109,7 +109,7 @@ export async function resolveReceiverAccountId(
     if (!receiver.accountId) {
       throw new DripsError(`${receiver.type} receiver must have an accountId`, {
         meta: {
-          operation: 'resolveReceiverAccountId',
+          operation: resolveReceiverAccountId.name,
           receiver,
         },
       });
@@ -119,7 +119,7 @@ export async function resolveReceiverAccountId(
 
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
     meta: {
-      operation: 'resolveReceiverAccountId',
+      operation: resolveReceiverAccountId.name,
       receiver,
     },
   });
@@ -180,7 +180,7 @@ export async function mapToMetadataSplitsReceiver(
 
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
     meta: {
-      operation: 'mapToMetadataSplitsReceiver',
+      operation: mapToMetadataSplitsReceiver.name,
       receiver,
     },
   });

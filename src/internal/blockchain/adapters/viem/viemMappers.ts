@@ -26,7 +26,7 @@ export function mapToViemCallParameters(tx: PreparedTx): CallParameters {
             gasPrice: tx.gasPrice,
             maxFeePerGas: tx.maxFeePerGas,
             maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
-            operation: 'Preparing viem call parameters',
+            operation: mapToViemCallParameters.name,
           },
         },
       );

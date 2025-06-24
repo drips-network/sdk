@@ -62,7 +62,7 @@ function getMetadataParser(metadata: Metadata) {
   if (!parser) {
     throw new DripsError('Unsupported metadata driver', {
       meta: {
-        operation: 'getMetadataParser',
+        operation: getMetadataParser.name,
         metadata,
       },
     });
@@ -82,7 +82,7 @@ function createIpfsMetadataUploader(
       throw new DripsError('IPFS upload failed', {
         cause: err,
         meta: {
-          operation: 'createIpfsMetadataUploader',
+          operation: createIpfsMetadataUploader.name,
           metadata,
         },
       });

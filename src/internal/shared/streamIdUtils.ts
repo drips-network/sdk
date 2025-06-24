@@ -27,7 +27,7 @@ export function decodeStreamId(streamId: string) {
   if (parts.length !== 3) {
     throw new DripsError('Invalid stream ID format', {
       meta: {
-        operation: 'decodeStreamId',
+        operation: decodeStreamId.name,
         streamId,
         parts,
       },

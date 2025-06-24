@@ -28,7 +28,7 @@ export function mapToEthersTransactionRequest(
             gasPrice: tx.gasPrice,
             maxFeePerGas: tx.maxFeePerGas,
             maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
-            operation: 'Preparing ethers transaction request',
+            operation: mapToEthersTransactionRequest.name,
           },
         },
       );
