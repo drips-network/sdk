@@ -4,10 +4,10 @@ import {
   immutableSplitsDriverMetadataParser,
   nftDriverAccountMetadataParser,
   repoDriverAccountMetadataParser,
-} from './schemas';
-import {DripsError} from '../shared/DripsError';
+} from '../metadata/schemas';
+import {DripsError} from './DripsError';
 import {PinataSDK} from 'pinata';
-import {buildStreamsMetadata} from './buildStreamsMetatada';
+import {buildStreamsMetadata} from '../streams/buildStreamsMetadata';
 
 export type DripListMetadata = Extract<
   ReturnType<typeof nftDriverAccountMetadataParser.parseLatest>,

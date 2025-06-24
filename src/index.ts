@@ -1,6 +1,5 @@
 // TODO: document all public API.
 import {buildTx} from './internal/shared/buildTx';
-import {encodeMetadataKeyValue} from './internal/metadata/encodeMetadataKeyValue';
 import {DEFAULT_GRAPHQL_URL} from './internal/graphql/createGraphQLClient';
 import {
   MAX_SPLITS_RECEIVERS,
@@ -13,11 +12,12 @@ import {
 import {MAX_STREAMS_RECEIVERS} from './internal/shared/validateAndFormatStreamReceivers';
 import {resolveAddressFromAccountId} from './internal/shared/resolveAddressFromAccountId';
 import {resolveDriverName} from './internal/shared/resolveDriverName';
+import {encodeMetadataKeyValue} from './internal/shared/encodeMetadataKeyValue';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
 export {createGraphQLClient} from './internal/graphql/createGraphQLClient';
-export {createPinataIpfsMetadataUploader} from './internal/metadata/createPinataIpfsMetadataUploader';
+export {createPinataIpfsMetadataUploader} from './internal/shared/createPinataIpfsMetadataUploader';
 
 export {createViemReadAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
 export {createViemWriteAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
@@ -71,7 +71,7 @@ export {
   ProjectMetadata,
   SubListMetadata,
   IpfsMetadataUploaderFn,
-} from './internal/metadata/createPinataIpfsMetadataUploader';
+} from './internal/shared/createPinataIpfsMetadataUploader';
 export {DripsGraphQLClient} from './internal/graphql/createGraphQLClient';
 export {
   SdkReceiver,

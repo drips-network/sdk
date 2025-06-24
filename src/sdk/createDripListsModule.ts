@@ -18,7 +18,7 @@ import {
 import {
   IpfsMetadataUploaderFn,
   Metadata,
-} from '../internal/metadata/createPinataIpfsMetadataUploader';
+} from '../internal/shared/createPinataIpfsMetadataUploader';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 import {prepareDripListCreation} from '../internal/drip-lists/prepareDripListCreation';
 import {calcDripListId} from '../internal/shared/calcDripListId';

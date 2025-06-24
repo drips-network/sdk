@@ -11,7 +11,7 @@ import {DripsGraphQLClient} from '../../../src/internal/graphql/createGraphQLCli
 import {
   IpfsMetadataUploaderFn,
   Metadata,
-} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
+} from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 import {getDripListById} from '../../../src/internal/drip-lists/getDripListById';
 import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';

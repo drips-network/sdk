@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {buildDripListMetadata} from '../../../src/internal/metadata/buildDripListMetadata';
+import {buildDripListMetadata} from '../../../src/internal/drip-lists/buildDripListMetadata';
 import {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import {Address} from 'viem';
 

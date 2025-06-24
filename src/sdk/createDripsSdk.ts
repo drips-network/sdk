@@ -1,7 +1,7 @@
 import {
   IpfsMetadataUploaderFn,
   Metadata,
-} from '../internal/metadata/createPinataIpfsMetadataUploader';
+} from '../internal/shared/createPinataIpfsMetadataUploader';
 import {PublicClient, WalletClient} from 'viem';
 import type {Provider, Signer} from 'ethers';
 import {

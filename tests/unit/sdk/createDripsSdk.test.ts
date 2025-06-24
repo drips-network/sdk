@@ -4,7 +4,7 @@ import {Provider, Signer} from 'ethers';
 import {
   IpfsMetadataUploaderFn,
   Metadata,
-} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
+} from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 import {createDripsSdk} from '../../../src/sdk/createDripsSdk';
 import {
   ReadBlockchainAdapter,

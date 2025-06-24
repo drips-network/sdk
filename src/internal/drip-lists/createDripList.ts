@@ -6,7 +6,7 @@ import {
 import {
   DripListMetadata,
   IpfsMetadataUploaderFn,
-} from '../metadata/createPinataIpfsMetadataUploader';
+} from '../shared/createPinataIpfsMetadataUploader';
 import {prepareDripListCreation, NewDripList} from './prepareDripListCreation';
 import {requireWriteAccess} from '../shared/assertions';
 

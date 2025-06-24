@@ -21,14 +21,12 @@ describe('validateAndFormatStreamReceivers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default mock implementation for decodeStreamConfig
-    vi.mocked(streamConfigUtils.decodeStreamConfig).mockImplementation(
-      (config: bigint) => ({
-        streamId: 1n,
-        amountPerSec: 100n, // Default to non-zero amount
-        start: 0n,
-        duration: 1n,
-      }),
-    );
+    vi.mocked(streamConfigUtils.decodeStreamConfig).mockImplementation(() => ({
+      streamId: 1n,
+      amountPerSec: 100n, // Default to non-zero amount
+      start: 0n,
+      duration: 1n,
+    }));
   });
 
   describe('successful validation and formatting', () => {

@@ -2,11 +2,11 @@ import {GetCurrentStreamsQuery} from '../donations/__generated__/gql.generated';
 import {ContinuousDonation} from '../donations/prepareContinuousDonation';
 import {encodeStreamConfig} from '../shared/streamConfigUtils';
 import encodeStreamId from '../shared/streamIdUtils';
-import {addressDriverAccountMetadataParser} from './schemas';
 import {resolveAddressFromAccountId} from '../shared/resolveAddressFromAccountId';
 import {resolveReceiverAccountId} from '../shared/receiverUtils';
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
 import {resolveDriverName} from '../shared/resolveDriverName';
+import {addressDriverAccountMetadataParser} from '../metadata/schemas';
 
 export async function buildStreamsMetadata(
   adapter: ReadBlockchainAdapter,

@@ -1,18 +1,14 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {Address} from 'viem';
-import {buildStreamsMetadata} from '../../../src/internal/metadata/buildStreamsMetatada';
 import {encodeStreamConfig} from '../../../src/internal/shared/streamConfigUtils';
 import encodeStreamId from '../../../src/internal/shared/streamIdUtils';
 import {addressDriverAccountMetadataParser} from '../../../src/internal/metadata/schemas';
 import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
-import {
-  resolveReceiverAccountId,
-  SdkReceiver,
-} from '../../../src/internal/shared/receiverUtils';
 import {resolveDriverName} from '../../../src/internal/shared/resolveDriverName';
 import {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import {ContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
-import {GetCurrentStreamsQuery} from '../../../src/internal/donations/__generated__/gql.generated';
+import {buildStreamsMetadata} from '../../../src/internal/streams/buildStreamsMetadata';
+import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
 
 // Mock dependencies
 vi.mock('../../../src/internal/shared/streamConfigUtils', () => ({

@@ -8,7 +8,7 @@ import type {
 import type {
   IpfsMetadataUploaderFn,
   Metadata,
-} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
+} from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWriteAccess: vi.fn(),

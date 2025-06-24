@@ -13,28 +13,28 @@ import {addressDriverAbi} from '../../../src/internal/abis/addressDriverAbi';
 import {callerAbi} from '../../../src/internal/abis/callerAbi';
 import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
 import {getCurrentStreamsAndReceivers} from '../../../src/internal/donations/getCurrentStreamReceivers';
-import {buildStreamsMetadata} from '../../../src/internal/metadata/buildStreamsMetatada';
 import {validateAndFormatStreamReceivers} from '../../../src/internal/shared/validateAndFormatStreamReceivers';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
 import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
 import {
-  encodeMetadataKeyValue,
-  USER_METADATA_KEY,
-} from '../../../src/internal/metadata/encodeMetadataKeyValue';
-import {
   encodeStreamConfig,
   decodeStreamConfig,
 } from '../../../src/internal/shared/streamConfigUtils';
+import {buildStreamsMetadata} from '../../../src/internal/streams/buildStreamsMetadata';
+import {
+  encodeMetadataKeyValue,
+  USER_METADATA_KEY,
+} from '../../../src/internal/shared/encodeMetadataKeyValue';
 
 vi.mock('../../../src/internal/shared/receiverUtils');
 vi.mock('../../../src/internal/shared/assertions');
 vi.mock('../../../src/internal/shared/buildTx');
 vi.mock('../../../src/internal/donations/getCurrentStreamReceivers');
-vi.mock('../../../src/internal/metadata/buildStreamsMetatada');
+vi.mock('../../../src/internal/streams/buildStreamsMetadata');
 vi.mock('../../../src/internal/shared/validateAndFormatStreamReceivers');
 vi.mock('../../../src/internal/shared/convertToCallerCall');
 vi.mock('../../../src/internal/shared/resolveAddressFromAccountId');
-vi.mock('../../../src/internal/metadata/encodeMetadataKeyValue');
+vi.mock('../../../src/internal/shared/encodeMetadataKeyValue');
 vi.mock('../../../src/internal/shared/streamConfigUtils');
 vi.mock('../../../src/internal/config/contractsRegistry', () => ({
   contractsRegistry: {
@@ -61,7 +61,6 @@ describe('prepareContinuousDonation', () => {
   const mockIpfsHash = 'QmHash123';
   const mockTransferToAddress = '0xTransferTo123';
   const mockAmountPerSec = 100n;
-  const mockDripId = 789n;
   const mockStreamConfig = 12345n;
   const mockMetadata = {
     describes: {

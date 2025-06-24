@@ -6,7 +6,7 @@ import {
   type DripListMetadata,
   type ProjectMetadata,
   type SubListMetadata,
-} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
+} from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import {PinataSDK} from 'pinata';
 

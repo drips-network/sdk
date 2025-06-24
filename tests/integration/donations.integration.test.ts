@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {createDripsSdk} from '../../src/sdk/createDripsSdk';
 import {createWalletClient, http} from 'viem';
 import {JsonRpcProvider, Wallet, Contract} from 'ethers';
-import {createPinataIpfsMetadataUploader} from '../../src/internal/metadata/createPinataIpfsMetadataUploader';
+import {createPinataIpfsMetadataUploader} from '../../src/internal/shared/createPinataIpfsMetadataUploader';
 import * as dotenv from 'dotenv';
 import {expect as expectUntil} from '../../src/internal/shared/expect';
 import {privateKeyToAccount} from 'viem/accounts';

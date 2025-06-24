@@ -1,14 +1,14 @@
 import {Address, Hash} from 'viem';
 import {callerAbi} from '../abis/callerAbi';
 import {nftDriverAbi} from '../abis/nftDriverAbi';
-import {buildDripListMetadata} from '../metadata/buildDripListMetadata';
+import {buildDripListMetadata} from './buildDripListMetadata';
 import {buildTx} from '../shared/buildTx';
 import {calculateRandomSalt} from './calculateRandomSalt';
 import {convertToCallerCall} from '../shared/convertToCallerCall';
 import {
   IpfsMetadataUploaderFn,
   DripListMetadata,
-} from '../metadata/createPinataIpfsMetadataUploader';
+} from '../shared/createPinataIpfsMetadataUploader';
 import {validateAndFormatSplitsReceivers} from '../shared/validateAndFormatSplitsReceivers';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {
@@ -18,14 +18,14 @@ import {
 } from '../blockchain/BlockchainAdapter';
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
 import {
-  encodeMetadataKeyValue,
-  USER_METADATA_KEY,
-} from '../metadata/encodeMetadataKeyValue';
-import {
   mapToOnChainSplitsReceiver,
   SdkSplitsReceiver,
 } from '../shared/receiverUtils';
 import {calcDripListId} from '../shared/calcDripListId';
+import {
+  encodeMetadataKeyValue,
+  USER_METADATA_KEY,
+} from '../shared/encodeMetadataKeyValue';
 
 export type NewDripList = {
   readonly isVisible: boolean;

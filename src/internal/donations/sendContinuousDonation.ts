@@ -7,7 +7,7 @@ import {
   IpfsMetadataUploaderFn,
   Metadata,
   StreamsMetadata,
-} from '../metadata/createPinataIpfsMetadataUploader';
+} from '../shared/createPinataIpfsMetadataUploader';
 import {requireWriteAccess} from '../shared/assertions';
 import {
   ContinuousDonation,

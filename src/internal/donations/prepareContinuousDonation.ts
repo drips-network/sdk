@@ -12,23 +12,23 @@ import {
   encodeStreamConfig,
 } from '../shared/streamConfigUtils';
 import {DripsGraphQLClient} from '../graphql/createGraphQLClient';
-import {buildStreamsMetadata} from '../metadata/buildStreamsMetatada';
 import {
   IpfsMetadataUploaderFn,
   StreamsMetadata,
-} from '../metadata/createPinataIpfsMetadataUploader';
+} from '../shared/createPinataIpfsMetadataUploader';
 import {validateAndFormatStreamReceivers} from '../shared/validateAndFormatStreamReceivers';
 import {buildTx} from '../shared/buildTx';
 import {addressDriverAbi} from '../abis/addressDriverAbi';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {resolveAddressFromAccountId} from '../shared/resolveAddressFromAccountId';
-import {
-  encodeMetadataKeyValue,
-  USER_METADATA_KEY,
-} from '../metadata/encodeMetadataKeyValue';
 import {callerAbi} from '../abis/callerAbi';
 import {convertToCallerCall} from '../shared/convertToCallerCall';
 import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
+import {buildStreamsMetadata} from '../streams/buildStreamsMetadata';
+import {
+  encodeMetadataKeyValue,
+  USER_METADATA_KEY,
+} from '../shared/encodeMetadataKeyValue';
 
 export type ContinuousDonation = {
   readonly erc20: Address;

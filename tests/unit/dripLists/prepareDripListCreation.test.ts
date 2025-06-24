@@ -8,7 +8,7 @@ import type {
 import type {
   IpfsMetadataUploaderFn,
   DripListMetadata,
-} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
+} from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWriteAccess: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock('../../../src/internal/shared/convertToCallerCall', () => ({
   convertToCallerCall: vi.fn(),
 }));
 
-vi.mock('../../../src/internal/metadata/encodeMetadataKeyValue', () => ({
+vi.mock('../../../src/internal/shared/encodeMetadataKeyValue', () => ({
   encodeMetadataKeyValue: vi.fn(),
   USER_METADATA_KEY: 'user-metadata',
 }));
@@ -44,7 +44,7 @@ vi.mock(
   }),
 );
 
-vi.mock('../../../src/internal/metadata/buildDripListMetadata', () => ({
+vi.mock('../../../src/internal/drip-lists/buildDripListMetadata', () => ({
   buildDripListMetadata: vi.fn(),
 }));
 
@@ -59,9 +59,9 @@ import {
 import {calculateRandomSalt} from '../../../src/internal/drip-lists/calculateRandomSalt';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
-import {encodeMetadataKeyValue} from '../../../src/internal/metadata/encodeMetadataKeyValue';
+import {encodeMetadataKeyValue} from '../../../src/internal/shared/encodeMetadataKeyValue';
 import {validateAndFormatSplitsReceivers} from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
-import {buildDripListMetadata} from '../../../src/internal/metadata/buildDripListMetadata';
+import {buildDripListMetadata} from '../../../src/internal/drip-lists/buildDripListMetadata';
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 import {mapToOnChainSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
 

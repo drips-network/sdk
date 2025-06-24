@@ -22,7 +22,7 @@ import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 import {
   IpfsMetadataUploaderFn,
   Metadata,
-} from '../internal/metadata/createPinataIpfsMetadataUploader';
+} from '../internal/shared/createPinataIpfsMetadataUploader';
 
 export interface DonationsModule {
   prepareOneTimeDonation: (donation: OneTimeDonation) => Promise<PreparedTx>;
