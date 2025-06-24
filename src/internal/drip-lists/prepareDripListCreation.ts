@@ -6,9 +6,9 @@ import {buildTx} from '../shared/buildTx';
 import {calculateRandomSalt} from './calculateRandomSalt';
 import {convertToCallerCall} from '../shared/convertToCallerCall';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   DripListMetadata,
-} from '../metadata/createPinataIpfsUploader';
+} from '../metadata/createPinataIpfsMetadataUploader';
 import {validateAndFormatSplitsReceivers} from '../shared/validateAndFormatSplitsReceivers';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {
@@ -48,7 +48,7 @@ export type PrepareDripListCreationResult = {
 
 export async function prepareDripListCreation(
   adapter: WriteBlockchainAdapter,
-  ipfsUploaderFn: IpfsUploaderFn<DripListMetadata>,
+  ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,
   dripList: NewDripList,
 ): Promise<PrepareDripListCreationResult> {
   const chainId = await adapter.getChainId();
@@ -81,7 +81,7 @@ export async function prepareDripListCreation(
     dripListId,
     description,
   });
-  const ipfsHash = await ipfsUploaderFn(metadata);
+  const ipfsHash = await ipfsMetadataUploaderFn(metadata);
 
   const mintTx = buildTx({
     contract: nftDriver.address,

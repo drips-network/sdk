@@ -2,11 +2,11 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {Hash} from 'viem';
 import {
-  createPinataIpfsUploader,
+  createPinataIpfsMetadataUploader,
   type DripListMetadata,
   type ProjectMetadata,
   type SubListMetadata,
-} from '../../../src/internal/metadata/createPinataIpfsUploader';
+} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import {PinataSDK} from 'pinata';
 
@@ -29,7 +29,7 @@ vi.mock('../../../src/internal/metadata/schemas', () => ({
   },
 }));
 
-describe('createPinataIpfsUploader', () => {
+describe('createPinataIpfsMetadataUploader', () => {
   const mockPinataJwt = 'test-jwt-token';
   const mockPinataGateway = 'https://test.pinata.cloud';
   const mockCid = 'QmTestCid123' as Hash;
@@ -49,10 +49,10 @@ describe('createPinataIpfsUploader', () => {
     mockPinataUpload.mockResolvedValue({cid: mockCid});
   });
 
-  describe('createPinataIpfsUploader function', () => {
+  describe('createPinataIpfsMetadataUploader function', () => {
     it('should create PinataSDK with correct configuration', () => {
       // Act
-      createPinataIpfsUploader({
+      createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -66,7 +66,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should return a function', () => {
       // Act
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -77,7 +77,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should upload DripList metadata successfully', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -111,7 +111,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should upload Project metadata successfully', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -163,7 +163,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should upload SubList metadata successfully', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -204,7 +204,7 @@ describe('createPinataIpfsUploader', () => {
       const customGateway = 'https://custom.gateway.com';
 
       // Act
-      createPinataIpfsUploader({
+      createPinataIpfsMetadataUploader({
         pinataJwt: customJwt,
         pinataGateway: customGateway,
       });
@@ -223,7 +223,7 @@ describe('createPinataIpfsUploader', () => {
       const uploadError = new Error('Pinata upload failed');
       mockPinataUpload.mockRejectedValue(uploadError);
 
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -249,7 +249,7 @@ describe('createPinataIpfsUploader', () => {
       const originalError = new Error('Network timeout');
       mockPinataUpload.mockRejectedValue(originalError);
 
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -281,7 +281,7 @@ describe('createPinataIpfsUploader', () => {
       const uploadError = new Error('Upload failed');
       mockPinataUpload.mockRejectedValue(uploadError);
 
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -306,7 +306,7 @@ describe('createPinataIpfsUploader', () => {
         expect(error).toBeInstanceOf(DripsError);
         const dripsError = error as DripsError;
         expect(dripsError.meta).toEqual({
-          operation: 'createIpfsUploader',
+          operation: 'createIpfsMetadataUploader',
           metadata,
         });
       }
@@ -317,7 +317,7 @@ describe('createPinataIpfsUploader', () => {
       const stringError = 'String error message';
       mockPinataUpload.mockRejectedValue(stringError);
 
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -349,7 +349,7 @@ describe('createPinataIpfsUploader', () => {
       // Arrange
       mockPinataUpload.mockRejectedValue(null);
 
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -381,7 +381,7 @@ describe('createPinataIpfsUploader', () => {
   describe('metadata validation', () => {
     it('should validate metadata before upload', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -408,7 +408,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should handle unsupported metadata driver', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -429,7 +429,7 @@ describe('createPinataIpfsUploader', () => {
   describe('edge cases and boundary conditions', () => {
     it('should handle empty metadata objects', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -455,7 +455,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should handle metadata with large recipient arrays', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -487,7 +487,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should handle metadata with special characters', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -515,7 +515,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should handle very long metadata strings', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -546,7 +546,7 @@ describe('createPinataIpfsUploader', () => {
       // Arrange
       mockPinataUpload.mockResolvedValue({cid: ''});
 
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -573,7 +573,7 @@ describe('createPinataIpfsUploader', () => {
   describe('concurrent uploads', () => {
     it('should handle multiple concurrent uploads', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -623,7 +623,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should handle mixed success and failure in concurrent uploads', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });
@@ -669,12 +669,12 @@ describe('createPinataIpfsUploader', () => {
   describe('integration scenarios', () => {
     it('should work with different uploader instances', async () => {
       // Arrange
-      const uploader1 = createPinataIpfsUploader({
+      const uploader1 = createPinataIpfsMetadataUploader({
         pinataJwt: 'jwt1',
         pinataGateway: 'gateway1',
       });
 
-      const uploader2 = createPinataIpfsUploader({
+      const uploader2 = createPinataIpfsMetadataUploader({
         pinataJwt: 'jwt2',
         pinataGateway: 'gateway2',
       });
@@ -705,7 +705,7 @@ describe('createPinataIpfsUploader', () => {
 
     it('should maintain uploader state across multiple calls', async () => {
       // Arrange
-      const uploader = createPinataIpfsUploader({
+      const uploader = createPinataIpfsMetadataUploader({
         pinataJwt: mockPinataJwt,
         pinataGateway: mockPinataGateway,
       });

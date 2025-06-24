@@ -2,9 +2,9 @@ import {vi, describe, it, expect, beforeEach} from 'vitest';
 import {PublicClient, WalletClient} from 'viem';
 import {Provider, Signer} from 'ethers';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
-} from '../../../src/internal/metadata/createPinataIpfsUploader';
+} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
 import {createDripsSdk} from '../../../src/sdk/createDripsSdk';
 import {
   ReadBlockchainAdapter,
@@ -25,7 +25,7 @@ vi.mock('../../../src/sdk/createDonationsModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 
 describe('createDripsSdk', () => {
-  const ipfsUploaderFn = vi.fn<IpfsUploaderFn<Metadata>>();
+  const ipfsMetadataUploaderFn = vi.fn<IpfsMetadataUploaderFn<Metadata>>();
   const dripListsModule = {} as any;
   const donationsModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
@@ -47,7 +47,7 @@ describe('createDripsSdk', () => {
     const client = {} as PublicClient;
 
     // Act
-    const sdk = createDripsSdk(client, ipfsUploaderFn);
+    const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
 
     // Assert
     expect(sdk).toBeDefined();
@@ -58,12 +58,12 @@ describe('createDripsSdk', () => {
     expect(createDripListsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
-      ipfsUploaderFn,
+      ipfsMetadataUploaderFn,
     });
     expect(createDonationsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
-      ipfsUploaderFn,
+      ipfsMetadataUploaderFn,
     });
   });
 
@@ -72,7 +72,7 @@ describe('createDripsSdk', () => {
     const client = {} as PublicClient;
 
     // Act
-    createDripsSdk(client, ipfsUploaderFn);
+    createDripsSdk(client, ipfsMetadataUploaderFn);
 
     // Assert
     expect(createGraphQLClient).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe('createDripsSdk', () => {
     const customUrl = 'https://my-custom-graphql.url';
 
     // Act
-    createDripsSdk(client, ipfsUploaderFn, {
+    createDripsSdk(client, ipfsMetadataUploaderFn, {
       graphql: {
         url: customUrl,
       },
@@ -104,7 +104,7 @@ describe('createDripsSdk', () => {
     const apiKey = 'test-api-key';
 
     // Act
-    createDripsSdk(client, ipfsUploaderFn, {
+    createDripsSdk(client, ipfsMetadataUploaderFn, {
       graphql: {
         url: customUrl,
         apiKey,
@@ -121,7 +121,7 @@ describe('createDripsSdk', () => {
     const apiKey = 'test-api-key';
 
     // Act
-    createDripsSdk(client, ipfsUploaderFn, {
+    createDripsSdk(client, ipfsMetadataUploaderFn, {
       graphql: {
         apiKey,
       },
@@ -149,7 +149,7 @@ describe('createDripsSdk', () => {
     ],
   ])('should resolve the blockchain adapter for a %s', (_, client: any) => {
     // Act
-    createDripsSdk(client, ipfsUploaderFn);
+    createDripsSdk(client, ipfsMetadataUploaderFn);
 
     // Assert
     expect(resolveBlockchainAdapter).toHaveBeenCalledWith(client);

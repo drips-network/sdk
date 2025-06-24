@@ -16,9 +16,9 @@ import {
   PrepareDripListCreationResult,
 } from '../internal/drip-lists/prepareDripListCreation';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
-} from '../internal/metadata/createPinataIpfsUploader';
+} from '../internal/metadata/createPinataIpfsMetadataUploader';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 import {prepareDripListCreation} from '../internal/drip-lists/prepareDripListCreation';
 import {calcDripListId} from '../internal/shared/calcDripListId';
@@ -34,12 +34,12 @@ export interface DripListsModule {
 
 type Deps = {
   readonly graphqlClient: DripsGraphQLClient;
-  readonly ipfsUploaderFn: IpfsUploaderFn<Metadata>;
+  readonly ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>;
   readonly adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
 };
 
 export function createDripListsModule(deps: Deps): DripListsModule {
-  const {adapter, graphqlClient, ipfsUploaderFn} = deps;
+  const {adapter, graphqlClient, ipfsMetadataUploaderFn} = deps;
 
   return {
     calculateId: (salt: bigint, minter: Address) =>
@@ -54,14 +54,14 @@ export function createDripListsModule(deps: Deps): DripListsModule {
     prepareCreation: (dripList: NewDripList) =>
       prepareDripListCreation(
         adapter as WriteBlockchainAdapter,
-        ipfsUploaderFn,
+        ipfsMetadataUploaderFn,
         dripList,
       ),
 
     create: async (dripList: NewDripList) =>
       createDripList(
         adapter as WriteBlockchainAdapter,
-        ipfsUploaderFn,
+        ipfsMetadataUploaderFn,
         dripList,
       ),
   };

@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {createDripsSdk} from '../../src/sdk/createDripsSdk';
 import {createWalletClient, http} from 'viem';
 import {JsonRpcProvider, Wallet} from 'ethers';
-import {createPinataIpfsUploader} from '../../src/internal/metadata/createPinataIpfsUploader';
+import {createPinataIpfsMetadataUploader} from '../../src/internal/metadata/createPinataIpfsMetadataUploader';
 import * as dotenv from 'dotenv';
 import {expect as expectUntil} from '../../src/internal/shared/expect';
 import {graphqlChainMap} from '../../src/internal/config/graphqlChainMap';
@@ -52,14 +52,14 @@ describe('Drip Lists', () => {
 
         // Step 3: Set up IPFS uploader for metadata storage (here we use the Pinata uploader provided by the SDK)
         console.log('Step 3: Setting up IPFS uploader...');
-        const ipfsUploader = createPinataIpfsUploader({
+        const ipfsMetadataUploader = createPinataIpfsMetadataUploader({
           pinataJwt: process.env.PINATA_JWT!,
           pinataGateway: process.env.PINATA_GATEWAY!,
         });
 
         // Step 4: Create the Drips SDK instance
         console.log('Step 4: Creating Drips SDK...');
-        const sdk = createDripsSdk(walletClient, ipfsUploader, {
+        const sdk = createDripsSdk(walletClient, ipfsMetadataUploader, {
           graphql: {
             url: process.env.GRAPHQL_URL!, // optional, we override for testing.
           },
@@ -164,14 +164,14 @@ describe('Drip Lists', () => {
 
         // Step 3: Set up IPFS uploader for metadata storage (here we use the Pinata uploader provided by the SDK)
         console.log('Step 3: Setting up IPFS uploader...');
-        const ipfsUploader = createPinataIpfsUploader({
+        const ipfsMetadataUploader = createPinataIpfsMetadataUploader({
           pinataJwt: process.env.PINATA_JWT!,
           pinataGateway: process.env.PINATA_GATEWAY!,
         });
 
         // Step 4: Create the Drips SDK instance with Ethers wallet
         console.log('Step 4: Creating Drips SDK with Ethers...');
-        const sdk = createDripsSdk(wallet, ipfsUploader, {
+        const sdk = createDripsSdk(wallet, ipfsMetadataUploader, {
           graphql: {
             url: process.env.GRAPHQL_URL!, // optional, we override for testing.
           },

@@ -6,9 +6,9 @@ import type {
   TxResponse,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 import type {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
-} from '../../../src/internal/metadata/createPinataIpfsUploader';
+} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireWriteAccess: vi.fn(),
@@ -31,7 +31,7 @@ describe('createDripList', () => {
     getChainId: vi.fn(),
   };
 
-  const mockIpfsUploader: IpfsUploaderFn<Metadata> = vi.fn();
+  const mockIpfsMetadataUploader: IpfsMetadataUploaderFn<Metadata> = vi.fn();
 
   const validParams = {
     isVisible: true,
@@ -92,7 +92,7 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
 
@@ -103,7 +103,7 @@ describe('createDripList', () => {
       );
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(
@@ -132,7 +132,7 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         customAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
 
@@ -143,7 +143,7 @@ describe('createDripList', () => {
       );
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         customAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
       expect(customAdapter.sendTx).toHaveBeenCalledWith(
@@ -155,18 +155,23 @@ describe('createDripList', () => {
 
     it('should work with different IPFS uploaders', async () => {
       // Arrange
-      const customIpfsUploader: IpfsUploaderFn<Metadata> = vi.fn();
+      const customIpfsMetadataUploader: IpfsMetadataUploaderFn<Metadata> =
+        vi.fn();
 
       // Act
-      await createDripList(mockAdapter, customIpfsUploader, validParams);
+      await createDripList(
+        mockAdapter,
+        customIpfsMetadataUploader,
+        validParams,
+      );
 
       // Assert
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        customIpfsUploader,
+        customIpfsMetadataUploader,
         validParams,
       );
-      expect(mockIpfsUploader).not.toHaveBeenCalled();
+      expect(mockIpfsMetadataUploader).not.toHaveBeenCalled();
     });
 
     it('should handle different creation parameters', async () => {
@@ -185,12 +190,12 @@ describe('createDripList', () => {
       };
 
       // Act
-      await createDripList(mockAdapter, mockIpfsUploader, customParams);
+      await createDripList(mockAdapter, mockIpfsMetadataUploader, customParams);
 
       // Assert
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         customParams,
       );
     });
@@ -205,14 +210,14 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         minimalParams,
       );
 
       // Assert
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         minimalParams,
       );
       expect(result).toEqual({
@@ -240,14 +245,14 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         largeParams,
       );
 
       // Assert
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         largeParams,
       );
       expect(result.txResponse).toBe(mockTxResponse);
@@ -282,7 +287,7 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
 
@@ -306,7 +311,7 @@ describe('createDripList', () => {
 
       // Act & Assert
       await expect(
-        createDripList(mockAdapter, mockIpfsUploader, validParams),
+        createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(accessError);
       expect(prepareDripListCreation).not.toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
@@ -319,7 +324,7 @@ describe('createDripList', () => {
 
       // Act & Assert
       await expect(
-        createDripList(mockAdapter, mockIpfsUploader, validParams),
+        createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(preparationError);
       expect(requireWriteAccess).toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
@@ -332,7 +337,7 @@ describe('createDripList', () => {
 
       // Act & Assert
       await expect(
-        createDripList(mockAdapter, mockIpfsUploader, validParams),
+        createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(txError);
       expect(requireWriteAccess).toHaveBeenCalled();
       expect(prepareDripListCreation).toHaveBeenCalled();
@@ -345,7 +350,7 @@ describe('createDripList', () => {
 
       // Act & Assert
       await expect(
-        createDripList(mockAdapter, mockIpfsUploader, validParams),
+        createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(networkError);
     });
 
@@ -359,7 +364,7 @@ describe('createDripList', () => {
 
       // Act & Assert
       await expect(
-        createDripList(faultyAdapter, mockIpfsUploader, validParams),
+        createDripList(faultyAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(adapterError);
     });
   });
@@ -392,7 +397,7 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
 
@@ -436,7 +441,7 @@ describe('createDripList', () => {
       // Act
       const result = await createDripList(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         validParams,
       );
 
@@ -453,12 +458,16 @@ describe('createDripList', () => {
       };
 
       // Act
-      await createDripList(mockAdapter, mockIpfsUploader, emptyReceiversParams);
+      await createDripList(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        emptyReceiversParams,
+      );
 
       // Assert
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         emptyReceiversParams,
       );
     });
@@ -481,7 +490,7 @@ describe('createDripList', () => {
       });
 
       // Act
-      await createDripList(mockAdapter, mockIpfsUploader, validParams);
+      await createDripList(mockAdapter, mockIpfsMetadataUploader, validParams);
 
       // Assert
       expect(callOrder).toEqual([
@@ -499,7 +508,7 @@ describe('createDripList', () => {
 
       // Act & Assert
       await expect(
-        createDripList(mockAdapter, mockIpfsUploader, validParams),
+        createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow('Preparation failed');
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
@@ -530,12 +539,16 @@ describe('createDripList', () => {
       };
 
       // Act
-      await createDripList(mockAdapter, mockIpfsUploader, complexParams);
+      await createDripList(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        complexParams,
+      );
 
       // Assert
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         complexParams,
       );
     });

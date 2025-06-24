@@ -1,7 +1,7 @@
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
-} from '../internal/metadata/createPinataIpfsUploader';
+} from '../internal/metadata/createPinataIpfsMetadataUploader';
 import {PublicClient, WalletClient} from 'viem';
 import type {Provider, Signer} from 'ethers';
 import {
@@ -43,7 +43,7 @@ export type SupportedBlockchainClient =
 // TODO: document that WalletClient requires an account to be set up.
 export function createDripsSdk(
   blockchainClient: SupportedBlockchainClient,
-  ipfsUploaderFn: IpfsUploaderFn<Metadata>,
+  ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>,
   options?: DripsSdkOptions,
 ): DripsSdk {
   const adapter = resolveBlockchainAdapter(blockchainClient);
@@ -55,7 +55,7 @@ export function createDripsSdk(
   const deps = {
     adapter,
     graphqlClient,
-    ipfsUploaderFn,
+    ipfsMetadataUploaderFn,
   };
 
   return {

@@ -20,9 +20,9 @@ import {
 import {sendOneTimeDonation} from '../internal/donations/sendOneTimeDonation';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
-} from '../internal/metadata/createPinataIpfsUploader';
+} from '../internal/metadata/createPinataIpfsMetadataUploader';
 
 export interface DonationsModule {
   prepareOneTimeDonation: (donation: OneTimeDonation) => Promise<PreparedTx>;
@@ -37,12 +37,12 @@ export interface DonationsModule {
 
 type Deps = {
   readonly graphqlClient: DripsGraphQLClient;
-  readonly ipfsUploaderFn: IpfsUploaderFn<Metadata>;
+  readonly ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>;
   readonly adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
 };
 
 export function createDonationsModule(deps: Deps): DonationsModule {
-  const {adapter, graphqlClient, ipfsUploaderFn} = deps;
+  const {adapter, graphqlClient, ipfsMetadataUploaderFn} = deps;
 
   return {
     prepareOneTimeDonation: (donation: OneTimeDonation) =>
@@ -54,7 +54,7 @@ export function createDonationsModule(deps: Deps): DonationsModule {
     prepareContinuous: (donation: ContinuousDonation) =>
       prepareContinuousDonation(
         adapter as WriteBlockchainAdapter,
-        ipfsUploaderFn,
+        ipfsMetadataUploaderFn,
         donation,
         graphqlClient,
       ),
@@ -62,7 +62,7 @@ export function createDonationsModule(deps: Deps): DonationsModule {
     sendContinuous: async (donation: ContinuousDonation) =>
       sendContinuousDonation(
         adapter as WriteBlockchainAdapter,
-        ipfsUploaderFn,
+        ipfsMetadataUploaderFn,
         donation,
         graphqlClient,
       ),

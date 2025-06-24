@@ -166,7 +166,7 @@ describe('prepareContinuousDonation', () => {
       },
     },
   ];
-  const mockIpfsUploaderFn = vi.fn().mockResolvedValue(mockIpfsHash);
+  const mockIpfsMetadataUploaderFn = vi.fn().mockResolvedValue(mockIpfsHash);
 
   beforeEach(() => {
     mockAdapter = {
@@ -234,7 +234,7 @@ describe('prepareContinuousDonation', () => {
 
     const result = await prepareContinuousDonation(
       mockAdapter,
-      mockIpfsUploaderFn,
+      mockIpfsMetadataUploaderFn,
       donation,
     );
 
@@ -295,7 +295,7 @@ describe('prepareContinuousDonation', () => {
         dripId: expect.any(BigInt),
       },
     );
-    expect(mockIpfsUploaderFn).toHaveBeenCalledWith(mockMetadata);
+    expect(mockIpfsMetadataUploaderFn).toHaveBeenCalledWith(mockMetadata);
     expect(encodeMetadataKeyValue).toHaveBeenCalledWith({
       key: USER_METADATA_KEY,
       value: mockIpfsHash,
@@ -351,7 +351,7 @@ describe('prepareContinuousDonation', () => {
 
     const result = await prepareContinuousDonation(
       mockAdapter,
-      mockIpfsUploaderFn,
+      mockIpfsMetadataUploaderFn,
       donation,
     );
 
@@ -399,7 +399,11 @@ describe('prepareContinuousDonation', () => {
       batchedTxOverrides,
     };
 
-    await prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation);
+    await prepareContinuousDonation(
+      mockAdapter,
+      mockIpfsMetadataUploaderFn,
+      donation,
+    );
 
     expect(buildTx).toHaveBeenCalledWith({
       abi: callerAbi,
@@ -423,7 +427,7 @@ describe('prepareContinuousDonation', () => {
 
     await prepareContinuousDonation(
       mockAdapter,
-      mockIpfsUploaderFn,
+      mockIpfsMetadataUploaderFn,
       donation,
       mockGraphQLClient,
     );
@@ -453,7 +457,11 @@ describe('prepareContinuousDonation', () => {
       };
 
       await expect(
-        prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        prepareContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Unsupported chain');
     });
 
@@ -473,7 +481,11 @@ describe('prepareContinuousDonation', () => {
       };
 
       await expect(
-        prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        prepareContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Write access required');
     });
 
@@ -494,7 +506,11 @@ describe('prepareContinuousDonation', () => {
       };
 
       await expect(
-        prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        prepareContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Failed to resolve account ID');
     });
 
@@ -512,7 +528,11 @@ describe('prepareContinuousDonation', () => {
       };
 
       await expect(
-        prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        prepareContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Failed to get current streams');
     });
 
@@ -530,13 +550,19 @@ describe('prepareContinuousDonation', () => {
       };
 
       await expect(
-        prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        prepareContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Failed to build metadata');
     });
 
-    it('should propagate errors from ipfsUploaderFn', async () => {
+    it('should propagate errors from ipfsMetadataUploaderFn', async () => {
       const mockError = new Error('Failed to upload to IPFS');
-      const failingIpfsUploaderFn = vi.fn().mockRejectedValue(mockError);
+      const failingIpfsMetadataUploaderFn = vi
+        .fn()
+        .mockRejectedValue(mockError);
 
       // Reset all mocks to ensure we don't get errors from other functions
       vi.mocked(resolveReceiverAccountId).mockReset();
@@ -554,7 +580,11 @@ describe('prepareContinuousDonation', () => {
       };
 
       await expect(
-        prepareContinuousDonation(mockAdapter, failingIpfsUploaderFn, donation),
+        prepareContinuousDonation(
+          mockAdapter,
+          failingIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Failed to upload to IPFS');
     });
   });

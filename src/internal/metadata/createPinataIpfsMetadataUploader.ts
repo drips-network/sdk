@@ -30,7 +30,9 @@ export type Metadata =
   | SubListMetadata
   | StreamsMetadata;
 
-export type IpfsUploaderFn<T extends Metadata> = (metadata: T) => Promise<Hash>;
+export type IpfsMetadataUploaderFn<T extends Metadata> = (
+  metadata: T,
+) => Promise<Hash>;
 
 type IpfsClientLike = {
   uploadJson: (metadata: Metadata) => Promise<{cid: string}>;
@@ -68,7 +70,9 @@ function getMetadataParser(metadata: Metadata) {
   return parser;
 }
 
-function createIpfsUploader(client: IpfsClientLike): IpfsUploaderFn<Metadata> {
+function createIpfsMetadataUploader(
+  client: IpfsClientLike,
+): IpfsMetadataUploaderFn<Metadata> {
   return async (metadata: Metadata) => {
     try {
       getMetadataParser(metadata); // Type check
@@ -78,7 +82,7 @@ function createIpfsUploader(client: IpfsClientLike): IpfsUploaderFn<Metadata> {
       throw new DripsError('IPFS upload failed', {
         cause: err,
         meta: {
-          operation: 'createIpfsUploader',
+          operation: 'createIpfsMetadataUploader',
           metadata,
         },
       });
@@ -86,13 +90,13 @@ function createIpfsUploader(client: IpfsClientLike): IpfsUploaderFn<Metadata> {
   };
 }
 
-export function createPinataIpfsUploader({
+export function createPinataIpfsMetadataUploader({
   pinataJwt,
   pinataGateway,
 }: {
   pinataJwt: string;
   pinataGateway: string;
-}): IpfsUploaderFn<Metadata> {
+}): IpfsMetadataUploaderFn<Metadata> {
   const pinata = new PinataSDK({
     pinataJwt,
     pinataGateway,
@@ -106,5 +110,5 @@ export function createPinataIpfsUploader({
     },
   };
 
-  return createIpfsUploader(client);
+  return createIpfsMetadataUploader(client);
 }

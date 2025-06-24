@@ -40,12 +40,12 @@ describe('createDonationsModule', () => {
     adapter = {} as WriteBlockchainAdapter;
 
     const mockGraphqlClient = {} as any;
-    const mockIpfsUploader = vi.fn();
+    const mockIpfsMetadataUploader = vi.fn();
 
     donationsModule = createDonationsModule({
       adapter,
       graphqlClient: mockGraphqlClient,
-      ipfsUploaderFn: mockIpfsUploader,
+      ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
     });
   });
 
@@ -283,7 +283,7 @@ describe('createDonationsModule', () => {
       // Create a module with minimal dependencies for this test
       const testAdapter = {} as WriteBlockchainAdapter;
       const emptyGraphqlClient = {} as any;
-      const emptyIpfsUploader = vi.fn();
+      const emptyIpfsMetadataUploader = vi.fn();
 
       // Clear the mocks to ensure we're testing with a clean slate
       vi.clearAllMocks();
@@ -291,7 +291,7 @@ describe('createDonationsModule', () => {
       const testModule = createDonationsModule({
         adapter: testAdapter,
         graphqlClient: emptyGraphqlClient,
-        ipfsUploaderFn: emptyIpfsUploader,
+        ipfsMetadataUploaderFn: emptyIpfsMetadataUploader,
       });
 
       // Act
@@ -301,7 +301,7 @@ describe('createDonationsModule', () => {
       expect(result).toBe(expectedResult);
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         testAdapter,
-        emptyIpfsUploader,
+        emptyIpfsMetadataUploader,
         params,
         emptyGraphqlClient,
       );
@@ -318,7 +318,7 @@ describe('createDonationsModule', () => {
         },
       };
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const expectedResult: PrepareContinuousDonationResult = {
         ipfsHash: 'QmHash123',
         preparedTx: {
@@ -342,7 +342,7 @@ describe('createDonationsModule', () => {
       const moduleWithDeps = createDonationsModule({
         adapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Act
@@ -352,7 +352,7 @@ describe('createDonationsModule', () => {
       expect(result).toBe(expectedResult);
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         adapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         params,
         mockGraphqlClient,
       );
@@ -369,7 +369,7 @@ describe('createDonationsModule', () => {
         },
       };
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const expectedResult: PrepareContinuousDonationResult = {
         ipfsHash: 'QmHash123',
         preparedTx: {
@@ -393,7 +393,7 @@ describe('createDonationsModule', () => {
       const moduleWithDeps = createDonationsModule({
         adapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Act
@@ -403,7 +403,7 @@ describe('createDonationsModule', () => {
       expect(result).toBe(expectedResult);
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         adapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         params,
         mockGraphqlClient,
       );
@@ -422,7 +422,7 @@ describe('createDonationsModule', () => {
         },
       };
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const expectedTxResponse: TxResponse = {
         hash: '0x123456789abcdef' as Hex,
         wait: vi.fn(),
@@ -446,7 +446,7 @@ describe('createDonationsModule', () => {
       const moduleWithDeps = createDonationsModule({
         adapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Act
@@ -456,7 +456,7 @@ describe('createDonationsModule', () => {
       expect(result).toBe(expectedResult);
       expect(sendContinuousDonation).toHaveBeenCalledWith(
         adapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         params,
         mockGraphqlClient,
       );
@@ -473,7 +473,7 @@ describe('createDonationsModule', () => {
         },
       };
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const expectedTxResponse: TxResponse = {
         hash: '0x987654321fedcba' as Hex,
         wait: vi.fn(),
@@ -497,7 +497,7 @@ describe('createDonationsModule', () => {
       const moduleWithDeps = createDonationsModule({
         adapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Act
@@ -507,7 +507,7 @@ describe('createDonationsModule', () => {
       expect(result).toBe(expectedResult);
       expect(sendContinuousDonation).toHaveBeenCalledWith(
         adapter,
-        mockIpfsUploader,
+        mockIpfsMetadataUploader,
         params,
         mockGraphqlClient,
       );
@@ -518,11 +518,11 @@ describe('createDonationsModule', () => {
     it('should create a donations module with the correct interface', () => {
       // Act
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const module = createDonationsModule({
         adapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Assert
@@ -542,11 +542,11 @@ describe('createDonationsModule', () => {
 
       // Act
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const module = createDonationsModule({
         adapter: readAdapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Assert
@@ -560,11 +560,11 @@ describe('createDonationsModule', () => {
 
       // Act
       const mockGraphqlClient = {} as any;
-      const mockIpfsUploader = vi.fn();
+      const mockIpfsMetadataUploader = vi.fn();
       const module = createDonationsModule({
         adapter: writeAdapter,
         graphqlClient: mockGraphqlClient,
-        ipfsUploaderFn: mockIpfsUploader,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
       });
 
       // Assert

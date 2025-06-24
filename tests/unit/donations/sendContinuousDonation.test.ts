@@ -42,7 +42,7 @@ describe('sendContinuousDonation', () => {
     writtenByAddress: '0xSender456',
   };
 
-  const mockIpfsUploaderFn = vi.fn();
+  const mockIpfsMetadataUploaderFn = vi.fn();
 
   beforeEach(() => {
     mockAdapter = {
@@ -76,7 +76,7 @@ describe('sendContinuousDonation', () => {
 
       const result = await sendContinuousDonation(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
       );
 
@@ -86,7 +86,7 @@ describe('sendContinuousDonation', () => {
       );
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
         undefined,
       );
@@ -111,14 +111,14 @@ describe('sendContinuousDonation', () => {
 
       await sendContinuousDonation(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
         mockGraphQLClient,
       );
 
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
         mockGraphQLClient,
       );
@@ -142,7 +142,11 @@ describe('sendContinuousDonation', () => {
       };
 
       await expect(
-        sendContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        sendContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Write access required');
       expect(requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
@@ -166,7 +170,11 @@ describe('sendContinuousDonation', () => {
       };
 
       await expect(
-        sendContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        sendContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Failed to prepare transaction');
       expect(requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
@@ -174,7 +182,7 @@ describe('sendContinuousDonation', () => {
       );
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
         undefined,
       );
@@ -195,7 +203,11 @@ describe('sendContinuousDonation', () => {
       };
 
       await expect(
-        sendContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation),
+        sendContinuousDonation(
+          mockAdapter,
+          mockIpfsMetadataUploaderFn,
+          donation,
+        ),
       ).rejects.toThrow('Transaction failed');
       expect(requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
@@ -203,7 +215,7 @@ describe('sendContinuousDonation', () => {
       );
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
         undefined,
       );
@@ -242,7 +254,11 @@ describe('sendContinuousDonation', () => {
         },
       };
 
-      await sendContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation);
+      await sendContinuousDonation(
+        mockAdapter,
+        mockIpfsMetadataUploaderFn,
+        donation,
+      );
 
       expect(callOrder).toEqual([
         'requireWriteAccess',
@@ -302,7 +318,7 @@ describe('sendContinuousDonation', () => {
 
       const result = await sendContinuousDonation(
         mockAdapter,
-        mockIpfsUploaderFn,
+        mockIpfsMetadataUploaderFn,
         donation,
       );
 

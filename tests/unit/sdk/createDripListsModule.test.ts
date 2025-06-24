@@ -9,9 +9,9 @@ import {
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 import {DripsGraphQLClient} from '../../../src/internal/graphql/createGraphQLClient';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
-} from '../../../src/internal/metadata/createPinataIpfsUploader';
+} from '../../../src/internal/metadata/createPinataIpfsMetadataUploader';
 import {getDripListById} from '../../../src/internal/drip-lists/getDripListById';
 import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
@@ -26,7 +26,7 @@ vi.mock('../../../src/internal/drip-lists/createDripList');
 describe('createDripListsModule', () => {
   let adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
   let graphqlClient: DripsGraphQLClient;
-  let ipfsUploaderFn: IpfsUploaderFn<Metadata>;
+  let ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>;
   let dripListsModule: DripListsModule;
 
   beforeEach(() => {
@@ -34,12 +34,12 @@ describe('createDripListsModule', () => {
 
     adapter = {} as WriteBlockchainAdapter;
     graphqlClient = {query: vi.fn()} as any;
-    ipfsUploaderFn = vi.fn();
+    ipfsMetadataUploaderFn = vi.fn();
 
     dripListsModule = createDripListsModule({
       adapter,
       graphqlClient,
-      ipfsUploaderFn,
+      ipfsMetadataUploaderFn,
     });
   });
 
@@ -95,7 +95,7 @@ describe('createDripListsModule', () => {
     expect(result).toBe(expectedContext);
     expect(prepareDripListCreation).toHaveBeenCalledWith(
       adapter,
-      ipfsUploaderFn,
+      ipfsMetadataUploaderFn,
       params,
     );
   });
@@ -113,7 +113,7 @@ describe('createDripListsModule', () => {
     expect(result).toBe(expectedResult);
     expect(createDripList).toHaveBeenCalledWith(
       adapter,
-      ipfsUploaderFn,
+      ipfsMetadataUploaderFn,
       params,
     );
   });

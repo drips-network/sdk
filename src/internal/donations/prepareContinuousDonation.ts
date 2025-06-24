@@ -14,9 +14,9 @@ import {
 import {DripsGraphQLClient} from '../graphql/createGraphQLClient';
 import {buildStreamsMetadata} from '../metadata/buildStreamsMetatada';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   StreamsMetadata,
-} from '../metadata/createPinataIpfsUploader';
+} from '../metadata/createPinataIpfsMetadataUploader';
 import {validateAndFormatStreamReceivers} from '../shared/validateAndFormatStreamReceivers';
 import {buildTx} from '../shared/buildTx';
 import {addressDriverAbi} from '../abis/addressDriverAbi';
@@ -51,7 +51,7 @@ export const AMT_PER_SEC_MULTIPLIER = 1_000_000_000n;
 
 export async function prepareContinuousDonation(
   adapter: WriteBlockchainAdapter,
-  ipfsUploaderFn: IpfsUploaderFn<StreamsMetadata>,
+  ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<StreamsMetadata>,
   donation: ContinuousDonation,
   graphqlClient?: DripsGraphQLClient,
 ): Promise<PrepareContinuousDonationResult> {
@@ -137,7 +137,7 @@ export async function prepareContinuousDonation(
       dripId: newStreamDripId,
     },
   );
-  const newIpfsHash = await ipfsUploaderFn(newMetadata);
+  const newIpfsHash = await ipfsMetadataUploaderFn(newMetadata);
 
   const emitAccountMetadataTx = buildTx({
     abi: addressDriverAbi,

@@ -4,10 +4,10 @@ import {
 } from '../blockchain/BlockchainAdapter';
 import {DripsGraphQLClient} from '../graphql/createGraphQLClient';
 import {
-  IpfsUploaderFn,
+  IpfsMetadataUploaderFn,
   Metadata,
   StreamsMetadata,
-} from '../metadata/createPinataIpfsUploader';
+} from '../metadata/createPinataIpfsMetadataUploader';
 import {requireWriteAccess} from '../shared/assertions';
 import {
   ContinuousDonation,
@@ -22,7 +22,7 @@ export type SendContinuousDonationResult = {
 
 export async function sendContinuousDonation(
   adapter: WriteBlockchainAdapter,
-  ipfsUploaderFn: IpfsUploaderFn<StreamsMetadata>,
+  ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<StreamsMetadata>,
   donation: ContinuousDonation,
   graphqlClient?: DripsGraphQLClient,
 ): Promise<SendContinuousDonationResult> {
@@ -30,7 +30,7 @@ export async function sendContinuousDonation(
 
   const {preparedTx, ipfsHash, metadata} = await prepareContinuousDonation(
     adapter,
-    ipfsUploaderFn,
+    ipfsMetadataUploaderFn,
     donation,
     graphqlClient,
   );

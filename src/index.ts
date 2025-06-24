@@ -17,7 +17,7 @@ import {resolveDriverName} from './internal/shared/resolveDriverName';
 export {createDripsSdk} from './sdk/createDripsSdk';
 
 export {createGraphQLClient} from './internal/graphql/createGraphQLClient';
-export {createPinataIpfsUploader} from './internal/metadata/createPinataIpfsUploader';
+export {createPinataIpfsMetadataUploader} from './internal/metadata/createPinataIpfsMetadataUploader';
 
 export {createViemReadAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
 export {createViemWriteAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
@@ -70,8 +70,8 @@ export {
   DripListMetadata,
   ProjectMetadata,
   SubListMetadata,
-  IpfsUploaderFn,
-} from './internal/metadata/createPinataIpfsUploader';
+  IpfsMetadataUploaderFn,
+} from './internal/metadata/createPinataIpfsMetadataUploader';
 export {DripsGraphQLClient} from './internal/graphql/createGraphQLClient';
 export {
   SdkReceiver,

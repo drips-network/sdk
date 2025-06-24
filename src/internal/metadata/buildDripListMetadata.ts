@@ -1,7 +1,7 @@
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
 import {NewDripList} from '../drip-lists/prepareDripListCreation';
 import {mapToMetadataSplitsReceiver} from '../shared/receiverUtils';
-import {DripListMetadata} from './createPinataIpfsUploader';
+import {DripListMetadata} from './createPinataIpfsMetadataUploader';
 
 export async function buildDripListMetadata(
   adapter: ReadBlockchainAdapter,
