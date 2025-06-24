@@ -13,7 +13,7 @@ import {validateAndFormatSplitsReceivers} from '../shared/validateAndFormatSplit
 import {contractsRegistry} from '../config/contractsRegistry';
 import {
   PreparedTx,
-  TxOverrides,
+  BatchedTxOverrides,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
@@ -35,8 +35,7 @@ export type NewDripList = {
   readonly description?: string;
   /** Optional address to transfer the drip list to. If not provided, the minter's address will be used. */
   readonly transferTo?: Address;
-  /** Optional overrides for the transaction. Applies to the *batched* transaction, not the individual transactions within it. */
-  readonly txOverrides?: TxOverrides;
+  readonly batchedTxOverrides?: BatchedTxOverrides;
 };
 
 export type PrepareDripListCreationResult = {
@@ -62,7 +61,7 @@ export async function prepareDripListCreation(
     receivers,
     transferTo,
     description,
-    txOverrides,
+    batchedTxOverrides,
     salt: maybeSalt,
   } = dripList;
 
@@ -112,7 +111,7 @@ export async function prepareDripListCreation(
     contract: caller.address,
     functionName: 'callBatched',
     args: [[mintTx, setSplitsTx].map(convertToCallerCall)],
-    txOverrides,
+    batchedTxOverrides,
   });
 
   return {preparedTx, metadata, ipfsHash, salt, dripListId};

@@ -67,9 +67,9 @@ describe('buildTx', () => {
       expect(result.value).toBe(0n);
     });
 
-    it('should include txOverrides when provided', () => {
+    it('should include batchedTxOverrides when provided', () => {
       // Arrange
-      const txOverrides = {
+      const batchedTxOverrides = {
         value: 1000n,
         gasLimit: 21000n,
         gasPrice: 20000000000n,
@@ -80,7 +80,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [456n, 'override-test'],
         contract: mockContract,
-        txOverrides,
+        batchedTxOverrides,
       } as any;
 
       // Act
@@ -94,9 +94,9 @@ describe('buildTx', () => {
       expect(result.gasPrice).toBe(20000000000n);
     });
 
-    it('should default value to 0n when not provided in txOverrides', () => {
+    it('should default value to 0n when not provided in batchedTxOverrides', () => {
       // Arrange
-      const txOverrides = {
+      const batchedTxOverrides = {
         gasLimit: 21000n,
       };
 
@@ -105,7 +105,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [789n, 'no-value-test'],
         contract: mockContract,
-        txOverrides,
+        batchedTxOverrides,
       } as any;
 
       // Act
@@ -116,9 +116,9 @@ describe('buildTx', () => {
       expect(result.gasLimit).toBe(21000n);
     });
 
-    it('should preserve value from txOverrides when provided', () => {
+    it('should preserve value from batchedTxOverrides when provided', () => {
       // Arrange
-      const txOverrides = {
+      const batchedTxOverrides = {
         value: 5000n,
       };
 
@@ -127,7 +127,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [999n, 'value-test'],
         contract: mockContract,
-        txOverrides,
+        batchedTxOverrides,
       } as any;
 
       // Act
@@ -230,7 +230,7 @@ describe('buildTx', () => {
         functionName: 'payableFunction',
         args: [1000n],
         contract: mockContract,
-        txOverrides: {value: 1000n},
+        batchedTxOverrides: {value: 1000n},
       } as any;
 
       // Act
@@ -341,7 +341,7 @@ describe('buildTx', () => {
   describe('transaction overrides', () => {
     it('should handle all common transaction override fields', () => {
       // Arrange
-      const txOverrides = {
+      const batchedTxOverrides = {
         value: 1000n,
         gasLimit: 21000n,
         gasPrice: 20000000000n,
@@ -353,7 +353,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [123n, 'test'],
         contract: mockContract,
-        txOverrides,
+        batchedTxOverrides,
       } as any;
 
       // Act
@@ -368,7 +368,7 @@ describe('buildTx', () => {
 
     it('should handle EIP-1559 transaction fields', () => {
       // Arrange
-      const txOverrides = {
+      const batchedTxOverrides = {
         maxFeePerGas: 30000000000n,
         maxPriorityFeePerGas: 2000000000n,
         value: 500n,
@@ -379,7 +379,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [123n, 'test'],
         contract: mockContract,
-        txOverrides,
+        batchedTxOverrides,
       } as any;
 
       // Act
@@ -391,14 +391,14 @@ describe('buildTx', () => {
       expect(result.value).toBe(500n);
     });
 
-    it('should handle empty txOverrides object', () => {
+    it('should handle empty batchedTxOverrides object', () => {
       // Arrange
       const request = {
         abi: mockAbi,
         functionName: 'testFunction',
         args: [123n, 'test'],
         contract: mockContract,
-        txOverrides: {},
+        batchedTxOverrides: {},
       } as any;
 
       // Act
@@ -474,14 +474,14 @@ describe('buildTx', () => {
   });
 
   describe('edge cases and boundary conditions', () => {
-    it('should handle zero value in txOverrides', () => {
+    it('should handle zero value in batchedTxOverrides', () => {
       // Arrange
       const request = {
         abi: mockAbi,
         functionName: 'testFunction',
         args: [123n, 'test'],
         contract: mockContract,
-        txOverrides: {value: 0n},
+        batchedTxOverrides: {value: 0n},
       } as any;
 
       // Act
@@ -499,7 +499,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [largeValue, 'large-value'],
         contract: mockContract,
-        txOverrides: {value: largeValue},
+        batchedTxOverrides: {value: largeValue},
       } as any;
 
       // Act
@@ -534,7 +534,7 @@ describe('buildTx', () => {
         functionName: 'testFunction',
         args: [123n, 'test'],
         contract: mockContract,
-        txOverrides: {value: 1000n},
+        batchedTxOverrides: {value: 1000n},
       } as any;
       // Create a deep copy manually since JSON.stringify can't handle BigInt
       const requestCopy = {
@@ -542,7 +542,7 @@ describe('buildTx', () => {
         functionName: originalRequest.functionName,
         args: [...originalRequest.args],
         contract: originalRequest.contract,
-        txOverrides: {...originalRequest.txOverrides},
+        batchedTxOverrides: {...originalRequest.batchedTxOverrides},
       } as any;
 
       // Act

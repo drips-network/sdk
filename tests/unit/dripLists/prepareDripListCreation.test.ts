@@ -393,11 +393,11 @@ describe('prepareDripListCreation', () => {
       });
     });
 
-    it('should include txOverrides in batched transaction', async () => {
+    it('should include batchedTxOverrides in batched transaction', async () => {
       // Arrange
       const paramsWithOverrides = {
         ...validParams,
-        txOverrides: {
+        batchedTxOverrides: {
           gasLimit: 1000000n,
           value: 100n,
         },
@@ -413,7 +413,7 @@ describe('prepareDripListCreation', () => {
       // Assert
       expect(buildTx).toHaveBeenCalledWith(
         expect.objectContaining({
-          txOverrides: paramsWithOverrides.txOverrides,
+          batchedTxOverrides: paramsWithOverrides.batchedTxOverrides,
         }),
       );
     });
@@ -807,7 +807,7 @@ describe('prepareDripListCreation', () => {
         contract: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
         functionName: 'callBatched',
         args: [[mockCallerCall1, mockCallerCall2]],
-        txOverrides: undefined,
+        batchedTxOverrides: undefined,
       });
     });
 

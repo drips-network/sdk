@@ -78,6 +78,7 @@ describe('prepareOneTimeDonation', () => {
         functionName: 'give',
         args: [mockAccountId, mockErc20, mockAmount],
         contract: mockAddressDriverAddress,
+        batchedTxOverrides: undefined,
       });
     });
   });
@@ -112,6 +113,7 @@ describe('prepareOneTimeDonation', () => {
         functionName: 'give',
         args: [mockAccountId, mockErc20, mockAmount],
         contract: mockAddressDriverAddress,
+        batchedTxOverrides: undefined,
       });
     });
   });
@@ -147,6 +149,7 @@ describe('prepareOneTimeDonation', () => {
         functionName: 'give',
         args: [mockAccountId, mockErc20, mockAmount],
         contract: mockAddressDriverAddress,
+        batchedTxOverrides: undefined,
       });
     });
   });
@@ -181,6 +184,7 @@ describe('prepareOneTimeDonation', () => {
         functionName: 'give',
         args: [mockAccountId, mockErc20, mockAmount],
         contract: mockAddressDriverAddress,
+        batchedTxOverrides: undefined,
       });
     });
   });
@@ -215,6 +219,42 @@ describe('prepareOneTimeDonation', () => {
         functionName: 'give',
         args: [mockAccountId, mockErc20, mockAmount],
         contract: mockAddressDriverAddress,
+        batchedTxOverrides: undefined,
+      });
+    });
+  });
+
+  describe('with batchedTxOverrides', () => {
+    it('should pass batchedTxOverrides to buildTx', async () => {
+      const mockAccountId = 123n;
+      const mockAmount = 1000n;
+      const mockErc20 = '0xToken123' as const;
+      const mockBatchedTxOverrides = {
+        gasLimit: 100000n,
+      };
+
+      vi.mocked(resolveReceiverAccountId).mockResolvedValue(mockAccountId);
+
+      const params = {
+        receiver: {
+          type: 'project' as const,
+          url: 'https://github.com/owner/repo',
+          amount: mockAmount,
+        },
+        amount: mockAmount,
+        erc20: mockErc20,
+        batchedTxOverrides: mockBatchedTxOverrides,
+      };
+
+      const result = await prepareOneTimeDonation(mockAdapter, params);
+
+      expect(result).toBe(mockPreparedTx);
+      expect(buildTx).toHaveBeenCalledWith({
+        abi: addressDriverAbi,
+        functionName: 'give',
+        args: [mockAccountId, mockErc20, mockAmount],
+        contract: mockAddressDriverAddress,
+        batchedTxOverrides: mockBatchedTxOverrides,
       });
     });
   });

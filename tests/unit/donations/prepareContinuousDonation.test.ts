@@ -329,7 +329,7 @@ describe('prepareContinuousDonation', () => {
           },
         ],
       ],
-      txOverrides: undefined,
+      batchedTxOverrides: undefined,
     });
 
     expect(result).toEqual({
@@ -384,7 +384,7 @@ describe('prepareContinuousDonation', () => {
   });
 
   it('should handle transaction overrides', async () => {
-    const txOverrides = {
+    const batchedTxOverrides = {
       gasLimit: 1000000n,
       maxFeePerGas: 2000000000n,
     };
@@ -396,7 +396,7 @@ describe('prepareContinuousDonation', () => {
         type: 'address' as const,
         address: '0xReceiver123' as `0x${string}`,
       },
-      txOverrides,
+      batchedTxOverrides,
     };
 
     await prepareContinuousDonation(mockAdapter, mockIpfsUploaderFn, donation);
@@ -406,7 +406,7 @@ describe('prepareContinuousDonation', () => {
       contract: mockCallerAddress,
       functionName: 'callBatched',
       args: [expect.any(Array)],
-      txOverrides,
+      batchedTxOverrides,
     });
   });
 

@@ -1,7 +1,7 @@
 import {Address} from 'viem';
 import {
   PreparedTx,
-  TxOverrides,
+  BatchedTxOverrides,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
 import {prepareDripListCreation} from '../drip-lists/prepareDripListCreation';
@@ -38,8 +38,7 @@ export type ContinuousDonation = {
   readonly startAt?: Date;
   readonly durationSeconds?: number;
   readonly topUpAmount?: bigint;
-  /** Optional overrides for the transaction. Applies to the *batched* transaction, not the individual transactions within it. */
-  txOverrides?: TxOverrides;
+  batchedTxOverrides?: BatchedTxOverrides;
 };
 
 export type PrepareContinuousDonationResult = {
@@ -65,7 +64,7 @@ export async function prepareContinuousDonation(
     startAt,
     receiver,
     topUpAmount,
-    txOverrides,
+    batchedTxOverrides,
     amountPerSec: rawAmountPerSec,
     durationSeconds,
   } = donation;
@@ -154,7 +153,7 @@ export async function prepareContinuousDonation(
     contract: caller.address,
     functionName: 'callBatched',
     args: [[setStreamsTx, emitAccountMetadataTx].map(convertToCallerCall)],
-    txOverrides,
+    batchedTxOverrides,
   });
 
   return {

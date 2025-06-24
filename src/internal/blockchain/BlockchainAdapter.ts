@@ -1,6 +1,6 @@
 import {Address, Hash, Hex} from 'viem';
 
-export type TxOverrides = {
+export type BatchedTxOverrides = {
   nonce?: number;
   value?: bigint;
   gasLimit?: bigint;
@@ -12,7 +12,7 @@ export type TxOverrides = {
 type BaseTx = {
   readonly to: Address;
   readonly data: Hex;
-} & TxOverrides;
+} & BatchedTxOverrides;
 
 type TxMeta = {
   abiFunctionName?: string;

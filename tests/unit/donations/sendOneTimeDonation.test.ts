@@ -47,6 +47,32 @@ describe('sendOneTimeDonation', () => {
   });
 
   describe('successful donation', () => {
+    it('should send one-time donation with batchedTxOverrides', async () => {
+      const mockBatchedTxOverrides = {
+        gasLimit: 100000n,
+      };
+
+      const params = {
+        receiver: {
+          type: 'project' as const,
+          url: 'https://github.com/owner/repo',
+          amount: 1000n,
+        },
+        amount: 1000n,
+        erc20: '0xToken123' as const,
+        batchedTxOverrides: mockBatchedTxOverrides,
+      };
+
+      const result = await sendOneTimeDonation(mockAdapter, params);
+
+      expect(result).toBe(mockTxResponse);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        mockAdapter,
+        'sendOneTimeDonation',
+      );
+      expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
+      expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
+    });
     it('should send one-time donation for project receiver', async () => {
       const params = {
         receiver: {

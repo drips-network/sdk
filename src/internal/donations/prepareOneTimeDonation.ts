@@ -1,6 +1,7 @@
 import {Address} from 'viem';
 import {addressDriverAbi} from '../abis/addressDriverAbi';
 import {
+  BatchedTxOverrides,
   PreparedTx,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
@@ -14,6 +15,7 @@ export type OneTimeDonation = {
   readonly receiver: SdkReceiver;
   readonly amount: bigint;
   readonly erc20: Address;
+  batchedTxOverrides?: BatchedTxOverrides;
 };
 
 export async function prepareOneTimeDonation(
@@ -23,7 +25,7 @@ export async function prepareOneTimeDonation(
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
   requireWriteAccess(adapter, prepareDripListCreation.name);
-  const {receiver, erc20, amount} = donation;
+  const {receiver, erc20, amount, batchedTxOverrides} = donation;
   const receiverId = await resolveReceiverAccountId(adapter, receiver);
 
   return buildTx({
@@ -31,5 +33,6 @@ export async function prepareOneTimeDonation(
     functionName: 'give',
     args: [receiverId, erc20, amount],
     contract: contractsRegistry[chainId].addressDriver.address,
+    batchedTxOverrides,
   });
 }

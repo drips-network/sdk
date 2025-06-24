@@ -178,7 +178,7 @@ describe('createDripList', () => {
         salt: 555n,
         name: 'Custom List',
         description: 'Custom description',
-        txOverrides: {
+        batchedTxOverrides: {
           gasLimit: 1000000n,
           value: 100n,
         },
@@ -526,7 +526,7 @@ describe('createDripList', () => {
         salt: 42n,
         name: 'Complex List',
         description: 'Complex description',
-        txOverrides: {gasLimit: 500000n},
+        batchedTxOverrides: {gasLimit: 500000n},
       };
 
       // Act
