@@ -19,6 +19,7 @@ import {
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
 import {
   mapToOnChainSplitsReceiver,
+  mapToMetadataSplitsReceiver,
   SdkSplitsReceiver,
 } from '../shared/receiverUtils';
 import {calcDripListId} from '../shared/calcDripListId';
@@ -74,10 +75,14 @@ export async function prepareDripListCreation(
     minter,
   });
 
-  const metadata = await buildDripListMetadata(adapter, {
+  const metadataReceivers = await Promise.all(
+    receivers.map(r => mapToMetadataSplitsReceiver(adapter, r)),
+  );
+
+  const metadata = buildDripListMetadata({
     name,
     isVisible,
-    receivers,
+    receivers: metadataReceivers,
     dripListId,
     description,
   });

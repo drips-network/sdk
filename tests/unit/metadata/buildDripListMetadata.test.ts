@@ -22,44 +22,37 @@ vi.mock('../../../src/internal/shared/buildTx', () => ({
 import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {decodeFunctionResult} from 'viem';
 import {buildTx} from '../../../src/internal/shared/buildTx';
-import {SdkSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
+import {MetadataSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
 
 describe('buildDripListMetadata', () => {
-  const mockAdapter: ReadBlockchainAdapter = {
-    call: vi.fn(),
-    getChainId: vi.fn(),
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mocks to default successful behavior
-    vi.mocked(mockAdapter.getChainId).mockResolvedValue(1);
     vi.mocked(requireSupportedChain).mockImplementation(() => {});
     vi.mocked(buildTx).mockReturnValue({
       to: '0x1455d9bD6B98f95dd8FEB2b3D60ed825fcef0610' as const,
       data: '0xcalcaccountdata' as const,
     });
-    vi.mocked(mockAdapter.call).mockResolvedValue('0xencodedresult');
     vi.mocked(decodeFunctionResult).mockReturnValue(1126n); // Mock account ID for address receivers
   });
 
   const mockDripListId = 123n;
-  const mockReceivers: SdkSplitsReceiver[] = [
+  const mockMetadataReceivers: MetadataSplitsReceiver[] = [
     {
-      type: 'address' as const,
-      address: '0x1234567890123456789012345678901234567890' as Address,
+      type: 'address',
+      accountId: '1126',
       weight: 500000,
     },
     {
-      type: 'address' as const,
-      address: '0x3334567890123456789012345678901234567890' as Address,
+      type: 'address',
+      accountId: '1126',
       weight: 500000,
     },
   ];
 
   const baseParams = {
     dripListId: mockDripListId,
-    receivers: mockReceivers,
+    receivers: mockMetadataReceivers,
     name: 'Test Drip List',
     description: 'A test drip list description',
     isVisible: true,
@@ -68,7 +61,7 @@ describe('buildDripListMetadata', () => {
   describe('successful metadata building', () => {
     it('should build complete drip list metadata with all fields', async () => {
       // Act
-      const result = await buildDripListMetadata(mockAdapter, baseParams);
+      const result = buildDripListMetadata(baseParams);
 
       // Assert
       expect(result).toEqual({
@@ -104,7 +97,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.name).toBeUndefined();
@@ -120,7 +113,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.description).toBeUndefined();
@@ -137,7 +130,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.name).toBeUndefined();
@@ -154,7 +147,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients).toEqual([]);
@@ -170,7 +163,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.isVisible).toBe(false);
@@ -187,7 +180,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.name).toBe('');
@@ -206,7 +199,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.describes.accountId).toBe('0');
@@ -222,7 +215,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.describes.accountId).toBe(largeDripListId.toString());
@@ -237,7 +230,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.describes.accountId).toBe('-123');
@@ -248,10 +241,10 @@ describe('buildDripListMetadata', () => {
   describe('receivers serialization', () => {
     it('should serialize single address receiver correctly', async () => {
       // Arrange
-      const singleReceiver: SdkSplitsReceiver[] = [
+      const singleReceiver: MetadataSplitsReceiver[] = [
         {
           type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
+          accountId: '1126',
           weight: 1000000,
         },
       ];
@@ -261,7 +254,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients).toHaveLength(1);
@@ -274,15 +267,15 @@ describe('buildDripListMetadata', () => {
 
     it('should serialize multiple receivers with different types', async () => {
       // Arrange
-      const mixedReceivers: SdkSplitsReceiver[] = [
+      const mixedReceivers: MetadataSplitsReceiver[] = [
         {
           type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
+          accountId: '1126',
           weight: 300000,
         },
         {
-          type: 'drip-list',
-          accountId: 222n,
+          type: 'dripList',
+          accountId: '222',
           weight: 700000,
         },
       ];
@@ -292,7 +285,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients).toHaveLength(2);
@@ -310,10 +303,10 @@ describe('buildDripListMetadata', () => {
 
     it('should serialize drip-list receiver correctly', async () => {
       // Arrange
-      const dripListReceiver: SdkSplitsReceiver[] = [
+      const dripListReceiver: MetadataSplitsReceiver[] = [
         {
-          type: 'drip-list',
-          accountId: 999n,
+          type: 'dripList',
+          accountId: '999',
           weight: 1000000,
         },
       ];
@@ -323,7 +316,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients[0].accountId).toBe('999');
@@ -333,10 +326,10 @@ describe('buildDripListMetadata', () => {
 
     it('should serialize sub-list receiver correctly', async () => {
       // Arrange
-      const subListReceiver: SdkSplitsReceiver[] = [
+      const subListReceiver: MetadataSplitsReceiver[] = [
         {
-          type: 'sub-list',
-          accountId: 555n,
+          type: 'subList',
+          accountId: '555',
           weight: 250000,
         },
       ];
@@ -346,7 +339,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients[0]).toEqual({
@@ -367,7 +360,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, minimalParams);
+      const result = buildDripListMetadata(minimalParams);
 
       // Assert
       expect(result.driver).toBe('nft');
@@ -377,7 +370,7 @@ describe('buildDripListMetadata', () => {
 
     it('should maintain describes structure', async () => {
       // Act
-      const result = await buildDripListMetadata(mockAdapter, baseParams);
+      const result = buildDripListMetadata(baseParams);
 
       // Assert
       expect(result.describes).toEqual({
@@ -390,7 +383,7 @@ describe('buildDripListMetadata', () => {
 
     it('should include all required fields', async () => {
       // Act
-      const result = await buildDripListMetadata(mockAdapter, baseParams);
+      const result = buildDripListMetadata(baseParams);
 
       // Assert
       expect(result).toHaveProperty('driver');
@@ -413,7 +406,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.describes.accountId).toBe(maxSafeInt.toString());
@@ -421,10 +414,10 @@ describe('buildDripListMetadata', () => {
 
     it('should handle receivers with zero weight', async () => {
       // Arrange
-      const receiversWithZeroWeight: SdkSplitsReceiver[] = [
+      const receiversWithZeroWeight: MetadataSplitsReceiver[] = [
         {
           type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
+          accountId: '1126',
           weight: 0,
         },
       ];
@@ -434,7 +427,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients[0].weight).toBe(0);
@@ -442,10 +435,10 @@ describe('buildDripListMetadata', () => {
 
     it('should handle receivers with maximum weight', async () => {
       // Arrange
-      const receiversWithMaxWeight: SdkSplitsReceiver[] = [
+      const receiversWithMaxWeight: MetadataSplitsReceiver[] = [
         {
           type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
+          accountId: '1126',
           weight: 1000000,
         },
       ];
@@ -455,7 +448,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.recipients[0].weight).toBe(1000000);
@@ -471,7 +464,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.name).toBe(longString);
@@ -490,7 +483,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.name).toBe(specialChars);
@@ -507,7 +500,7 @@ describe('buildDripListMetadata', () => {
       };
 
       // Act
-      const result = await buildDripListMetadata(mockAdapter, params);
+      const result = buildDripListMetadata(params);
 
       // Assert
       expect(result.name).toBe(unicodeString);
@@ -523,7 +516,7 @@ describe('buildDripListMetadata', () => {
         receivers: [
           {
             type: 'address' as const,
-            address: '0x1234567890123456789012345678901234567890' as Address,
+            accountId: '1126',
             weight: 500000,
           },
         ],
@@ -537,22 +530,20 @@ describe('buildDripListMetadata', () => {
           dripListId: originalParams.dripListId.toString(),
           receivers: originalParams.receivers.map(r => ({
             ...r,
-            address: r.address,
+            accountId: r.accountId,
           })),
         }),
       );
 
       // Act
-      await buildDripListMetadata(mockAdapter, originalParams);
+      buildDripListMetadata(originalParams);
 
       // Assert
       expect(originalParams.name).toBe('Original Name');
       expect(originalParams.description).toBe('Original Description');
       expect(originalParams.isVisible).toBe(true);
       expect(originalParams.dripListId).toBe(123n);
-      expect(originalParams.receivers[0].address).toBe(
-        '0x1234567890123456789012345678901234567890',
-      );
+      expect(originalParams.receivers[0].accountId).toBe('1126');
       // Verify the structure hasn't changed
       expect(
         JSON.stringify({
@@ -560,7 +551,7 @@ describe('buildDripListMetadata', () => {
           dripListId: originalParams.dripListId.toString(),
           receivers: originalParams.receivers.map(r => ({
             ...r,
-            address: r.address,
+            accountId: r.accountId,
           })),
         }),
       ).toBe(JSON.stringify(paramsCopy));
@@ -568,8 +559,8 @@ describe('buildDripListMetadata', () => {
 
     it('should return new object instances', async () => {
       // Act
-      const result1 = await buildDripListMetadata(mockAdapter, baseParams);
-      const result2 = await buildDripListMetadata(mockAdapter, baseParams);
+      const result1 = buildDripListMetadata(baseParams);
+      const result2 = buildDripListMetadata(baseParams);
 
       // Assert
       expect(result1).not.toBe(result2);

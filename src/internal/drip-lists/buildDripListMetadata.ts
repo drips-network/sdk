@@ -1,16 +1,17 @@
-import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
 import {NewDripList} from './prepareDripListCreation';
-import {mapToMetadataSplitsReceiver} from '../shared/receiverUtils';
+import {MetadataSplitsReceiver} from '../shared/receiverUtils';
 import {DripListMetadata} from '../shared/createPinataIpfsMetadataUploader';
 
-export async function buildDripListMetadata(
-  adapter: ReadBlockchainAdapter,
-  params: Omit<NewDripList & {dripListId: bigint}, 'minter' | 'chainId'>,
-): Promise<DripListMetadata> {
+export function buildDripListMetadata(
+  params: Omit<
+    Omit<NewDripList, 'receivers'> & {
+      dripListId: bigint;
+      receivers: ReadonlyArray<MetadataSplitsReceiver>;
+    },
+    'minter' | 'chainId'
+  >,
+): DripListMetadata {
   const {dripListId, receivers, name, description, isVisible} = params;
-  const recipients = await Promise.all(
-    receivers.map(r => mapToMetadataSplitsReceiver(adapter, r)),
-  );
 
   return {
     driver: 'nft',
@@ -22,6 +23,6 @@ export async function buildDripListMetadata(
     name,
     description,
     isVisible,
-    recipients,
+    recipients: [...receivers],
   };
 }
