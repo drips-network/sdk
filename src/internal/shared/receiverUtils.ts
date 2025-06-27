@@ -12,6 +12,9 @@ import {
   addressDriverSplitReceiverSchema,
 } from '../metadata/schemas/repo-driver/v2';
 
+export const MAX_SPLITS_RECEIVERS = 200;
+export const TOTAL_SPLITS_WEIGHT = 1_000_000;
+
 export type SdkProjectReceiver = {
   type: 'project';
   url: string;

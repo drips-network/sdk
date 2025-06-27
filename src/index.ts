@@ -2,10 +2,6 @@
 import {buildTx} from './internal/shared/buildTx';
 import {DEFAULT_GRAPHQL_URL} from './internal/graphql/createGraphQLClient';
 import {
-  MAX_SPLITS_RECEIVERS,
-  TOTAL_SPLITS_WEIGHT,
-} from './internal/shared/validateAndFormatSplitsReceivers';
-import {
   decodeStreamConfig,
   encodeStreamConfig,
 } from './internal/shared/streamConfigUtils';
@@ -13,6 +9,10 @@ import {MAX_STREAMS_RECEIVERS} from './internal/shared/validateAndFormatStreamRe
 import {resolveAddressFromAccountId} from './internal/shared/resolveAddressFromAccountId';
 import {resolveDriverName} from './internal/shared/resolveDriverName';
 import {encodeMetadataKeyValue} from './internal/shared/encodeMetadataKeyValue';
+import {
+  MAX_SPLITS_RECEIVERS,
+  TOTAL_SPLITS_WEIGHT,
+} from './internal/shared/receiverUtils';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
