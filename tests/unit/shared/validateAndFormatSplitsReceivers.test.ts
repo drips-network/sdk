@@ -3,9 +3,9 @@ import {
   validateAndFormatSplitsReceivers,
   MAX_SPLITS_RECEIVERS,
   TOTAL_SPLITS_WEIGHT,
-  type OnChainSplitsReceiver,
 } from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
 import {DripsError} from '../../../src/internal/shared/DripsError';
+import {OnChainSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
 
 describe('validateAndFormatSplitsReceivers', () => {
   const createReceiver = (
