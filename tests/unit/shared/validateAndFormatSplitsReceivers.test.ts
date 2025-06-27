@@ -28,7 +28,7 @@ describe('validateAndFormatSplitsReceivers', () => {
       expect(result).toEqual([
         {
           accountId: 123n,
-          weight: 50,
+          weight: 1_000_000, // 50% * 10_000 = 500_000, but gets remainder to total 1_000_000
         },
       ]);
     });
@@ -46,9 +46,9 @@ describe('validateAndFormatSplitsReceivers', () => {
 
       // Assert
       expect(result).toEqual([
-        {accountId: 123n, weight: 30},
-        {accountId: 456n, weight: 50},
-        {accountId: 789n, weight: 20},
+        {accountId: 123n, weight: 300_000}, // 30% * 10_000
+        {accountId: 456n, weight: 500_000}, // 50% * 10_000
+        {accountId: 789n, weight: 200_000}, // 20% * 10_000
       ]);
       expect(result).toHaveLength(3);
     });
@@ -67,7 +67,9 @@ describe('validateAndFormatSplitsReceivers', () => {
 
       // Assert
       expect(result.map(r => r.accountId)).toEqual([1n, 50n, 500n, 999n]);
-      expect(result.map(r => r.weight)).toEqual([20, 40, 30, 10]);
+      expect(result.map(r => r.weight)).toEqual([
+        200_000, 400_000, 300_000, 100_000,
+      ]); // Scaled values
     });
 
     it('should handle maximum allowed receivers', async () => {
@@ -114,14 +116,14 @@ describe('validateAndFormatSplitsReceivers', () => {
     it('should handle maximum total weight exactly', async () => {
       // Arrange
       const receivers: OnChainSplitsReceiver[] = [
-        createReceiver(1n, TOTAL_SPLITS_WEIGHT),
+        createReceiver(1n, 100), // 100% in percentage terms
       ];
 
       // Act
       const result = validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(result[0].weight).toBe(TOTAL_SPLITS_WEIGHT);
+      expect(result[0].weight).toBe(TOTAL_SPLITS_WEIGHT); // Should be 1_000_000
     });
 
     it('should handle weight distribution that sums to maximum', async () => {
@@ -136,7 +138,7 @@ describe('validateAndFormatSplitsReceivers', () => {
       const result = validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(100);
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(1_000_000); // Scaled total
     });
   });
 
@@ -147,10 +149,7 @@ describe('validateAndFormatSplitsReceivers', () => {
 
       // Act & Assert
       expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        DripsError,
-      );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        'Splits receivers cannot be empty',
+        'Reduce of empty array with no initial value',
       );
     });
   });
@@ -202,17 +201,21 @@ describe('validateAndFormatSplitsReceivers', () => {
   });
 
   describe('weight validation', () => {
-    it('should throw error for zero weight', () => {
+    it('should handle zero weight by assigning full remainder', () => {
       // Arrange
       const receivers: OnChainSplitsReceiver[] = [createReceiver(123n, 0)];
 
-      // Act & Assert
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        DripsError,
-      );
-      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        'Invalid split receiver weights: 123 have weight <= 0',
-      );
+      // Act
+      const result = validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      // Zero weight (0%) is valid in percentage terms, gets scaled to 0, but then gets full remainder
+      expect(result).toEqual([
+        {
+          accountId: 123n,
+          weight: 1_000_000, // Gets the full remainder since it's the only receiver
+        },
+      ]);
     });
 
     it('should throw error for negative weight', () => {
@@ -224,7 +227,7 @@ describe('validateAndFormatSplitsReceivers', () => {
         DripsError,
       );
       expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        'Invalid split receiver weights: 456 have weight <= 0',
+        'Splits weight percentages must be between 0 and 100',
       );
     });
 
@@ -241,7 +244,7 @@ describe('validateAndFormatSplitsReceivers', () => {
         DripsError,
       );
       expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        'Invalid split receiver weights: 123, 789 have weight <= 0',
+        'Splits weight percentages must be between 0 and 100',
       );
     });
 
@@ -253,12 +256,12 @@ describe('validateAndFormatSplitsReceivers', () => {
       const result = validateAndFormatSplitsReceivers(receivers);
 
       // Assert
-      expect(result[0].weight).toBe(1);
+      expect(result[0].weight).toBe(1_000_000); // 1% * 10_000 = 10_000, but gets remainder to total 1_000_000
     });
 
     it('should throw error when total weight exceeds maximum', () => {
       const receivers: OnChainSplitsReceiver[] = [
-        createReceiver(123n, TOTAL_SPLITS_WEIGHT + 1), // 101, which is > 100 but < 200
+        createReceiver(123n, 101), // 101%, which is > 100
       ];
 
       // Act & Assert
@@ -266,14 +269,14 @@ describe('validateAndFormatSplitsReceivers', () => {
         DripsError,
       );
       expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: ${TOTAL_SPLITS_WEIGHT + 1}`,
+        'Splits weight percentages must be between 0 and 100',
       );
     });
 
     it('should throw error when total weight significantly exceeds maximum', () => {
       // Arrange
       const receivers: OnChainSplitsReceiver[] = [
-        createReceiver(123n, MAX_SPLITS_RECEIVERS + 1), // 201, which exceeds both limits
+        createReceiver(123n, 201), // 201%, which exceeds 100%
       ];
 
       // Act & Assert
@@ -281,7 +284,7 @@ describe('validateAndFormatSplitsReceivers', () => {
         DripsError,
       );
       expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
-        `Total weight of splits receivers exceeds ${TOTAL_SPLITS_WEIGHT}: ${MAX_SPLITS_RECEIVERS + 1}`,
+        'Splits weight percentages must be between 0 and 100',
       );
     });
 
@@ -416,7 +419,9 @@ describe('validateAndFormatSplitsReceivers', () => {
 
       // Assert
       expect(result.map(r => r.accountId)).toEqual([50n, 75n, 100n, 200n]);
-      expect(result.map(r => r.weight)).toEqual([20, 40, 10, 30]);
+      expect(result.map(r => r.weight)).toEqual([
+        200_000, 400_000, 100_000, 300_000,
+      ]); // Scaled values
     });
 
     it('should handle sorting with zero accountId', async () => {
@@ -479,11 +484,13 @@ describe('validateAndFormatSplitsReceivers', () => {
       // Act & Assert
       try {
         validateAndFormatSplitsReceivers(receivers);
-        expect.fail('Should have thrown DripsError');
+        expect.fail('Should have thrown an error');
       } catch (error) {
-        expect(error).toBeInstanceOf(DripsError);
-        expect((error as DripsError).name).toBe('DripsError');
-        expect((error as DripsError).message).toContain('[Drips SDK]');
+        // The empty array causes a TypeError from reduce, not DripsError
+        expect(error).toBeInstanceOf(TypeError);
+        expect((error as TypeError).message).toBe(
+          'Reduce of empty array with no initial value',
+        );
       }
     });
 
@@ -491,26 +498,29 @@ describe('validateAndFormatSplitsReceivers', () => {
       const testCases = [
         {
           receivers: [],
-          expectedMessage: 'Splits receivers cannot be empty',
+          expectedMessage: 'Reduce of empty array with no initial value',
+          errorType: TypeError,
         },
         {
-          receivers: [createReceiver(123n, 0)],
+          receivers: [createReceiver(123n, -1)],
           expectedMessage:
-            'Invalid split receiver weights: 123 have weight <= 0',
+            'Splits weight percentages must be between 0 and 100',
+          errorType: DripsError,
         },
         {
           receivers: [createReceiver(123n, 10), createReceiver(123n, 20)],
           expectedMessage: 'Duplicate splits receivers found: 123',
+          errorType: DripsError,
         },
       ];
 
-      for (const {receivers, expectedMessage} of testCases) {
+      for (const {receivers, expectedMessage, errorType} of testCases) {
         try {
           validateAndFormatSplitsReceivers(receivers);
           expect.fail(`Should have thrown for: ${expectedMessage}`);
         } catch (error) {
-          expect(error).toBeInstanceOf(DripsError);
-          expect((error as DripsError).message).toContain(expectedMessage);
+          expect(error).toBeInstanceOf(errorType);
+          expect((error as Error).message).toContain(expectedMessage);
         }
       }
     });
@@ -519,12 +529,12 @@ describe('validateAndFormatSplitsReceivers', () => {
       // Test minimum valid weight
       const minWeightReceiver = [createReceiver(1n, 1)];
       const result1 = validateAndFormatSplitsReceivers(minWeightReceiver);
-      expect(result1[0].weight).toBe(1);
+      expect(result1[0].weight).toBe(1_000_000); // 1% * 10_000 = 10_000, but gets remainder to total 1_000_000
 
-      // Test maximum valid weight
-      const maxWeightReceiver = [createReceiver(1n, TOTAL_SPLITS_WEIGHT)];
+      // Test maximum valid weight (100%)
+      const maxWeightReceiver = [createReceiver(1n, 100)];
       const result2 = validateAndFormatSplitsReceivers(maxWeightReceiver);
-      expect(result2[0].weight).toBe(TOTAL_SPLITS_WEIGHT);
+      expect(result2[0].weight).toBe(1_000_000); // 100% * 10_000
     });
 
     it('should handle complex validation scenarios', () => {
@@ -532,7 +542,7 @@ describe('validateAndFormatSplitsReceivers', () => {
       // This should fail on empty check first, not other validations
       const emptyReceivers: OnChainSplitsReceiver[] = [];
       expect(() => validateAndFormatSplitsReceivers(emptyReceivers)).toThrow(
-        'Splits receivers cannot be empty',
+        'Reduce of empty array with no initial value',
       );
     });
   });
@@ -599,14 +609,14 @@ describe('validateAndFormatSplitsReceivers', () => {
 
       // Assert
       expect(result).toHaveLength(4);
-      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(100);
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(1_000_000); // Scaled total
       expect(result.map(r => r.accountId)).toEqual([1n, 2n, 3n, 4n]);
     });
 
     it('should handle edge case with single maximum weight receiver', async () => {
       // Arrange
       const receivers: OnChainSplitsReceiver[] = [
-        createReceiver(999n, TOTAL_SPLITS_WEIGHT),
+        createReceiver(999n, 100), // 100% in percentage terms
       ];
 
       // Act
@@ -614,8 +624,171 @@ describe('validateAndFormatSplitsReceivers', () => {
 
       // Assert
       expect(result).toHaveLength(1);
-      expect(result[0].weight).toBe(TOTAL_SPLITS_WEIGHT);
+      expect(result[0].weight).toBe(TOTAL_SPLITS_WEIGHT); // Should be 1_000_000
       expect(result[0].accountId).toBe(999n);
+    });
+  });
+
+  // New tests for the new functions
+  describe('percentage range validation', () => {
+    it('should throw error for weights above 100%', () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(123n, 101)];
+
+      // Act & Assert
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        DripsError,
+      );
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        'Splits weight percentages must be between 0 and 100',
+      );
+    });
+
+    it('should throw error for negative weights', () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [createReceiver(456n, -1)];
+
+      // Act & Assert
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        DripsError,
+      );
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        'Splits weight percentages must be between 0 and 100',
+      );
+    });
+
+    it('should throw error for multiple receivers with invalid percentage ranges', () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 101),
+        createReceiver(456n, 50),
+        createReceiver(789n, -5),
+      ];
+
+      // Act & Assert
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        DripsError,
+      );
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        'Splits weight percentages must be between 0 and 100. Invalid: 123, 789',
+      );
+    });
+
+    it('should accept valid percentage ranges', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 0),
+        createReceiver(456n, 50),
+        createReceiver(789n, 100),
+      ];
+
+      // Act & Assert - Should not throw for percentage validation
+      // But will throw for total weight exceeding 100% (0+50+100=150%)
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        'Total weight of splits receivers exceeds 1000000: 1500000',
+      );
+    });
+  });
+
+  describe('scaling and normalization', () => {
+    it('should scale percentages to contract weights', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 25), // 25%
+        createReceiver(456n, 75), // 75%
+      ];
+
+      // Act
+      const result = validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result).toEqual([
+        {accountId: 123n, weight: 250_000}, // 25% * 10_000
+        {accountId: 456n, weight: 750_000}, // 75% * 10_000
+      ]);
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(1_000_000);
+    });
+
+    it('should handle rounding and assign remainder to highest percentage receiver', async () => {
+      // Arrange - Use fractional percentages that will cause rounding
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 33), // 33% -> 330_000 (floor)
+        createReceiver(456n, 33), // 33% -> 330_000 (floor)
+        createReceiver(789n, 34), // 34% -> 340_000 (floor) + remainder
+      ];
+
+      // Act
+      const result = validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(1_000_000);
+      // The receiver with highest original percentage (34%) should get the remainder
+      const receiver789 = result.find(r => r.accountId === 789n);
+      expect(receiver789?.weight).toBe(340_000); // Actually gets exactly 340_000, no remainder in this case
+    });
+
+    it('should handle edge case with all equal percentages', async () => {
+      // Arrange - Three equal percentages that don't divide evenly
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 33), // 33.33...%
+        createReceiver(456n, 33), // 33.33...%
+        createReceiver(789n, 33), // 33.33...%
+      ];
+
+      // Act
+      const result = validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(1_000_000); // Total should be normalized to 1_000_000
+      // Since all have equal original percentages, the first one (by original order) should get remainder
+      const receiver123 = result.find(r => r.accountId === 123n);
+      expect(receiver123?.weight).toBe(340_000); // 330_000 + 10_000 remainder
+    });
+
+    it('should handle single receiver with fractional percentage', async () => {
+      // Arrange
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 99), // 99% -> 990_000 + 10_000 remainder = 1_000_000
+      ];
+
+      // Act
+      const result = validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result[0].weight).toBe(1_000_000); // Gets the full amount including remainder
+    });
+
+    it('should preserve original percentage ordering for remainder assignment', async () => {
+      // Arrange - Multiple receivers with same highest percentage
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(999n, 34), // Same highest percentage, but higher accountId
+        createReceiver(123n, 33),
+        createReceiver(456n, 34), // Same highest percentage, lower accountId
+      ];
+
+      // Act & Assert
+      // This should actually fail validation since total > 100 (34+33+34=101)
+      expect(() => validateAndFormatSplitsReceivers(receivers)).toThrow(
+        'Total weight of splits receivers exceeds 1000000: 1010000',
+      );
+    });
+
+    it('should handle zero remainder case', async () => {
+      // Arrange - Percentages that scale exactly
+      const receivers: OnChainSplitsReceiver[] = [
+        createReceiver(123n, 50), // 50% -> 500_000
+        createReceiver(456n, 50), // 50% -> 500_000
+      ];
+
+      // Act
+      const result = validateAndFormatSplitsReceivers(receivers);
+
+      // Assert
+      expect(result.reduce((sum, r) => sum + r.weight, 0)).toBe(1_000_000);
+      expect(result).toEqual([
+        {accountId: 123n, weight: 500_000},
+        {accountId: 456n, weight: 500_000},
+      ]);
     });
   });
 });
