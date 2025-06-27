@@ -32,6 +32,17 @@ import {
 
 export type ContinuousDonation = {
   readonly erc20: Address;
+  /**
+   * The rate of tokens to stream per second, as a user-friendly number (e.g. 0.25).
+   *
+   * This value will be scaled by 1_000_000_000 to match the Solidity contract’s
+   * `_AMT_PER_SEC_MULTIPLIER = 1_000_000_000`. That means:
+   * - `1` becomes `1_000_000_000n`
+   * - `0.5` becomes `500_000_000n`
+   *
+   * ⚠️ This value must be >= 0 and small enough that
+   * `raw * 1_000_000_000` does not overflow when converted to bigint.
+   */
   readonly amountPerSec: bigint;
   readonly receiver: SdkReceiver;
   readonly name?: string;

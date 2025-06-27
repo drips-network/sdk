@@ -45,6 +45,21 @@ export type SdkReceiver =
   | SdkEcosystemMainAccountReceiver;
 
 export type SdkSplitsReceiver = SdkReceiver & {
+  /**
+   * The receiver’s weight as a percentage (0–100).
+   *
+   * This value represents the receiver's intended share of the total split. For example:
+   * - A value of `25` means the receiver should get 25% of the total funds being split.
+   *
+   * Internally, the SDK will scale this percentage by 10,000 to match the Solidity contract’s
+   * `_TOTAL_SPLITS_WEIGHT = 1_000_000`. That means:
+   * - `1%` becomes `10_000`
+   * - `100%` becomes `1_000_000`
+   *
+   * ⚠️ Due to rounding (e.g., from fractional percentages like 33.34%), the scaled weights may
+   * not add up to exactly 1_000_000. To correct this, the SDK will assign any remaining units
+   * (from rounding down all receivers) to the receiver with the highest original percentage.
+   */
   weight: number;
 };
 
