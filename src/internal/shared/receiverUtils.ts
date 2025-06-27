@@ -137,7 +137,7 @@ export async function mapToOnChainSplitsReceiver(
   };
 }
 
-export async function mapToMetadataSplitsReceiver(
+export async function mapSdkToMetadataSplitsReceiver(
   adapter: ReadBlockchainAdapter,
   receiver: SdkSplitsReceiver,
 ): Promise<MetadataSplitsReceiver> {
@@ -180,7 +180,7 @@ export async function mapToMetadataSplitsReceiver(
 
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
     meta: {
-      operation: mapToMetadataSplitsReceiver.name,
+      operation: mapSdkToMetadataSplitsReceiver.name,
       receiver,
     },
   });

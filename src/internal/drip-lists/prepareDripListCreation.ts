@@ -19,7 +19,7 @@ import {
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
 import {
   mapToOnChainSplitsReceiver,
-  mapToMetadataSplitsReceiver,
+  mapSdkToMetadataSplitsReceiver,
   SdkSplitsReceiver,
 } from '../shared/receiverUtils';
 import {calcDripListId} from '../shared/calcDripListId';
@@ -76,7 +76,7 @@ export async function prepareDripListCreation(
   });
 
   const metadataReceivers = await Promise.all(
-    receivers.map(r => mapToMetadataSplitsReceiver(adapter, r)),
+    receivers.map(r => mapSdkToMetadataSplitsReceiver(adapter, r)),
   );
 
   const metadata = buildDripListMetadata({

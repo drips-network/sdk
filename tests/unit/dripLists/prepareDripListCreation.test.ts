@@ -35,7 +35,7 @@ vi.mock('../../../src/internal/shared/encodeMetadataKeyValue', () => ({
 
 vi.mock('../../../src/internal/shared/receiverUtils', () => ({
   mapToOnChainSplitsReceiver: vi.fn(),
-  mapToMetadataSplitsReceiver: vi.fn(),
+  mapSdkToMetadataSplitsReceiver: vi.fn(),
 }));
 
 vi.mock(
@@ -66,7 +66,7 @@ import {buildDripListMetadata} from '../../../src/internal/drip-lists/buildDripL
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 import {
   mapToOnChainSplitsReceiver,
-  mapToMetadataSplitsReceiver,
+  mapSdkToMetadataSplitsReceiver,
 } from '../../../src/internal/shared/receiverUtils';
 
 describe('prepareDripListCreation', () => {
@@ -165,7 +165,7 @@ describe('prepareDripListCreation', () => {
     vi.mocked(mapToOnChainSplitsReceiver)
       .mockResolvedValueOnce(mockOnChainReceivers[0])
       .mockResolvedValueOnce(mockOnChainReceivers[1]);
-    vi.mocked(mapToMetadataSplitsReceiver)
+    vi.mocked(mapSdkToMetadataSplitsReceiver)
       .mockResolvedValueOnce({
         type: 'address',
         accountId: '123',
@@ -211,13 +211,13 @@ describe('prepareDripListCreation', () => {
         salt: mockSalt,
         minter: mockMinterAddress,
       });
-      expect(mapToMetadataSplitsReceiver).toHaveBeenCalledTimes(2);
-      expect(mapToMetadataSplitsReceiver).toHaveBeenNthCalledWith(
+      expect(mapSdkToMetadataSplitsReceiver).toHaveBeenCalledTimes(2);
+      expect(mapSdkToMetadataSplitsReceiver).toHaveBeenNthCalledWith(
         1,
         mockAdapter,
         validParams.receivers[0],
       );
-      expect(mapToMetadataSplitsReceiver).toHaveBeenNthCalledWith(
+      expect(mapSdkToMetadataSplitsReceiver).toHaveBeenNthCalledWith(
         2,
         mockAdapter,
         validParams.receivers[1],
@@ -390,7 +390,7 @@ describe('prepareDripListCreation', () => {
       // Assert
       expect(mapToOnChainSplitsReceiver).not.toHaveBeenCalled();
       expect(validateAndFormatSplitsReceivers).toHaveBeenCalledWith([]);
-      expect(mapToMetadataSplitsReceiver).not.toHaveBeenCalled();
+      expect(mapSdkToMetadataSplitsReceiver).not.toHaveBeenCalled();
       expect(buildDripListMetadata).toHaveBeenCalledWith({
         name: validParams.name,
         isVisible: validParams.isVisible,
@@ -415,7 +415,7 @@ describe('prepareDripListCreation', () => {
       );
 
       // Assert
-      expect(mapToMetadataSplitsReceiver).not.toHaveBeenCalled();
+      expect(mapSdkToMetadataSplitsReceiver).not.toHaveBeenCalled();
       expect(buildDripListMetadata).toHaveBeenCalledWith({
         name: undefined,
         isVisible: false,
@@ -484,8 +484,8 @@ describe('prepareDripListCreation', () => {
         .mockResolvedValueOnce(mockMixedOnChainReceivers[1])
         .mockResolvedValueOnce(mockMixedOnChainReceivers[2]);
 
-      vi.mocked(mapToMetadataSplitsReceiver).mockReset();
-      vi.mocked(mapToMetadataSplitsReceiver)
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockReset();
+      vi.mocked(mapSdkToMetadataSplitsReceiver)
         .mockResolvedValueOnce({
           type: 'repoDriver',
           weight: 300000,
@@ -516,7 +516,7 @@ describe('prepareDripListCreation', () => {
       );
 
       // Assert
-      expect(mapToMetadataSplitsReceiver).toHaveBeenCalledTimes(3);
+      expect(mapSdkToMetadataSplitsReceiver).toHaveBeenCalledTimes(3);
       expect(mapToOnChainSplitsReceiver).toHaveBeenCalledTimes(3);
       expect(mapToOnChainSplitsReceiver).toHaveBeenNthCalledWith(
         1,
@@ -557,8 +557,8 @@ describe('prepareDripListCreation', () => {
         mockSingleOnChainReceiver,
       );
 
-      vi.mocked(mapToMetadataSplitsReceiver).mockReset();
-      vi.mocked(mapToMetadataSplitsReceiver).mockResolvedValueOnce({
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockReset();
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockResolvedValueOnce({
         type: 'address',
         weight: 1000000,
         accountId: '123',
@@ -572,7 +572,7 @@ describe('prepareDripListCreation', () => {
       );
 
       // Assert
-      expect(mapToMetadataSplitsReceiver).toHaveBeenCalledTimes(1);
+      expect(mapSdkToMetadataSplitsReceiver).toHaveBeenCalledTimes(1);
       expect(mapToOnChainSplitsReceiver).toHaveBeenCalledTimes(1);
       expect(mapToOnChainSplitsReceiver).toHaveBeenCalledWith(
         mockAdapter,
@@ -731,8 +731,8 @@ describe('prepareDripListCreation', () => {
       vi.mocked(mapToOnChainSplitsReceiver).mockReset();
       vi.mocked(mapToOnChainSplitsReceiver).mockRejectedValueOnce(mapError);
 
-      vi.mocked(mapToMetadataSplitsReceiver).mockReset();
-      vi.mocked(mapToMetadataSplitsReceiver).mockRejectedValueOnce(
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockReset();
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockRejectedValueOnce(
         new Error('Failed to map receiver to metadata format'),
       );
 
@@ -782,8 +782,8 @@ describe('prepareDripListCreation', () => {
         .mockResolvedValueOnce(mockOnChainReceivers[0])
         .mockResolvedValueOnce(mockOnChainReceivers[1]);
 
-      vi.mocked(mapToMetadataSplitsReceiver).mockReset();
-      vi.mocked(mapToMetadataSplitsReceiver)
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockReset();
+      vi.mocked(mapSdkToMetadataSplitsReceiver)
         .mockResolvedValueOnce({
           type: 'address',
           accountId: '123',
@@ -890,7 +890,7 @@ describe('prepareDripListCreation', () => {
       );
 
       // Assert
-      expect(mapToMetadataSplitsReceiver).toHaveBeenCalledTimes(2);
+      expect(mapSdkToMetadataSplitsReceiver).toHaveBeenCalledTimes(2);
       expect(buildDripListMetadata).toHaveBeenCalledWith({
         name: '',
         isVisible: validParams.isVisible,
@@ -1015,8 +1015,8 @@ describe('prepareDripListCreation', () => {
         callOrder.push('calcDripListId');
         return mockDripListId;
       });
-      vi.mocked(mapToMetadataSplitsReceiver).mockImplementation(async () => {
-        callOrder.push('mapToMetadataSplitsReceiver');
+      vi.mocked(mapSdkToMetadataSplitsReceiver).mockImplementation(async () => {
+        callOrder.push('mapSdkToMetadataSplitsReceiver');
         return {
           type: 'address',
           weight: 500000,

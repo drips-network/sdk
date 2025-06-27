@@ -484,8 +484,8 @@ describe('receiverUtils', () => {
     });
   });
 
-  // Test mapToMetadataSplitsReceiver
-  describe('mapToMetadataSplitsReceiver', () => {
+  // Test mapSdkToMetadataSplitsReceiver
+  describe('mapSdkToMetadataSplitsReceiver', () => {
     beforeEach(() => {
       vi.mocked(destructProjectUrl).mockImplementation((url: string) => {
         if (url === 'https://github.com/org/project') {
@@ -540,7 +540,7 @@ describe('receiverUtils', () => {
         });
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           projectReceiver,
         );
@@ -574,7 +574,7 @@ describe('receiverUtils', () => {
         });
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           projectReceiver,
         );
@@ -608,7 +608,7 @@ describe('receiverUtils', () => {
 
         // Act & Assert
         await expect(
-          receiverUtils.mapToMetadataSplitsReceiver(
+          receiverUtils.mapSdkToMetadataSplitsReceiver(
             mockAdapter,
             projectReceiver,
           ),
@@ -626,7 +626,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           dripListReceiver,
         );
@@ -650,7 +650,7 @@ describe('receiverUtils', () => {
 
         // We expect this to throw an error because 0n is falsy
         await expect(
-          receiverUtils.mapToMetadataSplitsReceiver(
+          receiverUtils.mapSdkToMetadataSplitsReceiver(
             mockAdapter,
             dripListReceiver,
           ),
@@ -667,7 +667,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           dripListReceiver,
         );
@@ -691,7 +691,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           subListReceiver,
         );
@@ -713,7 +713,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           subListReceiver,
         );
@@ -738,7 +738,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           addressReceiver,
         );
@@ -761,7 +761,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           addressReceiver,
         );
@@ -785,13 +785,13 @@ describe('receiverUtils', () => {
 
         // Act & Assert
         await expect(
-          receiverUtils.mapToMetadataSplitsReceiver(
+          receiverUtils.mapSdkToMetadataSplitsReceiver(
             mockAdapter,
             unsupportedReceiver,
           ),
         ).rejects.toThrow(DripsError);
         await expect(
-          receiverUtils.mapToMetadataSplitsReceiver(
+          receiverUtils.mapSdkToMetadataSplitsReceiver(
             mockAdapter,
             unsupportedReceiver,
           ),
@@ -808,13 +808,13 @@ describe('receiverUtils', () => {
 
         // Act & Assert
         await expect(
-          receiverUtils.mapToMetadataSplitsReceiver(
+          receiverUtils.mapSdkToMetadataSplitsReceiver(
             mockAdapter,
             ecosystemReceiver,
           ),
         ).rejects.toThrow(DripsError);
         await expect(
-          receiverUtils.mapToMetadataSplitsReceiver(
+          receiverUtils.mapSdkToMetadataSplitsReceiver(
             mockAdapter,
             ecosystemReceiver,
           ),
@@ -833,7 +833,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           dripListReceiver,
         );
@@ -856,7 +856,7 @@ describe('receiverUtils', () => {
         };
 
         // Act
-        const result = await receiverUtils.mapToMetadataSplitsReceiver(
+        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           subListReceiver,
         );
@@ -881,7 +881,7 @@ describe('receiverUtils', () => {
         const originalReceiver = {...dripListReceiver};
 
         // Act
-        await receiverUtils.mapToMetadataSplitsReceiver(
+        await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           dripListReceiver,
         );
@@ -900,7 +900,7 @@ describe('receiverUtils', () => {
         const originalAdapter = {...mockAdapter};
 
         // Act
-        await receiverUtils.mapToMetadataSplitsReceiver(
+        await receiverUtils.mapSdkToMetadataSplitsReceiver(
           mockAdapter,
           dripListReceiver,
         );
