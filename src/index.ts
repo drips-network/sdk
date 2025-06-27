@@ -28,6 +28,8 @@ export {calcDripListId} from './internal/shared/calcDripListId';
 export {getDripListById} from './internal/drip-lists/getDripListById';
 export {prepareDripListCreation} from './internal/drip-lists/prepareDripListCreation';
 export {createDripList} from './internal/drip-lists/createDripList';
+export {prepareDripListUpdate} from './internal/drip-lists/prepareDripListUpdate';
+export {updateDripList} from './internal/drip-lists/updateDripList';
 
 export {calcAddressId} from './internal/shared/calcAddressId';
 
@@ -62,9 +64,11 @@ export {
   TxResponse,
   WriteBlockchainAdapter,
 } from './internal/blockchain/BlockchainAdapter';
-export {NewDripList} from './internal/drip-lists/prepareDripListCreation';
 export {CreateDripListResult} from './internal/drip-lists/createDripList';
-export {PrepareDripListCreationResult} from './internal/drip-lists/prepareDripListCreation';
+export {
+  PrepareDripListCreationResult,
+  NewDripList,
+} from './internal/drip-lists/prepareDripListCreation';
 export {
   Metadata,
   DripListMetadata,
@@ -88,6 +92,13 @@ export {
 export {Forge, ProjectName} from './internal/projects/calcProjectId';
 export {OneTimeDonation} from './internal/donations/prepareOneTimeDonation';
 export {StreamConfig} from './internal/shared/streamConfigUtils';
-export {ContinuousDonation} from './internal/donations/prepareContinuousDonation';
+export {
+  ContinuousDonation,
+  PrepareContinuousDonationResult,
+} from './internal/donations/prepareContinuousDonation';
 export {SendContinuousDonationResult} from './internal/donations/sendContinuousDonation';
-export {PrepareContinuousDonationResult} from './internal/donations/prepareContinuousDonation';
+export {
+  DripListUpdateConfig,
+  PrepareDripListUpdateResult,
+} from './internal/drip-lists/prepareDripListUpdate';
+export {UpdateDripListResult} from './internal/drip-lists/updateDripList';

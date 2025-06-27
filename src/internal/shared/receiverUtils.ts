@@ -11,6 +11,9 @@ import {
   repoDriverSplitReceiverSchema,
   addressDriverSplitReceiverSchema,
 } from '../metadata/schemas/repo-driver/v2';
+import {DripList} from '../drip-lists/getDripListById';
+import {ProjectReceiver} from '../graphql/__generated__/base-types';
+import {unreachable} from './unreachable';
 
 export type SdkProjectReceiver = {
   type: 'project';
@@ -181,6 +184,56 @@ export async function mapSdkToMetadataSplitsReceiver(
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
     meta: {
       operation: mapSdkToMetadataSplitsReceiver.name,
+      receiver,
+    },
+  });
+}
+
+export function mapApiToMetadataSplitsReceiver(
+  receiver: DripList['splits'][number],
+): MetadataSplitsReceiver {
+  if (receiver.account.driver === 'REPO') {
+    const {
+      account: {accountId},
+      weight,
+      project: {source},
+    } = receiver as ProjectReceiver;
+
+    return {
+      type: 'repoDriver',
+      weight,
+      accountId: accountId.toString(),
+      source: {
+        ...source,
+        forge:
+          source.forge === 'GitHub'
+            ? 'github'
+            : unreachable('Unsupported forge'),
+      },
+    } as MetadataProjectReceiver;
+  } else if (receiver.account.driver === 'NFT') {
+    return {
+      type: 'dripList',
+      weight: receiver.weight,
+      accountId: receiver.account.accountId,
+    } as MetadataDripListReceiver;
+  } else if (receiver.account.driver === 'IMMUTABLE_SPLITS') {
+    return {
+      type: 'subList',
+      weight: receiver.weight,
+      accountId: receiver.account.accountId,
+    } as SubListMetadataReceiver;
+  } else if (receiver.account.driver === 'ADDRESS') {
+    return {
+      type: 'address',
+      weight: receiver.weight,
+      accountId: receiver.account.accountId,
+    } as MetadataAddressReceiver;
+  }
+
+  throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
+    meta: {
+      operation: mapApiToMetadataSplitsReceiver.name,
       receiver,
     },
   });

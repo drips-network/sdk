@@ -33,7 +33,7 @@ export type NewDripList = {
   readonly receivers: ReadonlyArray<SdkSplitsReceiver>;
   readonly salt?: bigint;
   readonly name?: string;
-  readonly description?: string;
+  readonly description?: string | null;
   /** Optional address to transfer the drip list to. If not provided, the minter's address will be used. */
   readonly transferTo?: Address;
   readonly batchedTxOverrides?: BatchedTxOverrides;
@@ -78,7 +78,6 @@ export async function prepareDripListCreation(
   const metadataReceivers = await Promise.all(
     receivers.map(r => mapSdkToMetadataSplitsReceiver(adapter, r)),
   );
-
   const metadata = buildDripListMetadata({
     name,
     isVisible,

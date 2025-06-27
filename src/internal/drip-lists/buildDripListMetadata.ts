@@ -21,7 +21,7 @@ export function buildDripListMetadata(
       driver: 'nft',
     },
     name,
-    description,
+    description: description ?? undefined,
     isVisible,
     recipients: [...receivers],
   };

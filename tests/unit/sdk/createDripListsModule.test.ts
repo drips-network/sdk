@@ -17,11 +17,15 @@ import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareD
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
 import {Address} from 'viem';
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
+import {prepareDripListUpdate} from '../../../src/internal/drip-lists/prepareDripListUpdate';
+import {updateDripList} from '../../../src/internal/drip-lists/updateDripList';
 
 vi.mock('../../../src/internal/shared/calcDripListId');
 vi.mock('../../../src/internal/drip-lists/getDripListById');
 vi.mock('../../../src/internal/drip-lists/prepareDripListCreation');
 vi.mock('../../../src/internal/drip-lists/createDripList');
+vi.mock('../../../src/internal/drip-lists/prepareDripListUpdate');
+vi.mock('../../../src/internal/drip-lists/updateDripList');
 
 describe('createDripListsModule', () => {
   let adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
@@ -115,6 +119,44 @@ describe('createDripListsModule', () => {
       adapter,
       ipfsMetadataUploaderFn,
       params,
+    );
+  });
+
+  it('should prepare drip list update', async () => {
+    // Arrange
+    const config = {accountId: 1n, name: 'updated'} as any;
+    const expectedResult = {context: 'update'} as any;
+    vi.mocked(prepareDripListUpdate).mockResolvedValue(expectedResult);
+
+    // Act
+    const result = await dripListsModule.prepareUpdate(config);
+
+    // Assert
+    expect(result).toBe(expectedResult);
+    expect(prepareDripListUpdate).toHaveBeenCalledWith(
+      adapter,
+      ipfsMetadataUploaderFn,
+      config,
+      graphqlClient,
+    );
+  });
+
+  it('should update a drip list', async () => {
+    // Arrange
+    const config = {accountId: 1n, name: 'updated'} as any;
+    const expectedResult = {result: 'updated'} as any;
+    vi.mocked(updateDripList).mockResolvedValue(expectedResult);
+
+    // Act
+    const result = await dripListsModule.update(config);
+
+    // Assert
+    expect(result).toBe(expectedResult);
+    expect(updateDripList).toHaveBeenCalledWith(
+      adapter,
+      ipfsMetadataUploaderFn,
+      config,
+      graphqlClient,
     );
   });
 });

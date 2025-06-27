@@ -22,6 +22,15 @@ import {
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 import {prepareDripListCreation} from '../internal/drip-lists/prepareDripListCreation';
 import {calcDripListId} from '../internal/shared/calcDripListId';
+import {
+  DripListUpdateConfig,
+  prepareDripListUpdate,
+  PrepareDripListUpdateResult,
+} from '../internal/drip-lists/prepareDripListUpdate';
+import {
+  updateDripList,
+  UpdateDripListResult,
+} from '../internal/drip-lists/updateDripList';
 
 export interface DripListsModule {
   calculateId(salt: bigint, minter: Address, chainId: number): Promise<bigint>;
@@ -30,6 +39,10 @@ export interface DripListsModule {
     dripList: NewDripList,
   ): Promise<PrepareDripListCreationResult>;
   create(dripList: NewDripList): Promise<CreateDripListResult>;
+  prepareUpdate(
+    config: DripListUpdateConfig,
+  ): Promise<PrepareDripListUpdateResult>;
+  update(config: DripListUpdateConfig): Promise<UpdateDripListResult>;
 }
 
 type Deps = {
@@ -63,6 +76,22 @@ export function createDripListsModule(deps: Deps): DripListsModule {
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,
         dripList,
+      ),
+
+    prepareUpdate: (config: DripListUpdateConfig) =>
+      prepareDripListUpdate(
+        adapter as WriteBlockchainAdapter,
+        ipfsMetadataUploaderFn,
+        config,
+        graphqlClient,
+      ),
+
+    update: async (config: DripListUpdateConfig) =>
+      updateDripList(
+        adapter as WriteBlockchainAdapter,
+        ipfsMetadataUploaderFn,
+        config,
+        graphqlClient,
       ),
   };
 }

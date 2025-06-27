@@ -17,6 +17,7 @@ export type CreateDripListResult = {
   txResponse: TxResponse;
   metadata: DripListMetadata;
 };
+
 export async function createDripList(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,
