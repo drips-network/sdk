@@ -1,9 +1,5 @@
 import {DripsError} from './DripsError';
-
-export type OnChainSplitsReceiver = {
-  accountId: bigint;
-  weight: number; // interpreted as a percentage (0–100)
-};
+import {OnChainSplitsReceiver} from './receiverUtils';
 
 export const MAX_SPLITS_RECEIVERS = 200;
 export const TOTAL_SPLITS_WEIGHT = 1_000_000;
