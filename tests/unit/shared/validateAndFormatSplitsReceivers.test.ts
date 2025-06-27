@@ -1,11 +1,11 @@
 import {describe, it, expect} from 'vitest';
-import {
-  validateAndFormatSplitsReceivers,
-  MAX_SPLITS_RECEIVERS,
-  TOTAL_SPLITS_WEIGHT,
-} from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
+import {validateAndFormatSplitsReceivers} from '../../../src/internal/shared/validateAndFormatSplitsReceivers';
 import {DripsError} from '../../../src/internal/shared/DripsError';
-import {OnChainSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
+import {
+  MAX_SPLITS_RECEIVERS,
+  OnChainSplitsReceiver,
+  TOTAL_SPLITS_WEIGHT,
+} from '../../../src/internal/shared/receiverUtils';
 
 describe('validateAndFormatSplitsReceivers', () => {
   const createReceiver = (

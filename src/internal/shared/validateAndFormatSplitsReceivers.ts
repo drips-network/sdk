@@ -1,8 +1,10 @@
 import {DripsError} from './DripsError';
-import {OnChainSplitsReceiver} from './receiverUtils';
+import {
+  MAX_SPLITS_RECEIVERS,
+  OnChainSplitsReceiver,
+  TOTAL_SPLITS_WEIGHT,
+} from './receiverUtils';
 
-export const MAX_SPLITS_RECEIVERS = 200;
-export const TOTAL_SPLITS_WEIGHT = 1_000_000;
 // 1% = 10_000 units.
 // This multiplier converts percentage values (e.g., 25 for 25%) into the Solidity-compatible format
 // expected by the Drips contracts, which use a fixed `_TOTAL_SPLITS_WEIGHT = 1_000_000`.
