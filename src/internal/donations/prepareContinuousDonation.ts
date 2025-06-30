@@ -6,7 +6,7 @@ import {
 } from '../blockchain/BlockchainAdapter';
 import {prepareDripListCreation} from '../drip-lists/prepareDripListCreation';
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
-import {getCurrentStreamsAndReceivers} from './getCurrentStreamReceivers';
+import {getCurrentStreamsAndReceivers} from '../streams/getCurrentStreamReceivers';
 import {
   decodeStreamConfig,
   encodeStreamConfig,
@@ -33,7 +33,7 @@ import {
 export type ContinuousDonation = {
   readonly erc20: Address;
   /**
-   * The rate of tokens to stream per second, as a user-friendly number (e.g. 0.25).
+   * The rate of tokens to stream per second (e.g. 0.25).
    *
    * This value will be scaled by 1_000_000_000 to match the Solidity contract’s
    * `_AMT_PER_SEC_MULTIPLIER = 1_000_000_000`. That means:

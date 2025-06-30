@@ -25,11 +25,16 @@ describe('createViemMeta', () => {
   const createBasePreparedTx = (): PreparedTx => ({
     to: mockAddress,
     data: '0x',
+    abiFunctionName: 'testFunction',
   });
 
   it('should create basic viem meta with required fields', () => {
     // Arrange
-    const tx = createBasePreparedTx();
+    const tx: PreparedTx = {
+      to: mockAddress,
+      data: '0x',
+      // No abiFunctionName
+    };
     const client = createMockPublicClient(mockChainId);
     const context = {
       client,
@@ -76,7 +81,11 @@ describe('createViemMeta', () => {
 
   it('should use operationFallback when abiFunctionName is undefined', () => {
     // Arrange
-    const tx = createBasePreparedTx();
+    const tx: PreparedTx = {
+      to: mockAddress,
+      data: '0x',
+      // No abiFunctionName
+    };
     const client = createMockPublicClient(mockChainId);
     const context = {
       client,

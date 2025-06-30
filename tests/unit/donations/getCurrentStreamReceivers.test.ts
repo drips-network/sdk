@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {getCurrentStreamsAndReceivers} from '../../../src/internal/donations/getCurrentStreamReceivers';
+import {getCurrentStreamsAndReceivers} from '../../../src/internal/streams/getCurrentStreamReceivers';
 import {
   createGraphQLClient,
   DripsGraphQLClient,

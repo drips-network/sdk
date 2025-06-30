@@ -43,6 +43,7 @@ describe('calcProjectId', () => {
   const mockTxData = {
     to: '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B' as const,
     data: '0xcalcaccountdata' as const,
+    abiFunctionName: 'calcAccountId' as const,
   };
 
   const mockEncodedResult = '0xencodedresult' as const;
@@ -107,6 +108,7 @@ describe('calcProjectId', () => {
       const mainnetTxData = {
         to: '0x770023d55D09A9C110694827F1a6B32D5c2b373E' as const,
         data: '0xcalcaccountdata' as const,
+        abiFunctionName: 'calcAccountId' as const,
       };
       vi.mocked(buildTx).mockReturnValue(mainnetTxData);
 
@@ -130,6 +132,7 @@ describe('calcProjectId', () => {
       const localhostTxData = {
         to: '0x971e08fc533d2A5f228c7944E511611dA3B56B24' as const,
         data: '0xcalcaccountdata' as const,
+        abiFunctionName: 'calcAccountId' as const,
       };
       vi.mocked(buildTx).mockReturnValue(localhostTxData);
 
@@ -559,6 +562,7 @@ describe('calcProjectId', () => {
       const mainnetTxData = {
         to: '0x770023d55D09A9C110694827F1a6B32D5c2b373E' as const,
         data: '0xcalcaccountdata' as const,
+        abiFunctionName: 'calcAccountId' as const,
       };
       vi.mocked(buildTx).mockReturnValue(mainnetTxData);
       await calcProjectId(mockAdapter, {...validParams});
@@ -573,6 +577,7 @@ describe('calcProjectId', () => {
       const localhostTxData = {
         to: '0x971e08fc533d2A5f228c7944E511611dA3B56B24' as const,
         data: '0xcalcaccountdata' as const,
+        abiFunctionName: 'calcAccountId' as const,
       };
       vi.mocked(buildTx).mockReturnValue(localhostTxData);
       await calcProjectId(mockAdapter, {...validParams});
@@ -668,6 +673,7 @@ describe('calcProjectId', () => {
         const chainTxData = {
           to: expectedContract as `0x${string}`,
           data: '0xcalcaccountdata' as `0x${string}`,
+          abiFunctionName: 'calcAccountId' as const,
         };
         vi.mocked(buildTx).mockReturnValue(chainTxData);
 

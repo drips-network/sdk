@@ -12,7 +12,10 @@ import {
   addressDriverSplitReceiverSchema,
 } from '../metadata/schemas/repo-driver/v2';
 import {DripList} from '../drip-lists/getDripListById';
-import {ProjectReceiver} from '../graphql/__generated__/base-types';
+import {
+  AddressReceiver,
+  ProjectReceiver,
+} from '../graphql/__generated__/base-types';
 import {unreachable} from './unreachable';
 
 export const MAX_SPLITS_RECEIVERS = 200;
@@ -52,19 +55,8 @@ export type SdkReceiver =
 
 export type SdkSplitsReceiver = SdkReceiver & {
   /**
-   * The receiver’s weight as a percentage (0–100).
-   *
-   * This value represents the receiver's intended share of the total split. For example:
-   * - A value of `25` means the receiver should get 25% of the total funds being split.
-   *
-   * Internally, the SDK will scale this percentage by 10,000 to match the Solidity contract’s
-   * `_TOTAL_SPLITS_WEIGHT = 1_000_000`. That means:
-   * - `1%` becomes `10_000`
-   * - `100%` becomes `1_000_000`
-   *
-   * ⚠️ Due to rounding (e.g., from fractional percentages like 33.34%), the scaled weights may
-   * not add up to exactly 1_000_000. To correct this, the SDK will assign any remaining units
-   * (from rounding down all receivers) to the receiver with the highest original percentage.
+   * A positive integer between 1 and 1_000_000 (inclusive) representing
+   * the receiver’s share of funds. A weight of 1_000_000 means 100%.
    */
   weight: number;
 };
@@ -146,24 +138,56 @@ export async function resolveReceiverAccountId(
   });
 }
 
-export async function mapToOnChainSplitsReceiver(
-  adapter: ReadBlockchainAdapter,
-  receiver: SdkSplitsReceiver,
-): Promise<OnChainSplitsReceiver> {
-  const accountId = await resolveReceiverAccountId(adapter, receiver);
+export function mapApiSplitsToSdkSplitsReceivers(
+  splits: DripList['splits'],
+): SdkSplitsReceiver[] {
+  return splits.map(s => {
+    const {weight, account} = s;
 
-  return {
-    accountId,
-    weight: receiver.weight,
-  };
+    if (account.driver === 'REPO') {
+      const receiver = s as ProjectReceiver;
+      if (!receiver.project?.source.url) {
+        throw new DripsError('Missing project URL for REPO receiver', {
+          meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
+        });
+      }
+
+      return {
+        type: 'project',
+        url: receiver.project.source.url,
+        weight,
+      };
+    } else if (account.driver === 'NFT') {
+      return {
+        type: 'drip-list',
+        accountId: BigInt(account.accountId),
+        weight,
+      };
+    } else if (account.driver === 'IMMUTABLE_SPLITS') {
+      return {
+        type: 'sub-list',
+        accountId: BigInt(account.accountId),
+        weight,
+      };
+    } else if (account.driver === 'ADDRESS') {
+      const receiver = s as AddressReceiver;
+      return {
+        type: 'address',
+        address: receiver.account.address as Address,
+        weight,
+      };
+    }
+
+    throw new DripsError(`Unsupported account driver: ${account.driver}`, {
+      meta: {operation: mapApiSplitsToSdkSplitsReceivers.name, receiver: s},
+    });
+  });
 }
 
-export async function mapSdkToMetadataSplitsReceiver(
-  adapter: ReadBlockchainAdapter,
+async function mapSdkToMetadataSplitsReceiver(
+  accountId: bigint,
   receiver: SdkSplitsReceiver,
 ): Promise<MetadataSplitsReceiver> {
-  const accountId = await resolveReceiverAccountId(adapter, receiver);
-
   if (receiver.type === 'project') {
     const {url, weight} = receiver;
     const {forge, ownerName, repoName} = destructProjectUrl(url);
@@ -207,52 +231,70 @@ export async function mapSdkToMetadataSplitsReceiver(
   });
 }
 
-export function mapApiToMetadataSplitsReceiver(
-  receiver: DripList['splits'][number],
-): MetadataSplitsReceiver {
-  if (receiver.account.driver === 'REPO') {
-    const {
-      account: {accountId},
-      weight,
-      project: {source},
-    } = receiver as ProjectReceiver;
-
-    return {
-      type: 'repoDriver',
-      weight,
-      accountId: accountId.toString(),
-      source: {
-        ...source,
-        forge:
-          source.forge === 'GitHub'
-            ? 'github'
-            : unreachable('Unsupported forge'),
+export async function parseSplitsReceivers(
+  adapter: ReadBlockchainAdapter,
+  sdkReceivers: ReadonlyArray<SdkSplitsReceiver>,
+): Promise<{
+  onChain: OnChainSplitsReceiver[];
+  metadata: MetadataSplitsReceiver[];
+}> {
+  if (sdkReceivers.length > MAX_SPLITS_RECEIVERS) {
+    throw new DripsError(
+      `Maximum of ${MAX_SPLITS_RECEIVERS} receivers allowed`,
+      {
+        meta: {operation: parseSplitsReceivers.name},
       },
-    } as MetadataProjectReceiver;
-  } else if (receiver.account.driver === 'NFT') {
-    return {
-      type: 'dripList',
-      weight: receiver.weight,
-      accountId: receiver.account.accountId,
-    } as MetadataDripListReceiver;
-  } else if (receiver.account.driver === 'IMMUTABLE_SPLITS') {
-    return {
-      type: 'subList',
-      weight: receiver.weight,
-      accountId: receiver.account.accountId,
-    } as SubListMetadataReceiver;
-  } else if (receiver.account.driver === 'ADDRESS') {
-    return {
-      type: 'address',
-      weight: receiver.weight,
-      accountId: receiver.account.accountId,
-    } as MetadataAddressReceiver;
+    );
   }
 
-  throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
-    meta: {
-      operation: mapApiToMetadataSplitsReceiver.name,
-      receiver,
-    },
-  });
+  const totalWeight = sdkReceivers.reduce((sum, r) => sum + r.weight, 0);
+  if (totalWeight !== TOTAL_SPLITS_WEIGHT) {
+    throw new DripsError(
+      `Total weight must be exactly ${TOTAL_SPLITS_WEIGHT}, but got ${totalWeight}`,
+      {
+        meta: {operation: parseSplitsReceivers.name},
+      },
+    );
+  }
+
+  const seen = new Set<bigint>();
+  const duplicates: bigint[] = [];
+
+  const onChain: OnChainSplitsReceiver[] = [];
+  const metadata: MetadataSplitsReceiver[] = [];
+
+  for (const r of sdkReceivers) {
+    if (r.weight <= 0 || r.weight > TOTAL_SPLITS_WEIGHT) {
+      throw new DripsError(`Invalid weight: ${r.weight}`, {
+        meta: {operation: parseSplitsReceivers.name, receiver: r},
+      });
+    }
+
+    const accountId = await resolveReceiverAccountId(adapter, r);
+
+    if (seen.has(accountId)) {
+      duplicates.push(accountId);
+    } else {
+      seen.add(accountId);
+    }
+
+    onChain.push({accountId, weight: r.weight});
+    metadata.push(await mapSdkToMetadataSplitsReceiver(accountId, r));
+  }
+
+  if (duplicates.length > 0) {
+    throw new DripsError(
+      `Duplicate splits receivers found: ${[...new Set(duplicates)].join(', ')}`,
+      {meta: {operation: parseSplitsReceivers.name}},
+    );
+  }
+
+  const sorted = onChain
+    .map((r, i) => ({onChain: r, metadata: metadata[i]}))
+    .sort((a, b) => (a.onChain.accountId > b.onChain.accountId ? 1 : -1));
+
+  return {
+    onChain: sorted.map(x => x.onChain),
+    metadata: sorted.map(x => x.metadata),
+  };
 }

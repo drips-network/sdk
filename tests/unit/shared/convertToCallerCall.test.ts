@@ -11,7 +11,7 @@ describe('convertToCallerCall', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0xabcdef' as Hex,
         value: 1000n,
-        abiFunctionName: 'testFunction',
+        abiFunctionName: 'convertFunction',
       };
 
       // Act
@@ -153,7 +153,7 @@ describe('convertToCallerCall', () => {
           to: address,
           data: '0x123' as Hex,
           value: 100n,
-          abiFunctionName: 'testFunction',
+          abiFunctionName: 'convertFunction',
         };
 
         const result = convertToCallerCall(preparedTx);
@@ -254,7 +254,6 @@ describe('convertToCallerCall', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0x123456' as Hex,
         value: 1000n,
-        abiFunctionName: 'testFunction',
         gasLimit: 21000n,
         gasPrice: 20000000000n,
         nonce: 42,

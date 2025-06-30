@@ -42,6 +42,7 @@ describe('viemAdapters', () => {
   const createBasePreparedTx = (): PreparedTx => ({
     to: mockAddress,
     data: mockData,
+    abiFunctionName: 'testFunction',
   });
 
   const createMockPublicClient = (): PublicClient =>

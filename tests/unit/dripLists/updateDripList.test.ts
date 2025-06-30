@@ -73,6 +73,7 @@ describe('updateDripList', () => {
     preparedTx: {
       to: '0x1234567890123456789012345678901234567890' as const,
       data: '0xdata' as const,
+      abiFunctionName: 'updateDripList' as const,
     },
   };
 
@@ -316,6 +317,7 @@ describe('updateDripList', () => {
         preparedTx: {
           to: '0xabcdef1234567890abcdef1234567890abcdef12' as const,
           data: '0xcustomdata' as const,
+          abiFunctionName: 'customUpdateDripList' as const,
         },
       };
       vi.mocked(prepareDripListUpdate).mockResolvedValue(customPrepareResult);
@@ -640,6 +642,7 @@ describe('updateDripList', () => {
         preparedTx: {
           to: '0x0000000000000000000000000000000000000000' as const,
           data: '0x' as const,
+          abiFunctionName: 'updateDripList' as const,
         },
       };
       vi.mocked(prepareDripListUpdate).mockResolvedValue(minimalPrepareResult);
@@ -677,6 +680,7 @@ describe('updateDripList', () => {
         preparedTx: {
           to: '0xffffffffffffffffffffffffffffffffffffffff' as const,
           data: `0x${'f'.repeat(1000)}` as const,
+          abiFunctionName: 'updateDripList' as const,
         },
       };
       vi.mocked(prepareDripListUpdate).mockResolvedValue(largePrepareResult);

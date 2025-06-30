@@ -33,6 +33,7 @@ describe('calcAddressId', () => {
   const mockTxData = {
     to: '0x70E1E1437AeFe8024B6780C94490662b45C3B567' as const,
     data: '0xcalcaccountdata' as const,
+    abiFunctionName: 'calcAccountId',
   };
   const mockEncodedResult = '0xencodedresult' as const;
   const mockAccountId = 123456789n;
@@ -93,6 +94,7 @@ describe('calcAddressId', () => {
       const mainnetTxData = {
         to: '0x1455d9bD6B98f95dd8FEB2b3D60ed825fcef0610' as const,
         data: '0xcalcaccountdata' as const,
+        abiFunctionName: 'calcAccountId',
       };
       vi.mocked(buildTx).mockReturnValue(mainnetTxData);
 
@@ -116,6 +118,7 @@ describe('calcAddressId', () => {
       const localhostTxData = {
         to: '0x1707De7b41A3915F990A663d27AD3a952D50151d' as const,
         data: '0xcalcaccountdata' as const,
+        abiFunctionName: 'calcAccountId',
       };
       vi.mocked(buildTx).mockReturnValue(localhostTxData);
 
@@ -509,6 +512,7 @@ describe('calcAddressId', () => {
         const chainTxData = {
           to: contract as `0x${string}`,
           data: '0xcalcaccountdata' as `0x${string}`,
+          abiFunctionName: 'calcAccountId',
         };
         vi.mocked(buildTx).mockReturnValue(chainTxData);
 

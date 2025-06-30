@@ -32,6 +32,7 @@ describe('buildDripListMetadata', () => {
     vi.mocked(buildTx).mockReturnValue({
       to: '0x1455d9bD6B98f95dd8FEB2b3D60ed825fcef0610' as const,
       data: '0xcalcaccountdata' as const,
+      abiFunctionName: 'testFunction',
     });
     vi.mocked(decodeFunctionResult).mockReturnValue(1126n); // Mock account ID for address receivers
   });

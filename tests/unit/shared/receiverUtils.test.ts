@@ -217,8 +217,8 @@ describe('receiverUtils', () => {
     });
   });
 
-  // Test mapToOnChainSplitsReceiver
-  describe('mapToOnChainSplitsReceiver', () => {
+  // Test parseSplitsReceivers
+  describe('parseSplitsReceivers', () => {
     beforeEach(() => {
       vi.mocked(destructProjectUrl).mockImplementation((url: string) => {
         if (url === 'https://github.com/org/project') {
@@ -257,657 +257,151 @@ describe('receiverUtils', () => {
       vi.restoreAllMocks();
     });
 
-    it('should map project receiver to on-chain receiver', async () => {
+    it('should parse valid splits receivers', async () => {
       // Arrange
-      const projectReceiver = {
-        type: 'project' as const,
-        url: 'https://github.com/owner/repo',
-        weight: 500000,
-      };
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'project',
+          url: 'https://github.com/owner/repo',
+          weight: 500000,
+        },
+        {
+          type: 'drip-list',
+          accountId: 789n,
+          weight: 500000,
+        },
+      ];
 
       // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
+      const result = await receiverUtils.parseSplitsReceivers(
         mockAdapter,
-        projectReceiver,
+        receivers,
       );
 
       // Assert
-      expect(result).toEqual({
+      expect(result.onChain).toHaveLength(2);
+      expect(result.metadata).toHaveLength(2);
+      expect(result.onChain[0]).toEqual({
         accountId: 123n,
         weight: 500000,
       });
-    });
-
-    it('should handle project receiver with different weight', async () => {
-      // Arrange
-      const projectReceiver = {
-        type: 'project' as const,
-        url: 'https://github.com/org/project',
-        weight: 750000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        projectReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 456n,
-        weight: 750000,
+      expect(result.onChain[1]).toEqual({
+        accountId: 789n,
+        weight: 500000,
       });
     });
 
-    it('should propagate error from resolveReceiverAccountId', async () => {
+    it('should throw error when total weight is not 1,000,000', async () => {
       // Arrange
-      const projectReceiver = {
-        type: 'project' as const,
-        url: 'https://github.com/owner/repo',
-        weight: 500000,
-      };
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'drip-list',
+          accountId: 123n,
+          weight: 500000,
+        },
+        {
+          type: 'drip-list',
+          accountId: 456n,
+          weight: 400000, // Total: 900,000 (not 1,000,000)
+        },
+      ];
 
-      // Override the mock for this specific test
-      vi.mocked(calcProjectId).mockRejectedValueOnce(
-        new Error('Failed to resolve account ID'),
+      // Act & Assert
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow(DripsError);
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow('Total weight must be exactly 1000000, but got 900000');
+    });
+
+    it('should throw error when there are too many receivers', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = Array.from(
+        {length: 201},
+        (_, i) => ({
+          type: 'drip-list' as const,
+          accountId: BigInt(i),
+          weight: Math.floor(1000000 / 201),
+        }),
       );
 
       // Act & Assert
       await expect(
-        receiverUtils.mapToOnChainSplitsReceiver(mockAdapter, projectReceiver),
-      ).rejects.toThrow('Failed to resolve account ID');
-    });
-
-    it('should map drip-list receiver to on-chain receiver', async () => {
-      // Arrange
-      const dripListReceiver = {
-        type: 'drip-list' as const,
-        accountId: 123n,
-        weight: 500000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        dripListReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 123n,
-        weight: 500000,
-      });
-    });
-
-    it('should handle drip-list receiver with zero accountId', async () => {
-      // In the actual implementation, a check is made to ensure accountId is not falsy
-      // So we need to test with a non-zero accountId that's treated as truthy
-      const dripListReceiver = {
-        type: 'drip-list' as const,
-        accountId: 0n, // This will cause the test to fail because 0n is falsy
-        weight: 250000,
-      };
-
-      // We expect this to throw an error because 0n is falsy
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow(DripsError);
       await expect(
-        receiverUtils.mapToOnChainSplitsReceiver(mockAdapter, dripListReceiver),
-      ).rejects.toThrow('drip-list receiver must have an accountId');
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow('Maximum of 200 receivers allowed');
     });
 
-    it('should handle drip-list receiver with large accountId', async () => {
+    it('should throw error for duplicate receivers', async () => {
       // Arrange
-      const largeAccountId = 2n ** 128n - 1n; // Max uint128
-      const dripListReceiver = {
-        type: 'drip-list' as const,
-        accountId: largeAccountId,
-        weight: 750000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        dripListReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: largeAccountId,
-        weight: 750000,
-      });
-    });
-
-    it('should map sub-list receiver to on-chain receiver', async () => {
-      // Arrange
-      const subListReceiver = {
-        type: 'sub-list' as const,
-        accountId: 456n,
-        weight: 300000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        subListReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 456n,
-        weight: 300000,
-      });
-    });
-
-    it('should handle sub-list receiver with zero weight', async () => {
-      // Arrange
-      const subListReceiver = {
-        type: 'sub-list' as const,
-        accountId: 789n,
-        weight: 0,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        subListReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 789n,
-        weight: 0,
-      });
-    });
-
-    it('should map address receiver to on-chain receiver', async () => {
-      // Arrange
-      const address: Address = '0x1234567890123456789012345678901234567890';
-      const addressReceiver = {
-        type: 'address' as const,
-        address,
-        weight: 400000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        addressReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 999n,
-        weight: 400000,
-      });
-    });
-
-    it('should handle address receiver with zero address', async () => {
-      // Arrange
-      const address: Address = '0x0000000000000000000000000000000000000000';
-      const addressReceiver = {
-        type: 'address' as const,
-        address,
-        weight: 100000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        addressReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 0n,
-        weight: 100000,
-      });
-    });
-
-    it('should map ecosystem-main-account receiver to on-chain receiver', async () => {
-      // Arrange
-      const ecosystemReceiver = {
-        type: 'ecosystem-main-account' as const,
-        accountId: 777n,
-        weight: 800000,
-      };
-
-      // Act
-      const result = await receiverUtils.mapToOnChainSplitsReceiver(
-        mockAdapter,
-        ecosystemReceiver,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        accountId: 777n,
-        weight: 800000,
-      });
-    });
-  });
-
-  // Test mapSdkToMetadataSplitsReceiver
-  describe('mapSdkToMetadataSplitsReceiver', () => {
-    beforeEach(() => {
-      vi.mocked(destructProjectUrl).mockImplementation((url: string) => {
-        if (url === 'https://github.com/org/project') {
-          return {
-            forge: 'github' as const,
-            ownerName: 'org',
-            repoName: 'project',
-          };
-        }
-        return {
-          forge: 'github' as const,
-          ownerName: 'owner',
-          repoName: 'repo',
-        };
-      });
-
-      vi.mocked(calcProjectId).mockImplementation(async (_, project) => {
-        if (project.name === 'org/project') {
-          return 456n;
-        }
-        return 123n;
-      });
-
-      vi.mocked(calcAddressId).mockImplementation(async (_, address) => {
-        if (address === '0x1234567890123456789012345678901234567890') {
-          return 999n;
-        }
-        if (address === '0x0000000000000000000000000000000000000000') {
-          return 0n;
-        }
-        return 456n;
-      });
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    describe('project receiver', () => {
-      it('should map project receiver to metadata receiver', async () => {
-        // Arrange
-        const projectReceiver: SdkSplitsReceiver = {
-          type: 'project',
-          url: 'https://github.com/owner/repo',
-          weight: 500000,
-        };
-
-        vi.mocked(destructProjectUrl).mockReturnValue({
-          forge: 'github',
-          ownerName: 'owner',
-          repoName: 'repo',
-        });
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          projectReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'repoDriver',
-          weight: 500000,
-          accountId: '123',
-          source: {
-            forge: 'github',
-            url: 'https://github.com/owner/repo',
-            ownerName: 'owner',
-            repoName: 'repo',
-          },
-        });
-      });
-
-      it('should handle project receiver with different weight', async () => {
-        // Arrange
-        const projectReceiver: SdkSplitsReceiver = {
-          type: 'project',
-          url: 'https://github.com/org/project',
-          weight: 750000,
-        };
-
-        vi.mocked(destructProjectUrl).mockReturnValue({
-          forge: 'github' as const,
-          ownerName: 'org',
-          repoName: 'project',
-        });
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          projectReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'repoDriver',
-          weight: 750000,
-          accountId: '456',
-          source: {
-            forge: 'github',
-            url: 'https://github.com/org/project',
-            ownerName: 'org',
-            repoName: 'project',
-          },
-        });
-      });
-
-      it('should propagate error from resolveReceiverAccountId', async () => {
-        // Arrange
-        const projectReceiver: SdkSplitsReceiver = {
-          type: 'project',
-          url: 'https://github.com/owner/repo',
-          weight: 500000,
-        };
-
-        // Override the mock for this specific test
-        vi.mocked(calcProjectId).mockRejectedValueOnce(
-          new Error('Failed to resolve account ID'),
-        );
-
-        // Act & Assert
-        await expect(
-          receiverUtils.mapSdkToMetadataSplitsReceiver(
-            mockAdapter,
-            projectReceiver,
-          ),
-        ).rejects.toThrow('Failed to resolve account ID');
-      });
-    });
-
-    describe('drip-list receiver', () => {
-      it('should map drip-list receiver to metadata receiver', async () => {
-        // Arrange
-        const dripListReceiver: SdkSplitsReceiver = {
+      const receivers: SdkSplitsReceiver[] = [
+        {
           type: 'drip-list',
           accountId: 123n,
           weight: 500000,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          dripListReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'dripList',
-          weight: 500000,
-          accountId: '123',
-        });
-      });
-
-      it('should handle drip-list receiver with zero accountId', async () => {
-        // In the actual implementation, a check is made to ensure accountId is not falsy
-        // So we need to test with a non-zero accountId that's treated as truthy
-        const dripListReceiver: SdkSplitsReceiver = {
+        },
+        {
           type: 'drip-list',
-          accountId: 0n, // This will cause the test to fail because 0n is falsy
-          weight: 250000,
-        };
-
-        // We expect this to throw an error because 0n is falsy
-        await expect(
-          receiverUtils.mapSdkToMetadataSplitsReceiver(
-            mockAdapter,
-            dripListReceiver,
-          ),
-        ).rejects.toThrow('drip-list receiver must have an accountId');
-      });
-
-      it('should handle drip-list receiver with large accountId', async () => {
-        // Arrange
-        const largeAccountId = 2n ** 128n - 1n; // Max uint128
-        const dripListReceiver: SdkSplitsReceiver = {
-          type: 'drip-list',
-          accountId: largeAccountId,
-          weight: 750000,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          dripListReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'dripList',
-          weight: 750000,
-          accountId: largeAccountId.toString(),
-        });
-      });
-    });
-
-    describe('sub-list receiver', () => {
-      it('should map sub-list receiver to metadata receiver', async () => {
-        // Arrange
-        const subListReceiver: SdkSplitsReceiver = {
-          type: 'sub-list',
-          accountId: 456n,
-          weight: 300000,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          subListReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'subList',
-          weight: 300000,
-          accountId: '456',
-        });
-      });
-
-      it('should handle sub-list receiver with zero weight', async () => {
-        // Arrange
-        const subListReceiver: SdkSplitsReceiver = {
-          type: 'sub-list',
-          accountId: 789n,
-          weight: 0,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          subListReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'subList',
-          weight: 0,
-          accountId: '789',
-        });
-      });
-    });
-
-    describe('address receiver', () => {
-      it('should map address receiver to metadata receiver', async () => {
-        // Arrange
-        const address: Address = '0x1234567890123456789012345678901234567890';
-        const addressReceiver: SdkSplitsReceiver = {
-          type: 'address',
-          address,
-          weight: 400000,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          addressReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'address',
-          weight: 400000,
-          accountId: '999',
-        });
-      });
-
-      it('should handle address receiver with zero address', async () => {
-        // Arrange
-        const address: Address = '0x0000000000000000000000000000000000000000';
-        const addressReceiver: SdkSplitsReceiver = {
-          type: 'address',
-          address,
-          weight: 100000,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          addressReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'address',
-          weight: 100000,
-          accountId: '0',
-        });
-      });
-    });
-
-    describe('unsupported receiver type', () => {
-      it('should throw error for unsupported receiver type', async () => {
-        // Arrange
-        const unsupportedReceiver = {
-          type: 'unsupported' as any,
+          accountId: 123n, // Duplicate
           weight: 500000,
-        } as SdkSplitsReceiver;
+        },
+      ];
 
-        // Act & Assert
-        await expect(
-          receiverUtils.mapSdkToMetadataSplitsReceiver(
-            mockAdapter,
-            unsupportedReceiver,
-          ),
-        ).rejects.toThrow(DripsError);
-        await expect(
-          receiverUtils.mapSdkToMetadataSplitsReceiver(
-            mockAdapter,
-            unsupportedReceiver,
-          ),
-        ).rejects.toThrow('Unsupported receiver type: unsupported');
-      });
-
-      it('should throw error for ecosystem-main-account receiver type', async () => {
-        // Arrange
-        const ecosystemReceiver: SdkSplitsReceiver = {
-          type: 'ecosystem-main-account' as any,
-          accountId: 123n,
-          weight: 500000,
-        };
-
-        // Act & Assert
-        await expect(
-          receiverUtils.mapSdkToMetadataSplitsReceiver(
-            mockAdapter,
-            ecosystemReceiver,
-          ),
-        ).rejects.toThrow(DripsError);
-        await expect(
-          receiverUtils.mapSdkToMetadataSplitsReceiver(
-            mockAdapter,
-            ecosystemReceiver,
-          ),
-        ).rejects.toThrow('Unsupported receiver type: ecosystem-main-account');
-      });
+      // Act & Assert
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow(DripsError);
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow('Duplicate splits receivers found: 123');
     });
 
-    describe('edge cases', () => {
-      it('should handle receivers with very large weights', async () => {
-        // Arrange
-        const largeWeight = 999999999;
-        const dripListReceiver: SdkSplitsReceiver = {
+    it('should throw error for invalid weight', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = [
+        {
           type: 'drip-list',
           accountId: 123n,
-          weight: largeWeight,
-        };
+          weight: 0, // Invalid weight
+        },
+      ];
 
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          dripListReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'dripList',
-          weight: largeWeight,
-          accountId: '123',
-        });
-      });
-
-      it('should handle receivers with very large accountIds', async () => {
-        // Arrange
-        const largeAccountId = 2n ** 200n; // Very large bigint
-        const subListReceiver: SdkSplitsReceiver = {
-          type: 'sub-list',
-          accountId: largeAccountId,
-          weight: 500000,
-        };
-
-        // Act
-        const result = await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          subListReceiver,
-        );
-
-        // Assert
-        expect(result).toEqual({
-          type: 'subList',
-          weight: 500000,
-          accountId: largeAccountId.toString(),
-        });
-      });
+      // Act & Assert
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow(DripsError);
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow('Total weight must be exactly 1000000, but got 0');
     });
 
-    describe('immutability and side effects', () => {
-      it('should not modify input receiver', async () => {
-        // Arrange
-        const dripListReceiver: SdkSplitsReceiver = {
+    it('should sort receivers by accountId', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'drip-list',
+          accountId: 999n,
+          weight: 500000,
+        },
+        {
           type: 'drip-list',
           accountId: 123n,
           weight: 500000,
-        };
-        const originalReceiver = {...dripListReceiver};
+        },
+      ];
 
-        // Act
-        await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          dripListReceiver,
-        );
+      // Act
+      const result = await receiverUtils.parseSplitsReceivers(
+        mockAdapter,
+        receivers,
+      );
 
-        // Assert
-        expect(dripListReceiver).toEqual(originalReceiver);
-      });
-
-      it('should not modify adapter', async () => {
-        // Arrange
-        const dripListReceiver: SdkSplitsReceiver = {
-          type: 'drip-list',
-          accountId: 123n,
-          weight: 500000,
-        };
-        const originalAdapter = {...mockAdapter};
-
-        // Act
-        await receiverUtils.mapSdkToMetadataSplitsReceiver(
-          mockAdapter,
-          dripListReceiver,
-        );
-
-        // Assert
-        expect(mockAdapter).toEqual(originalAdapter);
-      });
+      // Assert
+      expect(result.onChain[0].accountId).toBe(123n);
+      expect(result.onChain[1].accountId).toBe(999n);
     });
   });
 });

@@ -58,6 +58,7 @@ describe('createDripList', () => {
     preparedTx: {
       to: '0x1234567890123456789012345678901234567890' as const,
       data: '0xdata' as const,
+      abiFunctionName: 'createDripList',
     },
     metadata: {
       type: 'dripList' as const,
@@ -267,6 +268,7 @@ describe('createDripList', () => {
         preparedTx: {
           to: '0xabcdef1234567890abcdef1234567890abcdef12' as const,
           data: '0xcustomdata' as const,
+          abiFunctionName: 'createCustomDripList',
         },
         metadata: {
           type: 'dripList' as const,
@@ -379,6 +381,7 @@ describe('createDripList', () => {
         preparedTx: {
           to: '0x0000000000000000000000000000000000000000' as const,
           data: '0x' as const,
+          abiFunctionName: 'createDripList',
         },
         metadata: {
           type: 'dripList' as const,
@@ -420,6 +423,7 @@ describe('createDripList', () => {
         preparedTx: {
           to: '0xffffffffffffffffffffffffffffffffffffffff' as const,
           data: `0x${'f'.repeat(1000)}` as const,
+          abiFunctionName: 'createLargeDripList',
         },
         metadata: {
           type: 'dripList' as const,

@@ -86,7 +86,13 @@ export function createViemWriteAdapter(
           meta,
         };
       } catch (error) {
-        throw new DripsError('Contract write failed', {cause: error, meta});
+        throw new DripsError(
+          `Contract write failed (func: ${tx.abiFunctionName})`,
+          {
+            cause: error,
+            meta,
+          },
+        );
       }
     },
 

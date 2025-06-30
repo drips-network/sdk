@@ -39,6 +39,7 @@ describe('ethersAdapters', () => {
   const createBasePreparedTx = (): PreparedTx => ({
     to: mockAddress,
     data: mockData,
+    abiFunctionName: 'testFunction',
   });
 
   const createMockProvider = (): Provider =>

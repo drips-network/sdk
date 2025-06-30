@@ -1,4 +1,4 @@
-import {isAddress} from 'ethers';
+import {isAddress} from 'viem';
 import {DripsError} from './DripsError';
 
 const numericTest = /^\d+$/;

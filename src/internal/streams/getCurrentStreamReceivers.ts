@@ -6,7 +6,7 @@ import {
 import {requireGraphQLSupportedChain} from '../shared/assertions';
 import {graphqlChainMap} from '../config/graphqlChainMap';
 import type {SupportedChain as ChainName} from '../graphql/__generated__/base-types';
-import {GetCurrentStreamsQuery} from './__generated__/gql.generated';
+import {GetCurrentStreamsQuery} from '../donations/__generated__/gql.generated';
 import {filterCurrentChain} from '../shared/filterCurrentChain';
 import {Address} from 'viem';
 import {OnChainStreamReceiver} from '../shared/validateAndFormatStreamReceivers';

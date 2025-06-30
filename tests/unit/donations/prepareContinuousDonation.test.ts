@@ -12,7 +12,7 @@ import {buildTx} from '../../../src/internal/shared/buildTx';
 import {addressDriverAbi} from '../../../src/internal/abis/addressDriverAbi';
 import {callerAbi} from '../../../src/internal/abis/callerAbi';
 import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
-import {getCurrentStreamsAndReceivers} from '../../../src/internal/donations/getCurrentStreamReceivers';
+import {getCurrentStreamsAndReceivers} from '../../../src/internal/streams/getCurrentStreamReceivers';
 import {validateAndFormatStreamReceivers} from '../../../src/internal/shared/validateAndFormatStreamReceivers';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
 import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
@@ -29,7 +29,7 @@ import {
 vi.mock('../../../src/internal/shared/receiverUtils');
 vi.mock('../../../src/internal/shared/assertions');
 vi.mock('../../../src/internal/shared/buildTx');
-vi.mock('../../../src/internal/donations/getCurrentStreamReceivers');
+vi.mock('../../../src/internal/streams/getCurrentStreamReceivers');
 vi.mock('../../../src/internal/streams/buildStreamsMetadata');
 vi.mock('../../../src/internal/shared/validateAndFormatStreamReceivers');
 vi.mock('../../../src/internal/shared/convertToCallerCall');

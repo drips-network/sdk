@@ -21,12 +21,10 @@ import {
   USER_METADATA_KEY,
 } from '../shared/encodeMetadataKeyValue';
 import {
-  mapApiToMetadataSplitsReceiver,
-  mapSdkToMetadataSplitsReceiver,
-  mapToOnChainSplitsReceiver,
+  mapApiSplitsToSdkSplitsReceivers,
+  parseSplitsReceivers,
   SdkSplitsReceiver,
 } from '../shared/receiverUtils';
-import {validateAndFormatSplitsReceivers} from '../shared/validateAndFormatSplitsReceivers';
 import {buildDripListMetadata} from './buildDripListMetadata';
 import {getDripListById} from './getDripListById';
 
@@ -53,9 +51,11 @@ export async function prepareDripListUpdate(
   config: DripListUpdateConfig,
   graphqlClient?: DripsGraphQLClient,
 ): Promise<PrepareDripListUpdateResult> {
+  const operation = prepareDripListUpdate.name;
+
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareDripListUpdate.name);
+  requireWriteAccess(adapter, operation);
 
   const {
     dripListId,
@@ -63,14 +63,11 @@ export async function prepareDripListUpdate(
     receivers: maybeReceivers,
     batchedTxOverrides,
   } = config;
-  const {nftDriver, caller, addressDriver} = contractsRegistry[chainId];
 
   const dripList = await getDripListById(dripListId, chainId, graphqlClient);
   if (!dripList) {
     throw new DripsError(`Drip list with ID ${dripListId} not found`, {
-      meta: {
-        operation: prepareDripListUpdate.name,
-      },
+      meta: {operation},
     });
   }
 
@@ -78,51 +75,51 @@ export async function prepareDripListUpdate(
     throw new DripsError(
       'Nothing to update: no receivers or metadata provided',
       {
-        meta: {operation: prepareDripListUpdate.name},
+        meta: {operation},
       },
     );
   }
 
-  const metadataReceivers =
-    maybeReceivers !== undefined
-      ? await Promise.all(
-          maybeReceivers.map(r => mapSdkToMetadataSplitsReceiver(adapter, r)),
-        )
-      : dripList.splits.map(r => mapApiToMetadataSplitsReceiver(r));
+  const effectiveSplitsReceivers =
+    maybeReceivers ?? mapApiSplitsToSdkSplitsReceivers(dripList.splits);
+
+  const {metadata: metadataSplitsReceivers, onChain: onChainSplitsReceivers} =
+    await parseSplitsReceivers(adapter, effectiveSplitsReceivers);
 
   const metadata = buildDripListMetadata({
     dripListId,
-    receivers: metadataReceivers,
+    receivers: metadataSplitsReceivers,
     name: maybeMetadata?.name ?? dripList.name,
     isVisible: maybeMetadata?.isVisible ?? dripList.isVisible,
     description: maybeMetadata?.description ?? dripList.description,
   });
+
   const ipfsHash = await ipfsMetadataUploaderFn(metadata);
 
+  const {nftDriver, caller} = contractsRegistry[chainId];
   const txs: PreparedTx[] = [];
 
-  const emitAccountMetadataTx = buildTx({
-    abi: addressDriverAbi,
-    functionName: 'emitAccountMetadata',
-    args: [[encodeMetadataKeyValue({key: USER_METADATA_KEY, value: ipfsHash})]],
-    contract: addressDriver.address,
-  });
-  txs.push(emitAccountMetadataTx);
+  txs.push(
+    buildTx({
+      abi: nftDriverAbi,
+      functionName: 'emitAccountMetadata',
+      args: [
+        dripListId,
+        [encodeMetadataKeyValue({key: USER_METADATA_KEY, value: ipfsHash})],
+      ],
+      contract: nftDriver.address,
+    }),
+  );
 
   if (maybeReceivers !== undefined) {
-    const onChainReceivers = await Promise.all(
-      maybeReceivers.map(r => mapToOnChainSplitsReceiver(adapter, r)),
+    txs.push(
+      buildTx({
+        abi: nftDriverAbi,
+        contract: nftDriver.address,
+        functionName: 'setSplits',
+        args: [dripListId, onChainSplitsReceivers],
+      }),
     );
-    const formattedReceivers =
-      validateAndFormatSplitsReceivers(onChainReceivers);
-
-    const setSplitsTx = buildTx({
-      abi: nftDriverAbi,
-      contract: nftDriver.address,
-      functionName: 'setSplits',
-      args: [dripListId, formattedReceivers],
-    });
-    txs.push(setSplitsTx);
   }
 
   const preparedTx = buildTx({

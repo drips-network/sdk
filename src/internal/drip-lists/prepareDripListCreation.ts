@@ -9,7 +9,6 @@ import {
   IpfsMetadataUploaderFn,
   DripListMetadata,
 } from '../shared/createPinataIpfsMetadataUploader';
-import {validateAndFormatSplitsReceivers} from '../shared/validateAndFormatSplitsReceivers';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {
   PreparedTx,
@@ -17,11 +16,7 @@ import {
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
-import {
-  mapToOnChainSplitsReceiver,
-  mapSdkToMetadataSplitsReceiver,
-  SdkSplitsReceiver,
-} from '../shared/receiverUtils';
+import {parseSplitsReceivers, SdkSplitsReceiver} from '../shared/receiverUtils';
 import {calcDripListId} from '../shared/calcDripListId';
 import {
   encodeMetadataKeyValue,
@@ -30,11 +25,18 @@ import {
 
 export type NewDripList = {
   readonly isVisible: boolean;
+  /**
+   * The list of receivers.
+   *
+   * All weights must sum to exactly 1_000_000 (i.e., 100% of the funds to be distributed).
+   * An empty list is allowed and means 100% of the funds remain with the account.
+   * The list must not contain duplicate receivers.
+   */
   readonly receivers: ReadonlyArray<SdkSplitsReceiver>;
   readonly salt?: bigint;
   readonly name?: string;
   readonly description?: string | null;
-  /** Optional address to transfer the drip list to. If not provided, the minter's address will be used. */
+  /** Optional address to transfer the Drip List to. If not provided, the minter's address will be used. */
   readonly transferTo?: Address;
   readonly batchedTxOverrides?: BatchedTxOverrides;
 };
@@ -66,26 +68,25 @@ export async function prepareDripListCreation(
     salt: maybeSalt,
   } = dripList;
 
+  const {metadata: metadataSplitsReceivers, onChain: onChainSplitsReceivers} =
+    await parseSplitsReceivers(adapter, receivers);
+
   const salt = maybeSalt ?? calculateRandomSalt();
   const {nftDriver, caller} = contractsRegistry[chainId];
   const minter = await adapter.getAddress();
+  const dripListId = await calcDripListId(adapter, {salt, minter});
 
-  const dripListId = await calcDripListId(adapter, {
-    salt,
-    minter,
-  });
-
-  const metadataReceivers = await Promise.all(
-    receivers.map(r => mapSdkToMetadataSplitsReceiver(adapter, r)),
-  );
   const metadata = buildDripListMetadata({
     name,
     isVisible,
-    receivers: metadataReceivers,
     dripListId,
     description,
+    receivers: metadataSplitsReceivers,
   });
+
   const ipfsHash = await ipfsMetadataUploaderFn(metadata);
+
+  const txs: PreparedTx[] = [];
 
   const mintTx = buildTx({
     contract: nftDriver.address,
@@ -93,28 +94,28 @@ export async function prepareDripListCreation(
     functionName: 'safeMintWithSalt',
     args: [
       salt,
-      transferTo || minter,
+      transferTo ?? minter,
       [encodeMetadataKeyValue({key: USER_METADATA_KEY, value: ipfsHash})],
     ],
   });
 
-  const onChainReceivers = await Promise.all(
-    receivers.map(r => mapToOnChainSplitsReceiver(adapter, r)),
-  );
-  const formattedReceivers = validateAndFormatSplitsReceivers(onChainReceivers);
+  txs.push(mintTx);
 
-  const setSplitsTx = buildTx({
-    abi: nftDriverAbi,
-    contract: nftDriver.address,
-    functionName: 'setSplits',
-    args: [dripListId, formattedReceivers],
-  });
+  if (onChainSplitsReceivers.length > 0) {
+    const setSplitsTx = buildTx({
+      abi: nftDriverAbi,
+      contract: nftDriver.address,
+      functionName: 'setSplits',
+      args: [dripListId, onChainSplitsReceivers],
+    });
+    txs.push(setSplitsTx);
+  }
 
   const preparedTx = buildTx({
     abi: callerAbi,
     contract: caller.address,
     functionName: 'callBatched',
-    args: [[mintTx, setSplitsTx].map(convertToCallerCall)],
+    args: [txs.map(convertToCallerCall)],
     batchedTxOverrides,
   });
 

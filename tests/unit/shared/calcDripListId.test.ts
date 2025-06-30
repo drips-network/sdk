@@ -38,6 +38,7 @@ describe('calcDripListId', () => {
   const mockTxData = {
     to: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44' as const,
     data: '0xcalctokendata' as const,
+    abiFunctionName: 'calcDripListId' as const,
   };
 
   const mockEncodedResult = '0xencodedresult' as const;
@@ -99,6 +100,7 @@ describe('calcDripListId', () => {
       const localhostTxData = {
         to: '0xf98e07d281Ff9b83612DBeF0A067d710716720eA' as const,
         data: '0xcalctokendata' as const,
+        abiFunctionName: 'calcTokenId' as const,
       };
       vi.mocked(buildTx).mockReturnValue(localhostTxData);
 
@@ -411,6 +413,7 @@ describe('calcDripListId', () => {
       const localhostTxData = {
         to: '0xf98e07d281Ff9b83612DBeF0A067d710716720eA' as const,
         data: '0xcalctokendata' as const,
+        abiFunctionName: 'calcTokenId' as const,
       };
       vi.mocked(buildTx).mockReturnValue(localhostTxData);
       await calcDripListId(mockAdapter, {...validParams});

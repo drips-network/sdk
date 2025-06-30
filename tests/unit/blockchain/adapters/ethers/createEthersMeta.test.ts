@@ -10,6 +10,7 @@ describe('createEthersMeta', () => {
   const createBasePreparedTx = (): PreparedTx => ({
     to: mockAddress,
     data: '0x123456',
+    abiFunctionName: 'testFunction',
   });
 
   const createMockProvider = (): Provider => ({}) as Provider;
@@ -18,7 +19,11 @@ describe('createEthersMeta', () => {
 
   it('should create basic meta with required fields', () => {
     // Arrange
-    const tx = createBasePreparedTx();
+    const tx: PreparedTx = {
+      to: mockAddress,
+      data: '0x123456',
+      // No abiFunctionName
+    };
     const provider = createMockProvider();
     const operationFallback = 'test-operation';
 
@@ -65,7 +70,11 @@ describe('createEthersMeta', () => {
 
   it('should use operation fallback when no ABI function name', () => {
     // Arrange
-    const tx = createBasePreparedTx();
+    const tx: PreparedTx = {
+      to: mockAddress,
+      data: '0x123456',
+      // No abiFunctionName
+    };
     const provider = createMockProvider();
     const operationFallback = 'custom-operation';
 

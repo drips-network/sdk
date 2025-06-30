@@ -4,8 +4,8 @@ import encodeStreamId, {
 } from '../../../src/internal/shared/streamIdUtils';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 
-// Mock ethers isAddress function
-vi.mock('ethers', () => ({
+// Mock viem isAddress function
+vi.mock('viem', () => ({
   isAddress: vi.fn().mockImplementation((address: string) => {
     // Simple mock implementation that checks if the string starts with '0x' (case-insensitive) and has the right length
     return (

@@ -64,6 +64,7 @@ describe('createDonationsModule', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0x123' as Hex,
         value: 0n,
+        abiFunctionName: 'give',
       };
       vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
@@ -89,6 +90,7 @@ describe('createDonationsModule', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0x456' as Hex,
         value: 0n,
+        abiFunctionName: 'give',
       };
       vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
@@ -114,6 +116,7 @@ describe('createDonationsModule', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0x789' as Hex,
         value: 0n,
+        abiFunctionName: 'give',
       };
       vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
@@ -139,6 +142,7 @@ describe('createDonationsModule', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0xabc' as Hex,
         value: 0n,
+        abiFunctionName: 'give',
       };
       vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
@@ -164,6 +168,7 @@ describe('createDonationsModule', () => {
         to: '0x1234567890123456789012345678901234567890' as Address,
         data: '0xdef' as Hex,
         value: 0n,
+        abiFunctionName: 'give',
       };
       vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
 
@@ -267,6 +272,7 @@ describe('createDonationsModule', () => {
           to: '0x1234567890123456789012345678901234567890' as Address,
           data: '0x123' as Hex,
           value: 0n,
+          abiFunctionName: 'give',
         },
         metadata: {
           describes: {
@@ -325,6 +331,7 @@ describe('createDonationsModule', () => {
           to: '0x1234567890123456789012345678901234567890' as Address,
           data: '0x123' as Hex,
           value: 0n,
+          abiFunctionName: 'give',
         },
         metadata: {
           describes: {
@@ -376,6 +383,7 @@ describe('createDonationsModule', () => {
           to: '0x1234567890123456789012345678901234567890' as Address,
           data: '0x123' as Hex,
           value: 0n,
+          abiFunctionName: 'give',
         },
         metadata: {
           describes: {

@@ -15,6 +15,7 @@ describe('viemMappers', () => {
   const createBasePreparedTx = (): PreparedTx => ({
     to: mockAddress,
     data: '0x',
+    abiFunctionName: 'testFunction',
   });
 
   describe('mapToViemCallParameters', () => {
@@ -110,6 +111,7 @@ describe('viemMappers', () => {
       const tx: PreparedTx = {
         to: mockAddress,
         data: '0x',
+        abiFunctionName: 'testFunction',
         // All optional fields undefined
       };
 

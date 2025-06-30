@@ -1,7 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {createDripsSdk} from '../../src/sdk/createDripsSdk';
 import {createWalletClient, http} from 'viem';
-import {JsonRpcProvider, Wallet, Contract} from 'ethers';
+import {JsonRpcProvider, Wallet, Contract, NonceManager} from 'ethers';
 import {createPinataIpfsMetadataUploader} from '../../src/internal/shared/createPinataIpfsMetadataUploader';
 import * as dotenv from 'dotenv';
 import {expect as expectUntil} from '../../src/internal/shared/expect';
@@ -96,7 +96,7 @@ describe('Donations', () => {
           {
             type: 'address',
             address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-            weight: 100,
+            weight: 1_000_000, // 100% weight
           },
         ];
 
@@ -237,7 +237,9 @@ describe('Donations', () => {
 
         // Step 2: Create an Ethers wallet (signer)
         console.log('Step 2: Creating Ethers wallet...');
-        const wallet = new Wallet(process.env.DEV_WALLET_PK!, provider);
+        const wallet = new NonceManager(
+          new Wallet(process.env.DEV_WALLET_PK!, provider),
+        );
 
         // Step 3: Set up IPFS uploader for metadata storage (here we use the Pinata uploader provided by the SDK)
         console.log('Step 3: Setting up IPFS uploader...');
@@ -260,7 +262,7 @@ describe('Donations', () => {
           {
             type: 'address',
             address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-            weight: 100,
+            weight: 1_000_000, // 100% weight
           },
         ];
 
@@ -320,11 +322,9 @@ describe('Donations', () => {
           wallet,
         );
 
-        const currentNonce = await wallet.getNonce('latest');
         const approveTx = await erc20Contract.approve(
           addressDriverAddress,
           donationAmount,
-          {nonce: currentNonce},
         );
 
         console.log(
@@ -403,7 +403,7 @@ describe('Donations', () => {
         // Verify the donation is associated with the correct Drip List
         expect(dripList.account.accountId).toBe(dripListId.toString());
         expect(donation.account.address.toLowerCase()).toBe(
-          wallet.address.toLowerCase(),
+          (await wallet.getAddress()).toLowerCase(),
         );
         expect(donation.amount.amount).toBe(donationAmount.toString());
         expect(donation.amount.tokenAddress.toLowerCase()).toBe(
@@ -461,7 +461,7 @@ describe('Donations', () => {
           {
             type: 'address',
             address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-            weight: 100,
+            weight: 1_000_000, // 100% weight
           },
         ];
 
@@ -613,7 +613,9 @@ describe('Donations', () => {
 
         // Step 2: Create an Ethers wallet (signer)
         console.log('Step 2: Creating Ethers wallet...');
-        const wallet = new Wallet(process.env.DEV_WALLET_PK!, provider);
+        const wallet = new NonceManager(
+          new Wallet(process.env.DEV_WALLET_PK!, provider),
+        );
 
         // Step 3: Set up IPFS uploader for metadata storage
         console.log('Step 3: Setting up IPFS uploader...');
@@ -638,7 +640,7 @@ describe('Donations', () => {
           {
             type: 'address',
             address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-            weight: 100,
+            weight: 1_000_000, // 100% weight
           },
         ];
 
@@ -687,11 +689,9 @@ describe('Donations', () => {
           wallet,
         );
 
-        const currentNonce = await wallet.getNonce('latest');
         const approveTx = await erc20Contract.approve(
           addressDriverAddress,
           topUpAmount,
-          {nonce: currentNonce},
         );
 
         console.log(
@@ -779,7 +779,7 @@ describe('Donations', () => {
 
         expect(streamSupport).toBeDefined();
         expect(streamSupport.account.address.toLowerCase()).toBe(
-          wallet.address.toLowerCase(),
+          (await wallet.getAddress()).toLowerCase(),
         );
         expect(
           streamSupport.stream.config.amountPerSecond.tokenAddress.toLowerCase(),

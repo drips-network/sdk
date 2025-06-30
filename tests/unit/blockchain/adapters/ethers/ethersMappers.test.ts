@@ -17,6 +17,7 @@ describe('ethersMappers', () => {
   const createBasePreparedTx = (): PreparedTx => ({
     to: mockAddress,
     data: mockData,
+    abiFunctionName: 'testFunction',
   });
 
   describe('mapToEthersTransactionRequest', () => {
