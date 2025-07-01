@@ -1,26 +1,40 @@
 {
-  "name": "sdk",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "drips-sdk",
+  "version": "0.0.0-test.0",
+  "license": "GPL-3.0-or-later",
+  "description": "💧TypeScript SDK for Drips",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drips-network/sdk.git"
+  },
+  "type": "module",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./internal/*": null
+  },
   "scripts": {
     "test": "vitest run tests/unit",
     "test:coverage": "vitest run tests/unit --coverage",
     "lint": "gts lint",
-    "clean": "gts clean",
-    "compile": "tsc",
     "fix": "gts fix",
+    "clean": "gts clean && rm -rf build",
+    "compile": "tsc -p tsconfig.build.json",
     "prepare": "npm run compile",
-    "pretest": "npm run compile",
+    "pretest": "tsc --noEmit",
     "posttest": "npm run lint",
-    "examples": "ts-node src/examples/examples.ts",
     "gql:generate-schema": "./scripts/generate-schema.sh",
     "gql:build-types": "./scripts/build-gql-types.sh",
     "gql:build": "npm run gql:generate-schema && npm run gql:build-types"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.7",
     "@graphql-codegen/near-operation-file-preset": "^3.0.1",
