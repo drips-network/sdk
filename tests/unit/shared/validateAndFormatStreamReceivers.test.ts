@@ -22,7 +22,7 @@ describe('validateAndFormatStreamReceivers', () => {
     vi.clearAllMocks();
     // Default mock implementation for decodeStreamConfig
     vi.mocked(streamConfigUtils.decodeStreamConfig).mockImplementation(() => ({
-      streamId: 1n,
+      dripId: 1n,
       amountPerSec: 100n, // Default to non-zero amount
       start: 0n,
       duration: 1n,
@@ -180,7 +180,7 @@ describe('validateAndFormatStreamReceivers', () => {
 
       // Mock decodeStreamConfig to return zero amtPerSec
       vi.mocked(streamConfigUtils.decodeStreamConfig).mockReturnValue({
-        streamId: 1n,
+        dripId: 1n,
         amountPerSec: 0n, // Zero amount
         start: 0n,
         duration: 1n,
@@ -208,14 +208,14 @@ describe('validateAndFormatStreamReceivers', () => {
         (config: bigint) => {
           if (config === 100n || config === 300n) {
             return {
-              streamId: 1n,
+              dripId: 1n,
               amountPerSec: 0n, // Zero amount
               start: 0n,
               duration: 1n,
             };
           }
           return {
-            streamId: 1n,
+            dripId: 1n,
             amountPerSec: 100n, // Non-zero amount
             start: 0n,
             duration: 1n,
@@ -242,7 +242,7 @@ describe('validateAndFormatStreamReceivers', () => {
       // Mock decodeStreamConfig to return non-zero amtPerSec
       vi.mocked(streamConfigUtils.decodeStreamConfig).mockImplementation(
         (config: bigint) => ({
-          streamId: 1n,
+          dripId: 1n,
           amountPerSec: 100n, // Non-zero amount
           start: 0n,
           duration: 1n,
@@ -258,11 +258,11 @@ describe('validateAndFormatStreamReceivers', () => {
   });
 
   describe('duplicate validation', () => {
-    it('should throw error for duplicate accountIds', () => {
+    it('should throw error for exact duplicate receivers (same accountId and config)', () => {
       // Arrange
       const receivers: OnChainStreamReceiver[] = [
         createReceiver(123n, 100n),
-        createReceiver(123n, 200n), // Same accountId
+        createReceiver(123n, 100n), // Exact duplicate
       ];
 
       // Act & Assert
@@ -270,27 +270,24 @@ describe('validateAndFormatStreamReceivers', () => {
         DripsError,
       );
       expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
-        'Duplicate stream receivers found: 123',
+        'Duplicate stream receiver: accountId=123, config=100',
       );
     });
 
-    it('should throw error for multiple duplicate accountIds', () => {
+    it('should allow same accountId with different configs', () => {
       // Arrange
       const receivers: OnChainStreamReceiver[] = [
         createReceiver(123n, 100n),
-        createReceiver(456n, 200n),
-        createReceiver(123n, 300n), // Duplicate
-        createReceiver(999n, 400n),
-        createReceiver(456n, 500n), // Duplicate
+        createReceiver(123n, 200n), // Same accountId, different config - should be allowed
       ];
 
-      // Act & Assert
-      expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
-        DripsError,
-      );
-      expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
-        'Duplicate stream receivers found: 123, 456',
-      );
+      // Act
+      const result = validateAndFormatStreamReceivers(receivers);
+
+      // Assert
+      expect(result).toHaveLength(2);
+      expect(result.map(r => r.accountId)).toEqual([123n, 123n]);
+      expect(result.map(r => r.config)).toEqual([100n, 200n]);
     });
 
     it('should handle duplicate detection with large accountIds', () => {
@@ -298,12 +295,15 @@ describe('validateAndFormatStreamReceivers', () => {
       const largeId = BigInt('0xffffffffffffffffffffffffffffffff');
       const receivers: OnChainStreamReceiver[] = [
         createReceiver(largeId, 100n),
-        createReceiver(largeId, 200n), // Duplicate
+        createReceiver(largeId, 100n), // Exact duplicate
       ];
 
       // Act & Assert
       expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
-        `Duplicate stream receivers found: ${largeId.toString()}`,
+        DripsError,
+      );
+      expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
+        `Duplicate stream receiver: accountId=${largeId.toString()}, config=100`,
       );
     });
 
@@ -323,18 +323,20 @@ describe('validateAndFormatStreamReceivers', () => {
       expect(result.map(r => r.accountId)).toEqual([123n, 456n, 789n]);
     });
 
-    it('should handle multiple occurrences of same duplicate', () => {
+    it('should handle multiple exact duplicates', () => {
       // Arrange
       const receivers: OnChainStreamReceiver[] = [
         createReceiver(123n, 100n),
-        createReceiver(123n, 200n), // First duplicate
-        createReceiver(456n, 300n),
-        createReceiver(123n, 400n), // Second duplicate of same ID
+        createReceiver(456n, 200n),
+        createReceiver(123n, 100n), // Exact duplicate
       ];
 
       // Act & Assert
       expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
-        'Duplicate stream receivers found: 123',
+        DripsError,
+      );
+      expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
+        'Duplicate stream receiver: accountId=123, config=100',
       );
     });
   });
@@ -407,6 +409,103 @@ describe('validateAndFormatStreamReceivers', () => {
       expect(result).not.toBe(receivers); // Different array reference
       expect(result.map(r => r.accountId)).toEqual([50n, 100n]); // Sorted result
     });
+
+    it('should sort by config when accountIds are the same', () => {
+      // Arrange
+      const receivers: OnChainStreamReceiver[] = [
+        createReceiver(123n, 300n),
+        createReceiver(123n, 100n),
+        createReceiver(123n, 200n),
+      ];
+
+      // Act
+      const result = validateAndFormatStreamReceivers(receivers);
+
+      // Assert
+      expect(result.map(r => r.accountId)).toEqual([123n, 123n, 123n]);
+      expect(result.map(r => r.config)).toEqual([100n, 200n, 300n]);
+    });
+
+    it('should sort by accountId first, then by config', () => {
+      // Arrange
+      const receivers: OnChainStreamReceiver[] = [
+        createReceiver(200n, 300n),
+        createReceiver(100n, 200n),
+        createReceiver(200n, 100n),
+        createReceiver(100n, 300n),
+      ];
+
+      // Act
+      const result = validateAndFormatStreamReceivers(receivers);
+
+      // Assert
+      expect(result).toEqual([
+        {accountId: 100n, config: 200n},
+        {accountId: 100n, config: 300n},
+        {accountId: 200n, config: 100n},
+        {accountId: 200n, config: 300n},
+      ]);
+    });
+  });
+
+  describe('sorting validation', () => {
+    it('should throw error for improperly sorted receivers by accountId', () => {
+      // Arrange - Create a scenario where the internal sorting would be bypassed
+      // We'll mock the sorting function to return an unsorted array
+      const receivers: OnChainStreamReceiver[] = [
+        createReceiver(200n, 100n),
+        createReceiver(100n, 200n), // This should come first
+      ];
+
+      // We need to test the validateSortedAndDeduplicated function indirectly
+      // by creating a scenario where sorting fails
+      const originalSort = Array.prototype.sort;
+      Array.prototype.sort = vi.fn().mockReturnValue([
+        createReceiver(200n, 100n),
+        createReceiver(100n, 200n), // Intentionally wrong order
+      ]);
+
+      try {
+        // Act & Assert
+        expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
+          DripsError,
+        );
+        expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
+          'Stream receivers not sorted',
+        );
+      } finally {
+        // Restore original sort function
+        Array.prototype.sort = originalSort;
+      }
+    });
+
+    it('should throw error for improperly sorted receivers by config', () => {
+      // Arrange - Create receivers with same accountId but wrong config order
+      const receivers: OnChainStreamReceiver[] = [
+        createReceiver(100n, 100n),
+        createReceiver(100n, 200n),
+      ];
+
+      // Mock sort to return wrong config order
+      const originalSort = Array.prototype.sort;
+      Array.prototype.sort = vi.fn().mockReturnValue([
+        createReceiver(100n, 200n), // Should be second
+        createReceiver(100n, 100n), // Should be first
+      ]);
+
+      try {
+        // Act & Assert
+        expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
+          DripsError,
+        );
+        expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
+          'Stream receivers not sorted',
+        );
+      } finally {
+        // Restore original sort function
+        Array.prototype.sort = originalSort;
+      }
+    });
   });
 
   describe('error handling and edge cases', () => {
@@ -416,7 +515,7 @@ describe('validateAndFormatStreamReceivers', () => {
 
       // Mock decodeStreamConfig to return zero amtPerSec
       vi.mocked(streamConfigUtils.decodeStreamConfig).mockReturnValue({
-        streamId: 1n,
+        dripId: 1n,
         amountPerSec: 0n, // Zero amount
         start: 0n,
         duration: 1n,
@@ -452,7 +551,7 @@ describe('validateAndFormatStreamReceivers', () => {
       // Test zero amtPerSec validation
       try {
         vi.mocked(streamConfigUtils.decodeStreamConfig).mockReturnValue({
-          streamId: 1n,
+          dripId: 1n,
           amountPerSec: 0n,
           start: 0n,
           duration: 1n,
@@ -470,7 +569,7 @@ describe('validateAndFormatStreamReceivers', () => {
       // Reset the mock to avoid affecting other tests
       vi.mocked(streamConfigUtils.decodeStreamConfig).mockImplementation(
         () => ({
-          streamId: 1n,
+          dripId: 1n,
           amountPerSec: 100n, // Non-zero amount
           start: 0n,
           duration: 1n,
@@ -481,14 +580,14 @@ describe('validateAndFormatStreamReceivers', () => {
       try {
         const receivers = [
           createReceiver(123n, 100n),
-          createReceiver(123n, 200n),
+          createReceiver(123n, 100n), // Exact duplicate
         ];
         validateAndFormatStreamReceivers(receivers);
         expect.fail('Should have thrown for duplicate receivers');
       } catch (error) {
         expect(error).toBeInstanceOf(DripsError);
         expect((error as DripsError).message).toContain(
-          'Duplicate stream receivers found: 123',
+          'Duplicate stream receiver: accountId=123, config=100',
         );
       }
     });
@@ -575,7 +674,7 @@ describe('validateAndFormatStreamReceivers', () => {
 
       vi.mocked(streamConfigUtils.decodeStreamConfig).mockImplementation(
         () => ({
-          streamId: 1n,
+          dripId: 1n,
           amountPerSec: 100n, // Non-zero
           start: 0n,
           duration: 1n,
@@ -597,14 +696,14 @@ describe('validateAndFormatStreamReceivers', () => {
         (config: bigint) => {
           if (config === 200n) {
             return {
-              streamId: 1n,
+              dripId: 1n,
               amountPerSec: 0n, // Zero
               start: 0n,
               duration: 1n,
             };
           }
           return {
-            streamId: 1n,
+            dripId: 1n,
             amountPerSec: 100n,
             start: 0n,
             duration: 1n,
@@ -618,23 +717,24 @@ describe('validateAndFormatStreamReceivers', () => {
     });
   });
 
-  describe('validateNoDuplicateStreamReceivers function', () => {
-    it('should return receivers when all accountIds are unique', () => {
+  describe('validateSortedAndDeduplicated function', () => {
+    it('should return receivers when no exact duplicates exist', () => {
       // This is testing an internal function through the public API
       const receivers: OnChainStreamReceiver[] = [
         createReceiver(123n, 100n),
-        createReceiver(456n, 200n),
+        createReceiver(123n, 200n), // Same accountId, different config - allowed
+        createReceiver(456n, 100n), // Different accountId, same config - allowed
       ];
 
       const result = validateAndFormatStreamReceivers(receivers);
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(3);
     });
 
-    it('should throw when duplicate accountIds are found', () => {
+    it('should throw when exact duplicates are found', () => {
       const receivers: OnChainStreamReceiver[] = [
         createReceiver(123n, 100n),
-        createReceiver(123n, 200n), // Duplicate
+        createReceiver(123n, 100n), // Exact duplicate
       ];
 
       expect(() => validateAndFormatStreamReceivers(receivers)).toThrow(
@@ -643,18 +743,24 @@ describe('validateAndFormatStreamReceivers', () => {
     });
   });
 
-  describe('sortStreamReceiversByAccountId function', () => {
-    it('should sort receivers by accountId in ascending order', () => {
+  describe('sortStreamReceivers function', () => {
+    it('should sort receivers by accountId first, then by config', () => {
       // This is testing an internal function through the public API
       const receivers: OnChainStreamReceiver[] = [
-        createReceiver(300n, 100n),
-        createReceiver(100n, 200n),
-        createReceiver(200n, 300n),
+        createReceiver(300n, 200n),
+        createReceiver(100n, 300n),
+        createReceiver(200n, 100n),
+        createReceiver(100n, 100n),
       ];
 
       const result = validateAndFormatStreamReceivers(receivers);
 
-      expect(result.map(r => r.accountId)).toEqual([100n, 200n, 300n]);
+      expect(result).toEqual([
+        {accountId: 100n, config: 100n},
+        {accountId: 100n, config: 300n},
+        {accountId: 200n, config: 100n},
+        {accountId: 300n, config: 200n},
+      ]);
     });
   });
 });

@@ -45,7 +45,7 @@ export async function buildStreamsMetadata(
             name: newStream.name,
             config: {
               raw: encodeStreamConfig({
-                streamId: newStream.dripId,
+                dripId: newStream.dripId,
                 start: BigInt(newStream.startAt?.getTime() ?? 0) / 1000n,
                 duration: BigInt(newStream.durationSeconds ?? 0),
                 amountPerSec: newStream.amountPerSec,

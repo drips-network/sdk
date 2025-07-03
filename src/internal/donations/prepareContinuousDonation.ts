@@ -4,7 +4,6 @@ import {
   BatchedTxOverrides,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {prepareDripListCreation} from '../drip-lists/prepareDripListCreation';
 import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
 import {getCurrentStreamsAndReceivers} from '../streams/getCurrentStreamReceivers';
 import {
@@ -68,7 +67,7 @@ export async function prepareContinuousDonation(
 ): Promise<PrepareContinuousDonationResult> {
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareDripListCreation.name);
+  requireWriteAccess(adapter, prepareContinuousDonation.name);
 
   const {
     erc20,
@@ -101,7 +100,7 @@ export async function prepareContinuousDonation(
   );
 
   const newStreamDripId = randomBigintUntilUnique(
-    currentReceivers.map(r => decodeStreamConfig(r.config).streamId),
+    currentReceivers.map(r => decodeStreamConfig(r.config).dripId),
     4,
   );
 
@@ -109,7 +108,7 @@ export async function prepareContinuousDonation(
 
   const newStreamConfig = encodeStreamConfig({
     amountPerSec,
-    streamId: newStreamDripId,
+    dripId: newStreamDripId,
     duration: BigInt(durationSeconds ?? 0),
     start: BigInt(startAt?.getTime() ?? 0) / 1000n,
   });

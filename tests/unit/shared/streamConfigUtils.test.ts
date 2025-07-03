@@ -10,7 +10,7 @@ describe('streamConfigUtils', () => {
     it('should correctly encode a valid stream config', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 456n,
         start: 789n,
         duration: 101112n,
@@ -31,7 +31,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for streamId that is too large', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 1n << 32n, // 2^32, which is too large
+        dripId: 1n << 32n, // 2^32, which is too large
         amountPerSec: 456n,
         start: 789n,
         duration: 101112n,
@@ -46,7 +46,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for negative streamId', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: -1n,
+        dripId: -1n,
         amountPerSec: 456n,
         start: 789n,
         duration: 101112n,
@@ -61,7 +61,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for amountPerSec that is too large', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 1n << 160n, // 2^160, which is too large
         start: 789n,
         duration: 101112n,
@@ -76,7 +76,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for zero amountPerSec', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 0n,
         start: 789n,
         duration: 101112n,
@@ -91,7 +91,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for negative amountPerSec', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: -1n,
         start: 789n,
         duration: 101112n,
@@ -106,7 +106,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for start that is too large', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 456n,
         start: 1n << 32n, // 2^32, which is too large
         duration: 101112n,
@@ -121,7 +121,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for negative start', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 456n,
         start: -1n,
         duration: 101112n,
@@ -136,7 +136,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for duration that is too large', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 456n,
         start: 789n,
         duration: 1n << 32n, // 2^32, which is too large
@@ -151,7 +151,7 @@ describe('streamConfigUtils', () => {
     it('should throw error for negative duration', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 456n,
         start: 789n,
         duration: -1n,
@@ -166,7 +166,7 @@ describe('streamConfigUtils', () => {
     it('should handle maximum valid values', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: (1n << 32n) - 1n, // 2^32 - 1
+        dripId: (1n << 32n) - 1n, // 2^32 - 1
         amountPerSec: (1n << 160n) - 1n, // 2^160 - 1
         start: (1n << 32n) - 1n, // 2^32 - 1
         duration: (1n << 32n) - 1n, // 2^32 - 1
@@ -186,7 +186,7 @@ describe('streamConfigUtils', () => {
     it('should handle minimum valid values', () => {
       // Arrange
       const config: StreamConfig = {
-        streamId: 0n,
+        dripId: 0n,
         amountPerSec: 1n, // Minimum valid value is 1
         start: 0n,
         duration: 0n,
@@ -208,7 +208,7 @@ describe('streamConfigUtils', () => {
     it('should correctly decode a valid packed value', () => {
       // Arrange
       const originalConfig: StreamConfig = {
-        streamId: 123n,
+        dripId: 123n,
         amountPerSec: 456n,
         start: 789n,
         duration: 101112n,
@@ -239,7 +239,7 @@ describe('streamConfigUtils', () => {
       const result = decodeStreamConfig(packed);
 
       // Assert
-      expect(result.streamId).toBe(streamId);
+      expect(result.dripId).toBe(streamId);
       expect(result.amountPerSec).toBe(amountPerSec);
       expect(result.start).toBe(start);
       expect(result.duration).toBe(duration);
@@ -267,7 +267,7 @@ describe('streamConfigUtils', () => {
     it('should handle maximum valid values', () => {
       // Arrange
       const originalConfig: StreamConfig = {
-        streamId: (1n << 32n) - 1n, // 2^32 - 1
+        dripId: (1n << 32n) - 1n, // 2^32 - 1
         amountPerSec: (1n << 160n) - 1n, // 2^160 - 1
         start: (1n << 32n) - 1n, // 2^32 - 1
         duration: (1n << 32n) - 1n, // 2^32 - 1
@@ -284,7 +284,7 @@ describe('streamConfigUtils', () => {
     it('should handle minimum valid values', () => {
       // Arrange
       const originalConfig: StreamConfig = {
-        streamId: 0n,
+        dripId: 0n,
         amountPerSec: 1n, // Minimum valid value is 1
         start: 0n,
         duration: 0n,
@@ -304,25 +304,25 @@ describe('streamConfigUtils', () => {
       // Test with various valid configs
       const testCases: StreamConfig[] = [
         {
-          streamId: 123n,
+          dripId: 123n,
           amountPerSec: 456n,
           start: 789n,
           duration: 101112n,
         },
         {
-          streamId: 0n,
+          dripId: 0n,
           amountPerSec: 1n,
           start: 0n,
           duration: 0n,
         },
         {
-          streamId: 4294967295n, // 2^32 - 1
+          dripId: 4294967295n, // 2^32 - 1
           amountPerSec: 1461501637330902918203684832716283019655932542975n, // 2^160 - 1
           start: 4294967295n, // 2^32 - 1
           duration: 4294967295n, // 2^32 - 1
         },
         {
-          streamId: 42n,
+          dripId: 42n,
           amountPerSec: 1000000000000000000n, // 1 ETH per second
           start: 1672531200n, // Jan 1, 2023 timestamp in seconds
           duration: 86400n, // 1 day

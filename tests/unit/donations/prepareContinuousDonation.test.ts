@@ -191,7 +191,7 @@ describe('prepareContinuousDonation', () => {
     );
     vi.mocked(encodeStreamConfig).mockReturnValue(mockStreamConfig);
     vi.mocked(decodeStreamConfig).mockReturnValue({
-      streamId: 123n,
+      dripId: 123n,
       amountPerSec: 50n,
       start: 0n,
       duration: 0n,

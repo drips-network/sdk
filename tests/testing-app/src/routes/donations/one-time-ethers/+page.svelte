@@ -7,15 +7,26 @@
     resetOperation,
   } from '$lib/stores/sdk';
   import {
-    createViemSdk,
-    validateFormReceivers,
-    convertReceiversToSdkFormat,
-    generateRandomId,
+    createEthersSdk,
     localtestnet,
-    type SdkSplitsReceiver,
+    contractsRegistry,
   } from '$lib/utils/sdkFactory';
   import {expect as expectUntil} from '$lib/utils/expect';
   import {goto} from '$app/navigation';
+
+  // ERC20 ABI for approve function
+  const erc20Abi = [
+    {
+      inputs: [
+        {name: 'spender', type: 'address'},
+        {name: 'amount', type: 'uint256'},
+      ],
+      name: 'approve',
+      outputs: [{name: '', type: 'bool'}],
+      stateMutability: 'nonpayable',
+      type: 'function',
+    },
+  ] as const;
 
   // Form state
   let privateKey = '';
@@ -23,70 +34,25 @@
   let graphqlUrl = '';
   let pinataJwt = '';
   let pinataGateway = 'https://gateway.pinata.cloud';
+
+  // Drip list fetching
   let dripListId = '';
   let dripListIdBigInt: bigint | null = null;
-  let dripListName = '';
-  let dripListDescription = '';
-  let isVisible = false;
-
-  // Fetched drip list state
   let fetchedDripList: any = null;
   let isFetching = false;
   let fetchError = '';
 
-  let receivers = [
-    {
-      type: 'address',
-      address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-      projectUrl: '',
-      dripListId: '',
-      weight: 400000,
-    },
-    {
-      type: 'project',
-      address: '',
-      projectUrl: 'https://github.com/drips-network/sdk',
-      dripListId: '',
-      weight: 300000,
-    },
-    {
-      type: 'address',
-      address: '0x1234567890123456789012345678901234567890',
-      projectUrl: '',
-      dripListId: '',
-      weight: 300000,
-    },
-  ];
+  // Donation configuration
+  let donationAmount = 1;
+  let erc20Token = '';
+  let receiverType = 'drip-list';
+  let receiverAddress = '';
+  let receiverProjectUrl = '';
+  let receiverDripListId = '';
 
   // Status popup state
   let showStatusPopup = false;
-  let updatedDripListId: string | null = null;
-
-  function addReceiver() {
-    receivers = [
-      ...receivers,
-      {
-        type: 'address',
-        address: '',
-        projectUrl: '',
-        dripListId: '',
-        weight: 0,
-      },
-    ];
-  }
-
-  function removeReceiver(index: number) {
-    receivers = receivers.filter((_, i) => i !== index);
-  }
-
-  function handleReceiverTypeChange(index: number, newType: string) {
-    receivers[index].type = newType;
-    // Clear other fields when type changes
-    receivers[index].address = '';
-    receivers[index].projectUrl = '';
-    receivers[index].dripListId = '';
-    receivers = [...receivers]; // Trigger reactivity
-  }
+  let donationTxHash: string | null = null;
 
   function showStatusMessage(
     message: string,
@@ -108,7 +74,7 @@
       fetchedDripList = null;
 
       // Create a minimal SDK instance just for fetching
-      const {sdk} = await createViemSdk({
+      const {sdk} = await createEthersSdk({
         privateKey: $walletStore.isConnected
           ? undefined
           : privateKey ||
@@ -132,39 +98,6 @@
       }
 
       fetchedDripList = dripList;
-
-      // Populate form with fetched data
-      dripListName = dripList.name || '';
-      dripListDescription = dripList.description || '';
-      isVisible = dripList.isVisible || false;
-
-      // Convert splits to form format - for now just use default receivers
-      // Note: The splits structure from GraphQL is complex and would need proper mapping
-      // For this demo, we'll keep the default receivers and let user modify them
-      receivers = [
-        {
-          type: 'address',
-          address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-          projectUrl: '',
-          dripListId: '',
-          weight: 400000,
-        },
-        {
-          type: 'project',
-          address: '',
-          projectUrl: 'https://github.com/drips-network/sdk',
-          dripListId: '',
-          weight: 300000,
-        },
-        {
-          type: 'address',
-          address: '0x1234567890123456789012345678901234567890',
-          projectUrl: '',
-          dripListId: '',
-          weight: 300000,
-        },
-      ];
-
       fetchError = '';
     } catch (error) {
       const errorMessage =
@@ -176,22 +109,14 @@
     }
   }
 
-  async function updateDripListWithViem() {
+  async function sendOneTimeDonation() {
     try {
       resetOperation();
       showStatusPopup = true;
       updateOperationStatus({isRunning: true, progress: 0});
 
       // Step 1: Validate inputs
-      showStatusMessage('Validating inputs...', 'info');
-
-      if (!dripListId.trim()) {
-        throw new Error('Drip list ID is required');
-      }
-
-      if (!fetchedDripList) {
-        throw new Error('Please fetch the drip list first');
-      }
+      showStatusMessage('Validating donation inputs...', 'info');
 
       if (!pinataJwt || !pinataGateway) {
         throw new Error('Pinata JWT and Gateway are required');
@@ -201,17 +126,22 @@
         throw new Error('Either connect MetaMask or provide a private key');
       }
 
-      // Convert and validate receivers
-      const validation = validateFormReceivers(receivers);
-      if (!validation.isValid) {
-        throw new Error(validation.error);
+      if (!erc20Token) {
+        throw new Error('ERC20 token address is required');
       }
-      const sdkReceivers = convertReceiversToSdkFormat(receivers);
+
+      if (
+        receiverType === 'drip-list' &&
+        !fetchedDripList &&
+        !receiverDripListId
+      ) {
+        throw new Error('Please fetch a drip list or provide a drip list ID');
+      }
 
       updateOperationStatus({progress: 10});
 
       // Step 2: Set up wallet
-      showStatusMessage('Setting up Viem wallet client...', 'info');
+      showStatusMessage('Setting up Ethers wallet...', 'info');
 
       const useConnectedWallet = $walletStore.isConnected;
       if (useConnectedWallet) {
@@ -227,11 +157,11 @@
 
       // Step 3: Create SDK instance
       showStatusMessage(
-        'Creating Drips SDK instance with Viem adapter...',
+        'Creating Drips SDK instance with Ethers adapter...',
         'info',
       );
 
-      const {sdk, account} = await createViemSdk({
+      const {sdk, wallet, account} = await createEthersSdk({
         privateKey: useConnectedWallet ? undefined : privateKey,
         useConnectedWallet,
         rpcUrl,
@@ -241,110 +171,178 @@
       });
 
       showStatusMessage(`Wallet account: ${account.address}`, 'success');
-      if ($walletStore.isConnected) {
-        showStatusMessage(
-          `Connected wallet matches: ${$walletStore.address?.toLowerCase() === account.address?.toLowerCase()}`,
-          'info',
-        );
+      updateOperationStatus({progress: 30});
+
+      // Step 4: Define donation parameters
+      showStatusMessage('Defining donation parameters...', 'info');
+
+      // Build receiver based on selected type
+      let oneTimeDonationReceiver: any;
+      if (receiverType === 'drip-list') {
+        if (receiverDripListId) {
+          oneTimeDonationReceiver = {
+            type: 'drip-list' as const,
+            accountId: BigInt(receiverDripListId),
+          };
+        } else {
+          oneTimeDonationReceiver = {
+            type: 'drip-list' as const,
+            accountId: dripListIdBigInt,
+          };
+        }
+      } else if (receiverType === 'address') {
+        if (!receiverAddress) {
+          throw new Error('Receiver address is required');
+        }
+        oneTimeDonationReceiver = {
+          type: 'address' as const,
+          address: receiverAddress as `0x${string}`,
+        };
+      } else if (receiverType === 'project') {
+        if (!receiverProjectUrl) {
+          throw new Error('Project URL is required');
+        }
+        oneTimeDonationReceiver = {
+          type: 'project' as const,
+          url: receiverProjectUrl,
+        };
       }
+
+      const donationAmountBigInt = BigInt(donationAmount);
+      const erc20TokenAddress = erc20Token as `0x${string}`;
+
       updateOperationStatus({progress: 40});
 
-      // Step 4: Update drip list
-      showStatusMessage('Updating drip list on blockchain...', 'info');
+      // Step 5: Approve token spending
+      showStatusMessage('Approving token spending...', 'info');
 
-      const updateResult = await sdk.dripLists.update({
-        dripListId: dripListIdBigInt!,
-        metadata: {
-          name: dripListName,
-          description: dripListDescription,
-          isVisible,
-        },
-        receivers: sdkReceivers,
-      });
+      const addressDriverAddress =
+        contractsRegistry[localtestnet.id as keyof typeof contractsRegistry]
+          .addressDriver.address;
 
-      const {ipfsHash, txResponse} = updateResult;
+      // Create contract instance for token approval
+      const {Contract} = await import('ethers');
+      const tokenContract = new Contract(erc20TokenAddress, erc20Abi, wallet);
+
+      const approveTx = await tokenContract.approve(
+        addressDriverAddress,
+        donationAmountBigInt,
+      );
 
       showStatusMessage(
-        `Drip list update initiated! ID: ${dripListId}`,
+        `Token approval transaction sent with hash: ${approveTx.hash}`,
         'success',
       );
-      showStatusMessage(`IPFS Hash: ${ipfsHash}`, 'info');
 
-      updateOperationStatus({progress: 70});
+      // Wait for approval transaction to be mined
+      await approveTx.wait();
+      showStatusMessage('Token approval confirmed!', 'success');
 
-      // Step 5: Wait for transaction confirmation
-      showStatusMessage('Waiting for transaction confirmation...', 'info');
+      updateOperationStatus({progress: 60});
 
-      const {hash} = await txResponse.wait();
-      showStatusMessage(`Transaction confirmed! Hash: ${hash}`, 'success');
+      // Step 6: Send the one-time donation
+      showStatusMessage('Sending one-time donation...', 'info');
+
+      const donationTxResponse = await sdk.donations.sendOneTime({
+        receiver: oneTimeDonationReceiver,
+        amount: donationAmountBigInt,
+        erc20: erc20TokenAddress,
+      });
+
+      showStatusMessage('Donation transaction sent!', 'success');
 
       updateOperationStatus({progress: 75});
 
-      // Step 6: Wait for indexing
+      // Step 6: Wait for donation transaction confirmation
       showStatusMessage(
-        'Drip list updated but changes not yet indexed. Waiting for indexing...',
-        'warning',
+        'Waiting for donation transaction confirmation...',
+        'info',
+      );
+
+      const {hash} = await donationTxResponse.wait();
+      showStatusMessage(
+        `Donation transaction confirmed! Hash: ${hash}`,
+        'success',
+      );
+      donationTxHash = hash;
+
+      updateOperationStatus({progress: 85});
+
+      // Step 7: Wait for indexing and verify donation
+      showStatusMessage(
+        'Waiting for indexing and verifying donation support...',
+        'info',
       );
 
       const INDEXING_TIMEOUT = 120_000; // 2 minutes
       const POLLING_INTERVAL = 2_000; // 2 seconds
+      const ONE_MINUTE_MS = 60_000;
 
-      let pollingAttempt = 0;
-      const maxAttempts = Math.floor(INDEXING_TIMEOUT / POLLING_INTERVAL);
-
-      const indexingResult = await expectUntil(
-        () => {
-          pollingAttempt++;
-          // Update progress from 75% to 95% based on polling attempts
-          const pollingProgress = 75 + (pollingAttempt / maxAttempts) * 20;
-          updateOperationStatus({
-            progress: Math.min(Math.floor(pollingProgress), 95),
-          });
-          showStatusMessage(
-            `Checking indexing status... (attempt ${pollingAttempt}/${maxAttempts})`,
-            'info',
-          );
-
-          return sdk.dripLists.getById(dripListIdBigInt!, localtestnet.id);
-        },
+      const result = await expectUntil(
+        () => sdk.dripLists.getById(dripListIdBigInt!, localtestnet.id),
         dripList => {
-          // Check if the update has been indexed by comparing metadata
-          if (!dripList) return false;
-          return (
-            dripList.name === dripListName &&
-            dripList.description === dripListDescription &&
-            dripList.isVisible === isVisible
+          if (!dripList || !dripList.support || dripList.support.length === 0) {
+            return false;
+          }
+
+          const oneMinuteAgo = Date.now() - ONE_MINUTE_MS;
+          const donation = dripList.support.find(
+            support =>
+              support.__typename === 'OneTimeDonationSupport' &&
+              support.date > oneMinuteAgo,
           );
+
+          return donation !== undefined;
         },
         INDEXING_TIMEOUT,
         POLLING_INTERVAL,
         true,
       );
 
-      if (indexingResult.failed) {
+      if (result.failed) {
         throw new Error(
-          'Drip list updates were not indexed within the timeout',
+          'Donation was not indexed in drip list support within the timeout',
         );
       }
 
+      const dripList = result.result!;
+
+      // Step 8: Verify donation data
+      showStatusMessage('Verifying donation support data...', 'info');
+
+      const oneMinuteAgo = Date.now() - ONE_MINUTE_MS;
+      const donation = dripList.support.find(
+        support =>
+          support.__typename === 'OneTimeDonationSupport' &&
+          support.date > oneMinuteAgo,
+      );
+
+      if (!donation || donation.__typename !== 'OneTimeDonationSupport') {
+        throw new Error('Donation not found in support data');
+      }
+
       showStatusMessage(
-        'Drip list updates have been indexed and can now be queried!',
+        `✓ Donation verified! Amount: ${donation.amount.amount} ${donation.amount.tokenAddress}`,
         'success',
       );
 
       updateOperationStatus({progress: 95});
 
-      // Step 7: Complete
+      // Step 9: Complete
       showStatusMessage(
-        'Drip list update and indexing completed successfully!',
+        'One-time donation sent and verified successfully!',
         'success',
       );
-      updatedDripListId = dripListId;
 
       updateOperationStatus({
         progress: 100,
         isRunning: false,
-        result: {dripListId, ipfsHash, txHash: hash},
+        result: {
+          dripListId: dripListId,
+          donationTxHash: hash,
+          donationAmount: donationAmountBigInt.toString(),
+          erc20Token: erc20TokenAddress,
+        },
       });
     } catch (error) {
       const errorMessage =
@@ -357,9 +355,9 @@
     }
   }
 
-  function viewUpdatedDripList() {
-    if (updatedDripListId) {
-      goto(`/drip-lists/get?id=${updatedDripListId}`);
+  function viewDripList() {
+    if (dripListId) {
+      goto(`/drip-lists/get?id=${dripListId}`);
     }
   }
 
@@ -369,16 +367,16 @@
 </script>
 
 <div class="back-link">
-  <a href="/drip-lists">← Back to Drip Lists</a>
+  <a href="/donations">← Back to Donations</a>
 </div>
 
-<h1>Update Drip List (Viem)</h1>
+<h1>One-Time Donation (Ethers)</h1>
 
 <div class="info-box">
   <strong>📝 About this operation:</strong><br />
-  This page allows you to update an existing drip list using the Viem adapter. Enter
-  a drip list ID to fetch its current data, modify the metadata and receivers, then
-  update it on the blockchain.
+  This page replicates the "One-Time Donation using Ethers" integration test. It
+  will fetch an existing drip list, set up an Ethers wallet, send the donation, and
+  verify it was received.
 </div>
 
 <div class="step-indicator">Step 1: Configure Wallet and Network Settings</div>
@@ -451,12 +449,12 @@
 
 <div class="form-container">
   <div class="form-group">
-    <label for="dripListId">Drip List ID to Update:</label>
+    <label for="dripListId">Drip List ID to Receive Donation:</label>
     <input
       type="text"
       id="dripListId"
       bind:value={dripListId}
-      placeholder="Enter the ID of the drip list to update"
+      placeholder="Enter the ID of the drip list to receive the donation"
     />
   </div>
 
@@ -490,120 +488,102 @@
   {/if}
 </div>
 
-{#if fetchedDripList}
-  <div class="step-indicator">Step 4: Update Drip List Metadata</div>
+<div class="step-indicator">Step 4: Configure Donation Parameters</div>
 
-  <div class="form-container">
+<div class="form-container">
+  <div class="form-group">
+    <label for="donationAmount">Donation Amount:</label>
+    <input
+      type="number"
+      id="donationAmount"
+      bind:value={donationAmount}
+      min="1"
+    />
+    <small>Amount in token units</small>
+  </div>
+
+  <div class="form-group">
+    <label for="erc20Token">ERC20 Token Address:</label>
+    <input
+      type="text"
+      id="erc20Token"
+      bind:value={erc20Token}
+      placeholder="0x..."
+    />
+    <small>Address of the ERC20 token to donate</small>
+  </div>
+
+  <div class="form-group">
+    <label for="receiverType">Receiver Type:</label>
+    <select id="receiverType" bind:value={receiverType}>
+      <option value="drip-list" selected>Drip List (fetched above)</option>
+      <option value="address">Direct Address</option>
+      <option value="project">Project</option>
+    </select>
+  </div>
+
+  {#if receiverType === 'address'}
     <div class="form-group">
-      <label for="dripListName">Drip List Name:</label>
-      <input type="text" id="dripListName" bind:value={dripListName} />
+      <label for="receiverAddress">Receiver Address:</label>
+      <input
+        type="text"
+        id="receiverAddress"
+        bind:value={receiverAddress}
+        placeholder="0x..."
+      />
+      <small>Ethereum address to receive the donation</small>
     </div>
-
+  {:else if receiverType === 'project'}
     <div class="form-group">
-      <label for="dripListDescription">Description:</label>
-      <textarea id="dripListDescription" bind:value={dripListDescription}
-      ></textarea>
+      <label for="receiverProjectUrl">Project URL:</label>
+      <input
+        type="text"
+        id="receiverProjectUrl"
+        bind:value={receiverProjectUrl}
+        placeholder="https://github.com/..."
+      />
+      <small>GitHub project URL to receive the donation</small>
     </div>
-
-    <div class="form-group checkbox-group">
-      <label for="isVisible">
-        <input type="checkbox" id="isVisible" bind:checked={isVisible} />
-        Make drip list visible
-      </label>
+  {:else if receiverType === 'drip-list' && receiverDripListId}
+    <div class="form-group">
+      <label for="receiverDripListId">Custom Drip List ID:</label>
+      <input
+        type="text"
+        id="receiverDripListId"
+        bind:value={receiverDripListId}
+        placeholder="Enter different drip list ID (optional)"
+      />
+      <small>Leave empty to use the fetched drip list above</small>
     </div>
-  </div>
+  {/if}
+</div>
 
-  <div class="step-indicator">Step 5: Update Split Receivers</div>
+<div class="step-indicator">Step 5: Execute Operation</div>
 
-  <div class="receivers-section">
-    <h3>Split Receivers</h3>
-    <p>
-      Modify the receivers and their respective weights (total must equal
-      1,000,000).
-    </p>
+<div class="form-container">
+  <button
+    class="button primary"
+    on:click={sendOneTimeDonation}
+    disabled={$operationStatus.isRunning}
+  >
+    {#if $operationStatus.isRunning}
+      🔄 Sending...
+    {:else}
+      💰 Send One-Time Donation with Ethers
+    {/if}
+  </button>
+</div>
 
-    {#each receivers as receiver, index}
-      <div class="receiver-item">
-        <div class="receiver-controls">
-          <label>Type:</label>
-          <select
-            bind:value={receiver.type}
-            on:change={() => handleReceiverTypeChange(index, receiver.type)}
-          >
-            <option value="address">Address</option>
-            <option value="project">Project</option>
-            <option value="drip-list">Drip List</option>
-          </select>
-          <button class="button" on:click={() => removeReceiver(index)}
-            >🗑️ Remove</button
-          >
-        </div>
+<div class="info-box">
+  <strong>⚠️ Note:</strong> This operation will send a one-time donation to the specified
+  receiver. Make sure you have sufficient funds for gas fees and the donation amount.
+</div>
 
-        {#if receiver.type === 'address'}
-          <div class="form-group">
-            <label>Address:</label>
-            <input
-              type="text"
-              bind:value={receiver.address}
-              placeholder="0x..."
-            />
-          </div>
-        {:else if receiver.type === 'project'}
-          <div class="form-group">
-            <label>Project URL:</label>
-            <input
-              type="text"
-              bind:value={receiver.projectUrl}
-              placeholder="https://github.com/..."
-            />
-          </div>
-        {:else if receiver.type === 'drip-list'}
-          <div class="form-group">
-            <label>Drip List ID:</label>
-            <input
-              type="text"
-              bind:value={receiver.dripListId}
-              placeholder="Enter drip list ID"
-            />
-          </div>
-        {/if}
-
-        <div class="form-group">
-          <label>Weight:</label>
-          <input
-            type="number"
-            bind:value={receiver.weight}
-            min="1"
-            max="1000000"
-          />
-        </div>
-      </div>
-    {/each}
-
-    <button class="button" on:click={addReceiver}>+ Add Receiver</button>
-  </div>
-
-  <div class="step-indicator">Step 6: Execute Operation</div>
-
-  <div class="form-container">
-    <button
-      class="button primary"
-      on:click={updateDripListWithViem}
-      disabled={$operationStatus.isRunning || !fetchedDripList}
-    >
-      {#if $operationStatus.isRunning}
-        🔄 Updating...
-      {:else}
-        🔄 Update Drip List with Viem
-      {/if}
-    </button>
-  </div>
-
-  <div class="info-box">
-    <strong>⚠️ Note:</strong> This operation will interact with the blockchain and
-    IPFS. Make sure you have sufficient funds for gas fees and valid API credentials.
-  </div>
-{/if}
+<div class="info-box">
+  <strong>🔍 Verification:</strong> After sending the donation, the system will wait
+  for indexing and verify that the donation appears in the receiver's support data
+  with the correct amount and token.
+</div>
 
 <!-- Status Popup -->
 {#if showStatusPopup}
@@ -621,7 +601,7 @@
       tabindex="-1"
     >
       <div class="popup-header">
-        <h3>🔄 DRIP LIST UPDATE STATUS</h3>
+        <h3>💰 ONE-TIME DONATION STATUS</h3>
         <button class="close-button" on:click={closeStatusPopup}>×</button>
       </div>
 
@@ -646,13 +626,16 @@
           </div>
         {/if}
 
-        {#if $operationStatus.result && updatedDripListId}
+        {#if $operationStatus.result && donationTxHash}
           <div class="success-message">
-            <strong>✅ Success!</strong> Drip List updated successfully!
+            <strong>✅ Success!</strong>
+            One-time donation sent and verified successfully!
+            <br /><strong>Transaction Hash:</strong>
+            <div class="drip-list-id">{donationTxHash}</div>
             <br /><strong>Drip List ID:</strong>
-            <div class="drip-list-id">{updatedDripListId}</div>
-            <br /><button class="button" on:click={viewUpdatedDripList}
-              >View Updated Drip List</button
+            <div class="drip-list-id">{dripListId}</div>
+            <br /><button class="button" on:click={viewDripList}
+              >View Drip List</button
             >
           </div>
         {/if}
@@ -689,26 +672,9 @@
     color: #000080;
   }
 
-  .checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .checkbox-group label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 0;
-  }
-
-  .checkbox-group input[type='checkbox'] {
-    width: auto;
-    margin: 0;
-  }
-
   .form-group input,
-  .form-group textarea {
+  .form-group textarea,
+  .form-group select {
     width: 100%;
     padding: 8px;
     border: 2px inset #c0c0c0;
@@ -720,32 +686,6 @@
   .form-group textarea {
     height: 80px;
     resize: vertical;
-  }
-
-  .receivers-section {
-    background-color: #e0e0e0;
-    border: 2px inset #c0c0c0;
-    padding: 15px;
-    margin: 15px 0;
-  }
-
-  .receiver-item {
-    background-color: #f8f8f8;
-    border: 1px solid #808080;
-    padding: 10px;
-    margin: 10px 0;
-  }
-
-  .receiver-controls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin: 10px 0;
-  }
-
-  .receiver-controls select {
-    padding: 5px;
-    border: 2px inset #c0c0c0;
   }
 
   .button {

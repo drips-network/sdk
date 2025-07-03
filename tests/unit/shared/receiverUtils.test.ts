@@ -7,6 +7,7 @@ import {calcProjectId} from '../../../src/internal/projects/calcProjectId';
 import {destructProjectUrl} from '../../../src/internal/projects/destructProjectUrl';
 import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
 import {DripsError} from '../../../src/internal/shared/DripsError';
+import {DripList} from '../../../src/internal/drip-lists/getDripListById';
 
 vi.mock('../../../src/internal/projects/calcProjectId');
 vi.mock('../../../src/internal/projects/destructProjectUrl');
@@ -23,7 +24,6 @@ describe('receiverUtils', () => {
     vi.clearAllMocks();
   });
 
-  // Test resolveReceiverAccountId
   describe('resolveReceiverAccountId', () => {
     describe('project receiver', () => {
       it('should resolve account ID for project receiver', async () => {
@@ -217,7 +217,6 @@ describe('receiverUtils', () => {
     });
   });
 
-  // Test parseSplitsReceivers
   describe('parseSplitsReceivers', () => {
     beforeEach(() => {
       vi.mocked(destructProjectUrl).mockImplementation((url: string) => {
@@ -356,7 +355,9 @@ describe('receiverUtils', () => {
       ).rejects.toThrow(DripsError);
       await expect(
         receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
-      ).rejects.toThrow('Duplicate splits receivers found: 123');
+      ).rejects.toThrow(
+        'Splits receivers not strictly sorted or deduplicated: 123 after 123',
+      );
     });
 
     it('should throw error for invalid weight', async () => {
@@ -375,7 +376,7 @@ describe('receiverUtils', () => {
       ).rejects.toThrow(DripsError);
       await expect(
         receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
-      ).rejects.toThrow('Total weight must be exactly 1000000, but got 0');
+      ).rejects.toThrow('Invalid weight: 0');
     });
 
     it('should sort receivers by accountId', async () => {
@@ -402,6 +403,316 @@ describe('receiverUtils', () => {
       // Assert
       expect(result.onChain[0].accountId).toBe(123n);
       expect(result.onChain[1].accountId).toBe(999n);
+    });
+
+    it('should throw error for weight exceeding maximum', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'drip-list',
+          accountId: 123n,
+          weight: 1_000_001, // Exceeds maximum
+        },
+      ];
+
+      // Act & Assert
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow(DripsError);
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow('Invalid weight: 1000001');
+    });
+
+    it('should throw error for negative weight', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'drip-list',
+          accountId: 123n,
+          weight: -1, // Negative weight
+        },
+      ];
+
+      // Act & Assert
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow(DripsError);
+      await expect(
+        receiverUtils.parseSplitsReceivers(mockAdapter, receivers),
+      ).rejects.toThrow('Invalid weight: -1');
+    });
+
+    it('should handle all receiver types in metadata', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'project',
+          url: 'https://github.com/owner/repo',
+          weight: 250000,
+        },
+        {
+          type: 'drip-list',
+          accountId: 789n,
+          weight: 250000,
+        },
+        {
+          type: 'sub-list',
+          accountId: 456n,
+          weight: 250000,
+        },
+        {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+          weight: 250000,
+        },
+      ];
+
+      // Act
+      const result = await receiverUtils.parseSplitsReceivers(
+        mockAdapter,
+        receivers,
+      );
+
+      // Assert - Results are sorted by accountId: 123n (project), 456n (sub-list), 789n (drip-list), 999n (address)
+      expect(result.metadata).toHaveLength(4);
+      expect(result.metadata[0]).toMatchObject({
+        type: 'repoDriver',
+        weight: 250000,
+      });
+      expect(result.metadata[1]).toMatchObject({
+        type: 'subList',
+        weight: 250000,
+      });
+      expect(result.metadata[2]).toMatchObject({
+        type: 'dripList',
+        weight: 250000,
+      });
+      expect(result.metadata[3]).toMatchObject({
+        type: 'address',
+        weight: 250000,
+      });
+    });
+  });
+
+  describe('mapApiSplitsToSdkSplitsReceivers', () => {
+    it('should map REPO driver splits to project receivers', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 500000,
+          account: {
+            driver: 'REPO',
+            accountId: '123',
+            address: '0x123' as Address,
+          },
+          project: {
+            source: {
+              url: 'https://github.com/owner/repo',
+            },
+          },
+        } as any,
+      ];
+
+      // Act
+      const result = receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: 'project',
+        url: 'https://github.com/owner/repo',
+        weight: 500000,
+      });
+    });
+
+    it('should map NFT driver splits to drip-list receivers', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 750000,
+          account: {
+            driver: 'NFT',
+            accountId: '456',
+            address: '0x456' as Address,
+          },
+        } as any,
+      ];
+
+      // Act
+      const result = receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: 'drip-list',
+        accountId: 456n,
+        weight: 750000,
+      });
+    });
+
+    it('should map IMMUTABLE_SPLITS driver splits to sub-list receivers', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 300000,
+          account: {
+            driver: 'IMMUTABLE_SPLITS',
+            accountId: '789',
+            address: '0x789' as Address,
+          },
+        } as any,
+      ];
+
+      // Act
+      const result = receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: 'sub-list',
+        accountId: 789n,
+        weight: 300000,
+      });
+    });
+
+    it('should map ADDRESS driver splits to address receivers', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 200000,
+          account: {
+            driver: 'ADDRESS',
+            accountId: '999',
+            address: '0x1234567890123456789012345678901234567890' as Address,
+          },
+        } as any,
+      ];
+
+      // Act
+      const result = receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: 'address',
+        address: '0x1234567890123456789012345678901234567890',
+        weight: 200000,
+      });
+    });
+
+    it('should throw error for REPO receiver without project URL', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 500000,
+          account: {
+            driver: 'REPO',
+            accountId: '123',
+            address: '0x123' as Address,
+          },
+          project: null, // Missing project
+        } as any,
+      ];
+
+      // Act & Assert
+      expect(() =>
+        receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits),
+      ).toThrow(DripsError);
+      expect(() =>
+        receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits),
+      ).toThrow('Missing project URL for REPO receiver');
+    });
+
+    it('should throw error for unsupported driver', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 500000,
+          account: {
+            driver: 'UNSUPPORTED' as any,
+            accountId: '123',
+            address: '0x123' as Address,
+          },
+        } as any,
+      ];
+
+      // Act & Assert
+      expect(() =>
+        receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits),
+      ).toThrow(DripsError);
+      expect(() =>
+        receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits),
+      ).toThrow('Unsupported account driver: UNSUPPORTED');
+    });
+
+    it('should handle mixed driver types', () => {
+      // Arrange
+      const splits: DripList['splits'] = [
+        {
+          weight: 250000,
+          account: {
+            driver: 'REPO',
+            accountId: '123',
+            address: '0x123' as Address,
+          },
+          project: {
+            source: {
+              url: 'https://github.com/owner/repo',
+            },
+          },
+        } as any,
+        {
+          weight: 250000,
+          account: {
+            driver: 'NFT',
+            accountId: '456',
+            address: '0x456' as Address,
+          },
+        } as any,
+        {
+          weight: 250000,
+          account: {
+            driver: 'IMMUTABLE_SPLITS',
+            accountId: '789',
+            address: '0x789' as Address,
+          },
+        } as any,
+        {
+          weight: 250000,
+          account: {
+            driver: 'ADDRESS',
+            accountId: '999',
+            address: '0x1234567890123456789012345678901234567890' as Address,
+          },
+        } as any,
+      ];
+
+      // Act
+      const result = receiverUtils.mapApiSplitsToSdkSplitsReceivers(splits);
+
+      // Assert
+      expect(result).toHaveLength(4);
+      expect(result[0]).toEqual({
+        type: 'project',
+        url: 'https://github.com/owner/repo',
+        weight: 250000,
+      });
+      expect(result[1]).toEqual({
+        type: 'drip-list',
+        accountId: 456n,
+        weight: 250000,
+      });
+      expect(result[2]).toEqual({
+        type: 'sub-list',
+        accountId: 789n,
+        weight: 250000,
+      });
+      expect(result[3]).toEqual({
+        type: 'address',
+        address: '0x1234567890123456789012345678901234567890',
+        weight: 250000,
+      });
     });
   });
 });

@@ -8,7 +8,7 @@ export interface DripsGraphQLClient {
   ): Promise<T>;
 }
 
-export const DEFAULT_GRAPHQL_URL = 'https://graphql.drips.network';
+export const DEFAULT_GRAPHQL_URL = 'http://localhost:8080';
 
 export function createGraphQLClient(
   url: string = DEFAULT_GRAPHQL_URL,

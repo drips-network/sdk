@@ -1,5 +1,5 @@
 {
-  "name": "drips-sdk",
+  "name": "drips-sdk-test-0",
   "version": "0.0.0-test.0",
   "license": "GPL-3.0-or-later",
   "description": "💧TypeScript SDK for Drips",
@@ -15,7 +15,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./build/index.js",
+      "default": "./build/index.js",
       "types": "./build/index.d.ts"
     },
     "./internal/*": null
@@ -26,7 +26,7 @@
     "lint": "gts lint",
     "fix": "gts fix",
     "clean": "gts clean && rm -rf build",
-    "compile": "tsc -p tsconfig.build.json",
+    "compile": "tsc --build --force tsconfig.build.json ",
     "prepare": "npm run compile",
     "pretest": "tsc --noEmit",
     "posttest": "npm run lint",

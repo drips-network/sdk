@@ -13,17 +13,17 @@ const MASK_32 = (1n << 32n) - 1n;
 const MASK_160 = (1n << 160n) - 1n;
 
 export type StreamConfig = {
-  readonly streamId: bigint;
+  readonly dripId: bigint;
   readonly amountPerSec: bigint;
   readonly start: bigint;
   readonly duration: bigint;
 };
 
 function validateStreamConfig(config: StreamConfig): void {
-  const {streamId, amountPerSec, start, duration} = config;
+  const {dripId, amountPerSec, start, duration} = config;
 
-  if (streamId < 0n || streamId > MAX_STREAM_ID)
-    throw new Error(`'streamId' must be in [0, ${MAX_STREAM_ID}]`);
+  if (dripId < 0n || dripId > MAX_STREAM_ID)
+    throw new Error(`'dripId' must be in [0, ${MAX_STREAM_ID}]`);
 
   if (amountPerSec <= 0n || amountPerSec > MAX_AMT_PER_SEC)
     throw new Error(`'amtPerSec' must be in (0, ${MAX_AMT_PER_SEC}]`);
@@ -38,7 +38,7 @@ function validateStreamConfig(config: StreamConfig): void {
 export function encodeStreamConfig(config: StreamConfig): bigint {
   validateStreamConfig(config);
 
-  const {streamId, amountPerSec, start, duration} = config;
+  const {dripId: streamId, amountPerSec, start, duration} = config;
 
   return (
     (((((streamId << AMT_PER_SEC_BITS) | amountPerSec) << START_BITS) |
@@ -55,7 +55,7 @@ export function decodeStreamConfig(packed: bigint): StreamConfig {
   const streamId = packed >> (160n + 64n);
 
   const config: StreamConfig = {
-    streamId,
+    dripId: streamId,
     amountPerSec,
     start,
     duration,

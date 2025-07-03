@@ -1,428 +1,987 @@
 <script lang="ts">
-	let initialReceivers = [
-		{
-			type: 'project',
-			address: '',
-			projectUrl: 'https://github.com/drips-network/sdk',
-			dripListId: '',
-			weight: 500000
-		},
-		{
-			type: 'address',
-			address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-			projectUrl: '',
-			dripListId: '',
-			weight: 500000
-		}
-	];
+  import {walletStore} from '$lib/stores/wallet';
+  import {
+    operationStatus,
+    updateOperationStatus,
+    addLog,
+    resetOperation,
+  } from '$lib/stores/sdk';
+  import {
+    createEthersSdk,
+    validateFormReceivers,
+    convertReceiversToSdkFormat,
+    generateRandomId,
+    localtestnet,
+    type SdkSplitsReceiver,
+  } from '$lib/utils/sdkFactory';
+  import {expect as expectUntil} from '$lib/utils/expect';
+  import {goto} from '$app/navigation';
 
-	let updatedReceivers = [
-		{
-			type: 'project',
-			address: '',
-			projectUrl: 'https://github.com/drips-network/sdk',
-			dripListId: '',
-			weight: 300000
-		},
-		{
-			type: 'address',
-			address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
-			projectUrl: '',
-			dripListId: '',
-			weight: 400000
-		},
-		{
-			type: 'address',
-			address: '0x1234567890123456789012345678901234567890',
-			projectUrl: '',
-			dripListId: '',
-			weight: 300000
-		}
-	];
+  // Form state
+  let privateKey = '';
+  let rpcUrl = 'http://localhost:8545';
+  let graphqlUrl = '';
+  let pinataJwt = '';
+  let pinataGateway = 'https://gateway.pinata.cloud';
+  let dripListId = '';
+  let dripListIdBigInt: bigint | null = null;
+  let dripListName = '';
+  let dripListDescription = '';
+  let isVisible = false;
 
-	function addInitialReceiver() {
-		initialReceivers = [...initialReceivers, {
-			type: 'address',
-			address: '',
-			projectUrl: '',
-			dripListId: '',
-			weight: 0
-		}];
-	}
+  // Fetched drip list state
+  let fetchedDripList: any = null;
+  let isFetching = false;
+  let fetchError = '';
 
-	function removeInitialReceiver(index: number) {
-		initialReceivers = initialReceivers.filter((_, i) => i !== index);
-	}
+  let receivers = [
+    {
+      type: 'address',
+      address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
+      projectUrl: '',
+      dripListId: '',
+      weight: 400000,
+    },
+    {
+      type: 'project',
+      address: '',
+      projectUrl: 'https://github.com/drips-network/sdk',
+      dripListId: '',
+      weight: 300000,
+    },
+    {
+      type: 'address',
+      address: '0x1234567890123456789012345678901234567890',
+      projectUrl: '',
+      dripListId: '',
+      weight: 300000,
+    },
+  ];
 
-	function handleInitialReceiverTypeChange(index: number, newType: string) {
-		initialReceivers[index].type = newType;
-		initialReceivers[index].address = '';
-		initialReceivers[index].projectUrl = '';
-		initialReceivers[index].dripListId = '';
-		initialReceivers = [...initialReceivers];
-	}
+  // Status popup state
+  let showStatusPopup = false;
+  let updatedDripListId: string | null = null;
 
-	function addUpdatedReceiver() {
-		updatedReceivers = [...updatedReceivers, {
-			type: 'address',
-			address: '',
-			projectUrl: '',
-			dripListId: '',
-			weight: 0
-		}];
-	}
+  function addReceiver() {
+    receivers = [
+      ...receivers,
+      {
+        type: 'address',
+        address: '',
+        projectUrl: '',
+        dripListId: '',
+        weight: 0,
+      },
+    ];
+  }
 
-	function removeUpdatedReceiver(index: number) {
-		updatedReceivers = updatedReceivers.filter((_, i) => i !== index);
-	}
+  function removeReceiver(index: number) {
+    receivers = receivers.filter((_, i) => i !== index);
+  }
 
-	function handleUpdatedReceiverTypeChange(index: number, newType: string) {
-		updatedReceivers[index].type = newType;
-		updatedReceivers[index].address = '';
-		updatedReceivers[index].projectUrl = '';
-		updatedReceivers[index].dripListId = '';
-		updatedReceivers = [...updatedReceivers];
-	}
+  function handleReceiverTypeChange(index: number, newType: string) {
+    receivers[index].type = newType;
+    // Clear other fields when type changes
+    receivers[index].address = '';
+    receivers[index].projectUrl = '';
+    receivers[index].dripListId = '';
+    receivers = [...receivers]; // Trigger reactivity
+  }
+
+  function showStatusMessage(
+    message: string,
+    type: 'info' | 'success' | 'error' | 'warning' = 'info',
+  ) {
+    updateOperationStatus({currentStep: message});
+    addLog(message);
+  }
+
+  async function fetchDripList() {
+    if (!dripListId.trim()) {
+      fetchError = 'Please enter a drip list ID';
+      return;
+    }
+
+    try {
+      isFetching = true;
+      fetchError = '';
+      fetchedDripList = null;
+
+      // Create a minimal SDK instance just for fetching
+      const {sdk} = await createEthersSdk({
+        privateKey: $walletStore.isConnected
+          ? undefined
+          : privateKey ||
+            '0x0000000000000000000000000000000000000000000000000000000000000001',
+        useConnectedWallet: $walletStore.isConnected,
+        rpcUrl,
+        graphqlUrl: graphqlUrl || undefined,
+        pinataJwt: pinataJwt || 'dummy',
+        pinataGateway: pinataGateway || 'https://gateway.pinata.cloud',
+      });
+
+      // Convert string ID to bigint
+      dripListIdBigInt = BigInt(dripListId);
+      const dripList = await sdk.dripLists.getById(
+        dripListIdBigInt,
+        localtestnet.id,
+      );
+
+      if (!dripList) {
+        throw new Error('Drip list not found');
+      }
+
+      fetchedDripList = dripList;
+
+      // Populate form with fetched data
+      dripListName = dripList.name || '';
+      dripListDescription = dripList.description || '';
+      isVisible = dripList.isVisible || false;
+
+      // Convert splits to form format - for now just use default receivers
+      // Note: The splits structure from GraphQL is complex and would need proper mapping
+      // For this demo, we'll keep the default receivers and let user modify them
+      receivers = [
+        {
+          type: 'address',
+          address: '0x945AFA63507e56748368D3F31ccC35043efDbd4b',
+          projectUrl: '',
+          dripListId: '',
+          weight: 400000,
+        },
+        {
+          type: 'project',
+          address: '',
+          projectUrl: 'https://github.com/drips-network/sdk',
+          dripListId: '',
+          weight: 300000,
+        },
+        {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890',
+          projectUrl: '',
+          dripListId: '',
+          weight: 300000,
+        },
+      ];
+
+      fetchError = '';
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to fetch drip list';
+      fetchError = errorMessage;
+      fetchedDripList = null;
+    } finally {
+      isFetching = false;
+    }
+  }
+
+  async function updateDripListWithEthers() {
+    try {
+      resetOperation();
+      showStatusPopup = true;
+      updateOperationStatus({isRunning: true, progress: 0});
+
+      // Step 1: Validate inputs
+      showStatusMessage('Validating inputs...', 'info');
+
+      if (!dripListId.trim()) {
+        throw new Error('Drip list ID is required');
+      }
+
+      if (!fetchedDripList) {
+        throw new Error('Please fetch the drip list first');
+      }
+
+      if (!pinataJwt || !pinataGateway) {
+        throw new Error('Pinata JWT and Gateway are required');
+      }
+
+      const useConnectedWallet = $walletStore.isConnected;
+      if (!useConnectedWallet && !privateKey) {
+        throw new Error('Either connect MetaMask or provide a private key');
+      }
+
+      // Convert and validate receivers
+      const validation = validateFormReceivers(receivers);
+      if (!validation.isValid) {
+        throw new Error(validation.error);
+      }
+      const sdkReceivers = convertReceiversToSdkFormat(receivers);
+
+      updateOperationStatus({progress: 10});
+
+      // Step 2: Set up wallet
+      showStatusMessage('Setting up Ethers wallet...', 'info');
+
+      if (useConnectedWallet) {
+        showStatusMessage(
+          `Using connected wallet: ${$walletStore.address}`,
+          'info',
+        );
+      } else {
+        showStatusMessage('Using private key for wallet setup...', 'info');
+      }
+
+      updateOperationStatus({progress: 20});
+
+      // Step 3: Create SDK instance
+      showStatusMessage(
+        'Creating Drips SDK instance with Ethers adapter...',
+        'info',
+      );
+
+      const {sdk, wallet, account} = await createEthersSdk({
+        privateKey: useConnectedWallet ? undefined : privateKey,
+        useConnectedWallet,
+        rpcUrl,
+        graphqlUrl: graphqlUrl || undefined,
+        pinataJwt,
+        pinataGateway,
+      });
+
+      showStatusMessage(`Wallet account: ${account.address}`, 'success');
+      if ($walletStore.isConnected) {
+        showStatusMessage(
+          `Connected wallet matches: ${$walletStore.address?.toLowerCase() === account.address?.toLowerCase()}`,
+          'info',
+        );
+      }
+      updateOperationStatus({progress: 40});
+
+      // Step 4: Update drip list
+      showStatusMessage('Updating drip list on blockchain...', 'info');
+
+      const updateResult = await sdk.dripLists.update({
+        dripListId: dripListIdBigInt!,
+        metadata: {
+          name: dripListName,
+          description: dripListDescription,
+          isVisible,
+        },
+        receivers: sdkReceivers,
+      });
+
+      const {ipfsHash, txResponse} = updateResult;
+
+      showStatusMessage(
+        `Drip list update initiated! ID: ${dripListId}`,
+        'success',
+      );
+      showStatusMessage(`IPFS Hash: ${ipfsHash}`, 'info');
+
+      updateOperationStatus({progress: 70});
+
+      // Step 5: Wait for transaction confirmation
+      showStatusMessage('Waiting for transaction confirmation...', 'info');
+
+      const receipt = await txResponse.wait();
+      showStatusMessage(
+        `Transaction confirmed! Hash: ${receipt.hash}`,
+        'success',
+      );
+
+      updateOperationStatus({progress: 75});
+
+      // Step 6: Wait for indexing
+      showStatusMessage(
+        'Drip list updated but changes not yet indexed. Waiting for indexing...',
+        'warning',
+      );
+
+      const INDEXING_TIMEOUT = 120_000; // 2 minutes
+      const POLLING_INTERVAL = 2_000; // 2 seconds
+
+      let pollingAttempt = 0;
+      const maxAttempts = Math.floor(INDEXING_TIMEOUT / POLLING_INTERVAL);
+
+      const indexingResult = await expectUntil(
+        () => {
+          pollingAttempt++;
+          // Update progress from 75% to 95% based on polling attempts
+          const pollingProgress = 75 + (pollingAttempt / maxAttempts) * 20;
+          updateOperationStatus({
+            progress: Math.min(Math.floor(pollingProgress), 95),
+          });
+          showStatusMessage(
+            `Checking indexing status... (attempt ${pollingAttempt}/${maxAttempts})`,
+            'info',
+          );
+
+          return sdk.dripLists.getById(dripListIdBigInt!, localtestnet.id);
+        },
+        dripList => {
+          // Check if the update has been indexed by comparing metadata
+          if (!dripList) return false;
+          return (
+            dripList.name === dripListName &&
+            dripList.description === dripListDescription &&
+            dripList.isVisible === isVisible
+          );
+        },
+        INDEXING_TIMEOUT,
+        POLLING_INTERVAL,
+        true,
+      );
+
+      if (indexingResult.failed) {
+        throw new Error(
+          'Drip list updates were not indexed within the timeout',
+        );
+      }
+
+      showStatusMessage(
+        'Drip list updates have been indexed and can now be queried!',
+        'success',
+      );
+
+      updateOperationStatus({progress: 95});
+
+      // Step 7: Complete
+      showStatusMessage(
+        'Drip list update and indexing completed successfully!',
+        'success',
+      );
+      updatedDripListId = dripListId;
+
+      updateOperationStatus({
+        progress: 100,
+        isRunning: false,
+        result: {dripListId, ipfsHash, txHash: receipt.hash},
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      showStatusMessage(`Error: ${errorMessage}`, 'error');
+      updateOperationStatus({
+        isRunning: false,
+        error: errorMessage,
+      });
+    }
+  }
+
+  function viewUpdatedDripList() {
+    if (updatedDripListId) {
+      goto(`/drip-lists/get?id=${updatedDripListId}`);
+    }
+  }
+
+  function closeStatusPopup() {
+    showStatusPopup = false;
+  }
 </script>
 
-<style>
-	.form-container {
-		background-color: #f0f0f0;
-		border: 2px inset #c0c0c0;
-		padding: 20px;
-		margin: 20px 0;
-	}
-	
-	.form-group {
-		margin: 15px 0;
-	}
-	
-	.form-group label {
-		display: block;
-		font-weight: bold;
-		margin-bottom: 5px;
-		color: #000080;
-	}
-	
-	.form-group input,
-	.form-group textarea {
-		width: 100%;
-		padding: 8px;
-		border: 2px inset #c0c0c0;
-		font-family: 'Courier New', monospace;
-		background-color: white;
-		box-sizing: border-box;
-	}
-	
-	.form-group textarea {
-		height: 80px;
-		resize: vertical;
-	}
-	
-	.receivers-section {
-		background-color: #e0e0e0;
-		border: 2px inset #c0c0c0;
-		padding: 15px;
-		margin: 15px 0;
-	}
-	
-	.receiver-item {
-		background-color: #f8f8f8;
-		border: 1px solid #808080;
-		padding: 10px;
-		margin: 10px 0;
-	}
-	
-	.receiver-controls {
-		display: flex;
-		gap: 10px;
-		align-items: center;
-		margin: 10px 0;
-	}
-	
-	.receiver-controls select {
-		padding: 5px;
-		border: 2px inset #c0c0c0;
-	}
-	
-	.button {
-		background-color: #c0c0c0;
-		border: 2px outset #c0c0c0;
-		padding: 10px 20px;
-		font-family: 'Courier New', monospace;
-		font-weight: bold;
-		cursor: pointer;
-		margin: 5px;
-	}
-	
-	.button:hover {
-		background-color: #e0e0e0;
-	}
-	
-	.button:active {
-		border: 2px inset #c0c0c0;
-	}
-	
-	.button.primary {
-		background-color: #800080;
-		color: white;
-	}
-	
-	.button.primary:hover {
-		background-color: #600060;
-	}
-	
-	.button.secondary {
-		background-color: #808000;
-		color: white;
-	}
-	
-	.button.secondary:hover {
-		background-color: #606000;
-	}
-	
-	.back-link {
-		margin-bottom: 20px;
-	}
-	
-	.back-link a {
-		color: #000080;
-		text-decoration: underline;
-	}
-	
-	.info-box {
-		background-color: #ffffcc;
-		border: 2px solid #ffcc00;
-		padding: 15px;
-		margin: 20px 0;
-	}
-	
-	.step-indicator {
-		background-color: #e0e0e0;
-		border: 2px outset #c0c0c0;
-		padding: 10px;
-		margin: 10px 0;
-		font-weight: bold;
-	}
-	
-	.phase-separator {
-		background-color: #ff6666;
-		color: white;
-		padding: 15px;
-		margin: 30px 0;
-		text-align: center;
-		font-weight: bold;
-		border: 2px solid #cc0000;
-	}
-</style>
-
 <div class="back-link">
-	<a href="/drip-lists">← Back to Drip Lists</a>
+  <a href="/drip-lists">← Back to Drip Lists</a>
 </div>
 
 <h1>Update Drip List (Ethers)</h1>
 
 <div class="info-box">
-	<strong>📝 About this operation:</strong><br>
-	This page replicates the "Update Drip List using Ethers" integration test. It will first create an initial drip list, 
-	then update its metadata and receivers, and verify the changes were applied correctly.
+  <strong>📝 About this operation:</strong><br />
+  This page allows you to update an existing drip list using the Ethers adapter.
+  Enter a drip list ID to fetch its current data, modify the metadata and receivers,
+  then update it on the blockchain.
 </div>
 
-<div class="step-indicator">
-	Step 1: Configure Wallet and Network Settings
-</div>
-
-<div class="form-container">
-	<div class="form-group">
-		<label for="privateKey">Private Key:</label>
-		<input type="password" id="privateKey" placeholder="0x..." />
-	</div>
-	
-	<div class="form-group">
-		<label for="rpcUrl">RPC URL:</label>
-		<input type="text" id="rpcUrl" value="http://localhost:8545" />
-	</div>
-	
-	<div class="form-group">
-		<label for="graphqlUrl">GraphQL URL (optional):</label>
-		<input type="text" id="graphqlUrl" placeholder="https://api.example.com/graphql (leave empty for default)" />
-	</div>
-</div>
-
-<div class="step-indicator">
-	Step 2: Configure IPFS Settings
-</div>
+<div class="step-indicator">Step 1: Configure Wallet and Network Settings</div>
 
 <div class="form-container">
-	<div class="form-group">
-		<label for="pinataJwt">Pinata JWT:</label>
-		<input type="password" id="pinataJwt" placeholder="Your Pinata JWT token" />
-	</div>
-	
-	<div class="form-group">
-		<label for="pinataGateway">Pinata Gateway:</label>
-		<input type="text" id="pinataGateway" placeholder="https://gateway.pinata.cloud" />
-	</div>
+  {#if $walletStore.isConnected}
+    <div class="wallet-status">
+      ✅ Wallet Connected: {$walletStore.address?.slice(
+        0,
+        6,
+      )}...{$walletStore.address?.slice(-4)}
+      <br /><small>Using connected wallet for transactions</small>
+    </div>
+  {:else}
+    <div class="wallet-status disconnected">
+      ❌ No Wallet Connected - Using Private Key Input
+    </div>
+    <div class="form-group">
+      <label for="privateKey">Private Key:</label>
+      <input
+        type="password"
+        id="privateKey"
+        bind:value={privateKey}
+        placeholder="0x..."
+      />
+    </div>
+  {/if}
+
+  <div class="form-group">
+    <label for="rpcUrl">RPC URL:</label>
+    <input type="text" id="rpcUrl" bind:value={rpcUrl} />
+  </div>
+
+  <div class="form-group">
+    <label for="graphqlUrl">GraphQL URL (optional):</label>
+    <input
+      type="text"
+      id="graphqlUrl"
+      bind:value={graphqlUrl}
+      placeholder="https://api.example.com/graphql (leave empty for default)"
+    />
+  </div>
 </div>
 
-<div class="phase-separator">
-	PHASE 1: CREATE INITIAL DRIP LIST
-</div>
-
-<div class="step-indicator">
-	Step 3: Define Initial Drip List Metadata
-</div>
-
-<div class="form-container">
-	<div class="form-group">
-		<label for="initialDripListName">Initial Drip List Name:</label>
-		<input type="text" id="initialDripListName" value="Test Drip List for Update (Ethers)" />
-	</div>
-	
-	<div class="form-group">
-		<label for="initialDripListDescription">Initial Description:</label>
-		<textarea id="initialDripListDescription">Initial drip list to be updated using Ethers adapter</textarea>
-	</div>
-	
-	<div class="form-group">
-		<label for="initialIsVisible">
-			<input type="checkbox" id="initialIsVisible" checked /> 
-			Make initial drip list visible
-		</label>
-	</div>
-</div>
-
-<div class="step-indicator">
-	Step 4: Configure Initial Split Receivers
-</div>
-
-<div class="receivers-section">
-	<h3>Initial Split Receivers</h3>
-	<p>Define the initial receivers (total weight must equal 1,000,000).</p>
-	
-	{#each initialReceivers as receiver, index}
-		<div class="receiver-item">
-			<div class="receiver-controls">
-				<label>Type:</label>
-				<select bind:value={receiver.type} on:change={() => handleInitialReceiverTypeChange(index, receiver.type)}>
-					<option value="address">Address</option>
-					<option value="project">Project</option>
-					<option value="drip-list">Drip List</option>
-				</select>
-				<button class="button" on:click={() => removeInitialReceiver(index)}>🗑️ Remove</button>
-			</div>
-			
-			{#if receiver.type === 'address'}
-				<div class="form-group">
-					<label>Address:</label>
-					<input type="text" bind:value={receiver.address} placeholder="0x..." />
-				</div>
-			{:else if receiver.type === 'project'}
-				<div class="form-group">
-					<label>Project URL:</label>
-					<input type="text" bind:value={receiver.projectUrl} placeholder="https://github.com/..." />
-				</div>
-			{:else if receiver.type === 'drip-list'}
-				<div class="form-group">
-					<label>Drip List ID:</label>
-					<input type="text" bind:value={receiver.dripListId} placeholder="Enter drip list ID" />
-				</div>
-			{/if}
-			
-			<div class="form-group">
-				<label>Weight:</label>
-				<input type="number" bind:value={receiver.weight} min="1" max="1000000" />
-			</div>
-		</div>
-	{/each}
-	
-	<button class="button" on:click={addInitialReceiver}>+ Add Receiver</button>
-</div>
-
-<div class="phase-separator">
-	PHASE 2: UPDATE THE DRIP LIST
-</div>
-
-<div class="step-indicator">
-	Step 5: Define Updated Drip List Metadata
-</div>
+<div class="step-indicator">Step 2: Configure IPFS Settings</div>
 
 <div class="form-container">
-	<div class="form-group">
-		<label for="updatedDripListName">Updated Drip List Name:</label>
-		<input type="text" id="updatedDripListName" value="Updated Test Drip List (Ethers)" />
-	</div>
-	
-	<div class="form-group">
-		<label for="updatedDripListDescription">Updated Description:</label>
-		<textarea id="updatedDripListDescription">Updated drip list description using Ethers adapter</textarea>
-	</div>
-	
-	<div class="form-group">
-		<label for="updatedIsVisible">
-			<input type="checkbox" id="updatedIsVisible" /> 
-			Make updated drip list visible (changed from initial)
-		</label>
-	</div>
+  <div class="form-group">
+    <label for="pinataJwt">Pinata JWT:</label>
+    <input
+      type="password"
+      id="pinataJwt"
+      bind:value={pinataJwt}
+      placeholder="Your Pinata JWT token"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="pinataGateway">Pinata Gateway:</label>
+    <input
+      type="text"
+      id="pinataGateway"
+      bind:value={pinataGateway}
+      placeholder="https://gateway.pinata.cloud"
+    />
+  </div>
 </div>
 
-<div class="step-indicator">
-	Step 6: Configure Updated Split Receivers
-</div>
-
-<div class="receivers-section">
-	<h3>Updated Split Receivers</h3>
-	<p>Define the updated receivers with new weights and an additional receiver.</p>
-	
-	{#each updatedReceivers as receiver, index}
-		<div class="receiver-item">
-			<div class="receiver-controls">
-				<label>Type:</label>
-				<select bind:value={receiver.type} on:change={() => handleUpdatedReceiverTypeChange(index, receiver.type)}>
-					<option value="address">Address</option>
-					<option value="project">Project</option>
-					<option value="drip-list">Drip List</option>
-				</select>
-				<button class="button" on:click={() => removeUpdatedReceiver(index)}>🗑️ Remove</button>
-			</div>
-			
-			{#if receiver.type === 'address'}
-				<div class="form-group">
-					<label>Address:</label>
-					<input type="text" bind:value={receiver.address} placeholder="0x..." />
-				</div>
-			{:else if receiver.type === 'project'}
-				<div class="form-group">
-					<label>Project URL:</label>
-					<input type="text" bind:value={receiver.projectUrl} placeholder="https://github.com/..." />
-				</div>
-			{:else if receiver.type === 'drip-list'}
-				<div class="form-group">
-					<label>Drip List ID:</label>
-					<input type="text" bind:value={receiver.dripListId} placeholder="Enter drip list ID" />
-				</div>
-			{/if}
-			
-			<div class="form-group">
-				<label>Weight:</label>
-				<input type="number" bind:value={receiver.weight} min="1" max="1000000" />
-			</div>
-		</div>
-	{/each}
-	
-	<button class="button" on:click={addUpdatedReceiver}>+ Add Receiver</button>
-</div>
-
-<div class="step-indicator">
-	Step 7: Execute Operation
-</div>
+<div class="step-indicator">Step 3: Fetch Existing Drip List</div>
 
 <div class="form-container">
-	<button class="button secondary">🏗️ Create Initial Drip List</button>
-	<button class="button primary">🔄 Update Drip List with Ethers</button>
+  <div class="form-group">
+    <label for="dripListId">Drip List ID to Update:</label>
+    <input
+      type="text"
+      id="dripListId"
+      bind:value={dripListId}
+      placeholder="Enter the ID of the drip list to update"
+    />
+  </div>
+
+  <button
+    class="button"
+    on:click={fetchDripList}
+    disabled={isFetching || !dripListId.trim()}
+  >
+    {#if isFetching}
+      🔄 Fetching...
+    {:else}
+      📥 Fetch Drip List
+    {/if}
+  </button>
+
+  {#if fetchError}
+    <div class="error-message">
+      <strong>❌ Error:</strong>
+      {fetchError}
+    </div>
+  {/if}
+
+  {#if fetchedDripList}
+    <div class="success-message">
+      <strong>✅ Drip List Fetched Successfully!</strong>
+      <br />Name: {fetchedDripList.name || 'Unnamed'}
+      <br />Description: {fetchedDripList.description || 'No description'}
+      <br />Visible: {fetchedDripList.isVisible ? 'Yes' : 'No'}
+      <br />Splits Receivers: {fetchedDripList.receivers?.length || 0}
+    </div>
+  {/if}
 </div>
 
-<div class="info-box">
-	<strong>⚠️ Note:</strong> This operation involves two blockchain transactions and IPFS uploads. 
-	Make sure you have sufficient funds for gas fees and valid API credentials.
-</div>
+{#if fetchedDripList}
+  <div class="step-indicator">Step 4: Update Drip List Metadata</div>
+
+  <div class="form-container">
+    <div class="form-group">
+      <label for="dripListName">Drip List Name:</label>
+      <input type="text" id="dripListName" bind:value={dripListName} />
+    </div>
+
+    <div class="form-group">
+      <label for="dripListDescription">Description:</label>
+      <textarea id="dripListDescription" bind:value={dripListDescription}
+      ></textarea>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label for="isVisible">
+        <input type="checkbox" id="isVisible" bind:checked={isVisible} />
+        Make drip list visible
+      </label>
+    </div>
+  </div>
+
+  <div class="step-indicator">Step 5: Update Split Receivers</div>
+
+  <div class="receivers-section">
+    <h3>Split Receivers</h3>
+    <p>
+      Modify the receivers and their respective weights (total must equal
+      1,000,000).
+    </p>
+
+    {#each receivers as receiver, index}
+      <div class="receiver-item">
+        <div class="receiver-controls">
+          <label>Type:</label>
+          <select
+            bind:value={receiver.type}
+            on:change={() => handleReceiverTypeChange(index, receiver.type)}
+          >
+            <option value="address">Address</option>
+            <option value="project">Project</option>
+            <option value="drip-list">Drip List</option>
+          </select>
+          <button class="button" on:click={() => removeReceiver(index)}
+            >🗑️ Remove</button
+          >
+        </div>
+
+        {#if receiver.type === 'address'}
+          <div class="form-group">
+            <label>Address:</label>
+            <input
+              type="text"
+              bind:value={receiver.address}
+              placeholder="0x..."
+            />
+          </div>
+        {:else if receiver.type === 'project'}
+          <div class="form-group">
+            <label>Project URL:</label>
+            <input
+              type="text"
+              bind:value={receiver.projectUrl}
+              placeholder="https://github.com/..."
+            />
+          </div>
+        {:else if receiver.type === 'drip-list'}
+          <div class="form-group">
+            <label>Drip List ID:</label>
+            <input
+              type="text"
+              bind:value={receiver.dripListId}
+              placeholder="Enter drip list ID"
+            />
+          </div>
+        {/if}
+
+        <div class="form-group">
+          <label>Weight:</label>
+          <input
+            type="number"
+            bind:value={receiver.weight}
+            min="1"
+            max="1000000"
+          />
+        </div>
+      </div>
+    {/each}
+
+    <button class="button" on:click={addReceiver}>+ Add Receiver</button>
+  </div>
+
+  <div class="step-indicator">Step 6: Execute Operation</div>
+
+  <div class="form-container">
+    <button
+      class="button primary"
+      on:click={updateDripListWithEthers}
+      disabled={$operationStatus.isRunning || !fetchedDripList}
+    >
+      {#if $operationStatus.isRunning}
+        🔄 Updating...
+      {:else}
+        🔄 Update Drip List with Ethers
+      {/if}
+    </button>
+  </div>
+
+  <div class="info-box">
+    <strong>⚠️ Note:</strong> This operation will interact with the blockchain and
+    IPFS. Make sure you have sufficient funds for gas fees and valid API credentials.
+  </div>
+{/if}
+
+<!-- Status Popup -->
+{#if showStatusPopup}
+  <div
+    class="popup-overlay"
+    on:click={closeStatusPopup}
+    role="button"
+    tabindex="0"
+    on:keydown={e => e.key === 'Escape' && closeStatusPopup()}
+  >
+    <div
+      class="popup-content retro-popup"
+      on:click|stopPropagation
+      role="dialog"
+      tabindex="-1"
+    >
+      <div class="popup-header">
+        <h3>🔄 DRIP LIST UPDATE STATUS</h3>
+        <button class="close-button" on:click={closeStatusPopup}>×</button>
+      </div>
+
+      <div class="status-content">
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            style="width: {$operationStatus.progress}%"
+          ></div>
+        </div>
+        <div class="progress-text">{$operationStatus.progress}% Complete</div>
+
+        <div class="current-step">
+          <strong>Current Step:</strong>
+          {$operationStatus.currentStep}
+        </div>
+
+        {#if $operationStatus.error}
+          <div class="error-message">
+            <strong>❌ Error:</strong>
+            {$operationStatus.error}
+          </div>
+        {/if}
+
+        {#if $operationStatus.result && updatedDripListId}
+          <div class="success-message">
+            <strong>✅ Success!</strong> Drip List updated successfully!
+            <br /><strong>Drip List ID:</strong>
+            <div class="drip-list-id">{updatedDripListId}</div>
+            <br /><button class="button" on:click={viewUpdatedDripList}
+              >View Updated Drip List</button
+            >
+          </div>
+        {/if}
+
+        <div class="logs-section">
+          <h4>Operation Logs:</h4>
+          <div class="logs-container">
+            {#each $operationStatus.logs as log}
+              <div class="log-entry">{log}</div>
+            {/each}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .form-container {
+    background-color: #f0f0f0;
+    border: 2px inset #c0c0c0;
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .form-group {
+    margin: 15px 0;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #000080;
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+  }
+
+  .checkbox-group input[type='checkbox'] {
+    width: auto;
+    margin: 0;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 2px inset #c0c0c0;
+    font-family: 'Courier New', monospace;
+    background-color: white;
+    box-sizing: border-box;
+  }
+
+  .form-group textarea {
+    height: 80px;
+    resize: vertical;
+  }
+
+  .receivers-section {
+    background-color: #e0e0e0;
+    border: 2px inset #c0c0c0;
+    padding: 15px;
+    margin: 15px 0;
+  }
+
+  .receiver-item {
+    background-color: #f8f8f8;
+    border: 1px solid #808080;
+    padding: 10px;
+    margin: 10px 0;
+  }
+
+  .receiver-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
+  }
+
+  .receiver-controls select {
+    padding: 5px;
+    border: 2px inset #c0c0c0;
+  }
+
+  .button {
+    background-color: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    padding: 10px 20px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 5px;
+  }
+
+  .button:hover {
+    background-color: #e0e0e0;
+  }
+
+  .button:active {
+    border: 2px inset #c0c0c0;
+  }
+
+  .button.primary {
+    background-color: #800080;
+    color: white;
+  }
+
+  .button.primary:hover {
+    background-color: #600060;
+  }
+
+  .back-link {
+    margin-bottom: 20px;
+  }
+
+  .back-link a {
+    color: #000080;
+    text-decoration: underline;
+  }
+
+  .info-box {
+    background-color: #ffffcc;
+    border: 2px solid #ffcc00;
+    padding: 15px;
+    margin: 20px 0;
+  }
+
+  .step-indicator {
+    background-color: #e0e0e0;
+    border: 2px outset #c0c0c0;
+    padding: 10px;
+    margin: 10px 0;
+    font-weight: bold;
+  }
+
+  .wallet-status {
+    background-color: #ccffcc;
+    border: 2px solid #66ff66;
+    padding: 10px;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #006600;
+  }
+
+  .wallet-status.disconnected {
+    background-color: #ffcccc;
+    border-color: #ff6666;
+    color: #cc0000;
+  }
+
+  .error-message {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #ffcccc;
+    border: 2px solid #ff0000;
+    color: #cc0000;
+  }
+
+  .success-message {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #ccffcc;
+    border: 2px solid #00ff00;
+    color: #006600;
+  }
+
+  .button:disabled {
+    background-color: #808080;
+    color: #c0c0c0;
+    cursor: not-allowed;
+  }
+
+  /* Popup Styles - Retro 90s Theme */
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .popup-content {
+    background-color: #c0c0c0;
+    border: 4px outset #c0c0c0;
+    color: #000000;
+    font-family: 'Courier New', monospace;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  .retro-popup {
+    background: linear-gradient(
+      45deg,
+      #c0c0c0 25%,
+      #d0d0d0 25%,
+      #d0d0d0 50%,
+      #c0c0c0 50%,
+      #c0c0c0 75%,
+      #d0d0d0 75%
+    );
+    background-size: 8px 8px;
+  }
+
+  .popup-header {
+    background-color: #000080;
+    color: white;
+    padding: 15px;
+    border-bottom: 2px solid #808080;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .popup-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    text-shadow: 1px 1px 0px #000000;
+  }
+
+  .close-button {
+    background-color: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    color: #000000;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+  }
+
+  .close-button:hover {
+    background-color: #e0e0e0;
+  }
+
+  .close-button:active {
+    border: 2px inset #c0c0c0;
+  }
+
+  .status-content {
+    padding: 20px;
+    background-color: #f0f0f0;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #808080;
+    border: 2px inset #c0c0c0;
+    margin: 10px 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #008000);
+    transition: width 0.3s ease;
+    border-right: 2px solid #004000;
+  }
+
+  .progress-text {
+    text-align: center;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #000080;
+  }
+
+  .current-step {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #e0e0e0;
+    border: 2px inset #c0c0c0;
+    color: #000080;
+  }
+
+  .drip-list-id {
+    font-family: 'Courier New', monospace;
+    background-color: #ffffff;
+    border: 1px inset #c0c0c0;
+    padding: 8px;
+    margin: 8px 0;
+    word-break: break-all;
+    font-size: 12px;
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  .logs-section {
+    margin-top: 20px;
+  }
+
+  .logs-section h4 {
+    color: #000080;
+    margin-bottom: 10px;
+  }
+
+  .logs-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 2px inset #c0c0c0;
+    padding: 10px;
+  }
+
+  .log-entry {
+    font-size: 12px;
+    margin: 2px 0;
+    color: #000000;
+    font-family: 'Courier New', monospace;
+  }
+</style>

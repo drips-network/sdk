@@ -12,66 +12,73 @@ export function validateAndFormatStreamReceivers(
   onChainReceivers: OnChainStreamReceiver[],
 ): OnChainStreamReceiver[] {
   validateMaxReceiversCount(onChainReceivers);
-  const validReceivers = validateNonZeroAmtPerSec(onChainReceivers);
-  const uniqueReceivers = validateNoDuplicateStreamReceivers(validReceivers);
-  const sortedReceivers = sortStreamReceiversByAccountId(uniqueReceivers);
-
+  const nonZeroReceivers = validateNonZeroAmtPerSec(onChainReceivers);
+  const sortedReceivers = sortStreamReceivers(nonZeroReceivers);
+  validateSortedAndDeduplicated(sortedReceivers);
   return sortedReceivers;
 }
 
-function validateMaxReceiversCount(
-  receivers: OnChainStreamReceiver[],
-): OnChainStreamReceiver[] {
+function validateMaxReceiversCount(receivers: OnChainStreamReceiver[]): void {
   if (receivers.length > MAX_STREAMS_RECEIVERS) {
     throw new DripsError(
       `Too many stream receivers: ${receivers.length}. Maximum is ${MAX_STREAMS_RECEIVERS}`,
     );
   }
-  return receivers;
 }
 
 function validateNonZeroAmtPerSec(
   receivers: OnChainStreamReceiver[],
 ): OnChainStreamReceiver[] {
-  const invalidReceivers = receivers.filter(r => {
-    const decodedConfig = decodeStreamConfig(r.config);
+  const invalid = receivers.filter(
+    r => decodeStreamConfig(r.config).amountPerSec === 0n,
+  );
 
-    return (
-      decodedConfig.amountPerSec === 0n || decodedConfig.amountPerSec === 0n
-    );
-  });
-  if (invalidReceivers.length > 0) {
+  if (invalid.length > 0) {
     throw new DripsError(
-      `Stream receivers with 0 amtPerSec: ${invalidReceivers
-        .map(r => r.accountId)
+      `Stream receivers with 0 amtPerSec: ${invalid
+        .map(r => r.accountId.toString())
         .join(', ')}`,
     );
   }
-  return receivers;
-}
-
-function validateNoDuplicateStreamReceivers(
-  receivers: OnChainStreamReceiver[],
-): OnChainStreamReceiver[] {
-  const seen = new Set<bigint>();
-  const duplicates: bigint[] = [];
-
-  for (const r of receivers) {
-    if (seen.has(r.accountId)) duplicates.push(r.accountId);
-    else seen.add(r.accountId);
-  }
-
-  if (duplicates.length > 0) {
-    throw new DripsError(
-      `Duplicate stream receivers found: ${[...new Set(duplicates)].join(', ')}`,
-    );
-  }
 
   return receivers;
 }
 
-function sortStreamReceiversByAccountId(
+function sortStreamReceivers(
   receivers: OnChainStreamReceiver[],
 ): OnChainStreamReceiver[] {
-  return [...receivers].sort((a, b) => (a.accountId > b.accountId ? 1 : -1));
+  return [...receivers].sort((a, b) => {
+    if (a.accountId !== b.accountId) {
+      return a.accountId > b.accountId ? 1 : -1;
+    }
+    return a.config > b.config ? 1 : -1; // Mirrors StreamConfig.lt
+  });
+}
+
+function validateSortedAndDeduplicated(
+  receivers: OnChainStreamReceiver[],
+): void {
+  for (let i = 1; i < receivers.length; i++) {
+    const prev = receivers[i - 1];
+    const curr = receivers[i];
+
+    const sameAccount = prev.accountId === curr.accountId;
+    const sameConfig = prev.config === curr.config;
+
+    if (sameAccount && sameConfig) {
+      throw new DripsError(
+        `Duplicate stream receiver: accountId=${curr.accountId.toString()}, config=${curr.config.toString()}`,
+      );
+    }
+
+    const ordered =
+      prev.accountId < curr.accountId ||
+      (prev.accountId === curr.accountId && prev.config < curr.config);
+
+    if (!ordered) {
+      throw new DripsError(
+        `Stream receivers not sorted: receiver at index ${i - 1} (${prev.accountId}, ${prev.config}) should come before receiver at index ${i} (${curr.accountId}, ${curr.config})`,
+      );
+    }
+  }
 }

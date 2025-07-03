@@ -49,6 +49,8 @@ export const utils = {
   resolveAddressFromAccountId,
 };
 
+export {contractsRegistry} from './internal/config/contractsRegistry';
+
 export const dripsConstants = {
   MAX_SPLITS_RECEIVERS,
   TOTAL_SPLITS_WEIGHT,
@@ -56,6 +58,7 @@ export const dripsConstants = {
   MAX_STREAMS_RECEIVERS,
 };
 
+export {DripsSdk} from './sdk/createDripsSdk';
 export {DripList} from './internal/drip-lists/getDripListById';
 export {
   PreparedTx,

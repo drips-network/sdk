@@ -1,6 +1,8 @@
 {
 	"/": [],
 	"/donations": [],
+	"/donations/continuous-viem": [],
+	"/donations/one-time-ethers": [],
 	"/donations/one-time-viem": [],
 	"/drip-lists": [],
 	"/drip-lists/create-ethers": [],

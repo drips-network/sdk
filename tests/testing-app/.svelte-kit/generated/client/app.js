@@ -12,7 +12,9 @@ export const nodes = [
 	() => import('./nodes/8'),
 	() => import('./nodes/9'),
 	() => import('./nodes/10'),
-	() => import('./nodes/11')
+	() => import('./nodes/11'),
+	() => import('./nodes/12'),
+	() => import('./nodes/13')
 ];
 
 export const server_loads = [];
@@ -20,14 +22,16 @@ export const server_loads = [];
 export const dictionary = {
 		"/": [2],
 		"/donations": [3],
-		"/donations/one-time-viem": [4],
-		"/drip-lists": [5],
-		"/drip-lists/create-ethers": [6],
-		"/drip-lists/create-viem": [7],
-		"/drip-lists/get": [8],
-		"/drip-lists/update-ethers": [9],
-		"/drip-lists/update-viem": [10],
-		"/utils": [11]
+		"/donations/continuous-viem": [4],
+		"/donations/one-time-ethers": [5],
+		"/donations/one-time-viem": [6],
+		"/drip-lists": [7],
+		"/drip-lists/create-ethers": [8],
+		"/drip-lists/create-viem": [9],
+		"/drip-lists/get": [10],
+		"/drip-lists/update-ethers": [11],
+		"/drip-lists/update-viem": [12],
+		"/utils": [13]
 	};
 
 export const hooks = {

@@ -247,7 +247,47 @@ export async function parseSplitsReceivers(
     );
   }
 
-  const totalWeight = sdkReceivers.reduce((sum, r) => sum + r.weight, 0);
+  const resolved = await Promise.all(
+    sdkReceivers.map(async r => ({
+      receiver: r,
+      accountId: await resolveReceiverAccountId(adapter, r),
+    })),
+  );
+
+  // Sort by accountId ascending (strictly increasing)
+  resolved.sort((a, b) => (a.accountId > b.accountId ? 1 : -1));
+
+  const onChain: OnChainSplitsReceiver[] = [];
+  const metadata: MetadataSplitsReceiver[] = [];
+
+  let totalWeight = 0;
+  let prevAccountId: bigint | null = null;
+
+  for (const {receiver, accountId} of resolved) {
+    const {weight} = receiver;
+
+    if (weight <= 0 || weight > TOTAL_SPLITS_WEIGHT) {
+      throw new DripsError(`Invalid weight: ${weight}`, {
+        meta: {operation: parseSplitsReceivers.name, receiver},
+      });
+    }
+
+    if (prevAccountId !== null && accountId <= prevAccountId) {
+      throw new DripsError(
+        `Splits receivers not strictly sorted or deduplicated: ${accountId} after ${prevAccountId}`,
+        {
+          meta: {operation: parseSplitsReceivers.name},
+        },
+      );
+    }
+
+    totalWeight += weight;
+    prevAccountId = accountId;
+
+    onChain.push({accountId, weight});
+    metadata.push(await mapSdkToMetadataSplitsReceiver(accountId, receiver));
+  }
+
   if (totalWeight !== TOTAL_SPLITS_WEIGHT) {
     throw new DripsError(
       `Total weight must be exactly ${TOTAL_SPLITS_WEIGHT}, but got ${totalWeight}`,
@@ -257,44 +297,5 @@ export async function parseSplitsReceivers(
     );
   }
 
-  const seen = new Set<bigint>();
-  const duplicates: bigint[] = [];
-
-  const onChain: OnChainSplitsReceiver[] = [];
-  const metadata: MetadataSplitsReceiver[] = [];
-
-  for (const r of sdkReceivers) {
-    if (r.weight <= 0 || r.weight > TOTAL_SPLITS_WEIGHT) {
-      throw new DripsError(`Invalid weight: ${r.weight}`, {
-        meta: {operation: parseSplitsReceivers.name, receiver: r},
-      });
-    }
-
-    const accountId = await resolveReceiverAccountId(adapter, r);
-
-    if (seen.has(accountId)) {
-      duplicates.push(accountId);
-    } else {
-      seen.add(accountId);
-    }
-
-    onChain.push({accountId, weight: r.weight});
-    metadata.push(await mapSdkToMetadataSplitsReceiver(accountId, r));
-  }
-
-  if (duplicates.length > 0) {
-    throw new DripsError(
-      `Duplicate splits receivers found: ${[...new Set(duplicates)].join(', ')}`,
-      {meta: {operation: parseSplitsReceivers.name}},
-    );
-  }
-
-  const sorted = onChain
-    .map((r, i) => ({onChain: r, metadata: metadata[i]}))
-    .sort((a, b) => (a.onChain.accountId > b.onChain.accountId ? 1 : -1));
-
-  return {
-    onChain: sorted.map(x => x.onChain),
-    metadata: sorted.map(x => x.metadata),
-  };
+  return {onChain, metadata};
 }

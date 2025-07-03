@@ -128,7 +128,7 @@ describe('createGraphQLClient', () => {
       const validUrls = [
         'https://api.example.com/graphql',
         'http://localhost:4000/graphql',
-        'https://graphql.drips.network',
+        'http://localhost:8080',
       ];
 
       // Act & Assert
@@ -357,7 +357,7 @@ describe('createGraphQLClient', () => {
 
   describe('Constants', () => {
     it('should export correct default GraphQL URL', () => {
-      expect(DEFAULT_GRAPHQL_URL).toBe('https://graphql.drips.network');
+      expect(DEFAULT_GRAPHQL_URL).toBe('http://localhost:8080');
     });
   });
 
