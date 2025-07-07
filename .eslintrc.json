@@ -1,4 +1,7 @@
 {
+  "parserOptions": {
+    "project": "./tsconfig.eslint.json"
+  },
   "extends": "./node_modules/gts/",
   "rules": {
     "object-shorthand": ["error", "always"],

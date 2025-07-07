@@ -240,7 +240,7 @@ describe('prepareContinuousDonation', () => {
     expect(requireSupportedChain).toHaveBeenCalledWith(mockChainId);
     expect(requireWriteAccess).toHaveBeenCalledWith(
       mockAdapter,
-      'prepareDripListCreation',
+      'prepareContinuousDonation',
     );
     expect(resolveReceiverAccountId).toHaveBeenCalledWith(mockAdapter, {
       type: 'address',
@@ -261,7 +261,7 @@ describe('prepareContinuousDonation', () => {
     );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
       amountPerSec: mockAmountPerSec * AMT_PER_SEC_MULTIPLIER,
-      streamId: expect.any(BigInt),
+      dripId: expect.any(BigInt),
       duration: BigInt(donation.durationSeconds),
       start: BigInt(donation.startAt.getTime()) / 1000n,
     });
@@ -356,7 +356,7 @@ describe('prepareContinuousDonation', () => {
 
     expect(encodeStreamConfig).toHaveBeenCalledWith({
       amountPerSec: mockAmountPerSec * AMT_PER_SEC_MULTIPLIER,
-      streamId: expect.any(BigInt),
+      dripId: expect.any(BigInt),
       duration: 0n,
       start: 0n,
     });

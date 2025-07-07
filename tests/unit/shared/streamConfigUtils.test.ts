@@ -39,7 +39,7 @@ describe('streamConfigUtils', () => {
 
       // Act & Assert
       expect(() => encodeStreamConfig(config)).toThrow(
-        "'streamId' must be in [0, 4294967295]",
+        "'dripId' must be in [0, 4294967295]",
       );
     });
 
@@ -54,7 +54,7 @@ describe('streamConfigUtils', () => {
 
       // Act & Assert
       expect(() => encodeStreamConfig(config)).toThrow(
-        "'streamId' must be in [0, 4294967295]",
+        "'dripId' must be in [0, 4294967295]",
       );
     });
 

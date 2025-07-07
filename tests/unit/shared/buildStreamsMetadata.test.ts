@@ -204,7 +204,7 @@ describe('buildStreamsMetadata', () => {
       '999',
     );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      streamId: 999n,
+      dripId: 999n,
       start: 1672531200n, // Jan 1, 2023 timestamp in seconds
       duration: 86400n,
       amountPerSec: 1000000000000000000n,
@@ -471,7 +471,7 @@ describe('buildStreamsMetadata', () => {
 
     // Assert
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      streamId: 999n,
+      dripId: 999n,
       start: 0n, // Should use 0 when startAt is null
       duration: 86400n,
       amountPerSec: 1000000000000000000n,
@@ -516,7 +516,7 @@ describe('buildStreamsMetadata', () => {
 
     // Assert
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      streamId: 999n,
+      dripId: 999n,
       start: 1672531200n,
       duration: 0n, // Should use 0 when durationSeconds is null
       amountPerSec: 1000000000000000000n,
