@@ -248,7 +248,7 @@ export type ProjectReceiver = Receiver & {
 };
 
 export enum ProjectSortField {
-  ClaimedAt = 'claimed_at',
+  ClaimedAt = 'claimedAt',
 }
 
 export type ProjectSortInput = {
@@ -266,9 +266,9 @@ export type ProjectSupport = {
 };
 
 export enum ProjectVerificationStatus {
-  Claimed = 'claimed',
-  PendingMetadata = 'pending_metadata',
-  Unclaimed = 'unclaimed',
+  Claimed = 'Claimed',
+  PendingMetadata = 'PendingMetadata',
+  Unclaimed = 'Unclaimed',
 }
 
 export type ProjectWhereInput = {

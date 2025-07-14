@@ -71,7 +71,7 @@ export function createDripListsModule(deps: Deps): DripListsModule {
         dripList,
       ),
 
-    create: async (dripList: NewDripList) =>
+    create: (dripList: NewDripList) =>
       createDripList(
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,
@@ -86,7 +86,7 @@ export function createDripListsModule(deps: Deps): DripListsModule {
         graphqlClient,
       ),
 
-    update: async (config: DripListUpdateConfig) =>
+    update: (config: DripListUpdateConfig) =>
       updateDripList(
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,

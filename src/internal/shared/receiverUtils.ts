@@ -16,7 +16,6 @@ import {
   AddressReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
-import {unreachable} from './unreachable';
 
 export const MAX_SPLITS_RECEIVERS = 200;
 export const TOTAL_SPLITS_WEIGHT = 1_000_000;
@@ -64,10 +63,6 @@ export type SdkSplitsReceiver = SdkReceiver & {
 export type OnChainSplitsReceiver = {
   accountId: bigint;
   weight: number;
-};
-
-export type OnChainStreamReceiver = SdkReceiver & {
-  config: bigint;
 };
 
 type MetadataDripListReceiver = z.output<typeof dripListSplitReceiverSchema>;

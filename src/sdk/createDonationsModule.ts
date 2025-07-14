@@ -48,7 +48,7 @@ export function createDonationsModule(deps: Deps): DonationsModule {
     prepareOneTimeDonation: (donation: OneTimeDonation) =>
       prepareOneTimeDonation(adapter as WriteBlockchainAdapter, donation),
 
-    sendOneTime: async (donation: OneTimeDonation) =>
+    sendOneTime: (donation: OneTimeDonation) =>
       sendOneTimeDonation(adapter as WriteBlockchainAdapter, donation),
 
     prepareContinuous: (donation: ContinuousDonation) =>
@@ -59,7 +59,7 @@ export function createDonationsModule(deps: Deps): DonationsModule {
         graphqlClient,
       ),
 
-    sendContinuous: async (donation: ContinuousDonation) =>
+    sendContinuous: (donation: ContinuousDonation) =>
       sendContinuousDonation(
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,

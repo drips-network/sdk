@@ -16,10 +16,12 @@ import {
   DEFAULT_GRAPHQL_URL,
 } from '../internal/graphql/createGraphQLClient';
 import {createDonationsModule, DonationsModule} from './createDonationsModule';
+import {createUsersModule, UsersModule} from './createUsersModule';
 
 export interface DripsSdk {
   readonly dripLists: DripListsModule;
   readonly donations: DonationsModule;
+  readonly users: UsersModule;
   readonly utils: typeof utils;
   readonly constants: typeof dripsConstants;
 }
@@ -63,5 +65,6 @@ export function createDripsSdk(
     constants: dripsConstants,
     dripLists: createDripListsModule(deps),
     donations: createDonationsModule(deps),
+    users: createUsersModule(deps),
   };
 }

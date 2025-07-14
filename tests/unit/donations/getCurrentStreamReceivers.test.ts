@@ -7,8 +7,8 @@ import {
 import {requireGraphQLSupportedChain} from '../../../src/internal/shared/assertions';
 import {filterCurrentChain} from '../../../src/internal/shared/filterCurrentChain';
 import {Address} from 'viem';
-import {GetCurrentStreamsQuery} from '../../../src/internal/donations/__generated__/gql.generated';
 import * as Types from '../../../src/internal/graphql/__generated__/base-types';
+import {GetCurrentStreamsQuery} from '../../../src/internal/streams/__generated__/gql.generated';
 
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 vi.mock('../../../src/internal/shared/assertions');

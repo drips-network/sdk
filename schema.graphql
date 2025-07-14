@@ -202,7 +202,7 @@ type ProjectReceiver implements Receiver {
 }
 
 enum ProjectSortField {
-  claimed_at
+  claimedAt
 }
 
 input ProjectSortInput {
@@ -219,9 +219,9 @@ type ProjectSupport {
 }
 
 enum ProjectVerificationStatus {
-  claimed
-  pending_metadata
-  unclaimed
+  Claimed
+  PendingMetadata
+  Unclaimed
 }
 
 input ProjectWhereInput {

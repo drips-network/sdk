@@ -21,12 +21,12 @@ export type CreateDripListResult = {
 export async function createDripList(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,
-  params: NewDripList,
+  dripList: NewDripList,
 ): Promise<CreateDripListResult> {
   requireWriteAccess(adapter, createDripList.name);
 
   const {salt, ipfsHash, dripListId, preparedTx, metadata} =
-    await prepareDripListCreation(adapter, ipfsMetadataUploaderFn, params);
+    await prepareDripListCreation(adapter, ipfsMetadataUploaderFn, dripList);
 
   const txResponse = await adapter.sendTx(preparedTx);
 

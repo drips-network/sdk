@@ -15,6 +15,9 @@ export const contractsRegistry = {
     caller: {
       address: '0x60F25ac5F289Dc7F640f948521d486C964A248e5',
     },
+    nativeTokenUnwrapper: {
+      address: undefined,
+    },
   },
   80002: {
     repoDriver: {
@@ -31,6 +34,9 @@ export const contractsRegistry = {
     },
     caller: {
       address: '0x5C7c5AA20b15e13229771CB7De36Fe1F54238372',
+    },
+    nativeTokenUnwrapper: {
+      address: undefined,
     },
   },
   11155420: {
@@ -49,6 +55,9 @@ export const contractsRegistry = {
     caller: {
       address: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
     },
+    nativeTokenUnwrapper: {
+      address: undefined,
+    },
   },
   11155111: {
     repoDriver: {
@@ -65,6 +74,9 @@ export const contractsRegistry = {
     },
     caller: {
       address: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
+    },
+    nativeTokenUnwrapper: {
+      address: undefined,
     },
   },
   31337: {
@@ -83,6 +95,9 @@ export const contractsRegistry = {
     caller: {
       address: '0x2eac4218a453B1A52544Be315d2376B9A76614F1',
     },
+    nativeTokenUnwrapper: {
+      address: undefined,
+    },
   },
   84532: {
     repoDriver: {
@@ -99,6 +114,9 @@ export const contractsRegistry = {
     },
     caller: {
       address: '0x5C7c5AA20b15e13229771CB7De36Fe1F54238372',
+    },
+    nativeTokenUnwrapper: {
+      address: undefined,
     },
   },
   314: {
@@ -117,6 +135,9 @@ export const contractsRegistry = {
     caller: {
       address: '0xd6Ab8e72dE3742d45AdF108fAa112Cd232718828',
     },
+    nativeTokenUnwrapper: {
+      address: '0x64e0d60C70e9778C2E649FfBc90259C86a6Bf396',
+    },
   },
   1088: {
     repoDriver: {
@@ -134,6 +155,9 @@ export const contractsRegistry = {
     caller: {
       address: '0xd6Ab8e72dE3742d45AdF108fAa112Cd232718828',
     },
+    nativeTokenUnwrapper: {
+      address: undefined,
+    },
   },
   10: {
     repoDriver: {
@@ -150,6 +174,9 @@ export const contractsRegistry = {
     },
     caller: {
       address: '0xd6Ab8e72dE3742d45AdF108fAa112Cd232718828',
+    },
+    nativeTokenUnwrapper: {
+      address: '0x64e0d60C70e9778C2E649FfBc90259C86a6Bf396',
     },
   },
 } as const;
