@@ -86,24 +86,6 @@ describe('createDripListsModule', () => {
     );
   });
 
-  it('should prepare drip list creation context', async () => {
-    // Arrange
-    const params = {name: 'test'} as any;
-    const expectedContext = {context: 'test'} as any;
-    vi.mocked(prepareDripListCreation).mockResolvedValue(expectedContext);
-
-    // Act
-    const result = await dripListsModule.prepareCreation(params);
-
-    // Assert
-    expect(result).toBe(expectedContext);
-    expect(prepareDripListCreation).toHaveBeenCalledWith(
-      adapter,
-      ipfsMetadataUploaderFn,
-      params,
-    );
-  });
-
   it('should create a drip list', async () => {
     // Arrange
     const params = {name: 'test'} as any;
@@ -119,25 +101,6 @@ describe('createDripListsModule', () => {
       adapter,
       ipfsMetadataUploaderFn,
       params,
-    );
-  });
-
-  it('should prepare drip list update', async () => {
-    // Arrange
-    const config = {accountId: 1n, name: 'updated'} as any;
-    const expectedResult = {context: 'update'} as any;
-    vi.mocked(prepareDripListUpdate).mockResolvedValue(expectedResult);
-
-    // Act
-    const result = await dripListsModule.prepareUpdate(config);
-
-    // Assert
-    expect(result).toBe(expectedResult);
-    expect(prepareDripListUpdate).toHaveBeenCalledWith(
-      adapter,
-      ipfsMetadataUploaderFn,
-      config,
-      graphqlClient,
     );
   });
 

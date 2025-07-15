@@ -35,13 +35,7 @@ import {
 export interface DripListsModule {
   calculateId(salt: bigint, minter: Address, chainId: number): Promise<bigint>;
   getById(accountId: bigint, chainId: number): Promise<DripList | null>;
-  prepareCreation(
-    dripList: NewDripList,
-  ): Promise<PrepareDripListCreationResult>;
   create(dripList: NewDripList): Promise<CreateDripListResult>;
-  prepareUpdate(
-    config: DripListUpdateConfig,
-  ): Promise<PrepareDripListUpdateResult>;
   update(config: DripListUpdateConfig): Promise<UpdateDripListResult>;
 }
 
@@ -64,26 +58,11 @@ export function createDripListsModule(deps: Deps): DripListsModule {
     getById: (accountId: bigint, chainId: number) =>
       getDripListById(accountId, chainId, graphqlClient),
 
-    prepareCreation: (dripList: NewDripList) =>
-      prepareDripListCreation(
-        adapter as WriteBlockchainAdapter,
-        ipfsMetadataUploaderFn,
-        dripList,
-      ),
-
     create: async (dripList: NewDripList) =>
       createDripList(
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,
         dripList,
-      ),
-
-    prepareUpdate: (config: DripListUpdateConfig) =>
-      prepareDripListUpdate(
-        adapter as WriteBlockchainAdapter,
-        ipfsMetadataUploaderFn,
-        config,
-        graphqlClient,
       ),
 
     update: async (config: DripListUpdateConfig) =>
