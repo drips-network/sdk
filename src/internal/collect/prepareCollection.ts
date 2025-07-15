@@ -163,7 +163,7 @@ export async function prepareCollection(
         abi: nativeTokenUnwrapperAbi,
         functionName: 'unwrap',
         args: [signerAddress],
-        contract: addressDriver.address,
+        contract: nativeTokenUnwrapper.address,
       });
 
       txs.push(collectTx, unwrapTx); // Order matters.
