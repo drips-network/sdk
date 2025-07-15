@@ -49,138 +49,6 @@ describe('createDonationsModule', () => {
     });
   });
 
-  describe('prepareOneTimeDonation', () => {
-    it('should prepare a one-time donation transaction', async () => {
-      // Arrange
-      const params: OneTimeDonation = {
-        receiver: {
-          type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
-        },
-        amount: 100n,
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-      };
-      const expectedPreparedTx: PreparedTx = {
-        to: '0x1234567890123456789012345678901234567890' as Address,
-        data: '0x123' as Hex,
-        value: 0n,
-        abiFunctionName: 'give',
-      };
-      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
-
-      // Act
-      const result = await donationsModule.prepareOneTimeDonation(params);
-
-      // Assert
-      expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
-    });
-
-    it('should handle project receiver type', async () => {
-      // Arrange
-      const params: OneTimeDonation = {
-        receiver: {
-          type: 'project',
-          url: 'https://github.com/user/repo',
-        },
-        amount: 200n,
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-      };
-      const expectedPreparedTx: PreparedTx = {
-        to: '0x1234567890123456789012345678901234567890' as Address,
-        data: '0x456' as Hex,
-        value: 0n,
-        abiFunctionName: 'give',
-      };
-      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
-
-      // Act
-      const result = await donationsModule.prepareOneTimeDonation(params);
-
-      // Assert
-      expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
-    });
-
-    it('should handle drip-list receiver type', async () => {
-      // Arrange
-      const params: OneTimeDonation = {
-        receiver: {
-          type: 'drip-list',
-          accountId: 123n,
-        },
-        amount: 300n,
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-      };
-      const expectedPreparedTx: PreparedTx = {
-        to: '0x1234567890123456789012345678901234567890' as Address,
-        data: '0x789' as Hex,
-        value: 0n,
-        abiFunctionName: 'give',
-      };
-      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
-
-      // Act
-      const result = await donationsModule.prepareOneTimeDonation(params);
-
-      // Assert
-      expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
-    });
-
-    it('should handle ecosystem-main-account receiver type', async () => {
-      // Arrange
-      const params: OneTimeDonation = {
-        receiver: {
-          type: 'ecosystem-main-account',
-          accountId: 456n,
-        },
-        amount: 400n,
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-      };
-      const expectedPreparedTx: PreparedTx = {
-        to: '0x1234567890123456789012345678901234567890' as Address,
-        data: '0xabc' as Hex,
-        value: 0n,
-        abiFunctionName: 'give',
-      };
-      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
-
-      // Act
-      const result = await donationsModule.prepareOneTimeDonation(params);
-
-      // Assert
-      expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
-    });
-
-    it('should handle sub-list receiver type', async () => {
-      // Arrange
-      const params: OneTimeDonation = {
-        receiver: {
-          type: 'sub-list',
-          accountId: 789n,
-        },
-        amount: 500n,
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-      };
-      const expectedPreparedTx: PreparedTx = {
-        to: '0x1234567890123456789012345678901234567890' as Address,
-        data: '0xdef' as Hex,
-        value: 0n,
-        abiFunctionName: 'give',
-      };
-      vi.mocked(prepareOneTimeDonation).mockResolvedValue(expectedPreparedTx);
-
-      // Act
-      const result = await donationsModule.prepareOneTimeDonation(params);
-
-      // Assert
-      expect(result).toBe(expectedPreparedTx);
-      expect(prepareOneTimeDonation).toHaveBeenCalledWith(adapter, params);
-    });
-  });
-
   describe('sendOneTime', () => {
     it('should send a one-time donation', async () => {
       // Arrange
@@ -252,169 +120,6 @@ describe('createDonationsModule', () => {
       // Assert
       expect(result).toBe(expectedTxResponse);
       expect(sendOneTimeDonation).toHaveBeenCalledWith(adapter, params);
-    });
-  });
-
-  describe('prepareContinuous', () => {
-    it('should prepare a continuous donation transaction', async () => {
-      // Arrange
-      const params: ContinuousDonation = {
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
-        receiver: {
-          type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
-        },
-      };
-      const expectedResult: PrepareContinuousDonationResult = {
-        ipfsHash: 'QmHash123',
-        preparedTx: {
-          to: '0x1234567890123456789012345678901234567890' as Address,
-          data: '0x123' as Hex,
-          value: 0n,
-          abiFunctionName: 'give',
-        },
-        metadata: {
-          describes: {
-            driver: 'address',
-            accountId: '123',
-          },
-          assetConfigs: [],
-          timestamp: 123456789,
-          writtenByAddress: '0xSender456',
-        },
-      };
-      vi.mocked(prepareContinuousDonation).mockResolvedValue(expectedResult);
-
-      // Create a module with minimal dependencies for this test
-      const testAdapter = {} as WriteBlockchainAdapter;
-      const emptyGraphqlClient = {} as any;
-      const emptyIpfsMetadataUploader = vi.fn();
-
-      // Clear the mocks to ensure we're testing with a clean slate
-      vi.clearAllMocks();
-
-      const testModule = createDonationsModule({
-        adapter: testAdapter,
-        graphqlClient: emptyGraphqlClient,
-        ipfsMetadataUploaderFn: emptyIpfsMetadataUploader,
-      });
-
-      // Act
-      const result = await testModule.prepareContinuous(params);
-
-      // Assert
-      expect(result).toBe(expectedResult);
-      expect(prepareContinuousDonation).toHaveBeenCalledWith(
-        testAdapter,
-        emptyIpfsMetadataUploader,
-        params,
-        emptyGraphqlClient,
-      );
-    });
-
-    it('should pass all dependencies to prepareContinuousDonation', async () => {
-      // Arrange
-      const params: ContinuousDonation = {
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
-        receiver: {
-          type: 'address',
-          address: '0x1234567890123456789012345678901234567890' as Address,
-        },
-      };
-      const mockGraphqlClient = {} as any;
-      const mockIpfsMetadataUploader = vi.fn();
-      const expectedResult: PrepareContinuousDonationResult = {
-        ipfsHash: 'QmHash123',
-        preparedTx: {
-          to: '0x1234567890123456789012345678901234567890' as Address,
-          data: '0x123' as Hex,
-          value: 0n,
-          abiFunctionName: 'give',
-        },
-        metadata: {
-          describes: {
-            driver: 'address',
-            accountId: '123',
-          },
-          assetConfigs: [],
-          timestamp: 123456789,
-          writtenByAddress: '0xSender456',
-        },
-      };
-      vi.mocked(prepareContinuousDonation).mockResolvedValue(expectedResult);
-
-      // Create a new module with all dependencies
-      const moduleWithDeps = createDonationsModule({
-        adapter,
-        graphqlClient: mockGraphqlClient,
-        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
-      });
-
-      // Act
-      const result = await moduleWithDeps.prepareContinuous(params);
-
-      // Assert
-      expect(result).toBe(expectedResult);
-      expect(prepareContinuousDonation).toHaveBeenCalledWith(
-        adapter,
-        mockIpfsMetadataUploader,
-        params,
-        mockGraphqlClient,
-      );
-    });
-
-    it('should handle different receiver types', async () => {
-      // Arrange
-      const params: ContinuousDonation = {
-        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
-        receiver: {
-          type: 'project',
-          url: 'https://github.com/user/repo',
-        },
-      };
-      const mockGraphqlClient = {} as any;
-      const mockIpfsMetadataUploader = vi.fn();
-      const expectedResult: PrepareContinuousDonationResult = {
-        ipfsHash: 'QmHash123',
-        preparedTx: {
-          to: '0x1234567890123456789012345678901234567890' as Address,
-          data: '0x123' as Hex,
-          value: 0n,
-          abiFunctionName: 'give',
-        },
-        metadata: {
-          describes: {
-            driver: 'address',
-            accountId: '123',
-          },
-          assetConfigs: [],
-          timestamp: 123456789,
-          writtenByAddress: '0xSender456',
-        },
-      };
-      vi.mocked(prepareContinuousDonation).mockResolvedValue(expectedResult);
-
-      // Create a new module with all dependencies
-      const moduleWithDeps = createDonationsModule({
-        adapter,
-        graphqlClient: mockGraphqlClient,
-        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
-      });
-
-      // Act
-      const result = await moduleWithDeps.prepareContinuous(params);
-
-      // Assert
-      expect(result).toBe(expectedResult);
-      expect(prepareContinuousDonation).toHaveBeenCalledWith(
-        adapter,
-        mockIpfsMetadataUploader,
-        params,
-        mockGraphqlClient,
-      );
     });
   });
 
@@ -534,13 +239,9 @@ describe('createDonationsModule', () => {
       });
 
       // Assert
-      expect(module).toHaveProperty('prepareOneTimeDonation');
       expect(module).toHaveProperty('sendOneTime');
-      expect(module).toHaveProperty('prepareContinuous');
       expect(module).toHaveProperty('sendContinuous');
-      expect(typeof module.prepareOneTimeDonation).toBe('function');
       expect(typeof module.sendOneTime).toBe('function');
-      expect(typeof module.prepareContinuous).toBe('function');
       expect(typeof module.sendContinuous).toBe('function');
     });
 
@@ -558,7 +259,6 @@ describe('createDonationsModule', () => {
       });
 
       // Assert
-      expect(module).toHaveProperty('prepareOneTimeDonation');
       expect(module).toHaveProperty('sendOneTime');
     });
 
@@ -576,7 +276,6 @@ describe('createDonationsModule', () => {
       });
 
       // Assert
-      expect(module).toHaveProperty('prepareOneTimeDonation');
       expect(module).toHaveProperty('sendOneTime');
     });
   });

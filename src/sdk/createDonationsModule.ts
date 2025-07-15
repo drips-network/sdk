@@ -25,11 +25,7 @@ import {
 } from '../internal/shared/createPinataIpfsMetadataUploader';
 
 export interface DonationsModule {
-  prepareOneTimeDonation: (donation: OneTimeDonation) => Promise<PreparedTx>;
   sendOneTime(donation: OneTimeDonation): Promise<TxResponse>;
-  prepareContinuous: (
-    donation: ContinuousDonation,
-  ) => Promise<PrepareContinuousDonationResult>;
   sendContinuous(
     donation: ContinuousDonation,
   ): Promise<SendContinuousDonationResult>;
@@ -45,19 +41,8 @@ export function createDonationsModule(deps: Deps): DonationsModule {
   const {adapter, graphqlClient, ipfsMetadataUploaderFn} = deps;
 
   return {
-    prepareOneTimeDonation: (donation: OneTimeDonation) =>
-      prepareOneTimeDonation(adapter as WriteBlockchainAdapter, donation),
-
     sendOneTime: (donation: OneTimeDonation) =>
       sendOneTimeDonation(adapter as WriteBlockchainAdapter, donation),
-
-    prepareContinuous: (donation: ContinuousDonation) =>
-      prepareContinuousDonation(
-        adapter as WriteBlockchainAdapter,
-        ipfsMetadataUploaderFn,
-        donation,
-        graphqlClient,
-      ),
 
     sendContinuous: (donation: ContinuousDonation) =>
       sendContinuousDonation(
