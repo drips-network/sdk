@@ -13,6 +13,9 @@ import {
   MAX_SPLITS_RECEIVERS,
   TOTAL_SPLITS_WEIGHT,
 } from './internal/shared/receiverUtils';
+import {calcDripListId} from './internal/shared/calcDripListId';
+import {calcAddressId} from './internal/shared/calcAddressId';
+import {calcProjectId} from './internal/projects/calcProjectId';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
@@ -46,6 +49,9 @@ export {collect} from './internal/collect/collect';
 
 export const utils = {
   buildTx,
+  calcAddressId,
+  calcProjectId,
+  calcDripListId,
   encodeStreamConfig,
   decodeStreamConfig,
   encodeMetadataKeyValue,
