@@ -256,6 +256,21 @@ describe('receiverUtils', () => {
       vi.restoreAllMocks();
     });
 
+    it('should return empty arrays when no receivers are provided', async () => {
+      // Arrange
+      const receivers: SdkSplitsReceiver[] = [];
+
+      // Act
+      const result = await receiverUtils.parseSplitsReceivers(
+        mockAdapter,
+        receivers,
+      );
+
+      // Assert
+      expect(result.onChain).toEqual([]);
+      expect(result.metadata).toEqual([]);
+    });
+
     it('should parse valid splits receivers', async () => {
       // Arrange
       const receivers: SdkSplitsReceiver[] = [

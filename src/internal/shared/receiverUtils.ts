@@ -233,6 +233,10 @@ export async function parseSplitsReceivers(
   onChain: OnChainSplitsReceiver[];
   metadata: MetadataSplitsReceiver[];
 }> {
+  if (sdkReceivers.length === 0) {
+    return {onChain: [], metadata: []};
+  }
+
   if (sdkReceivers.length > MAX_SPLITS_RECEIVERS) {
     throw new DripsError(
       `Maximum of ${MAX_SPLITS_RECEIVERS} receivers allowed`,

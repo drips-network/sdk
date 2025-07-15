@@ -32,7 +32,9 @@ declare module '$env/static/private' {
 	export const LOGNAME: string;
 	export const LSCOLORS: string;
 	export const LS_COLORS: string;
+	export const LaunchInstanceID: string;
 	export const MallocNanoZone: string;
+	export const MallocSpaceEfficient: string;
 	export const NVM_BIN: string;
 	export const NVM_CD_FLAGS: string;
 	export const NVM_DIR: string;
@@ -62,6 +64,8 @@ declare module '$env/static/private' {
 	export const __CFBundleIdentifier: string;
 	export const __CF_USER_TEXT_ENCODING: string;
 	export const ELECTRON_RUN_AS_NODE: string;
+	export const APPLICATION_INSIGHTS_NO_STATSBEAT: string;
+	export const VSCODE_L10N_BUNDLE_LOCATION: string;
 	export const VITEST_VSCODE_LOG: string;
 	export const VITEST_VSCODE: string;
 	export const TEST: string;
@@ -109,7 +113,9 @@ declare module '$env/dynamic/private' {
 		LOGNAME: string;
 		LSCOLORS: string;
 		LS_COLORS: string;
+		LaunchInstanceID: string;
 		MallocNanoZone: string;
+		MallocSpaceEfficient: string;
 		NVM_BIN: string;
 		NVM_CD_FLAGS: string;
 		NVM_DIR: string;
@@ -139,6 +145,8 @@ declare module '$env/dynamic/private' {
 		__CFBundleIdentifier: string;
 		__CF_USER_TEXT_ENCODING: string;
 		ELECTRON_RUN_AS_NODE: string;
+		APPLICATION_INSIGHTS_NO_STATSBEAT: string;
+		VSCODE_L10N_BUNDLE_LOCATION: string;
 		VITEST_VSCODE_LOG: string;
 		VITEST_VSCODE: string;
 		TEST: string;

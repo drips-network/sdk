@@ -9,7 +9,7 @@ export interface UsersModule {
   getWithdrawableBalances(
     address: Address,
     chainId: number,
-  ): Promise<UserWithdrawableBalances | null>;
+  ): Promise<UserWithdrawableBalances>;
 }
 
 type Deps = {
@@ -23,7 +23,7 @@ export function createUsersModule(deps: Deps): UsersModule {
     getWithdrawableBalances: (
       address: Address,
       chainId: number,
-    ): Promise<UserWithdrawableBalances | null> => {
+    ): Promise<UserWithdrawableBalances> => {
       return getUserWithdrawableBalances(address, chainId, graphqlClient);
     },
   };

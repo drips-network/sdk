@@ -31,9 +31,10 @@ export type SqueezeArgs = {
   streamsHistory: StreamsHistory[];
 };
 
+const MAX_CYCLES = 1000;
+
 export type CollectConfig = {
   readonly accountId: bigint;
-  readonly maxCycles: number;
   readonly currentReceivers: SdkSplitsReceiver[];
   readonly tokenAddresses: ReadonlyArray<Address>;
   readonly batchedTxOverrides?: BatchedTxOverrides;
@@ -54,7 +55,6 @@ export async function prepareCollection(
 
   const {
     accountId,
-    maxCycles,
     squeezeArgs,
     tokenAddresses,
     shouldSkipSplit,
@@ -102,7 +102,7 @@ export async function prepareCollection(
       const receiveTx = buildTx({
         abi: dripsAbi,
         functionName: 'receiveStreams',
-        args: [accountId, tokenAddress, maxCycles],
+        args: [accountId, tokenAddress, MAX_CYCLES],
         contract: drips.address,
       });
 
