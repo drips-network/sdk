@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/donations/continuous-ethers/+page.svelte";
+export { default as component } from "../../../../src/routes/donations/+page.svelte";

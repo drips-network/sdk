@@ -3,7 +3,7 @@ import {
   createPinataIpfsMetadataUploader,
   contractsRegistry,
   type SdkSplitsReceiver,
-} from 'drips-sdk-test-0';
+} from 'drips-sdk-test-2';
 import {createWalletClient, http, createPublicClient} from 'viem';
 import {privateKeyToAccount} from 'viem/accounts';
 import {JsonRpcProvider, Wallet} from 'ethers';

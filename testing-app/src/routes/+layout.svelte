@@ -5,6 +5,7 @@
   const tabs = [
     {name: 'Drip Lists', path: '/drip-lists'},
     {name: 'Donations', path: '/donations'},
+    {name: 'Collect', path: '/collect'},
     {name: 'Utils', path: '/utils'},
   ];
 </script>
