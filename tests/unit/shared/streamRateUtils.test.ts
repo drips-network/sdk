@@ -102,7 +102,7 @@ describe('streamRateUtils', () => {
         TimeUnit.WEEK,
         tokenDecimals,
       );
-      expect(parseFloat(formatted)).toBeCloseTo(100.0, 1); // Should be close to original
+      expect(parseFloat(perWeek)).toBeCloseTo(700.0, 1); // Should be 7x the daily amount (100 * 7)
     });
 
     it('should handle round-trip conversion accurately', () => {
