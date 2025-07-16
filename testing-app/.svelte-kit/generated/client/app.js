@@ -15,25 +15,27 @@ export const nodes = [
 	() => import('./nodes/11'),
 	() => import('./nodes/12'),
 	() => import('./nodes/13'),
-	() => import('./nodes/14')
+	() => import('./nodes/14'),
+	() => import('./nodes/15')
 ];
 
 export const server_loads = [];
 
 export const dictionary = {
 		"/": [2],
-		"/donations": [3],
-		"/donations/continuous-ethers": [4],
-		"/donations/continuous-viem": [5],
-		"/donations/one-time-ethers": [6],
-		"/donations/one-time-viem": [7],
-		"/drip-lists": [8],
-		"/drip-lists/create-ethers": [9],
-		"/drip-lists/create-viem": [10],
-		"/drip-lists/get": [11],
-		"/drip-lists/update-ethers": [12],
-		"/drip-lists/update-viem": [13],
-		"/utils": [14]
+		"/collect": [3],
+		"/donations": [4],
+		"/donations/continuous-ethers": [5],
+		"/donations/continuous-viem": [6],
+		"/donations/one-time-ethers": [7],
+		"/donations/one-time-viem": [8],
+		"/drip-lists": [9],
+		"/drip-lists/create-ethers": [10],
+		"/drip-lists/create-viem": [11],
+		"/drip-lists/get": [12],
+		"/drip-lists/update-ethers": [13],
+		"/drip-lists/update-viem": [14],
+		"/utils": [15]
 	};
 
 export const hooks = {

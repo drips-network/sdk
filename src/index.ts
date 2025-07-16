@@ -13,6 +13,9 @@ import {
   MAX_SPLITS_RECEIVERS,
   TOTAL_SPLITS_WEIGHT,
 } from './internal/shared/receiverUtils';
+import {calcDripListId} from './internal/shared/calcDripListId';
+import {calcAddressId} from './internal/shared/calcAddressId';
+import {calcProjectId} from './internal/projects/calcProjectId';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
@@ -26,6 +29,7 @@ export {createEthersWriteAdapter} from './internal/blockchain/adapters/ethers/et
 
 export {calcDripListId} from './internal/shared/calcDripListId';
 export {getDripListById} from './internal/drip-lists/getDripListById';
+export {getUserWithdrawableBalances} from './internal/collect/getUserWithdrawableBalances';
 export {prepareDripListCreation} from './internal/drip-lists/prepareDripListCreation';
 export {createDripList} from './internal/drip-lists/createDripList';
 export {prepareDripListUpdate} from './internal/drip-lists/prepareDripListUpdate';
@@ -40,8 +44,14 @@ export {sendOneTimeDonation} from './internal/donations/sendOneTimeDonation';
 export {prepareContinuousDonation} from './internal/donations/prepareContinuousDonation';
 export {sendContinuousDonation} from './internal/donations/sendContinuousDonation';
 
+export {prepareCollection} from './internal/collect/prepareCollection';
+export {collect} from './internal/collect/collect';
+
 export const utils = {
   buildTx,
+  calcAddressId,
+  calcProjectId,
+  calcDripListId,
   encodeStreamConfig,
   decodeStreamConfig,
   encodeMetadataKeyValue,
@@ -60,6 +70,7 @@ export const dripsConstants = {
 
 export {DripsSdk} from './sdk/createDripsSdk';
 export {DripList} from './internal/drip-lists/getDripListById';
+export {UserWithdrawableBalances} from './internal/collect/getUserWithdrawableBalances';
 export {
   PreparedTx,
   ReadBlockchainAdapter,
@@ -89,7 +100,6 @@ export {
   SdkEcosystemMainAccountReceiver,
   SdkSplitsReceiver,
   OnChainSplitsReceiver,
-  OnChainStreamReceiver,
   MetadataSplitsReceiver,
 } from './internal/shared/receiverUtils';
 export {Forge, ProjectName} from './internal/projects/calcProjectId';
@@ -105,3 +115,9 @@ export {
   PrepareDripListUpdateResult,
 } from './internal/drip-lists/prepareDripListUpdate';
 export {UpdateDripListResult} from './internal/drip-lists/updateDripList';
+export {OnChainStreamReceiver} from './internal/shared/validateAndFormatStreamReceivers';
+export {
+  CollectConfig,
+  SqueezeArgs,
+  StreamsHistory,
+} from './internal/collect/prepareCollection';

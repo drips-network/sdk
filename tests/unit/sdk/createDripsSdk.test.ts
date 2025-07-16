@@ -13,6 +13,7 @@ import {
 import {resolveBlockchainAdapter} from '../../../src/internal/blockchain/resolveBlockchainAdapter';
 import {createDripListsModule} from '../../../src/sdk/createDripListsModule';
 import {createDonationsModule} from '../../../src/sdk/createDonationsModule';
+import {createUsersModule} from '../../../src/sdk/createUsersModule';
 import {dripsConstants, utils} from '../../../src';
 import {
   createGraphQLClient,
@@ -22,12 +23,16 @@ import {
 vi.mock('../../../src/internal/blockchain/resolveBlockchainAdapter');
 vi.mock('../../../src/sdk/createDripListsModule');
 vi.mock('../../../src/sdk/createDonationsModule');
+vi.mock('../../../src/sdk/createUsersModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
+vi.mock('../../../src/internal/collect/collect');
+vi.mock('../../../src/internal/collect/prepareCollection');
 
 describe('createDripsSdk', () => {
   const ipfsMetadataUploaderFn = vi.fn<IpfsMetadataUploaderFn<Metadata>>();
   const dripListsModule = {} as any;
   const donationsModule = {} as any;
+  const usersModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
   const mockGraphqlClient = {
     query: vi.fn(),
@@ -39,6 +44,7 @@ describe('createDripsSdk', () => {
     vi.mocked(resolveBlockchainAdapter).mockReturnValue(mockAdapter);
     vi.mocked(createDripListsModule).mockReturnValue(dripListsModule);
     vi.mocked(createDonationsModule).mockReturnValue(donationsModule);
+    vi.mocked(createUsersModule).mockReturnValue(usersModule);
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
   });
 
@@ -53,14 +59,22 @@ describe('createDripsSdk', () => {
     expect(sdk).toBeDefined();
     expect(sdk.dripLists).toBe(dripListsModule);
     expect(sdk.donations).toBe(donationsModule);
+    expect(sdk.users).toBe(usersModule);
     expect(sdk.constants).toBe(dripsConstants);
     expect(sdk.utils).toBe(utils);
+    expect(typeof sdk.collect).toBe('function');
+    expect(typeof sdk.prepareCollection).toBe('function');
     expect(createDripListsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
       ipfsMetadataUploaderFn,
     });
     expect(createDonationsModule).toHaveBeenCalledWith({
+      adapter: mockAdapter,
+      graphqlClient: mockGraphqlClient,
+      ipfsMetadataUploaderFn,
+    });
+    expect(createUsersModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
       ipfsMetadataUploaderFn,

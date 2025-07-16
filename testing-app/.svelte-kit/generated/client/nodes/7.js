@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/donations/one-time-viem/+page.svelte";
+export { default as component } from "../../../../src/routes/donations/one-time-ethers/+page.svelte";

@@ -16,12 +16,24 @@ import {
   DEFAULT_GRAPHQL_URL,
 } from '../internal/graphql/createGraphQLClient';
 import {createDonationsModule, DonationsModule} from './createDonationsModule';
+import {createUsersModule, UsersModule} from './createUsersModule';
+import {collect} from '../internal/collect/collect';
+import {
+  prepareCollection,
+  CollectConfig,
+} from '../internal/collect/prepareCollection';
+import {PreparedTx, TxResponse} from '../internal/blockchain/BlockchainAdapter';
 
 export interface DripsSdk {
   readonly dripLists: DripListsModule;
   readonly donations: DonationsModule;
+  readonly users: UsersModule;
   readonly utils: typeof utils;
   readonly constants: typeof dripsConstants;
+
+  // Collect methods
+  collect: (config: CollectConfig) => Promise<TxResponse>;
+  prepareCollection: (config: CollectConfig) => Promise<PreparedTx>;
 }
 
 type DripsSdkOptions = {
@@ -63,5 +75,15 @@ export function createDripsSdk(
     constants: dripsConstants,
     dripLists: createDripListsModule(deps),
     donations: createDonationsModule(deps),
+    users: createUsersModule(deps),
+
+    // Collect methods
+    collect: (config: CollectConfig) => {
+      return collect(adapter as WriteBlockchainAdapter, config);
+    },
+
+    prepareCollection: (config: CollectConfig) => {
+      return prepareCollection(adapter as WriteBlockchainAdapter, config);
+    },
   };
 }

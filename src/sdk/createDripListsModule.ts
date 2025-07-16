@@ -58,14 +58,14 @@ export function createDripListsModule(deps: Deps): DripListsModule {
     getById: (accountId: bigint, chainId: number) =>
       getDripListById(accountId, chainId, graphqlClient),
 
-    create: async (dripList: NewDripList) =>
+    create: (dripList: NewDripList) =>
       createDripList(
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,
         dripList,
       ),
 
-    update: async (config: DripListUpdateConfig) =>
+    update: (config: DripListUpdateConfig) =>
       updateDripList(
         adapter as WriteBlockchainAdapter,
         ipfsMetadataUploaderFn,

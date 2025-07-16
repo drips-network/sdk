@@ -271,63 +271,83 @@
 
       updateOperationStatus({progress: 85});
 
-      // Step 7: Wait for indexing and verify donation
-      showStatusMessage(
-        'Waiting for indexing and verifying donation support...',
-        'info',
-      );
+      // Step 7: Wait for indexing and verify donation (only for drip list donations)
+      if (
+        receiverType === 'drip-list' &&
+        (dripListIdBigInt || receiverDripListId)
+      ) {
+        showStatusMessage(
+          'Waiting for indexing and verifying donation support...',
+          'info',
+        );
 
-      const INDEXING_TIMEOUT = 120_000; // 2 minutes
-      const POLLING_INTERVAL = 2_000; // 2 seconds
-      const ONE_MINUTE_MS = 60_000;
+        const INDEXING_TIMEOUT = 120_000; // 2 minutes
+        const POLLING_INTERVAL = 2_000; // 2 seconds
+        const ONE_MINUTE_MS = 60_000;
 
-      const result = await expectUntil(
-        () => sdk.dripLists.getById(dripListIdBigInt!, localtestnet.id),
-        dripList => {
-          if (!dripList || !dripList.support || dripList.support.length === 0) {
-            return false;
-          }
+        // Use the correct drip list ID for verification
+        const verificationDripListId = receiverDripListId
+          ? BigInt(receiverDripListId)
+          : dripListIdBigInt;
 
-          const oneMinuteAgo = Date.now() - ONE_MINUTE_MS;
-          const donation = dripList.support.find(
-            support =>
-              support.__typename === 'OneTimeDonationSupport' &&
-              support.date > oneMinuteAgo,
+        const result = await expectUntil(
+          () => sdk.dripLists.getById(verificationDripListId!, localtestnet.id),
+          dripList => {
+            if (
+              !dripList ||
+              !dripList.support ||
+              dripList.support.length === 0
+            ) {
+              return false;
+            }
+
+            const oneMinuteAgo = Date.now() - ONE_MINUTE_MS;
+            const donation = dripList.support.find(
+              support =>
+                support.__typename === 'OneTimeDonationSupport' &&
+                support.date > oneMinuteAgo,
+            );
+
+            return donation !== undefined;
+          },
+          INDEXING_TIMEOUT,
+          POLLING_INTERVAL,
+          true,
+        );
+
+        if (result.failed) {
+          throw new Error(
+            'Donation was not indexed in drip list support within the timeout',
           );
+        }
 
-          return donation !== undefined;
-        },
-        INDEXING_TIMEOUT,
-        POLLING_INTERVAL,
-        true,
-      );
+        const dripList = result.result!;
 
-      if (result.failed) {
-        throw new Error(
-          'Donation was not indexed in drip list support within the timeout',
+        // Step 8: Verify donation data
+        showStatusMessage('Verifying donation support data...', 'info');
+
+        const oneMinuteAgo = Date.now() - ONE_MINUTE_MS;
+        const donation = dripList.support.find(
+          support =>
+            support.__typename === 'OneTimeDonationSupport' &&
+            support.date > oneMinuteAgo,
+        );
+
+        if (!donation || donation.__typename !== 'OneTimeDonationSupport') {
+          throw new Error('Donation not found in support data');
+        }
+
+        showStatusMessage(
+          `✓ Donation verified! Amount: ${donation.amount.amount} ${donation.amount.tokenAddress}`,
+          'success',
+        );
+      } else {
+        // For address and project donations, we can't verify through drip list support
+        showStatusMessage(
+          'Donation sent successfully! (Verification not available for address/project donations)',
+          'success',
         );
       }
-
-      const dripList = result.result!;
-
-      // Step 8: Verify donation data
-      showStatusMessage('Verifying donation support data...', 'info');
-
-      const oneMinuteAgo = Date.now() - ONE_MINUTE_MS;
-      const donation = dripList.support.find(
-        support =>
-          support.__typename === 'OneTimeDonationSupport' &&
-          support.date > oneMinuteAgo,
-      );
-
-      if (!donation || donation.__typename !== 'OneTimeDonationSupport') {
-        throw new Error('Donation not found in support data');
-      }
-
-      showStatusMessage(
-        `✓ Donation verified! Amount: ${donation.amount.amount} ${donation.amount.tokenAddress}`,
-        'success',
-      );
 
       updateOperationStatus({progress: 95});
 
@@ -635,11 +655,13 @@
             One-time donation sent and verified successfully!
             <br /><strong>Transaction Hash:</strong>
             <div class="drip-list-id">{donationTxHash}</div>
-            <br /><strong>Drip List ID:</strong>
-            <div class="drip-list-id">{dripListId}</div>
-            <br /><button class="button" on:click={viewDripList}
-              >View Drip List</button
-            >
+            {#if receiverType === 'drip-list'}
+              <br /><strong>Drip List ID:</strong>
+              <div class="drip-list-id">{dripListId}</div>
+              <br /><button class="button" on:click={viewDripList}
+                >View Drip List</button
+              >
+            {/if}
           </div>
         {/if}
 

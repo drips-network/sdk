@@ -6,10 +6,10 @@ import {
 import {requireGraphQLSupportedChain} from '../shared/assertions';
 import {graphqlChainMap} from '../config/graphqlChainMap';
 import type {SupportedChain as ChainName} from '../graphql/__generated__/base-types';
-import {GetCurrentStreamsQuery} from '../donations/__generated__/gql.generated';
 import {filterCurrentChain} from '../shared/filterCurrentChain';
 import {Address} from 'viem';
 import {OnChainStreamReceiver} from '../shared/validateAndFormatStreamReceivers';
+import {GetCurrentStreamsQuery} from './__generated__/gql.generated';
 
 const GET_CURRENT_STREAM_RECEIVERS_QUERY = gql`
   query GetCurrentStreams($userAccountId: ID!, $chains: [SupportedChain!]) {
