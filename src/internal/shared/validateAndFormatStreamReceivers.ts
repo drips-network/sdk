@@ -1,4 +1,4 @@
-import {decodeStreamConfig} from './streamConfigUtils';
+import {decodeStreamConfig} from './streamRateUtils';
 import {DripsError} from './DripsError';
 
 export const MAX_STREAMS_RECEIVERS = 100;

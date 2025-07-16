@@ -11,7 +11,10 @@ import {
   SdkReceiver,
   SdkSplitsReceiver,
 } from '../../src/internal/shared/receiverUtils';
-import {AMT_PER_SEC_MULTIPLIER} from '../../src/internal/donations/prepareContinuousDonation';
+import {
+  TimeUnit,
+  parseStreamRate,
+} from '../../src/internal/shared/streamRateUtils';
 import {
   OneTimeDonationSupport,
   StreamSupport,
@@ -483,7 +486,6 @@ describe('Donations', () => {
         // Step 7: Define the continuous donation parameters
         console.log('Step 7: Defining continuous donation parameters...');
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
-        const amountPerSec = BigInt(1);
         const durationSeconds = 86400; // 1 day
         const topUpAmount = BigInt(10000000);
 
@@ -509,7 +511,9 @@ describe('Donations', () => {
         const streamName = `Test Continuous Donation (Viem) - ${randomUUID()}`;
         const {txResponse} = await sdk.donations.sendContinuous({
           erc20: erc20Token,
-          amountPerSec,
+          amount: '1',
+          timeUnit: TimeUnit.DAY,
+          tokenDecimals: 18,
           receiver: {
             type: 'drip-list',
             accountId: dripListId,
@@ -587,8 +591,10 @@ describe('Donations', () => {
         expect(
           streamSupport.stream.config.amountPerSecond.tokenAddress.toLowerCase(),
         ).toBe(erc20Token.toLowerCase());
+        // Calculate the expected amount per second using parseStreamRate
+        const expectedAmountPerSec = parseStreamRate('1', TimeUnit.DAY, 18);
         expect(streamSupport.stream.config.amountPerSecond.amount).toBe(
-          (amountPerSec * AMT_PER_SEC_MULTIPLIER).toString(),
+          expectedAmountPerSec.toString(),
         );
         expect(streamSupport.stream.config.durationSeconds).toBe(
           durationSeconds,
@@ -662,7 +668,6 @@ describe('Donations', () => {
         // Step 7: Define the continuous donation parameters
         console.log('Step 7: Defining continuous donation parameters...');
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
-        const amountPerSec = BigInt(100); // 100 tokens per second
         const durationSeconds = 86400; // 1 day
         const topUpAmount = BigInt(10000000); // Initial top-up amount
 
@@ -705,7 +710,9 @@ describe('Donations', () => {
         const streamName = `Test Continuous Donation (Ethers) - ${randomUUID()}`;
         const {txResponse} = await sdk.donations.sendContinuous({
           erc20: erc20Token,
-          amountPerSec,
+          amount: '1',
+          timeUnit: TimeUnit.DAY,
+          tokenDecimals: 18,
           receiver: {
             type: 'drip-list',
             accountId: dripListId,
@@ -784,8 +791,10 @@ describe('Donations', () => {
         expect(
           streamSupport.stream.config.amountPerSecond.tokenAddress.toLowerCase(),
         ).toBe(erc20Token.toLowerCase());
+        // Calculate the expected amount per second using parseStreamRate
+        const expectedAmountPerSec = parseStreamRate('1', TimeUnit.DAY, 18);
         expect(streamSupport.stream.config.amountPerSecond.amount).toBe(
-          (amountPerSec * AMT_PER_SEC_MULTIPLIER).toString(),
+          expectedAmountPerSec.toString(),
         );
         expect(streamSupport.stream.config.durationSeconds).toBe(
           durationSeconds,

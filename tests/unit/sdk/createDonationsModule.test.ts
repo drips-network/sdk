@@ -128,7 +128,9 @@ describe('createDonationsModule', () => {
       // Arrange
       const params: ContinuousDonation = {
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
         receiver: {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
@@ -179,7 +181,9 @@ describe('createDonationsModule', () => {
       // Arrange
       const params: ContinuousDonation = {
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
         receiver: {
           type: 'drip-list',
           accountId: 123n,

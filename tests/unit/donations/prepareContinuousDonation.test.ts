@@ -1,8 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {
-  prepareContinuousDonation,
-  AMT_PER_SEC_MULTIPLIER,
-} from '../../../src/internal/donations/prepareContinuousDonation';
+import {prepareContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
+import {TimeUnit} from '../../../src/internal/shared/streamRateUtils';
 import {WriteBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import {
   requireSupportedChain,
@@ -19,7 +17,9 @@ import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveA
 import {
   encodeStreamConfig,
   decodeStreamConfig,
-} from '../../../src/internal/shared/streamConfigUtils';
+  parseStreamRate,
+  validateStreamRate,
+} from '../../../src/internal/shared/streamRateUtils';
 import {buildStreamsMetadata} from '../../../src/internal/streams/buildStreamsMetadata';
 import {
   encodeMetadataKeyValue,
@@ -35,7 +35,22 @@ vi.mock('../../../src/internal/shared/validateAndFormatStreamReceivers');
 vi.mock('../../../src/internal/shared/convertToCallerCall');
 vi.mock('../../../src/internal/shared/resolveAddressFromAccountId');
 vi.mock('../../../src/internal/shared/encodeMetadataKeyValue');
-vi.mock('../../../src/internal/shared/streamConfigUtils');
+vi.mock('../../../src/internal/shared/streamRateUtils', () => ({
+  encodeStreamConfig: vi.fn(),
+  decodeStreamConfig: vi.fn(),
+  parseStreamRate: vi.fn(),
+  validateStreamRate: vi.fn(),
+  createStreamConfig: vi.fn(),
+  TimeUnit: {
+    SECOND: 1,
+    MINUTE: 60,
+    HOUR: 3600,
+    DAY: 86400,
+    WEEK: 604800,
+    MONTH: 2592000,
+    YEAR: 31536000,
+  },
+}));
 vi.mock('../../../src/internal/config/contractsRegistry', () => ({
   contractsRegistry: {
     1: {
@@ -60,7 +75,9 @@ describe('prepareContinuousDonation', () => {
   const mockErc20 = '0xToken123' as `0x${string}`;
   const mockIpfsHash = 'QmHash123';
   const mockTransferToAddress = '0xTransferTo123';
-  const mockAmountPerSec = 100n;
+  const mockAmount = '100';
+  const mockTimeUnit = TimeUnit.DAY;
+  const mockTokenDecimals = 6; // USDC
   const mockStreamConfig = 12345n;
   const mockMetadata = {
     describes: {
@@ -190,6 +207,8 @@ describe('prepareContinuousDonation', () => {
       mockTransferToAddress,
     );
     vi.mocked(encodeStreamConfig).mockReturnValue(mockStreamConfig);
+    vi.mocked(parseStreamRate).mockReturnValue(1000000000000000000n); // 1 ETH per second
+    vi.mocked(validateStreamRate).mockImplementation(() => {}); // No-op validation
     vi.mocked(decodeStreamConfig).mockReturnValue({
       dripId: 123n,
       amountPerSec: 50n,
@@ -220,7 +239,9 @@ describe('prepareContinuousDonation', () => {
   it('should prepare a continuous donation transaction', async () => {
     const donation = {
       erc20: mockErc20,
-      amountPerSec: mockAmountPerSec,
+      amount: mockAmount,
+      timeUnit: mockTimeUnit,
+      tokenDecimals: mockTokenDecimals,
       receiver: {
         type: 'address' as const,
         address: '0xReceiver123' as `0x${string}`,
@@ -260,7 +281,7 @@ describe('prepareContinuousDonation', () => {
       mockCurrentReceivers,
     );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      amountPerSec: mockAmountPerSec * AMT_PER_SEC_MULTIPLIER,
+      amountPerSec: expect.any(BigInt),
       dripId: expect.any(BigInt),
       duration: BigInt(donation.durationSeconds),
       start: BigInt(donation.startAt.getTime()) / 1000n,
@@ -341,7 +362,9 @@ describe('prepareContinuousDonation', () => {
   it('should handle optional parameters', async () => {
     const donation = {
       erc20: mockErc20,
-      amountPerSec: mockAmountPerSec,
+      amount: mockAmount,
+      timeUnit: mockTimeUnit,
+      tokenDecimals: mockTokenDecimals,
       receiver: {
         type: 'address' as const,
         address: '0xReceiver123' as `0x${string}`,
@@ -355,7 +378,7 @@ describe('prepareContinuousDonation', () => {
     );
 
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      amountPerSec: mockAmountPerSec * AMT_PER_SEC_MULTIPLIER,
+      amountPerSec: expect.any(BigInt),
       dripId: expect.any(BigInt),
       duration: 0n,
       start: 0n,
@@ -390,7 +413,9 @@ describe('prepareContinuousDonation', () => {
 
     const donation = {
       erc20: mockErc20,
-      amountPerSec: mockAmountPerSec,
+      amount: mockAmount,
+      timeUnit: mockTimeUnit,
+      tokenDecimals: mockTokenDecimals,
       receiver: {
         type: 'address' as const,
         address: '0xReceiver123' as `0x${string}`,
@@ -417,7 +442,9 @@ describe('prepareContinuousDonation', () => {
     const mockGraphQLClient = {} as any;
     const donation = {
       erc20: mockErc20,
-      amountPerSec: mockAmountPerSec,
+      amount: mockAmount,
+      timeUnit: mockTimeUnit,
+      tokenDecimals: mockTokenDecimals,
       receiver: {
         type: 'address' as const,
         address: '0xReceiver123' as `0x${string}`,
@@ -448,7 +475,9 @@ describe('prepareContinuousDonation', () => {
 
       const donation = {
         erc20: mockErc20,
-        amountPerSec: mockAmountPerSec,
+        amount: mockAmount,
+        timeUnit: mockTimeUnit,
+        tokenDecimals: mockTokenDecimals,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -472,7 +501,9 @@ describe('prepareContinuousDonation', () => {
 
       const donation = {
         erc20: mockErc20,
-        amountPerSec: mockAmountPerSec,
+        amount: mockAmount,
+        timeUnit: mockTimeUnit,
+        tokenDecimals: mockTokenDecimals,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -497,7 +528,9 @@ describe('prepareContinuousDonation', () => {
 
       const donation = {
         erc20: mockErc20,
-        amountPerSec: mockAmountPerSec,
+        amount: mockAmount,
+        timeUnit: mockTimeUnit,
+        tokenDecimals: mockTokenDecimals,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -519,7 +552,9 @@ describe('prepareContinuousDonation', () => {
 
       const donation = {
         erc20: mockErc20,
-        amountPerSec: mockAmountPerSec,
+        amount: mockAmount,
+        timeUnit: mockTimeUnit,
+        tokenDecimals: mockTokenDecimals,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -541,7 +576,9 @@ describe('prepareContinuousDonation', () => {
 
       const donation = {
         erc20: mockErc20,
-        amountPerSec: mockAmountPerSec,
+        amount: mockAmount,
+        timeUnit: mockTimeUnit,
+        tokenDecimals: mockTokenDecimals,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -571,7 +608,9 @@ describe('prepareContinuousDonation', () => {
 
       const donation = {
         erc20: mockErc20,
-        amountPerSec: mockAmountPerSec,
+        amount: mockAmount,
+        timeUnit: mockTimeUnit,
+        tokenDecimals: mockTokenDecimals,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,

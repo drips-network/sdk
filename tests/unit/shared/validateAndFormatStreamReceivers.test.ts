@@ -5,9 +5,9 @@ import {
   OnChainStreamReceiver,
 } from '../../../src/internal/shared/validateAndFormatStreamReceivers';
 import {DripsError} from '../../../src/internal/shared/DripsError';
-import * as streamConfigUtils from '../../../src/internal/shared/streamConfigUtils';
+import * as streamConfigUtils from '../../../src/internal/shared/streamRateUtils';
 
-vi.mock('../../../src/internal/shared/streamConfigUtils');
+vi.mock('../../../src/internal/shared/streamRateUtils');
 
 describe('validateAndFormatStreamReceivers', () => {
   const createReceiver = (

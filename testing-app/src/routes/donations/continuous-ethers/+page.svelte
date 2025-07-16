@@ -13,6 +13,7 @@
   } from '$lib/utils/sdkFactory';
   import {expect as expectUntil} from '$lib/utils/expect';
   import {goto} from '$app/navigation';
+  import {TimeUnit} from '../../../../../src/internal/shared/streamRateUtils';
 
   // ERC20 ABI for approve function
   const erc20Abi = [
@@ -43,7 +44,9 @@
   let fetchError = '';
 
   // Continuous donation configuration
-  let amountPerSec = 1;
+  let amount = '1';
+  let timeUnit = TimeUnit.DAY; // Default to daily
+  let tokenDecimals = 18; // Default for ETH
   let durationSeconds = 86400; // 1 day default
   let topUpAmount = 10000000;
   let streamName = '';
@@ -52,6 +55,17 @@
   let receiverAddress = '';
   let receiverProjectUrl = '';
   let receiverDripListId = '';
+
+  // Time unit options for dropdown
+  const timeUnitOptions = [
+    {value: TimeUnit.SECOND, label: 'Per Second'},
+    {value: TimeUnit.MINUTE, label: 'Per Minute'},
+    {value: TimeUnit.HOUR, label: 'Per Hour'},
+    {value: TimeUnit.DAY, label: 'Per Day'},
+    {value: TimeUnit.WEEK, label: 'Per Week'},
+    {value: TimeUnit.MONTH, label: 'Per Month (30 days)'},
+    {value: TimeUnit.YEAR, label: 'Per Year (365 days)'},
+  ];
 
   // Status popup state
   let showStatusPopup = false;
@@ -137,8 +151,12 @@
         throw new Error('Stream name is required');
       }
 
-      if (amountPerSec <= 0) {
-        throw new Error('Amount per second must be greater than 0');
+      if (!amount || parseFloat(amount) <= 0) {
+        throw new Error('Amount must be greater than 0');
+      }
+
+      if (tokenDecimals < 0 || tokenDecimals > 18) {
+        throw new Error('Token decimals must be between 0 and 18');
       }
 
       if (durationSeconds <= 0) {
@@ -227,7 +245,6 @@
         };
       }
 
-      const amountPerSecBigInt = BigInt(amountPerSec);
       const topUpAmountBigInt = BigInt(topUpAmount);
       const erc20TokenAddress = erc20Token as `0x${string}`;
 
@@ -265,7 +282,9 @@
 
       const {txResponse} = await sdk.donations.sendContinuous({
         erc20: erc20TokenAddress,
-        amountPerSec: amountPerSecBigInt,
+        amount: amount,
+        timeUnit: timeUnit,
+        tokenDecimals: tokenDecimals,
         receiver: continuousDonationReceiver,
         name: streamName,
         durationSeconds,
@@ -364,7 +383,9 @@
           dripListId: dripListId,
           donationTxHash: hash,
           streamName: streamName,
-          amountPerSec: amountPerSecBigInt.toString(),
+          amount: amount,
+          timeUnit: timeUnit,
+          tokenDecimals: tokenDecimals,
           durationSeconds: durationSeconds,
           topUpAmount: topUpAmountBigInt.toString(),
           erc20Token: erc20TokenAddress,
@@ -546,9 +567,33 @@
   </div>
 
   <div class="form-group">
-    <label for="amountPerSec">Amount Per Second:</label>
-    <input type="number" id="amountPerSec" bind:value={amountPerSec} min="1" />
-    <small>Amount of tokens to stream per second</small>
+    <label for="amount">Amount:</label>
+    <input type="text" id="amount" bind:value={amount} placeholder="1.0" />
+    <small>Amount of tokens to stream per time unit</small>
+  </div>
+
+  <div class="form-group">
+    <label for="timeUnit">Time Unit:</label>
+    <select id="timeUnit" bind:value={timeUnit}>
+      {#each timeUnitOptions as option}
+        <option value={option.value}>{option.label}</option>
+      {/each}
+    </select>
+    <small>How often the amount should be streamed</small>
+  </div>
+
+  <div class="form-group">
+    <label for="tokenDecimals">Token Decimals:</label>
+    <input
+      type="number"
+      id="tokenDecimals"
+      bind:value={tokenDecimals}
+      min="0"
+      max="18"
+    />
+    <small
+      >Number of decimal places for the token (18 for ETH, 6 for USDC)</small
+    >
   </div>
 
   <div class="form-group">
