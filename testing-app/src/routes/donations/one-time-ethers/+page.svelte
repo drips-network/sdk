@@ -247,6 +247,7 @@
         receiver: oneTimeDonationReceiver,
         amount: donationAmountBigInt,
         erc20: erc20TokenAddress,
+        tokenDecimals: 18,
       });
 
       showStatusMessage('Donation transaction sent!', 'success');

@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import {createDripsSdk} from '../../src/sdk/createDripsSdk';
-import {createWalletClient, http} from 'viem';
+import {createWalletClient, http, parseUnits} from 'viem';
 import {JsonRpcProvider, Wallet, Contract, NonceManager} from 'ethers';
 import {createPinataIpfsMetadataUploader} from '../../src/internal/shared/createPinataIpfsMetadataUploader';
 import * as dotenv from 'dotenv';
@@ -125,7 +125,7 @@ describe('Donations', () => {
           accountId: dripListId, // The Drip List ID we just created.
         };
 
-        const donationAmount = BigInt(1);
+        const donationAmount = 1n; // 1 token
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
 
         // Step 8: Approve token spending
@@ -138,7 +138,10 @@ describe('Donations', () => {
           address: erc20Token,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [addressDriverAddress, donationAmount],
+          args: [
+            addressDriverAddress,
+            parseUnits(donationAmount.toString(), 18),
+          ],
         });
 
         console.log(
@@ -151,6 +154,7 @@ describe('Donations', () => {
           receiver: oneTimeDonationReceiver,
           amount: donationAmount,
           erc20: erc20Token,
+          tokenDecimals: 18,
         });
 
         console.log('✓ Donation transaction sent');
@@ -217,7 +221,9 @@ describe('Donations', () => {
         expect(donation.account.address.toLowerCase()).toBe(
           account.address.toLowerCase(),
         );
-        expect(donation.amount.amount).toBe(donationAmount.toString());
+        expect(donation.amount.amount).toBe(
+          parseUnits(donationAmount.toString(), 18).toString(),
+        );
         expect(donation.amount.tokenAddress.toLowerCase()).toBe(
           erc20Token.toLowerCase(),
         );
@@ -291,7 +297,7 @@ describe('Donations', () => {
           accountId: dripListId, // The Drip List ID we just created.
         };
 
-        const donationAmount = BigInt(1000000); // 1 USDC (6 decimals)
+        const donationAmount = 1n; // 1 token
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
 
         // Step 8: Approve token spending
@@ -327,7 +333,7 @@ describe('Donations', () => {
 
         const approveTx = await erc20Contract.approve(
           addressDriverAddress,
-          donationAmount,
+          parseUnits(donationAmount.toString(), 18),
         );
 
         console.log(
@@ -342,6 +348,7 @@ describe('Donations', () => {
           receiver: oneTimeDonationReceiver,
           amount: donationAmount,
           erc20: erc20Token,
+          tokenDecimals: 18,
         });
 
         console.log('✓ Donation transaction sent');
@@ -408,7 +415,9 @@ describe('Donations', () => {
         expect(donation.account.address.toLowerCase()).toBe(
           (await wallet.getAddress()).toLowerCase(),
         );
-        expect(donation.amount.amount).toBe(donationAmount.toString());
+        expect(donation.amount.amount).toBe(
+          parseUnits(donationAmount.toString(), 18).toString(),
+        );
         expect(donation.amount.tokenAddress.toLowerCase()).toBe(
           erc20Token.toLowerCase(),
         );

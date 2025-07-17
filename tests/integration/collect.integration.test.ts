@@ -1,6 +1,12 @@
 import {describe, it, expect} from 'vitest';
 import {createDripsSdk} from '../../src/sdk/createDripsSdk';
-import {createWalletClient, createPublicClient, http, Address} from 'viem';
+import {
+  createWalletClient,
+  createPublicClient,
+  http,
+  Address,
+  parseUnits,
+} from 'viem';
 import {JsonRpcProvider, Wallet, Contract, NonceManager} from 'ethers';
 import {createPinataIpfsMetadataUploader} from '../../src/internal/shared/createPinataIpfsMetadataUploader';
 import * as dotenv from 'dotenv';
@@ -126,7 +132,7 @@ describe('Collect', () => {
         address: account.address,
       };
 
-      const donationAmount = BigInt(1000000);
+      const donationAmount = 1n; // 1 token
 
       // Step 7: Approve token spending
       console.log('Step 7: Approving token spending...');
@@ -138,7 +144,7 @@ describe('Collect', () => {
         address: erc20Token,
         abi: erc20Abi,
         functionName: 'approve',
-        args: [addressDriverAddress, donationAmount],
+        args: [addressDriverAddress, parseUnits(donationAmount.toString(), 18)],
       });
 
       console.log(
@@ -151,6 +157,7 @@ describe('Collect', () => {
         receiver: oneTimeDonationReceiver,
         amount: donationAmount,
         erc20: erc20Token,
+        tokenDecimals: 18,
       });
 
       console.log('✓ Donation transaction sent');
@@ -305,7 +312,9 @@ describe('Collect', () => {
       });
 
       const expectedWalletBalance =
-        BigInt(initialWalletBalance) + donationAmount;
+        BigInt(initialWalletBalance) +
+        parseUnits(donationAmount.toString(), 18);
+
       expect(BigInt(finalWalletBalance)).toBe(expectedWalletBalance);
 
       console.log(
@@ -376,7 +385,7 @@ describe('Collect', () => {
         address: walletAddress as Address,
       };
 
-      const donationAmount = BigInt(1000000);
+      const donationAmount = 1n; // 1 token
 
       // Step 7: Approve token spending
       console.log('Step 7: Approving token spending...');
@@ -411,7 +420,7 @@ describe('Collect', () => {
 
       const approveTx = await erc20Contract.approve(
         addressDriverAddress,
-        donationAmount,
+        parseUnits(donationAmount.toString(), 18),
       );
 
       console.log(
@@ -426,6 +435,7 @@ describe('Collect', () => {
         receiver: oneTimeDonationReceiver,
         amount: donationAmount,
         erc20: erc20Token,
+        tokenDecimals: 18,
       });
 
       console.log('✓ Donation transaction sent');
@@ -586,7 +596,8 @@ describe('Collect', () => {
         await erc20ContractForBalance.balanceOf(walletAddress);
 
       const expectedWalletBalance =
-        BigInt(initialWalletBalance) + donationAmount;
+        BigInt(initialWalletBalance) +
+        parseUnits(donationAmount.toString(), 18);
       expect(BigInt(finalWalletBalance)).toBe(expectedWalletBalance);
 
       console.log(

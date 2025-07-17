@@ -59,6 +59,7 @@ describe('createDonationsModule', () => {
         },
         amount: 100n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
       };
       const expectedTxResponse: TxResponse = {
         hash: '0x123456789abcdef' as Hex,
@@ -83,6 +84,7 @@ describe('createDonationsModule', () => {
         },
         amount: 200n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
       };
       const expectedTxResponse: TxResponse = {
         hash: '0x987654321fedcba' as Hex,
@@ -107,6 +109,7 @@ describe('createDonationsModule', () => {
         },
         amount: 300n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
       };
       const expectedTxResponse: TxResponse = {
         hash: '0xabc123def456' as Hex,
