@@ -6,41 +6,54 @@ import {
 import {
   ReadBlockchainAdapter,
   WriteBlockchainAdapter,
-  PreparedTx,
   TxResponse,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
-import {
-  prepareOneTimeDonation,
-  OneTimeDonation,
-} from '../../../src/internal/donations/prepareOneTimeDonation';
+import {OneTimeDonation} from '../../../src/internal/donations/prepareOneTimeDonation';
 import {sendOneTimeDonation} from '../../../src/internal/donations/sendOneTimeDonation';
-import {
-  prepareContinuousDonation,
-  ContinuousDonation,
-  PrepareContinuousDonationResult,
-} from '../../../src/internal/donations/prepareContinuousDonation';
+import {ContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
 import {
   sendContinuousDonation,
   SendContinuousDonationResult,
 } from '../../../src/internal/donations/sendContinuousDonation';
+import {
+  requireWriteAccess,
+  requireMetadataUploader,
+} from '../../../src/internal/shared/assertions';
 import {Address, Hex} from 'viem';
 
 vi.mock('../../../src/internal/donations/prepareOneTimeDonation');
 vi.mock('../../../src/internal/donations/sendOneTimeDonation');
 vi.mock('../../../src/internal/donations/prepareContinuousDonation');
 vi.mock('../../../src/internal/donations/sendContinuousDonation');
+vi.mock('../../../src/internal/shared/assertions');
 
 describe('createDonationsModule', () => {
-  let adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
+  let adapter: WriteBlockchainAdapter;
   let donationsModule: DonationsModule;
+  let mockGraphqlClient: any;
+  let mockIpfsMetadataUploader: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    adapter = {} as WriteBlockchainAdapter;
+    // Set up default mock implementations that don't throw
+    vi.mocked(requireWriteAccess).mockImplementation(() => {
+      // Default implementation does nothing (successful case)
+    });
+    vi.mocked(requireMetadataUploader).mockImplementation(() => {
+      // Default implementation does nothing (successful case)
+    });
 
-    const mockGraphqlClient = {} as any;
-    const mockIpfsMetadataUploader = vi.fn();
+    adapter = {
+      sendTx: vi.fn(),
+      getAddress: vi.fn(),
+      signMsg: vi.fn(),
+      call: vi.fn(),
+      getChainId: vi.fn(),
+    } as WriteBlockchainAdapter;
+
+    mockGraphqlClient = {} as any;
+    mockIpfsMetadataUploader = vi.fn();
 
     donationsModule = createDonationsModule({
       adapter,
@@ -123,6 +136,124 @@ describe('createDonationsModule', () => {
       // Assert
       expect(result).toBe(expectedTxResponse);
       expect(sendOneTimeDonation).toHaveBeenCalledWith(adapter, params);
+    });
+  });
+
+  describe('sendOneTime method validation', () => {
+    it('should call requireWriteAccess with correct parameters', async () => {
+      // Arrange
+      const params: OneTimeDonation = {
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+        amount: 100n,
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
+      };
+      vi.mocked(sendOneTimeDonation).mockResolvedValue({} as any);
+
+      // Act
+      await donationsModule.sendOneTime(params);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        adapter,
+        'sendOneTimeDonation',
+      );
+    });
+
+    it('should call requireMetadataUploader with correct parameters', async () => {
+      // Arrange
+      const params: OneTimeDonation = {
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+        amount: 100n,
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
+      };
+      vi.mocked(sendOneTimeDonation).mockResolvedValue({} as any);
+
+      // Act
+      await donationsModule.sendOneTime(params);
+
+      // Assert
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        mockIpfsMetadataUploader,
+        'sendOneTimeDonation',
+      );
+    });
+
+    it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
+      // Arrange
+      const readAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as ReadBlockchainAdapter;
+      const moduleWithReadAdapter = createDonationsModule({
+        adapter: readAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
+      });
+      const params: OneTimeDonation = {
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+        amount: 100n,
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
+      };
+      const expectedResult = {hash: '0x123'} as any;
+      vi.mocked(sendOneTimeDonation).mockResolvedValue(expectedResult);
+      vi.mocked(requireWriteAccess).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithReadAdapter.sendOneTime(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        readAdapter,
+        'sendOneTimeDonation',
+      );
+    });
+
+    it('should work without ipfsMetadataUploaderFn when requireMetadataUploader is mocked to pass', async () => {
+      // Arrange
+      const moduleWithoutUploader = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      const params: OneTimeDonation = {
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+        amount: 100n,
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
+      };
+      const expectedResult = {hash: '0x123'} as any;
+      vi.mocked(sendOneTimeDonation).mockResolvedValue(expectedResult);
+      vi.mocked(requireMetadataUploader).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithoutUploader.sendOneTime(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        undefined,
+        'sendOneTimeDonation',
+      );
     });
   });
 
@@ -234,6 +365,128 @@ describe('createDonationsModule', () => {
     });
   });
 
+  describe('sendContinuous method validation', () => {
+    it('should call requireWriteAccess with correct parameters', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      vi.mocked(sendContinuousDonation).mockResolvedValue({} as any);
+
+      // Act
+      await donationsModule.sendContinuous(params);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        adapter,
+        'sendContinuousDonation',
+      );
+    });
+
+    it('should call requireMetadataUploader with correct parameters', async () => {
+      // Arrange
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      vi.mocked(sendContinuousDonation).mockResolvedValue({} as any);
+
+      // Act
+      await donationsModule.sendContinuous(params);
+
+      // Assert
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        mockIpfsMetadataUploader,
+        'sendContinuousDonation',
+      );
+    });
+
+    it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
+      // Arrange
+      const readAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as ReadBlockchainAdapter;
+      const moduleWithReadAdapter = createDonationsModule({
+        adapter: readAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
+      });
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      const expectedResult = {txResponse: {hash: '0x123'}} as any;
+      vi.mocked(sendContinuousDonation).mockResolvedValue(expectedResult);
+      vi.mocked(requireWriteAccess).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithReadAdapter.sendContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        readAdapter,
+        'sendContinuousDonation',
+      );
+    });
+
+    it('should work without ipfsMetadataUploaderFn when requireMetadataUploader is mocked to pass', async () => {
+      // Arrange
+      const moduleWithoutUploader = createDonationsModule({
+        adapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      const params: ContinuousDonation = {
+        erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
+        receiver: {
+          type: 'address',
+          address: '0x1234567890123456789012345678901234567890' as Address,
+        },
+      };
+      const expectedResult = {txResponse: {hash: '0x123'}} as any;
+      vi.mocked(sendContinuousDonation).mockResolvedValue(expectedResult);
+      vi.mocked(requireMetadataUploader).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithoutUploader.sendContinuous(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        undefined,
+        'sendContinuousDonation',
+      );
+    });
+  });
+
   describe('module creation', () => {
     it('should create a donations module with the correct interface', () => {
       // Act
@@ -252,30 +505,19 @@ describe('createDonationsModule', () => {
       expect(typeof module.sendContinuous).toBe('function');
     });
 
-    it('should work with ReadBlockchainAdapter', () => {
+    it('should work with WriteBlockchainAdapter and valid uploader', () => {
       // Arrange
-      const readAdapter = {} as ReadBlockchainAdapter;
-
-      // Act
+      const writeAdapter = {
+        sendTx: vi.fn(),
+        getAddress: vi.fn(),
+        signMsg: vi.fn(),
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as WriteBlockchainAdapter;
       const mockGraphqlClient = {} as any;
       const mockIpfsMetadataUploader = vi.fn();
-      const module = createDonationsModule({
-        adapter: readAdapter,
-        graphqlClient: mockGraphqlClient,
-        ipfsMetadataUploaderFn: mockIpfsMetadataUploader,
-      });
-
-      // Assert
-      expect(module).toHaveProperty('sendOneTime');
-    });
-
-    it('should work with WriteBlockchainAdapter', () => {
-      // Arrange
-      const writeAdapter = {} as WriteBlockchainAdapter;
 
       // Act
-      const mockGraphqlClient = {} as any;
-      const mockIpfsMetadataUploader = vi.fn();
       const module = createDonationsModule({
         adapter: writeAdapter,
         graphqlClient: mockGraphqlClient,
@@ -284,6 +526,7 @@ describe('createDonationsModule', () => {
 
       // Assert
       expect(module).toHaveProperty('sendOneTime');
+      expect(module).toHaveProperty('sendContinuous');
     });
   });
 });

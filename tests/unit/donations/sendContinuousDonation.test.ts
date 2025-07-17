@@ -2,7 +2,6 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {sendContinuousDonation} from '../../../src/internal/donations/sendContinuousDonation';
 import {prepareContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
 import {TimeUnit} from '../../../src/internal/shared/streamRateUtils';
-import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {
   WriteBlockchainAdapter,
   TxResponse,
@@ -59,7 +58,6 @@ describe('sendContinuousDonation', () => {
       ipfsHash: mockIpfsHash,
       metadata: mockMetadata,
     });
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
 
     vi.clearAllMocks();
   });
@@ -83,10 +81,6 @@ describe('sendContinuousDonation', () => {
         donation,
       );
 
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendContinuousDonation',
-      );
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsMetadataUploaderFn,
@@ -131,38 +125,6 @@ describe('sendContinuousDonation', () => {
   });
 
   describe('error handling', () => {
-    it('should propagate errors from requireWriteAccess', async () => {
-      const mockError = new Error('Write access required');
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw mockError;
-      });
-
-      const donation = {
-        erc20: '0xToken123' as `0x${string}`,
-        amount: '100',
-        timeUnit: TimeUnit.DAY,
-        tokenDecimals: 18,
-        receiver: {
-          type: 'address' as const,
-          address: '0xReceiver123' as `0x${string}`,
-        },
-      };
-
-      await expect(
-        sendContinuousDonation(
-          mockAdapter,
-          mockIpfsMetadataUploaderFn,
-          donation,
-        ),
-      ).rejects.toThrow('Write access required');
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendContinuousDonation',
-      );
-      expect(prepareContinuousDonation).not.toHaveBeenCalled();
-      expect(mockAdapter.sendTx).not.toHaveBeenCalled();
-    });
-
     it('should propagate errors from prepareContinuousDonation', async () => {
       const mockError = new Error('Failed to prepare transaction');
       vi.mocked(prepareContinuousDonation).mockRejectedValue(mockError);
@@ -185,10 +147,6 @@ describe('sendContinuousDonation', () => {
           donation,
         ),
       ).rejects.toThrow('Failed to prepare transaction');
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendContinuousDonation',
-      );
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsMetadataUploaderFn,
@@ -220,10 +178,6 @@ describe('sendContinuousDonation', () => {
           donation,
         ),
       ).rejects.toThrow('Transaction failed');
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendContinuousDonation',
-      );
       expect(prepareContinuousDonation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsMetadataUploaderFn,
@@ -237,10 +191,6 @@ describe('sendContinuousDonation', () => {
   describe('function call order', () => {
     it('should call functions in correct order', async () => {
       const callOrder: string[] = [];
-
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        callOrder.push('requireWriteAccess');
-      });
 
       vi.mocked(prepareContinuousDonation).mockImplementation(async () => {
         callOrder.push('prepareContinuousDonation');
@@ -273,11 +223,7 @@ describe('sendContinuousDonation', () => {
         donation,
       );
 
-      expect(callOrder).toEqual([
-        'requireWriteAccess',
-        'prepareContinuousDonation',
-        'sendTx',
-      ]);
+      expect(callOrder).toEqual(['prepareContinuousDonation', 'sendTx']);
     });
   });
 

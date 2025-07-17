@@ -13,12 +13,15 @@ import {
   Metadata,
 } from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 import {getDripListById} from '../../../src/internal/drip-lists/getDripListById';
-import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
 import {Address} from 'viem';
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
-import {prepareDripListUpdate} from '../../../src/internal/drip-lists/prepareDripListUpdate';
 import {updateDripList} from '../../../src/internal/drip-lists/updateDripList';
+import {
+  requireWriteAccess,
+  requireMetadataUploader,
+} from '../../../src/internal/shared/assertions';
+import {DripsError} from '../../../src/internal/shared/DripsError';
 
 vi.mock('../../../src/internal/shared/calcDripListId');
 vi.mock('../../../src/internal/drip-lists/getDripListById');
@@ -26,9 +29,10 @@ vi.mock('../../../src/internal/drip-lists/prepareDripListCreation');
 vi.mock('../../../src/internal/drip-lists/createDripList');
 vi.mock('../../../src/internal/drip-lists/prepareDripListUpdate');
 vi.mock('../../../src/internal/drip-lists/updateDripList');
+vi.mock('../../../src/internal/shared/assertions');
 
 describe('createDripListsModule', () => {
-  let adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
+  let adapter: WriteBlockchainAdapter;
   let graphqlClient: DripsGraphQLClient;
   let ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>;
   let dripListsModule: DripListsModule;
@@ -36,7 +40,21 @@ describe('createDripListsModule', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    adapter = {} as WriteBlockchainAdapter;
+    // Set up default mock implementations that don't throw
+    vi.mocked(requireWriteAccess).mockImplementation(() => {
+      // Default implementation does nothing (successful case)
+    });
+    vi.mocked(requireMetadataUploader).mockImplementation(() => {
+      // Default implementation does nothing (successful case)
+    });
+
+    adapter = {
+      sendTx: vi.fn(),
+      getAddress: vi.fn(),
+      signMsg: vi.fn(),
+      call: vi.fn(),
+      getChainId: vi.fn(),
+    } as WriteBlockchainAdapter;
     graphqlClient = {query: vi.fn()} as any;
     ipfsMetadataUploaderFn = vi.fn();
 
@@ -121,5 +139,203 @@ describe('createDripListsModule', () => {
       config,
       graphqlClient,
     );
+  });
+
+  describe('create method validation', () => {
+    it('should call requireWriteAccess with correct parameters', async () => {
+      // Arrange
+      const params = {name: 'test'} as any;
+      vi.mocked(createDripList).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.create(params);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        adapter,
+        'createDripList',
+      );
+    });
+
+    it('should call requireMetadataUploader with correct parameters', async () => {
+      // Arrange
+      const params = {name: 'test'} as any;
+      vi.mocked(createDripList).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.create(params);
+
+      // Assert
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        ipfsMetadataUploaderFn,
+        'createDripList',
+      );
+    });
+
+    it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
+      // Arrange
+      const readAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as ReadBlockchainAdapter;
+      const moduleWithReadAdapter = createDripListsModule({
+        adapter: readAdapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn,
+      });
+      const params = {name: 'test'} as any;
+      const expectedResult = {result: 'test'} as any;
+      vi.mocked(createDripList).mockResolvedValue(expectedResult);
+      vi.mocked(requireWriteAccess).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithReadAdapter.create(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        readAdapter,
+        'createDripList',
+      );
+    });
+
+    it('should work without ipfsMetadataUploaderFn when requireMetadataUploader is mocked to pass', async () => {
+      // Arrange
+      const moduleWithoutUploader = createDripListsModule({
+        adapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      const params = {name: 'test'} as any;
+      const expectedResult = {result: 'test'} as any;
+      vi.mocked(createDripList).mockResolvedValue(expectedResult);
+      vi.mocked(requireMetadataUploader).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithoutUploader.create(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        undefined,
+        'createDripList',
+      );
+    });
+  });
+
+  describe('update method validation', () => {
+    it('should call requireWriteAccess with correct parameters', async () => {
+      // Arrange
+      const config = {accountId: 1n, name: 'updated'} as any;
+      vi.mocked(updateDripList).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.update(config);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        adapter,
+        'updateDripList',
+      );
+    });
+
+    it('should call requireMetadataUploader with correct parameters', async () => {
+      // Arrange
+      const config = {accountId: 1n, name: 'updated'} as any;
+      vi.mocked(updateDripList).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.update(config);
+
+      // Assert
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        ipfsMetadataUploaderFn,
+        'updateDripList',
+      );
+    });
+
+    it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
+      // Arrange
+      const readAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as ReadBlockchainAdapter;
+      const moduleWithReadAdapter = createDripListsModule({
+        adapter: readAdapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn,
+      });
+      const config = {accountId: 1n, name: 'updated'} as any;
+      const expectedResult = {result: 'updated'} as any;
+      vi.mocked(updateDripList).mockResolvedValue(expectedResult);
+      vi.mocked(requireWriteAccess).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithReadAdapter.update(config);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        readAdapter,
+        'updateDripList',
+      );
+    });
+
+    it('should work without ipfsMetadataUploaderFn when requireMetadataUploader is mocked to pass', async () => {
+      // Arrange
+      const moduleWithoutUploader = createDripListsModule({
+        adapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      const config = {accountId: 1n, name: 'updated'} as any;
+      const expectedResult = {result: 'updated'} as any;
+      vi.mocked(updateDripList).mockResolvedValue(expectedResult);
+      vi.mocked(requireMetadataUploader).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithoutUploader.update(config);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        undefined,
+        'updateDripList',
+      );
+    });
+  });
+
+  describe('module creation validation', () => {
+    it('should work with WriteBlockchainAdapter and valid uploader', () => {
+      // Arrange
+      const writeAdapter = {
+        sendTx: vi.fn(),
+        getAddress: vi.fn(),
+        signMsg: vi.fn(),
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as WriteBlockchainAdapter;
+
+      // Act
+      const module = createDripListsModule({
+        adapter: writeAdapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn,
+      });
+
+      // Assert
+      expect(module).toHaveProperty('create');
+      expect(module).toHaveProperty('update');
+      expect(module).toHaveProperty('getById');
+      expect(module).toHaveProperty('calculateId');
+    });
   });
 });

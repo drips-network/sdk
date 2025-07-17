@@ -1,10 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {prepareCollection} from '../../../src/internal/collect/prepareCollection';
 import {WriteBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
-import {
-  requireSupportedChain,
-  requireWriteAccess,
-} from '../../../src/internal/shared/assertions';
+import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
 import {parseSplitsReceivers} from '../../../src/internal/shared/receiverUtils';
@@ -153,7 +150,6 @@ describe('prepareCollection', () => {
     } as any;
 
     vi.mocked(requireSupportedChain).mockImplementation(() => {});
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
     vi.mocked(parseSplitsReceivers).mockResolvedValue({
       onChain: mockOnChainReceivers,
       metadata: [],
@@ -186,10 +182,6 @@ describe('prepareCollection', () => {
       const result = await prepareCollection(mockAdapter, config);
 
       expect(requireSupportedChain).toHaveBeenCalledWith(mockChainId);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'prepareCollection',
-      );
       expect(parseSplitsReceivers).toHaveBeenCalledWith(
         mockAdapter,
         mockCurrentReceivers,
@@ -546,26 +538,6 @@ describe('prepareCollection', () => {
 
       await expect(prepareCollection(mockAdapter, config)).rejects.toThrow(
         'Unsupported chain',
-      );
-    });
-
-    it('should propagate errors from requireWriteAccess', async () => {
-      const mockError = new Error('Write access required');
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw mockError;
-      });
-
-      const config = {
-        accountId: mockAccountId,
-        currentReceivers: mockCurrentReceivers,
-        tokenAddresses: [mockTokenAddress1],
-        shouldSkipSplit: true,
-        shouldSkipReceive: true,
-        shouldAutoUnwrap: false,
-      };
-
-      await expect(prepareCollection(mockAdapter, config)).rejects.toThrow(
-        'Write access required',
       );
     });
 

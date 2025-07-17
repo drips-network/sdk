@@ -2,10 +2,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {prepareContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
 import {TimeUnit} from '../../../src/internal/shared/streamRateUtils';
 import {WriteBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
-import {
-  requireSupportedChain,
-  requireWriteAccess,
-} from '../../../src/internal/shared/assertions';
+import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {addressDriverAbi} from '../../../src/internal/abis/addressDriverAbi';
 import {callerAbi} from '../../../src/internal/abis/callerAbi';
@@ -191,7 +188,6 @@ describe('prepareContinuousDonation', () => {
     } as any;
 
     vi.mocked(requireSupportedChain).mockImplementation(() => {});
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
     vi.mocked(resolveReceiverAccountId)
       .mockResolvedValueOnce(mockSignerAccountId)
       .mockResolvedValueOnce(mockReceiverAccountId)
@@ -259,10 +255,6 @@ describe('prepareContinuousDonation', () => {
     );
 
     expect(requireSupportedChain).toHaveBeenCalledWith(mockChainId);
-    expect(requireWriteAccess).toHaveBeenCalledWith(
-      mockAdapter,
-      'prepareContinuousDonation',
-    );
     expect(resolveReceiverAccountId).toHaveBeenCalledWith(mockAdapter, {
       type: 'address',
       address: mockSignerAddress as `0x${string}`,
@@ -491,32 +483,6 @@ describe('prepareContinuousDonation', () => {
           donation,
         ),
       ).rejects.toThrow('Unsupported chain');
-    });
-
-    it('should propagate errors from requireWriteAccess', async () => {
-      const mockError = new Error('Write access required');
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw mockError;
-      });
-
-      const donation = {
-        erc20: mockErc20,
-        amount: mockAmount,
-        timeUnit: mockTimeUnit,
-        tokenDecimals: mockTokenDecimals,
-        receiver: {
-          type: 'address' as const,
-          address: '0xReceiver123' as `0x${string}`,
-        },
-      };
-
-      await expect(
-        prepareContinuousDonation(
-          mockAdapter,
-          mockIpfsMetadataUploaderFn,
-          donation,
-        ),
-      ).rejects.toThrow('Write access required');
     });
 
     it('should propagate errors from resolveReceiverAccountId', async () => {

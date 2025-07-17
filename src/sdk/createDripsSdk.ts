@@ -18,11 +18,9 @@ import {
 import {createDonationsModule, DonationsModule} from './createDonationsModule';
 import {createUsersModule, UsersModule} from './createUsersModule';
 import {collect} from '../internal/collect/collect';
-import {
-  prepareCollection,
-  CollectConfig,
-} from '../internal/collect/prepareCollection';
-import {PreparedTx, TxResponse} from '../internal/blockchain/BlockchainAdapter';
+import {CollectConfig} from '../internal/collect/prepareCollection';
+import {TxResponse} from '../internal/blockchain/BlockchainAdapter';
+import {requireWriteAccess} from '../internal/shared/assertions';
 
 export interface DripsSdk {
   readonly dripLists: DripListsModule;
@@ -30,10 +28,7 @@ export interface DripsSdk {
   readonly users: UsersModule;
   readonly utils: typeof utils;
   readonly constants: typeof dripsConstants;
-
-  // Collect methods
   collect: (config: CollectConfig) => Promise<TxResponse>;
-  prepareCollection: (config: CollectConfig) => Promise<PreparedTx>;
 }
 
 type DripsSdkOptions = {
@@ -55,7 +50,7 @@ export type SupportedBlockchainClient =
 // TODO: document that WalletClient requires an account to be set up.
 export function createDripsSdk(
   blockchainClient: SupportedBlockchainClient,
-  ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>,
+  ipfsMetadataUploaderFn?: IpfsMetadataUploaderFn<Metadata>,
   options?: DripsSdkOptions,
 ): DripsSdk {
   const adapter = resolveBlockchainAdapter(blockchainClient);
@@ -77,13 +72,9 @@ export function createDripsSdk(
     donations: createDonationsModule(deps),
     users: createUsersModule(deps),
 
-    // Collect methods
     collect: (config: CollectConfig) => {
-      return collect(adapter as WriteBlockchainAdapter, config);
-    },
-
-    prepareCollection: (config: CollectConfig) => {
-      return prepareCollection(adapter as WriteBlockchainAdapter, config);
+      requireWriteAccess(adapter, collect.name);
+      return collect(adapter, config);
     },
   };
 }

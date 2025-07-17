@@ -19,6 +19,8 @@ import {
   createGraphQLClient,
   DEFAULT_GRAPHQL_URL,
 } from '../../../src/internal/graphql/createGraphQLClient';
+import {collect} from '../../../src/internal/collect/collect';
+import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 
 vi.mock('../../../src/internal/blockchain/resolveBlockchainAdapter');
 vi.mock('../../../src/sdk/createDripListsModule');
@@ -26,7 +28,7 @@ vi.mock('../../../src/sdk/createDonationsModule');
 vi.mock('../../../src/sdk/createUsersModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 vi.mock('../../../src/internal/collect/collect');
-vi.mock('../../../src/internal/collect/prepareCollection');
+vi.mock('../../../src/internal/shared/assertions');
 
 describe('createDripsSdk', () => {
   const ipfsMetadataUploaderFn = vi.fn<IpfsMetadataUploaderFn<Metadata>>();
@@ -46,6 +48,9 @@ describe('createDripsSdk', () => {
     vi.mocked(createDonationsModule).mockReturnValue(donationsModule);
     vi.mocked(createUsersModule).mockReturnValue(usersModule);
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
+    vi.mocked(requireWriteAccess).mockImplementation(() => {
+      // Default implementation does nothing (successful case)
+    });
   });
 
   it('should create a DripsSdk instance', () => {
@@ -63,7 +68,6 @@ describe('createDripsSdk', () => {
     expect(sdk.constants).toBe(dripsConstants);
     expect(sdk.utils).toBe(utils);
     expect(typeof sdk.collect).toBe('function');
-    expect(typeof sdk.prepareCollection).toBe('function');
     expect(createDripListsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
@@ -167,5 +171,189 @@ describe('createDripsSdk', () => {
 
     // Assert
     expect(resolveBlockchainAdapter).toHaveBeenCalledWith(client);
+  });
+
+  describe('collect method', () => {
+    it('should call requireWriteAccess and collect function with correct parameters', async () => {
+      // Arrange
+      const client = {} as WalletClient;
+      const writeAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+        getAddress: vi.fn(),
+        sendTx: vi.fn(),
+        signMsg: vi.fn(),
+      } as WriteBlockchainAdapter;
+      const collectConfig = {accountId: '123'} as any;
+      const expectedTxResponse = {hash: '0x123'} as any;
+
+      vi.mocked(resolveBlockchainAdapter).mockReturnValue(writeAdapter);
+      vi.mocked(collect).mockResolvedValue(expectedTxResponse);
+
+      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
+
+      // Act
+      const result = await sdk.collect(collectConfig);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(writeAdapter, 'collect');
+      expect(collect).toHaveBeenCalledWith(writeAdapter, collectConfig);
+      expect(result).toBe(expectedTxResponse);
+    });
+
+    it('should throw an error when collect function throws', async () => {
+      // Arrange
+      const client = {} as WalletClient;
+      const writeAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+        getAddress: vi.fn(),
+        sendTx: vi.fn(),
+        signMsg: vi.fn(),
+      } as WriteBlockchainAdapter;
+      const collectConfig = {accountId: '123'} as any;
+      const error = new Error('Collection failed');
+
+      vi.mocked(resolveBlockchainAdapter).mockReturnValue(writeAdapter);
+      vi.mocked(collect).mockRejectedValue(error);
+
+      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
+
+      // Act & Assert
+      await expect(sdk.collect(collectConfig)).rejects.toThrow(
+        'Collection failed',
+      );
+      expect(requireWriteAccess).toHaveBeenCalledWith(writeAdapter, 'collect');
+      expect(collect).toHaveBeenCalledWith(writeAdapter, collectConfig);
+    });
+  });
+
+  describe('edge cases and error handling', () => {
+    it('should handle undefined ipfsMetadataUploaderFn', () => {
+      // Arrange
+      const client = {} as PublicClient;
+
+      // Act
+      const sdk = createDripsSdk(client, undefined);
+
+      // Assert
+      expect(sdk).toBeDefined();
+      expect(createDripListsModule).toHaveBeenCalledWith({
+        adapter: mockAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      expect(createDonationsModule).toHaveBeenCalledWith({
+        adapter: mockAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      expect(createUsersModule).toHaveBeenCalledWith({
+        adapter: mockAdapter,
+        graphqlClient: mockGraphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+    });
+
+    it('should handle undefined options', () => {
+      // Arrange
+      const client = {} as PublicClient;
+
+      // Act
+      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn, undefined);
+
+      // Assert
+      expect(sdk).toBeDefined();
+      expect(createGraphQLClient).toHaveBeenCalledWith(
+        DEFAULT_GRAPHQL_URL,
+        undefined,
+      );
+    });
+
+    it('should handle empty graphql options object', () => {
+      // Arrange
+      const client = {} as PublicClient;
+
+      // Act
+      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn, {
+        graphql: {},
+      });
+
+      // Assert
+      expect(sdk).toBeDefined();
+      expect(createGraphQLClient).toHaveBeenCalledWith(
+        DEFAULT_GRAPHQL_URL,
+        undefined,
+      );
+    });
+
+    it('should propagate error when resolveBlockchainAdapter throws', () => {
+      // Arrange
+      const client = {} as PublicClient;
+      const error = new Error('Invalid blockchain client');
+      vi.mocked(resolveBlockchainAdapter).mockImplementation(() => {
+        throw error;
+      });
+
+      // Act & Assert
+      expect(() => createDripsSdk(client, ipfsMetadataUploaderFn)).toThrow(
+        'Invalid blockchain client',
+      );
+    });
+
+    it('should propagate error when createGraphQLClient throws', () => {
+      // Arrange
+      const client = {} as PublicClient;
+      const error = new Error('GraphQL client creation failed');
+      vi.mocked(createGraphQLClient).mockImplementation(() => {
+        throw error;
+      });
+
+      // Act & Assert
+      expect(() => createDripsSdk(client, ipfsMetadataUploaderFn)).toThrow(
+        'GraphQL client creation failed',
+      );
+    });
+
+    it('should propagate error when module creation throws', () => {
+      // Arrange
+      const client = {} as PublicClient;
+      const error = new Error('Module creation failed');
+      vi.mocked(createDripListsModule).mockImplementation(() => {
+        throw error;
+      });
+
+      // Act & Assert
+      expect(() => createDripsSdk(client, ipfsMetadataUploaderFn)).toThrow(
+        'Module creation failed',
+      );
+    });
+  });
+
+  describe('constants and utils exposure', () => {
+    it('should expose the correct constants object', () => {
+      // Arrange
+      const client = {} as PublicClient;
+
+      // Act
+      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
+
+      // Assert
+      expect(sdk.constants).toBe(dripsConstants);
+      expect(sdk.constants).toHaveProperty('MAX_SPLITS_RECEIVERS');
+      expect(sdk.constants).toHaveProperty('DEFAULT_GRAPHQL_URL');
+    });
+
+    it('should expose the correct utils object', () => {
+      // Arrange
+      const client = {} as PublicClient;
+
+      // Act
+      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
+
+      // Assert
+      expect(sdk.utils).toBe(utils);
+      expect(typeof sdk.utils).toBe('object');
+    });
   });
 });

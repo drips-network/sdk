@@ -16,7 +16,6 @@ import {
 } from '../../../src/internal/graphql/__generated__/base-types';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
-  requireWriteAccess: vi.fn(),
   requireSupportedChain: vi.fn(),
 }));
 
@@ -46,10 +45,7 @@ vi.mock('../../../src/internal/drip-lists/getDripListById', () => ({
   getDripListById: vi.fn(),
 }));
 
-import {
-  requireWriteAccess,
-  requireSupportedChain,
-} from '../../../src/internal/shared/assertions';
+import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
 import {encodeMetadataKeyValue} from '../../../src/internal/shared/encodeMetadataKeyValue';
@@ -207,7 +203,6 @@ describe('prepareDripListUpdate', () => {
     vi.clearAllMocks();
     // Reset all mocks to their default successful behavior
     vi.mocked(mockAdapter.getChainId).mockResolvedValue(11155111);
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
     vi.mocked(requireSupportedChain).mockImplementation(() => {});
     vi.mocked(getDripListById).mockResolvedValue(mockExistingDripList);
     vi.mocked(mapApiSplitsToSdkSplitsReceivers).mockReturnValue([]);
@@ -239,10 +234,6 @@ describe('prepareDripListUpdate', () => {
 
       // Assert
       expect(mockAdapter.getChainId).toHaveBeenCalled();
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'prepareDripListUpdate',
-      );
       expect(requireSupportedChain).toHaveBeenCalledWith(11155111);
       expect(getDripListById).toHaveBeenCalledWith(
         mockDripListId,

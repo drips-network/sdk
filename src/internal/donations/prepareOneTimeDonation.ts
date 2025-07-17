@@ -5,7 +5,7 @@ import {
   PreparedTx,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
+import {requireSupportedChain} from '../shared/assertions';
 import {buildTx} from '../shared/buildTx';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
@@ -27,7 +27,6 @@ export async function prepareOneTimeDonation(
 ): Promise<PreparedTx> {
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareOneTimeDonation.name);
   const {receiver, erc20, amount, batchedTxOverrides, tokenDecimals} = donation;
   const amountWithDecimals = parseUnits(amount.toString(), tokenDecimals);
   const receiverId = await resolveReceiverAccountId(adapter, receiver);

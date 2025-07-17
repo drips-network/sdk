@@ -10,15 +10,10 @@ import type {
   DripListMetadata,
 } from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 
-vi.mock('../../../src/internal/shared/assertions', () => ({
-  requireWriteAccess: vi.fn(),
-}));
-
 vi.mock('../../../src/internal/drip-lists/prepareDripListUpdate', () => ({
   prepareDripListUpdate: vi.fn(),
 }));
 
-import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {prepareDripListUpdate} from '../../../src/internal/drip-lists/prepareDripListUpdate';
 
 describe('updateDripList', () => {
@@ -85,7 +80,6 @@ describe('updateDripList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mocks to default successful behavior
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
     vi.mocked(prepareDripListUpdate).mockResolvedValue(mockPrepareResult);
     vi.mocked(mockAdapter.sendTx).mockResolvedValue(mockTxResponse);
   });
@@ -100,10 +94,6 @@ describe('updateDripList', () => {
       );
 
       // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'updateDripList',
-      );
       expect(prepareDripListUpdate).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsMetadataUploader,
@@ -139,10 +129,6 @@ describe('updateDripList', () => {
       );
 
       // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        customAdapter,
-        'updateDripList',
-      );
       expect(prepareDripListUpdate).toHaveBeenCalledWith(
         customAdapter,
         mockIpfsMetadataUploader,
@@ -406,10 +392,6 @@ describe('updateDripList', () => {
       );
 
       // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'updateDripList',
-      );
       expect(prepareDripListUpdate).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsMetadataUploader,
@@ -429,23 +411,6 @@ describe('updateDripList', () => {
   });
 
   describe('error handling', () => {
-    it('should propagate write access validation errors', async () => {
-      // Arrange
-      const accessError = new DripsError(
-        'Operation requires signer permissions',
-      );
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw accessError;
-      });
-
-      // Act & Assert
-      await expect(
-        updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig),
-      ).rejects.toThrow(accessError);
-      expect(prepareDripListUpdate).not.toHaveBeenCalled();
-      expect(mockAdapter.sendTx).not.toHaveBeenCalled();
-    });
-
     it('should propagate preparation errors', async () => {
       // Arrange
       const preparationError = new Error('Failed to prepare update');
@@ -455,7 +420,6 @@ describe('updateDripList', () => {
       await expect(
         updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig),
       ).rejects.toThrow(preparationError);
-      expect(requireWriteAccess).toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
 
@@ -468,7 +432,6 @@ describe('updateDripList', () => {
       await expect(
         updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig),
       ).rejects.toThrow(txError);
-      expect(requireWriteAccess).toHaveBeenCalled();
       expect(prepareDripListUpdate).toHaveBeenCalled();
     });
 
@@ -703,9 +666,6 @@ describe('updateDripList', () => {
     it('should call functions in correct order', async () => {
       // Arrange
       const callOrder: string[] = [];
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        callOrder.push('requireWriteAccess');
-      });
       vi.mocked(prepareDripListUpdate).mockImplementation(async () => {
         callOrder.push('prepareDripListUpdate');
         return mockPrepareResult;
@@ -719,11 +679,7 @@ describe('updateDripList', () => {
       await updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig);
 
       // Assert
-      expect(callOrder).toEqual([
-        'requireWriteAccess',
-        'prepareDripListUpdate',
-        'sendTx',
-      ]);
+      expect(callOrder).toEqual(['prepareDripListUpdate', 'sendTx']);
     });
 
     it('should not call sendTx if preparation fails', async () => {
@@ -736,20 +692,6 @@ describe('updateDripList', () => {
       await expect(
         updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig),
       ).rejects.toThrow('Preparation failed');
-      expect(mockAdapter.sendTx).not.toHaveBeenCalled();
-    });
-
-    it('should not call prepareDripListUpdate if write access check fails', async () => {
-      // Arrange
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw new DripsError('No write access');
-      });
-
-      // Act & Assert
-      await expect(
-        updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig),
-      ).rejects.toThrow('No write access');
-      expect(prepareDripListUpdate).not.toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
   });
@@ -795,17 +737,6 @@ describe('updateDripList', () => {
         mockIpfsMetadataUploader,
         complexConfig,
         undefined,
-      );
-    });
-
-    it('should pass correct function name to requireWriteAccess', async () => {
-      // Act
-      await updateDripList(mockAdapter, mockIpfsMetadataUploader, validConfig);
-
-      // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'updateDripList',
       );
     });
   });

@@ -8,7 +8,6 @@ import {
   Metadata,
   StreamsMetadata,
 } from '../shared/createPinataIpfsMetadataUploader';
-import {requireWriteAccess} from '../shared/assertions';
 import {
   ContinuousDonation,
   prepareContinuousDonation,
@@ -26,8 +25,6 @@ export async function sendContinuousDonation(
   donation: ContinuousDonation,
   graphqlClient?: DripsGraphQLClient,
 ): Promise<SendContinuousDonationResult> {
-  requireWriteAccess(adapter, sendContinuousDonation.name);
-
   const {preparedTx, ipfsHash, metadata} = await prepareContinuousDonation(
     adapter,
     ipfsMetadataUploaderFn,

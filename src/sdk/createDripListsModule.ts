@@ -11,26 +11,22 @@ import {
   DripList,
   getDripListById,
 } from '../internal/drip-lists/getDripListById';
-import {
-  NewDripList,
-  PrepareDripListCreationResult,
-} from '../internal/drip-lists/prepareDripListCreation';
+import {NewDripList} from '../internal/drip-lists/prepareDripListCreation';
 import {
   IpfsMetadataUploaderFn,
   Metadata,
 } from '../internal/shared/createPinataIpfsMetadataUploader';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
-import {prepareDripListCreation} from '../internal/drip-lists/prepareDripListCreation';
 import {calcDripListId} from '../internal/shared/calcDripListId';
-import {
-  DripListUpdateConfig,
-  prepareDripListUpdate,
-  PrepareDripListUpdateResult,
-} from '../internal/drip-lists/prepareDripListUpdate';
+import {DripListUpdateConfig} from '../internal/drip-lists/prepareDripListUpdate';
 import {
   updateDripList,
   UpdateDripListResult,
 } from '../internal/drip-lists/updateDripList';
+import {
+  requireMetadataUploader,
+  requireWriteAccess,
+} from '../internal/shared/assertions';
 
 export interface DripListsModule {
   calculateId(salt: bigint, minter: Address, chainId: number): Promise<bigint>;
@@ -41,8 +37,8 @@ export interface DripListsModule {
 
 type Deps = {
   readonly graphqlClient: DripsGraphQLClient;
-  readonly ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata>;
   readonly adapter: ReadBlockchainAdapter | WriteBlockchainAdapter;
+  readonly ipfsMetadataUploaderFn?: IpfsMetadataUploaderFn<Metadata>;
 };
 
 export function createDripListsModule(deps: Deps): DripListsModule {
@@ -58,19 +54,21 @@ export function createDripListsModule(deps: Deps): DripListsModule {
     getById: (accountId: bigint, chainId: number) =>
       getDripListById(accountId, chainId, graphqlClient),
 
-    create: (dripList: NewDripList) =>
-      createDripList(
-        adapter as WriteBlockchainAdapter,
-        ipfsMetadataUploaderFn,
-        dripList,
-      ),
+    create: (dripList: NewDripList) => {
+      requireWriteAccess(adapter, createDripList.name);
+      requireMetadataUploader(ipfsMetadataUploaderFn, createDripList.name);
+      return createDripList(adapter, ipfsMetadataUploaderFn, dripList);
+    },
 
-    update: (config: DripListUpdateConfig) =>
-      updateDripList(
-        adapter as WriteBlockchainAdapter,
+    update: (config: DripListUpdateConfig) => {
+      requireWriteAccess(adapter, updateDripList.name);
+      requireMetadataUploader(ipfsMetadataUploaderFn, updateDripList.name);
+      return updateDripList(
+        adapter,
         ipfsMetadataUploaderFn,
         config,
         graphqlClient,
-      ),
+      );
+    },
   };
 }

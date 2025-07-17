@@ -4,6 +4,7 @@ import {
   requireSupportedChain,
   requireGraphQLSupportedChain,
   requireWriteAccess,
+  requireMetadataUploader,
 } from '../../../src/internal/shared/assertions';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {WalletClient, Account} from 'viem';
@@ -11,6 +12,10 @@ import type {
   ReadBlockchainAdapter,
   WriteBlockchainAdapter,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
+import type {
+  IpfsMetadataUploaderFn,
+  Metadata,
+} from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 
 describe('assertions', () => {
   describe('requireWalletHasAccount', () => {
@@ -376,6 +381,130 @@ describe('assertions', () => {
     });
   });
 
+  describe('requireMetadataUploader', () => {
+    it('should pass for valid IPFS metadata uploader function', () => {
+      // Arrange
+      const mockUploader: IpfsMetadataUploaderFn<Metadata> = vi
+        .fn()
+        .mockResolvedValue('0xipfshash');
+
+      // Act & Assert
+      expect(() => requireMetadataUploader(mockUploader)).not.toThrow();
+    });
+
+    it('should throw DripsError when uploader is undefined', () => {
+      // Arrange
+      const uploader = undefined;
+
+      // Act & Assert
+      expect(() => requireMetadataUploader(uploader)).toThrow(DripsError);
+      expect(() => requireMetadataUploader(uploader)).toThrow(
+        "Operation 'requireMetadataUploader' requires IPFS metadata uploader",
+      );
+    });
+
+    it('should throw DripsError when uploader is null', () => {
+      // Arrange
+      const uploader = null as any;
+
+      // Act & Assert
+      expect(() => requireMetadataUploader(uploader)).toThrow(DripsError);
+    });
+
+    it('should include operation name in error message', () => {
+      // Arrange
+      const uploader = undefined;
+      const operation = 'customMetadataOperation';
+
+      // Act & Assert
+      expect(() => requireMetadataUploader(uploader, operation)).toThrow(
+        `Operation '${operation}' requires IPFS metadata uploader`,
+      );
+    });
+
+    it('should include operation in error metadata', () => {
+      // Arrange
+      const uploader = undefined;
+      const operation = 'testMetadataOperation';
+
+      // Act & Assert
+      try {
+        requireMetadataUploader(uploader, operation);
+        expect.fail('Should have thrown DripsError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DripsError);
+        expect((error as DripsError).meta?.operation).toBe(operation);
+      }
+    });
+
+    it('should include hint in error metadata', () => {
+      // Arrange
+      const uploader = undefined;
+
+      // Act & Assert
+      try {
+        requireMetadataUploader(uploader);
+        expect.fail('Should have thrown DripsError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DripsError);
+        expect((error as DripsError).meta?.hint).toBe(
+          'Instantiate Drips SDK with an IPFS metadata uploader function',
+        );
+      }
+    });
+
+    it('should use default operation name when not provided', () => {
+      // Arrange
+      const uploader = undefined;
+
+      // Act & Assert
+      try {
+        requireMetadataUploader(uploader);
+        expect.fail('Should have thrown DripsError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DripsError);
+        expect((error as DripsError).meta?.operation).toBe(
+          'requireMetadataUploader',
+        );
+      }
+    });
+
+    it('should handle different types of uploader functions', () => {
+      // Arrange
+      const uploaders = [
+        vi.fn().mockResolvedValue('0xhash1'),
+        async () => '0xhash2' as any,
+        () => Promise.resolve('0xhash3' as any),
+      ];
+
+      // Act & Assert
+      uploaders.forEach(uploader => {
+        expect(() => requireMetadataUploader(uploader)).not.toThrow();
+      });
+    });
+
+    it('should provide type assertion for valid uploader', () => {
+      // Arrange
+      const mockUploader = vi.fn().mockResolvedValue('0xipfshash');
+      const uploader: IpfsMetadataUploaderFn<Metadata> | undefined =
+        mockUploader;
+
+      // Act
+      requireMetadataUploader(uploader);
+
+      // Assert - TypeScript should now know this is a valid uploader
+      expect(uploader).toBe(mockUploader);
+    });
+
+    it('should handle falsy values correctly', () => {
+      const falsyValues = [undefined, null, false, 0, '', NaN];
+
+      falsyValues.forEach(value => {
+        expect(() => requireMetadataUploader(value as any)).toThrow(DripsError);
+      });
+    });
+  });
+
   describe('requireWriteAccess', () => {
     it('should pass for write adapter with sendTx method', () => {
       // Arrange
@@ -397,7 +526,7 @@ describe('assertions', () => {
       // Act & Assert
       expect(() => requireWriteAccess(readAdapter)).toThrow(DripsError);
       expect(() => requireWriteAccess(readAdapter)).toThrow(
-        "Operation 'requireWriteAccess' requires signer permissions",
+        "Operation 'requireWriteAccess' requires wallet/signer permissions",
       );
     });
 
@@ -438,7 +567,7 @@ describe('assertions', () => {
 
       // Act & Assert
       expect(() => requireWriteAccess(readAdapter, operation)).toThrow(
-        `Operation '${operation}' requires signer permissions`,
+        `Operation '${operation}' requires wallet/signer permissions`,
       );
     });
 
@@ -457,7 +586,7 @@ describe('assertions', () => {
       }
     });
 
-    it('should include adapter type in error metadata', () => {
+    it('should include hint in error metadata', () => {
       // Arrange
       const readAdapter = {} as ReadBlockchainAdapter;
 
@@ -467,7 +596,9 @@ describe('assertions', () => {
         expect.fail('Should have thrown DripsError');
       } catch (error) {
         expect(error).toBeInstanceOf(DripsError);
-        expect((error as DripsError).meta?.adapterType).toBe('read-only');
+        expect((error as DripsError).meta?.hint).toBe(
+          'Instantiate Drips SDK with a WriteBlockchainAdapter',
+        );
       }
     });
 
@@ -556,7 +687,7 @@ describe('assertions', () => {
         },
         {
           fn: () => requireWriteAccess({} as ReadBlockchainAdapter, 'write-op'),
-          expectedMeta: {operation: 'write-op', adapterType: 'read-only'},
+          expectedMeta: {operation: 'write-op'},
         },
       ];
 

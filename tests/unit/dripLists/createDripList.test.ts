@@ -10,15 +10,10 @@ import type {
   Metadata,
 } from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 
-vi.mock('../../../src/internal/shared/assertions', () => ({
-  requireWriteAccess: vi.fn(),
-}));
-
 vi.mock('../../../src/internal/drip-lists/prepareDripListCreation', () => ({
   prepareDripListCreation: vi.fn(),
 }));
 
-import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
 import {Address} from 'viem';
 
@@ -83,7 +78,6 @@ describe('createDripList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mocks to default successful behavior
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
     vi.mocked(prepareDripListCreation).mockResolvedValue(mockCreationContext);
     vi.mocked(mockAdapter.sendTx).mockResolvedValue(mockTxResponse);
   });
@@ -98,10 +92,6 @@ describe('createDripList', () => {
       );
 
       // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'createDripList',
-      );
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         mockAdapter,
         mockIpfsMetadataUploader,
@@ -138,10 +128,6 @@ describe('createDripList', () => {
       );
 
       // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        customAdapter,
-        'createDripList',
-      );
       expect(prepareDripListCreation).toHaveBeenCalledWith(
         customAdapter,
         mockIpfsMetadataUploader,
@@ -302,23 +288,6 @@ describe('createDripList', () => {
   });
 
   describe('error handling', () => {
-    it('should propagate write access validation errors', async () => {
-      // Arrange
-      const accessError = new DripsError(
-        'Operation requires signer permissions',
-      );
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw accessError;
-      });
-
-      // Act & Assert
-      await expect(
-        createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
-      ).rejects.toThrow(accessError);
-      expect(prepareDripListCreation).not.toHaveBeenCalled();
-      expect(mockAdapter.sendTx).not.toHaveBeenCalled();
-    });
-
     it('should propagate preparation context errors', async () => {
       // Arrange
       const preparationError = new Error('Failed to prepare creation context');
@@ -328,7 +297,6 @@ describe('createDripList', () => {
       await expect(
         createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(preparationError);
-      expect(requireWriteAccess).toHaveBeenCalled();
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
 
@@ -341,7 +309,6 @@ describe('createDripList', () => {
       await expect(
         createDripList(mockAdapter, mockIpfsMetadataUploader, validParams),
       ).rejects.toThrow(txError);
-      expect(requireWriteAccess).toHaveBeenCalled();
       expect(prepareDripListCreation).toHaveBeenCalled();
     });
 
@@ -481,9 +448,6 @@ describe('createDripList', () => {
     it('should call functions in correct order', async () => {
       // Arrange
       const callOrder: string[] = [];
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        callOrder.push('requireWriteAccess');
-      });
       vi.mocked(prepareDripListCreation).mockImplementation(async () => {
         callOrder.push('prepareDripListCreation');
         return mockCreationContext;
@@ -497,11 +461,7 @@ describe('createDripList', () => {
       await createDripList(mockAdapter, mockIpfsMetadataUploader, validParams);
 
       // Assert
-      expect(callOrder).toEqual([
-        'requireWriteAccess',
-        'prepareDripListCreation',
-        'sendTx',
-      ]);
+      expect(callOrder).toEqual(['prepareDripListCreation', 'sendTx']);
     });
 
     it('should not call sendTx if preparation fails', async () => {

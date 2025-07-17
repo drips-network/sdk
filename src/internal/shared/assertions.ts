@@ -7,6 +7,10 @@ import {
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
 import {Forge, supportedForges} from '../projects/calcProjectId';
+import {
+  IpfsMetadataUploaderFn,
+  Metadata,
+} from './createPinataIpfsMetadataUploader';
 
 export function requireWalletHasAccount(
   client: WalletClient,
@@ -65,14 +69,31 @@ function isWriteAdapter(
 export function requireWriteAccess(
   adapter: ReadBlockchainAdapter | WriteBlockchainAdapter,
   operation = 'requireWriteAccess',
-): void {
+): asserts adapter is WriteBlockchainAdapter {
   if (!isWriteAdapter(adapter)) {
     throw new DripsError(
-      `Operation '${operation}' requires signer permissions`,
+      `Operation '${operation}' requires wallet/signer permissions`,
       {
         meta: {
           operation,
-          adapterType: 'read-only',
+          hint: 'Instantiate Drips SDK with a WriteBlockchainAdapter',
+        },
+      },
+    );
+  }
+}
+
+export function requireMetadataUploader(
+  ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<Metadata> | undefined,
+  operation = 'requireMetadataUploader',
+): asserts ipfsMetadataUploaderFn is IpfsMetadataUploaderFn<Metadata> {
+  if (!ipfsMetadataUploaderFn) {
+    throw new DripsError(
+      `Operation '${operation}' requires IPFS metadata uploader`,
+      {
+        meta: {
+          operation,
+          hint: 'Instantiate Drips SDK with an IPFS metadata uploader function',
         },
       },
     );

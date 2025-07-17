@@ -15,7 +15,7 @@ import {
   BatchedTxOverrides,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
+import {requireSupportedChain} from '../shared/assertions';
 import {parseSplitsReceivers, SdkSplitsReceiver} from '../shared/receiverUtils';
 import {calcDripListId} from '../shared/calcDripListId';
 import {
@@ -56,7 +56,6 @@ export async function prepareDripListCreation(
 ): Promise<PrepareDripListCreationResult> {
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareDripListCreation.name);
 
   const {
     name,

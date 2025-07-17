@@ -4,7 +4,7 @@ import {
   BatchedTxOverrides,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
+import {requireSupportedChain} from '../shared/assertions';
 import {getCurrentStreamsAndReceivers} from '../streams/getCurrentStreamReceivers';
 import {
   decodeStreamConfig,
@@ -70,7 +70,6 @@ export async function prepareContinuousDonation(
 ): Promise<PrepareContinuousDonationResult> {
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareContinuousDonation.name);
 
   const {
     erc20,

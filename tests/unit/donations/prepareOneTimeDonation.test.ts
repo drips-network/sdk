@@ -1,10 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {prepareOneTimeDonation} from '../../../src/internal/donations/prepareOneTimeDonation';
 import {WriteBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
-import {
-  requireSupportedChain,
-  requireWriteAccess,
-} from '../../../src/internal/shared/assertions';
+import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {addressDriverAbi} from '../../../src/internal/abis/addressDriverAbi';
 import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
@@ -39,7 +36,6 @@ describe('prepareOneTimeDonation', () => {
 
     vi.mocked(buildTx).mockReturnValue(mockPreparedTx as any);
     vi.mocked(requireSupportedChain).mockImplementation(() => {});
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
 
     vi.clearAllMocks();
   });
@@ -67,10 +63,6 @@ describe('prepareOneTimeDonation', () => {
 
       expect(result).toBe(mockPreparedTx);
       expect(requireSupportedChain).toHaveBeenCalledWith(mockChainId);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'prepareOneTimeDonation',
-      );
       expect(resolveReceiverAccountId).toHaveBeenCalledWith(
         mockAdapter,
         params.receiver,
@@ -305,29 +297,6 @@ describe('prepareOneTimeDonation', () => {
       await prepareOneTimeDonation(mockAdapter, params);
 
       expect(requireSupportedChain).toHaveBeenCalledWith(mockChainId);
-    });
-
-    it('should call requireWriteAccess with adapter', async () => {
-      const mockAccountId = 123n;
-      vi.mocked(resolveReceiverAccountId).mockResolvedValue(mockAccountId);
-
-      const params = {
-        receiver: {
-          type: 'drip-list' as const,
-          accountId: mockAccountId,
-          amount: 1000n,
-        },
-        amount: 1000n,
-        erc20: '0xToken123' as const,
-        tokenDecimals: 18,
-      };
-
-      await prepareOneTimeDonation(mockAdapter, params);
-
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'prepareOneTimeDonation',
-      );
     });
   });
 });

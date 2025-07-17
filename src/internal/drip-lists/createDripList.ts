@@ -8,7 +8,6 @@ import {
   IpfsMetadataUploaderFn,
 } from '../shared/createPinataIpfsMetadataUploader';
 import {prepareDripListCreation, NewDripList} from './prepareDripListCreation';
-import {requireWriteAccess} from '../shared/assertions';
 
 export type CreateDripListResult = {
   salt: bigint;
@@ -23,8 +22,6 @@ export async function createDripList(
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,
   dripList: NewDripList,
 ): Promise<CreateDripListResult> {
-  requireWriteAccess(adapter, createDripList.name);
-
   const {salt, ipfsHash, dripListId, preparedTx, metadata} =
     await prepareDripListCreation(adapter, ipfsMetadataUploaderFn, dripList);
 

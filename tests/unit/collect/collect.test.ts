@@ -1,7 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {collect} from '../../../src/internal/collect/collect';
 import {prepareCollection} from '../../../src/internal/collect/prepareCollection';
-import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {
   WriteBlockchainAdapter,
   TxResponse,
@@ -56,7 +55,6 @@ describe('collect', () => {
     } as any;
 
     vi.mocked(prepareCollection).mockResolvedValue(mockPreparedTx as any);
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
 
     vi.clearAllMocks();
   });
@@ -66,7 +64,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, mockConfig);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(mockAdapter, mockConfig);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -83,7 +80,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, configWithOverrides);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(
         mockAdapter,
         configWithOverrides,
@@ -115,7 +111,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, configWithSqueeze);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(
         mockAdapter,
         configWithSqueeze,
@@ -132,7 +127,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, configWithAutoUnwrap);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(
         mockAdapter,
         configWithAutoUnwrap,
@@ -149,7 +143,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, configWithTransfer);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(
         mockAdapter,
         configWithTransfer,
@@ -167,7 +160,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, configWithSkips);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(
         mockAdapter,
         configWithSkips,
@@ -187,7 +179,6 @@ describe('collect', () => {
       const result = await collect(mockAdapter, configWithMultipleTokens);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(
         mockAdapter,
         configWithMultipleTokens,
@@ -197,20 +188,6 @@ describe('collect', () => {
   });
 
   describe('error handling', () => {
-    it('should propagate error from requireWriteAccess', async () => {
-      const mockError = new Error('Write access required');
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw mockError;
-      });
-
-      await expect(collect(mockAdapter, mockConfig)).rejects.toThrow(
-        'Write access required',
-      );
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
-      expect(prepareCollection).not.toHaveBeenCalled();
-      expect(mockAdapter.sendTx).not.toHaveBeenCalled();
-    });
-
     it('should propagate error from prepareCollection', async () => {
       const mockError = new Error('Failed to prepare collection');
       vi.mocked(prepareCollection).mockRejectedValue(mockError);
@@ -218,7 +195,6 @@ describe('collect', () => {
       await expect(collect(mockAdapter, mockConfig)).rejects.toThrow(
         'Failed to prepare collection',
       );
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(mockAdapter, mockConfig);
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
     });
@@ -230,7 +206,6 @@ describe('collect', () => {
       await expect(collect(mockAdapter, mockConfig)).rejects.toThrow(
         'Transaction failed',
       );
-      expect(requireWriteAccess).toHaveBeenCalledWith(mockAdapter, 'collect');
       expect(prepareCollection).toHaveBeenCalledWith(mockAdapter, mockConfig);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -239,10 +214,6 @@ describe('collect', () => {
   describe('function call order', () => {
     it('should call functions in correct order', async () => {
       const callOrder: string[] = [];
-
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        callOrder.push('requireWriteAccess');
-      });
 
       vi.mocked(prepareCollection).mockImplementation(async () => {
         callOrder.push('prepareCollection');
@@ -256,11 +227,7 @@ describe('collect', () => {
 
       await collect(mockAdapter, mockConfig);
 
-      expect(callOrder).toEqual([
-        'requireWriteAccess',
-        'prepareCollection',
-        'sendTx',
-      ]);
+      expect(callOrder).toEqual(['prepareCollection', 'sendTx']);
     });
   });
 

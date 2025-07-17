@@ -10,7 +10,6 @@ import type {
 } from '../../../src/internal/shared/createPinataIpfsMetadataUploader';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
-  requireWriteAccess: vi.fn(),
   requireSupportedChain: vi.fn(),
   requireMatchingChains: vi.fn(),
 }));
@@ -44,10 +43,7 @@ vi.mock('../../../src/internal/shared/calcDripListId', () => ({
   calcDripListId: vi.fn(),
 }));
 
-import {
-  requireWriteAccess,
-  requireSupportedChain,
-} from '../../../src/internal/shared/assertions';
+import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {calculateRandomSalt} from '../../../src/internal/drip-lists/calculateRandomSalt';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
@@ -153,7 +149,6 @@ describe('prepareDripListCreation', () => {
     vi.clearAllMocks();
     // Reset all mocks to their default successful behavior
     vi.mocked(mockAdapter.getChainId).mockResolvedValue(11155111);
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
     vi.mocked(requireSupportedChain).mockImplementation(() => {});
     vi.mocked(mockAdapter.getAddress).mockResolvedValue(mockMinterAddress);
     vi.mocked(calculateRandomSalt).mockReturnValue(mockSalt);
@@ -185,10 +180,6 @@ describe('prepareDripListCreation', () => {
 
       // Assert
       expect(mockAdapter.getChainId).toHaveBeenCalled();
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'prepareDripListCreation',
-      );
       expect(requireSupportedChain).toHaveBeenCalledWith(11155111);
       expect(mockAdapter.getAddress).toHaveBeenCalled();
       expect(calculateRandomSalt).toHaveBeenCalled();
@@ -321,7 +312,6 @@ describe('prepareDripListCreation', () => {
           validParams,
         ),
       ).rejects.toThrow(chainIdError);
-      expect(requireWriteAccess).not.toHaveBeenCalled();
       expect(requireSupportedChain).not.toHaveBeenCalled();
     });
 

@@ -1,4 +1,3 @@
-import {addressDriverAbi} from '../abis/addressDriverAbi';
 import {callerAbi} from '../abis/callerAbi';
 import {nftDriverAbi} from '../abis/nftDriverAbi';
 import {
@@ -8,7 +7,7 @@ import {
 } from '../blockchain/BlockchainAdapter';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {DripsGraphQLClient} from '../graphql/createGraphQLClient';
-import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
+import {requireSupportedChain} from '../shared/assertions';
 import {buildTx} from '../shared/buildTx';
 import {convertToCallerCall} from '../shared/convertToCallerCall';
 import {
@@ -55,7 +54,6 @@ export async function prepareDripListUpdate(
 
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, operation);
 
   const {
     dripListId,

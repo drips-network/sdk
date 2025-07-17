@@ -1,7 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {sendOneTimeDonation} from '../../../src/internal/donations/sendOneTimeDonation';
 import {prepareOneTimeDonation} from '../../../src/internal/donations/prepareOneTimeDonation';
-import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {
   WriteBlockchainAdapter,
   TxResponse,
@@ -41,7 +40,6 @@ describe('sendOneTimeDonation', () => {
     } as any;
 
     vi.mocked(prepareOneTimeDonation).mockResolvedValue(mockPreparedTx as any);
-    vi.mocked(requireWriteAccess).mockImplementation(() => {});
 
     vi.clearAllMocks();
   });
@@ -67,10 +65,6 @@ describe('sendOneTimeDonation', () => {
       const result = await sendOneTimeDonation(mockAdapter, params);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -89,10 +83,6 @@ describe('sendOneTimeDonation', () => {
       const result = await sendOneTimeDonation(mockAdapter, params);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -112,10 +102,6 @@ describe('sendOneTimeDonation', () => {
       const result = await sendOneTimeDonation(mockAdapter, params);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -135,10 +121,6 @@ describe('sendOneTimeDonation', () => {
       const result = await sendOneTimeDonation(mockAdapter, params);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -158,10 +140,6 @@ describe('sendOneTimeDonation', () => {
       const result = await sendOneTimeDonation(mockAdapter, params);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -181,44 +159,12 @@ describe('sendOneTimeDonation', () => {
       const result = await sendOneTimeDonation(mockAdapter, params);
 
       expect(result).toBe(mockTxResponse);
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
   });
 
   describe('error handling', () => {
-    it('should propagate error from requireWriteAccess', async () => {
-      const mockError = new Error('Write access required');
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        throw mockError;
-      });
-
-      const params = {
-        receiver: {
-          type: 'project' as const,
-          url: 'https://github.com/owner/repo',
-          amount: 1000n,
-        },
-        amount: 1000n,
-        erc20: '0xToken123' as const,
-        tokenDecimals: 18,
-      };
-
-      await expect(sendOneTimeDonation(mockAdapter, params)).rejects.toThrow(
-        'Write access required',
-      );
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
-      expect(prepareOneTimeDonation).not.toHaveBeenCalled();
-      expect(mockAdapter.sendTx).not.toHaveBeenCalled();
-    });
-
     it('should propagate error from prepareOneTimeDonation', async () => {
       const mockError = new Error('Failed to prepare transaction');
       vi.mocked(prepareOneTimeDonation).mockRejectedValue(mockError);
@@ -236,10 +182,6 @@ describe('sendOneTimeDonation', () => {
 
       await expect(sendOneTimeDonation(mockAdapter, params)).rejects.toThrow(
         'Failed to prepare transaction',
-      );
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
       );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).not.toHaveBeenCalled();
@@ -263,10 +205,6 @@ describe('sendOneTimeDonation', () => {
       await expect(sendOneTimeDonation(mockAdapter, params)).rejects.toThrow(
         'Transaction failed',
       );
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        mockAdapter,
-        'sendOneTimeDonation',
-      );
       expect(prepareOneTimeDonation).toHaveBeenCalledWith(mockAdapter, params);
       expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
     });
@@ -275,10 +213,6 @@ describe('sendOneTimeDonation', () => {
   describe('function call order', () => {
     it('should call functions in correct order', async () => {
       const callOrder: string[] = [];
-
-      vi.mocked(requireWriteAccess).mockImplementation(() => {
-        callOrder.push('requireWriteAccess');
-      });
 
       vi.mocked(prepareOneTimeDonation).mockImplementation(async () => {
         callOrder.push('prepareOneTimeDonation');
@@ -303,11 +237,7 @@ describe('sendOneTimeDonation', () => {
 
       await sendOneTimeDonation(mockAdapter, params);
 
-      expect(callOrder).toEqual([
-        'requireWriteAccess',
-        'prepareOneTimeDonation',
-        'sendTx',
-      ]);
+      expect(callOrder).toEqual(['prepareOneTimeDonation', 'sendTx']);
     });
   });
 

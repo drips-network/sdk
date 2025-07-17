@@ -7,7 +7,7 @@ import {
   PreparedTx,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {requireSupportedChain, requireWriteAccess} from '../shared/assertions';
+import {requireSupportedChain} from '../shared/assertions';
 import {OnChainStreamReceiver} from '../shared/validateAndFormatStreamReceivers';
 import {dripsAbi} from '../abis/dripsAbi';
 import {contractsRegistry} from '../config/contractsRegistry';
@@ -51,7 +51,6 @@ export async function prepareCollection(
 ): Promise<PreparedTx> {
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  requireWriteAccess(adapter, prepareCollection.name);
 
   const {
     accountId,

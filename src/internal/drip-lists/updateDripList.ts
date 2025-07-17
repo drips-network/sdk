@@ -3,7 +3,6 @@ import {
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
 import {DripsGraphQLClient} from '../graphql/createGraphQLClient';
-import {requireWriteAccess} from '../shared/assertions';
 import {
   DripListMetadata,
   IpfsMetadataUploaderFn,
@@ -25,8 +24,6 @@ export async function updateDripList(
   config: DripListUpdateConfig,
   graphqlClient?: DripsGraphQLClient,
 ): Promise<UpdateDripListResult> {
-  requireWriteAccess(adapter, updateDripList.name);
-
   const {ipfsHash, metadata, preparedTx} = await prepareDripListUpdate(
     adapter,
     ipfsMetadataUploaderFn,
