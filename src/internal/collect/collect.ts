@@ -1,19 +1,19 @@
-import {Hash} from 'viem';
 import {
   TxResponse,
   WriteBlockchainAdapter,
 } from '../blockchain/BlockchainAdapter';
-import {DripListMetadata} from '../shared/createPinataIpfsMetadataUploader';
 import {CollectConfig, prepareCollection} from './prepareCollection';
 
-export type CreateDripListResult = {
-  salt: bigint;
-  ipfsHash: Hash;
-  dripListId: bigint;
-  txResponse: TxResponse;
-  metadata: DripListMetadata;
-};
-
+/**
+ * Collects funds for an account.
+ *
+ * @param adapter - A write-enabled blockchain adapter for transaction execution.
+ * @param config - Configuration for the collection operation.
+ *
+ * @returns The transaction response from the blockchain.
+ *
+ * @throws {DripsError} If the chain is not supported, no tokens are provided, configuration is invalid, or transaction execution fails.
+ */
 export async function collect(
   adapter: WriteBlockchainAdapter,
   config: CollectConfig,

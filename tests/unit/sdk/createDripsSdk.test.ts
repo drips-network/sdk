@@ -341,7 +341,6 @@ describe('createDripsSdk', () => {
       // Assert
       expect(sdk.constants).toBe(dripsConstants);
       expect(sdk.constants).toHaveProperty('MAX_SPLITS_RECEIVERS');
-      expect(sdk.constants).toHaveProperty('DEFAULT_GRAPHQL_URL');
     });
 
     it('should expose the correct utils object', () => {

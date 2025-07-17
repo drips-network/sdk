@@ -1,11 +1,24 @@
 import {Address, checksumAddress} from 'viem';
+import {DripsError} from './DripsError';
 
-export function resolveAddressFromAccountId(accountId: bigint): Address {
+/**
+ * Resolves the address from an `AddressDriver` account ID.
+ *
+ * @param accountId - The `AddressDriver` account ID, which is a bigint.
+ * @returns The resolved address (checksummed).
+ * @throws {DripsError} If the ID is out of range or not zero-padded correctly.
+ */
+export function resolveAddressFromAddressDriverId(accountId: bigint): Address {
   const MAX_UINT256 = (1n << 256n) - 1n;
 
   if (accountId < 0n || accountId > MAX_UINT256) {
-    throw new Error(
+    throw new DripsError(
       `Invalid accountId: ${accountId} is outside the uint256 range.`,
+      {
+        meta: {
+          operation: resolveAddressFromAddressDriverId.name,
+        },
+      },
     );
   }
 

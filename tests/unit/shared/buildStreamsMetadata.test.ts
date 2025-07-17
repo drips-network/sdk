@@ -6,7 +6,7 @@ import {
 } from '../../../src/internal/shared/streamRateUtils';
 import encodeStreamId from '../../../src/internal/shared/streamIdUtils';
 import {addressDriverAccountMetadataParser} from '../../../src/internal/metadata/schemas';
-import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
+import {resolveAddressFromAddressDriverId} from '../../../src/internal/shared/resolveAddressFromAddressDriverId';
 import {resolveDriverName} from '../../../src/internal/shared/resolveDriverName';
 import {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import {ContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
@@ -29,9 +29,12 @@ vi.mock('../../../src/internal/metadata/schemas', () => ({
   },
 }));
 
-vi.mock('../../../src/internal/shared/resolveAddressFromAccountId', () => ({
-  resolveAddressFromAccountId: vi.fn(),
-}));
+vi.mock(
+  '../../../src/internal/shared/resolveAddressFromAddressDriverId',
+  () => ({
+    resolveAddressFromAddressDriverId: vi.fn(),
+  }),
+);
 
 vi.mock('../../../src/internal/shared/receiverUtils', () => ({
   resolveReceiverAccountId: vi.fn(),
@@ -86,7 +89,9 @@ describe('buildStreamsMetadata', () => {
     vi.mocked(encodeStreamConfig).mockReturnValue(123456789n);
     vi.mocked(parseStreamRate).mockReturnValue(1000000000000000000n); // 1 ETH per second
     vi.mocked(encodeStreamId).mockReturnValue('mock-stream-id');
-    vi.mocked(resolveAddressFromAccountId).mockReturnValue('0xmockaddress');
+    vi.mocked(resolveAddressFromAddressDriverId).mockReturnValue(
+      '0xmockaddress',
+    );
     vi.mocked(resolveReceiverAccountId).mockResolvedValue(456n);
     vi.mocked(resolveDriverName).mockReturnValue('address');
     vi.mocked(addressDriverAccountMetadataParser.parseLatest).mockReturnValue({
@@ -132,7 +137,9 @@ describe('buildStreamsMetadata', () => {
 
     // Assert
     expect(resolveDriverName).toHaveBeenCalledWith(456n);
-    expect(resolveAddressFromAccountId).toHaveBeenCalledWith(mockAccountId);
+    expect(resolveAddressFromAddressDriverId).toHaveBeenCalledWith(
+      mockAccountId,
+    );
     expect(addressDriverAccountMetadataParser.parseLatest).toHaveBeenCalled();
 
     // Verify the structure of the input to parseLatest

@@ -8,6 +8,13 @@ import {
 import {PreparedTx, BatchedTxOverrides} from '../blockchain/BlockchainAdapter';
 import {unreachable} from './unreachable';
 
+/**
+ * Builds a `PreparedTx` that can be executed by a `WriteBlockchainAdapter`.
+ *
+ * @param request - The transaction request parameters including ABI, function name, arguments, and contract address.
+ *
+ * @returns A `PreparedTx` ready for execution.
+ */
 export function buildTx<
   AbiType extends Abi | readonly unknown[],
   FnName extends ContractFunctionName<AbiType> | undefined = undefined,

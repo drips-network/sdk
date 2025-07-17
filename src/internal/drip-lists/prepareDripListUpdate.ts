@@ -28,13 +28,20 @@ import {buildDripListMetadata} from './buildDripListMetadata';
 import {getDripListById} from './getDripListById';
 
 export type DripListUpdateConfig = {
+  /** The ID of the Drip List to update. */
   readonly dripListId: bigint;
+  /** Optional metadata updates for the Drip List. */
   readonly metadata?: {
+    /** Optional new name for the Drip List. */
     readonly name?: string;
+    /** Optional new description for the Drip List. */
     readonly description?: string;
+    /** Optional new visibility setting for the Drip List. */
     readonly isVisible?: boolean;
   };
+  /** Optional new list of receivers. If provided, replaces the current receivers entirely. */
   readonly receivers?: ReadonlyArray<SdkSplitsReceiver>;
+  /** Optional transaction overrides for the batched transaction. */
   readonly batchedTxOverrides?: BatchedTxOverrides;
 };
 
@@ -44,6 +51,18 @@ export type PrepareDripListUpdateResult = {
   readonly metadata: DripListMetadata;
 };
 
+/**
+ * Prepares the context for updating a Drip List.
+ *
+ * @param adapter - A write-enabled blockchain adapter for transaction preparation.
+ * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+ * @param config - Configuration specifying what to update in the Drip List.
+ * @param graphqlClient - (Optional) A `DripsGraphQLClient`.
+ *
+ * @returns An object containing the prepared transaction, new metadata, and IPFS hash.
+ *
+ * @throws {DripsError} If the Drip List is not found, chain is not supported, or no updates are provided.
+ */
 export async function prepareDripListUpdate(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,

@@ -11,16 +11,30 @@ import {contractsRegistry} from '../config/contractsRegistry';
 import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
 
 export type OneTimeDonation = {
+  /** The receiver of the donation. */
   readonly receiver: SdkReceiver;
+  /** The amount to donate in the smallest unit of the token. */
   readonly amount: bigint;
+  /** The ERC-20 token address to donate. */
   readonly erc20: Address;
   /**
    * The number of decimal places for the token (e.g. 18 for ETH, 6 for USDC).
    */
   readonly tokenDecimals: number;
+  /** Optional transaction overrides for the batched transaction. */
   batchedTxOverrides?: BatchedTxOverrides;
 };
 
+/**
+ * Prepares a transaction for making a one-time donation.
+ *
+ * @param adapter - A write-enabled blockchain adapter for transaction preparation.
+ * @param donation - Configuration for the one-time donation.
+ *
+ * @returns A prepared transaction ready for execution.
+ *
+ * @throws {DripsError} If the chain is not supported or receiver resolution fails.
+ */
 export async function prepareOneTimeDonation(
   adapter: WriteBlockchainAdapter,
   donation: OneTimeDonation,

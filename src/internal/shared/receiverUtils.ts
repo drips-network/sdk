@@ -17,7 +17,9 @@ import {
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
 
+/** Maximum number of splits receivers of a single account. */
 export const MAX_SPLITS_RECEIVERS = 200;
+/** The total splits weight of an account. */
 export const TOTAL_SPLITS_WEIGHT = 1_000_000;
 
 export type SdkProjectReceiver = {
@@ -53,10 +55,6 @@ export type SdkReceiver =
   | SdkEcosystemMainAccountReceiver;
 
 export type SdkSplitsReceiver = SdkReceiver & {
-  /**
-   * A positive integer between 1 and 1_000_000 (inclusive) representing
-   * the receiver’s share of funds. A weight of 1_000_000 means 100%.
-   */
   weight: number;
 };
 

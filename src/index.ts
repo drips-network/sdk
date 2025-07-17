@@ -1,22 +1,14 @@
-// TODO: document all public API.
 import {buildTx} from './internal/shared/buildTx';
-import {DEFAULT_GRAPHQL_URL} from './internal/graphql/createGraphQLClient';
 import {
   decodeStreamConfig,
   encodeStreamConfig,
-} from './internal/shared/streamRateUtils';
-import {
-  parseStreamRate,
-  validateStreamRate,
-  formatStreamRate,
   AMT_PER_SEC_MULTIPLIER,
   AMT_PER_SEC_EXTRA_DECIMALS,
   CYCLE_SECS,
 } from './internal/shared/streamRateUtils';
 import {MAX_STREAMS_RECEIVERS} from './internal/shared/validateAndFormatStreamReceivers';
-import {resolveAddressFromAccountId} from './internal/shared/resolveAddressFromAccountId';
+import {resolveAddressFromAddressDriverId} from './internal/shared/resolveAddressFromAddressDriverId';
 import {resolveDriverName} from './internal/shared/resolveDriverName';
-import {encodeMetadataKeyValue} from './internal/shared/encodeMetadataKeyValue';
 import {
   MAX_SPLITS_RECEIVERS,
   TOTAL_SPLITS_WEIGHT,
@@ -27,7 +19,6 @@ import {calcProjectId} from './internal/projects/calcProjectId';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
-export {createGraphQLClient} from './internal/graphql/createGraphQLClient';
 export {createPinataIpfsMetadataUploader} from './internal/shared/createPinataIpfsMetadataUploader';
 
 export {createViemReadAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
@@ -62,12 +53,8 @@ export const utils = {
   calcDripListId,
   encodeStreamConfig,
   decodeStreamConfig,
-  encodeMetadataKeyValue,
   resolveDriverName,
-  resolveAddressFromAccountId,
-  parseStreamRate,
-  validateStreamRate,
-  formatStreamRate,
+  resolveAddressFromAddressDriverId,
 };
 
 export {contractsRegistry} from './internal/config/contractsRegistry';
@@ -75,7 +62,6 @@ export {contractsRegistry} from './internal/config/contractsRegistry';
 export const dripsConstants = {
   MAX_SPLITS_RECEIVERS,
   TOTAL_SPLITS_WEIGHT,
-  DEFAULT_GRAPHQL_URL,
   MAX_STREAMS_RECEIVERS,
   AMT_PER_SEC_MULTIPLIER,
   AMT_PER_SEC_EXTRA_DECIMALS,
@@ -87,9 +73,9 @@ export {DripList} from './internal/drip-lists/getDripListById';
 export {UserWithdrawableBalances} from './internal/collect/getUserWithdrawableBalances';
 export {
   PreparedTx,
-  ReadBlockchainAdapter,
   TxReceipt,
   TxResponse,
+  ReadBlockchainAdapter,
   WriteBlockchainAdapter,
 } from './internal/blockchain/BlockchainAdapter';
 export {CreateDripListResult} from './internal/drip-lists/createDripList';

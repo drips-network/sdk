@@ -1,7 +1,28 @@
+import {DripsError} from './DripsError';
+
+/**
+ * Resolves the driver name from an`accountId`.
+ *
+ * Known driver IDs:
+ * - `0`: "address"
+ * - `1`: "nft"
+ * - `2`: "immutableSplits"
+ * - `3`: "repo"
+ * - `4`: "repoSubAccount"
+ *
+ * @param accountId - The account ID.
+ * @returns The driver name.
+ * @throws {DripsError} If the account ID is out of range or the driver is unknown.
+ */
 export function resolveDriverName(accountId: bigint) {
   if (accountId < 0n || accountId > 2n ** 256n - 1n) {
-    throw new Error(
+    throw new DripsError(
       `Could not get bits: ${accountId} is not a valid positive number within the range of a uint256.`,
+      {
+        meta: {
+          operation: resolveDriverName.name,
+        },
+      },
     );
   }
 

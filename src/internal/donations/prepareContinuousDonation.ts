@@ -25,7 +25,6 @@ import {validateAndFormatStreamReceivers} from '../shared/validateAndFormatStrea
 import {buildTx} from '../shared/buildTx';
 import {addressDriverAbi} from '../abis/addressDriverAbi';
 import {contractsRegistry} from '../config/contractsRegistry';
-import {resolveAddressFromAccountId} from '../shared/resolveAddressFromAccountId';
 import {callerAbi} from '../abis/callerAbi';
 import {convertToCallerCall} from '../shared/convertToCallerCall';
 import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
@@ -36,24 +35,25 @@ import {
 } from '../shared/encodeMetadataKeyValue';
 
 export type ContinuousDonation = {
+  /** The ERC20 token address to stream. */
   readonly erc20: Address;
-  /**
-   * The amount to stream in the specified `timeUnit` (e.g. "100").
-   */
+  /** The amount of tokens to stream in the specified `timeUnit` (e.g. "100"). */
   readonly amount: string;
-  /**
-   * The time unit for the `amount` (e.g. TimeUnit.DAY for daily streaming).
-   */
+  /** The time unit for the `amount` (e.g. TimeUnit.DAY for daily streaming). */
   readonly timeUnit: TimeUnit;
-  /**
-   * The number of decimal places for the token (e.g. 18 for ETH, 6 for USDC).
-   */
+  /** The number of decimal places for the token (e.g. 18 for ETH, 6 for USDC). */
   readonly tokenDecimals: number;
+  /** The receiver of the stream. */
   readonly receiver: SdkReceiver;
+  /** Optional name for the donation stream. */
   readonly name?: string;
+  /** Optional start time for the stream. Defaults to "now". */
   readonly startAt?: Date;
+  /** Optional stream duration in seconds. If omitted, stream runs until funds run out. */
   readonly durationSeconds?: number;
+  /** Optional amount of tokens to top up when setting the stream. */
   readonly topUpAmount?: bigint;
+  /** Optional transaction overrides for the returned `PreparedTx`. */
   batchedTxOverrides?: BatchedTxOverrides;
 };
 
@@ -62,6 +62,16 @@ export type PrepareContinuousDonationResult = {
   readonly preparedTx: PreparedTx;
   readonly metadata: StreamsMetadata;
 };
+
+/**
+ * Prepares the context for a continuous donation stream.
+ *
+ * @param adapter - Blockchain adapter with write capabilities.
+ * @param ipfsMetadataUploaderFn - A function to upload metadata to IPFS.
+ * @param donation - Configuration for the donation stream.
+ * @param graphqlClient - (Optional) A `DripsGraphQLClient`. If omitted, a default client is created.
+ * @returns An object containing the prepared transaction, IPFS hash, and metadata.
+ */
 export async function prepareContinuousDonation(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<StreamsMetadata>,
@@ -128,8 +138,6 @@ export async function prepareContinuousDonation(
     },
   ]);
 
-  const transferToAddress = resolveAddressFromAccountId(signerAccountId);
-
   const setStreamsTx = buildTx({
     abi: addressDriverAbi,
     functionName: 'setStreams',
@@ -141,7 +149,7 @@ export async function prepareContinuousDonation(
       newReceivers,
       0,
       0,
-      transferToAddress,
+      signerAddress,
     ],
   });
 
@@ -180,7 +188,7 @@ export async function prepareContinuousDonation(
   };
 }
 
-export function randomBigintUntilUnique(
+function randomBigintUntilUnique(
   existing: bigint[],
   byteLength: number,
 ): bigint {

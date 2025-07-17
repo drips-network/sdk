@@ -16,35 +16,69 @@ import {DripsError} from '../shared/DripsError';
 import {addressDriverAbi} from '../abis/addressDriverAbi';
 import {nativeTokenUnwrapperAbi} from '../abis/nativeTokenUnwrapperAbi';
 
+/**
+ * Represents the historical state of streams for a specific update.
+ */
 export type StreamsHistory = {
+  /** Hash of the streams configuration at this point in history. */
   streamsHash: Hex;
+  /** List of stream receivers that were active at this time. */
   receivers: OnChainStreamReceiver[];
+  /** Timestamp when this streams configuration was updated. */
   updateTime: number;
+  /** Maximum end time for streams in this configuration. */
   maxEnd: number;
 };
 
+/**
+ * Arguments required for squeezing streams from a specific sender.
+ */
 export type SqueezeArgs = {
+  /** The account ID that will receive the squeezed funds. */
   accountId: string;
+  /** The ERC-20 token address for the streams to squeeze. */
   tokenAddress: string;
+  /** The account ID of the sender whose streams will be squeezed. */
   senderId: bigint;
+  /** Hash of the complete streams history for verification. */
   historyHash: Hex;
+  /** Array of historical streams states needed for squeezing. */
   streamsHistory: StreamsHistory[];
 };
 
 const MAX_CYCLES = 1000;
 
 export type CollectConfig = {
+  /** The account ID that will collect the funds. */
   readonly accountId: bigint;
+  /** Current splits receivers configuration for the account. */
   readonly currentReceivers: SdkSplitsReceiver[];
+  /** List of ERC-20 token addresses to collect funds for. */
   readonly tokenAddresses: ReadonlyArray<Address>;
+  /** Optional transaction overrides for the batched transaction. */
   readonly batchedTxOverrides?: BatchedTxOverrides;
+  /** Whether to skip the split operation during collection. */
   readonly shouldSkipSplit?: boolean;
+  /** Whether to automatically unwrap wrapped native tokens to native tokens. */
   readonly shouldAutoUnwrap?: boolean;
+  /** Whether to skip receiving streams during collection. */
   readonly shouldSkipReceive?: boolean;
+  /** Optional arguments for squeezing streams from specific senders. */
   readonly squeezeArgs?: SqueezeArgs[];
+  /** Optional address to transfer collected funds to. If not provided, funds go to the signer. */
   readonly transferToAddress?: Address;
 };
 
+/**
+ * Prepares a transaction for collecting funds from streams and splits.
+ *
+ * @param adapter - A write-enabled blockchain adapter for transaction preparation.
+ * @param config - Configuration for the collection operation.
+ *
+ * @returns A prepared transaction ready for execution.
+ *
+ * @throws {DripsError} If the chain is not supported, no tokens are provided, or configuration is invalid.
+ */
 export async function prepareCollection(
   adapter: WriteBlockchainAdapter,
   config: CollectConfig,

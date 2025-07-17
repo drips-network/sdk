@@ -357,7 +357,9 @@ describe('createGraphQLClient', () => {
 
   describe('Constants', () => {
     it('should export correct default GraphQL URL', () => {
-      expect(DEFAULT_GRAPHQL_URL).toBe('http://localhost:8080');
+      expect(DEFAULT_GRAPHQL_URL).toBe(
+        'https://drips-multichain-api.up.railway.app',
+      );
     });
   });
 

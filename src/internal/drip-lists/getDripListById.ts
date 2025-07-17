@@ -125,6 +125,17 @@ const GET_DRIP_LIST_QUERY = gql`
 
 export type DripList = NonNullable<GetDripListQuery['dripList']>;
 
+/**
+ * Fetches a `DripList` by its account ID and chain ID.
+ *
+ * @param accountId - The Drip List account ID.
+ * @param chainId - The chain ID.
+ * @param graphqlClient - (Optional) A `DripsGraphQLClient`.
+ *
+ * @throws {DripsError} If the chain is not supported.
+ *
+ * @returns The `DripList`, or `null` if not found.
+ */
 export async function getDripListById(
   accountId: bigint,
   chainId: number,

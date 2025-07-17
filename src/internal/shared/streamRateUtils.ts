@@ -1,10 +1,16 @@
 import {parseUnits, formatUnits} from 'viem';
 import {DripsError} from './DripsError';
 
-export const AMT_PER_SEC_MULTIPLIER = 1_000_000_000; // 10^9
-export const AMT_PER_SEC_EXTRA_DECIMALS = 9;
-export const CYCLE_SECS = 604800; // 1 week in seconds
+/** Multiplier used to add precision when storing amounts per second. */
+export const AMT_PER_SEC_MULTIPLIER = 1_000_000_000;
 
+/** Number of extra decimal places applied to amounts per second for precision. */
+export const AMT_PER_SEC_EXTRA_DECIMALS = 9;
+
+/** Number of seconds in a streaming cycle (1 week). */
+export const CYCLE_SECS = 604800;
+
+/** Stream rate time units. */
 export enum TimeUnit {
   SECOND = 1,
   MINUTE = 60,
@@ -17,13 +23,41 @@ export enum TimeUnit {
   YEAR = 31536000,
 }
 
+/** Represents the configuration of a single stream. */
 export type StreamConfig = {
+  /** The unique identifier for the stream. */
   dripId: bigint;
+  /**
+   * The amount per second being streamed. Must never be zero.
+   *
+   * It must have additional `AMT_PER_SEC_EXTRA_DECIMALS` decimals and can have fractions.
+   *
+   * To achieve that the passed value must be multiplied by `AMT_PER_SEC_MULTIPLIER`.
+   */
   amountPerSec: bigint;
+  /**
+   * The timestamp when streaming should start.
+   *
+   * If zero, the timestamp when the stream is configured is used.
+   */
   start: bigint;
+  /**
+   * The duration of the stream in seconds.
+   *
+   * If zero, the stream runs until funds run out.
+   */
   duration: bigint;
 };
 
+/**
+ * Parses a stream rate from a human-readable amount and time unit to the internal representation.
+ *
+ * @param amount - The amount to stream in the specified time unit.
+ * @param timeUnit - The time unit for the amount.
+ * @param tokenDecimals - The number of decimal places for the token.
+ *
+ * @returns The amount per second with additional precision decimals.
+ */
 export function parseStreamRate(
   amount: string,
   timeUnit: TimeUnit,
@@ -37,6 +71,13 @@ export function parseStreamRate(
   return amountPerSecond;
 }
 
+/**
+ * Validates that a stream rate meets the minimum requirements.
+ *
+ * @param amountPerSecond - The amount per second to validate.
+ *
+ * @throws {DripsError} If the stream rate is too low (less than 1 wei per week).
+ */
 export function validateStreamRate(amountPerSecond: bigint): void {
   const amountPerCycle = amountPerSecond * BigInt(CYCLE_SECS);
   const weiPerCycle = amountPerCycle / BigInt(AMT_PER_SEC_MULTIPLIER);
@@ -52,6 +93,15 @@ export function validateStreamRate(amountPerSecond: bigint): void {
   }
 }
 
+/**
+ * Formats a stream rate from the internal representation to a human-readable string.
+ *
+ * @param amountPerSecond - The amount per second with additional precision decimals.
+ * @param displayTimeUnit - The time unit to display the rate in.
+ * @param tokenDecimals - The number of decimal places for the token.
+ *
+ * @returns A formatted string representing the stream rate in the specified time unit.
+ */
 export function formatStreamRate(
   amountPerSecond: bigint,
   displayTimeUnit: TimeUnit,
@@ -90,6 +140,12 @@ function validateStreamConfig(config: StreamConfig): void {
     throw new Error(`'duration' must be in [0, ${MAX_DURATION}]`);
 }
 
+/**
+ * Encodes a `StreamConfig` into a `bigint` representation.
+ *
+ * @param config - The stream config to encode.
+ * @returns A bigint representing the packed stream config.
+ */
 export function encodeStreamConfig(config: StreamConfig): bigint {
   validateStreamConfig(config);
 
@@ -101,6 +157,12 @@ export function encodeStreamConfig(config: StreamConfig): bigint {
   return packed;
 }
 
+/**
+ * Decodes a `bigint` representation of a stream config into a `StreamConfig` object.
+ *
+ * @param packed - The encoded stream config.
+ * @returns A validated `StreamConfig` object.
+ */
 export function decodeStreamConfig(packed: bigint): StreamConfig {
   const mask32 = (1n << 32n) - 1n;
   const mask160 = (1n << 160n) - 1n;

@@ -8,7 +8,8 @@ export interface DripsGraphQLClient {
   ): Promise<T>;
 }
 
-export const DEFAULT_GRAPHQL_URL = 'http://localhost:8080';
+export const DEFAULT_GRAPHQL_URL =
+  'https://drips-multichain-api.up.railway.app';
 
 export function createGraphQLClient(
   url: string = DEFAULT_GRAPHQL_URL,

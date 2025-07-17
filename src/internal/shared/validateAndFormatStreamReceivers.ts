@@ -1,6 +1,7 @@
 import {decodeStreamConfig} from './streamRateUtils';
 import {DripsError} from './DripsError';
 
+/** Maximum number of streams receivers of a single account. */
 export const MAX_STREAMS_RECEIVERS = 100;
 
 export type OnChainStreamReceiver = {

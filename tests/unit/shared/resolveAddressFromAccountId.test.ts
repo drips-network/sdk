@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
+import {resolveAddressFromAddressDriverId} from '../../../src/internal/shared/resolveAddressFromAddressDriverId';
 import {Address} from 'viem';
 
 vi.mock('viem', async () => {
@@ -12,7 +12,7 @@ vi.mock('viem', async () => {
 
 import {checksumAddress} from 'viem';
 
-describe('resolveAddressFromAccountId', () => {
+describe('resolveAddressFromAddressDriverId', () => {
   // Reset mocks before each test
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,7 +29,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId | address;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x1234567890123456789012345678901234567890');
@@ -45,7 +45,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId | address;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x0000000000000000000000000000000000000000');
@@ -61,7 +61,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId | address;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0xffffffffffffffffffffffffffffffffffffffff');
@@ -76,7 +76,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = address; // No driver ID bits set
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x1234567890123456789012345678901234567890');
@@ -89,7 +89,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId | address;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x0000000000000000000000000000000000000001');
@@ -109,7 +109,7 @@ describe('resolveAddressFromAccountId', () => {
       vi.mocked(checksumAddress).mockReturnValue(checksummedAddress);
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe(checksummedAddress);
@@ -128,8 +128,8 @@ describe('resolveAddressFromAccountId', () => {
       const accountId2 = driverId2 | address;
 
       // Act
-      const result1 = resolveAddressFromAccountId(accountId1);
-      const result2 = resolveAddressFromAccountId(accountId2);
+      const result1 = resolveAddressFromAddressDriverId(accountId1);
+      const result2 = resolveAddressFromAddressDriverId(accountId2);
 
       // Assert
       expect(result1).toBe('0x1234567890123456789012345678901234567890');
@@ -144,7 +144,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = -1n;
 
       // Act & Assert
-      expect(() => resolveAddressFromAccountId(accountId)).toThrow(
+      expect(() => resolveAddressFromAddressDriverId(accountId)).toThrow(
         'Invalid accountId: -1 is outside the uint256 range.',
       );
       expect(checksumAddress).not.toHaveBeenCalled();
@@ -156,7 +156,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = MAX_UINT256;
 
       // Act & Assert
-      expect(() => resolveAddressFromAccountId(accountId)).toThrow(
+      expect(() => resolveAddressFromAddressDriverId(accountId)).toThrow(
         `Invalid accountId: ${accountId} is outside the uint256 range.`,
       );
       expect(checksumAddress).not.toHaveBeenCalled();
@@ -170,7 +170,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId | invalidBits | address;
 
       // Act & Assert
-      expect(() => resolveAddressFromAccountId(accountId)).toThrow(
+      expect(() => resolveAddressFromAddressDriverId(accountId)).toThrow(
         'Invalid AddressDriver ID: bits 160–223 must be zero.',
       );
       expect(checksumAddress).not.toHaveBeenCalled();
@@ -186,7 +186,7 @@ describe('resolveAddressFromAccountId', () => {
         const accountId = driverId | invalidBit | address;
 
         // Act & Assert
-        expect(() => resolveAddressFromAccountId(accountId)).toThrow(
+        expect(() => resolveAddressFromAddressDriverId(accountId)).toThrow(
           'Invalid AddressDriver ID: bits 160–223 must be zero.',
         );
       }
@@ -206,7 +206,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = highBits | lowBits;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0xffffffffffffffffffffffffffffffffffffffff');
@@ -218,7 +218,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId; // No address bits set
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x0000000000000000000000000000000000000000');
@@ -232,7 +232,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverId | address;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x1234567890123456789012345678901234567890');
@@ -243,7 +243,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = 0n;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0x0000000000000000000000000000000000000000');
@@ -257,7 +257,7 @@ describe('resolveAddressFromAccountId', () => {
       // but we'll test the range check first
 
       // Act & Assert
-      expect(() => resolveAddressFromAccountId(MAX_UINT256)).toThrow(
+      expect(() => resolveAddressFromAddressDriverId(MAX_UINT256)).toThrow(
         'Invalid AddressDriver ID: bits 160–223 must be zero.',
       );
     });
@@ -271,7 +271,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = addressBits;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result).toBe('0xffffffffffffffffffffffffffffffffffffffff');
@@ -285,7 +285,7 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = driverIdBits | addressBits;
 
       // Act
-      const result = resolveAddressFromAccountId(accountId);
+      const result = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result.toLowerCase()).toBe(
@@ -301,7 +301,7 @@ describe('resolveAddressFromAccountId', () => {
         const accountId = addressBit;
 
         // Act
-        const result = resolveAddressFromAccountId(accountId);
+        const result = resolveAddressFromAddressDriverId(accountId);
 
         // Assert - The result should have only the corresponding bit set
         const expectedAddress =
@@ -323,7 +323,9 @@ describe('resolveAddressFromAccountId', () => {
       ];
 
       // Act
-      const results = inputs.map(input => resolveAddressFromAccountId(input));
+      const results = inputs.map(input =>
+        resolveAddressFromAddressDriverId(input),
+      );
 
       // Assert
       expect(results).toHaveLength(inputs.length);
@@ -335,8 +337,8 @@ describe('resolveAddressFromAccountId', () => {
       const accountId = 0x1234567890123456789012345678901234567890n;
 
       // Act
-      const result1 = resolveAddressFromAccountId(accountId);
-      const result2 = resolveAddressFromAccountId(accountId);
+      const result1 = resolveAddressFromAddressDriverId(accountId);
+      const result2 = resolveAddressFromAddressDriverId(accountId);
 
       // Assert
       expect(result1).toBe(result2);
@@ -375,7 +377,7 @@ describe('resolveAddressFromAccountId', () => {
         vi.mocked(checksumAddress).mockImplementation(addr => addr as Address);
 
         // Act
-        const result = resolveAddressFromAccountId(accountId as bigint);
+        const result = resolveAddressFromAddressDriverId(accountId as bigint);
 
         // Assert
         expect(result.toLowerCase()).toBe(

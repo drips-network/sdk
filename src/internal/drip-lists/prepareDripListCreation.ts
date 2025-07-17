@@ -24,6 +24,7 @@ import {
 } from '../shared/encodeMetadataKeyValue';
 
 export type NewDripList = {
+  /** Indicates whether the Drip List is visible. */
   readonly isVisible: boolean;
   /**
    * The list of receivers.
@@ -33,11 +34,15 @@ export type NewDripList = {
    * The list must not contain duplicate receivers.
    */
   readonly receivers: ReadonlyArray<SdkSplitsReceiver>;
+  /** Optional salt value for deterministic Drip List ID generation. If not provided, a random salt is used. */
   readonly salt?: bigint;
+  /** Optional name for the Drip List. */
   readonly name?: string;
+  /** Optional description for the Drip List. */
   readonly description?: string | null;
   /** Optional address to transfer the Drip List to. If not provided, the minter's address will be used. */
   readonly transferTo?: Address;
+  /** Optional transaction overrides for the returned `PreparedTx`. */
   readonly batchedTxOverrides?: BatchedTxOverrides;
 };
 
@@ -49,6 +54,17 @@ export type PrepareDripListCreationResult = {
   readonly metadata: DripListMetadata;
 };
 
+/**
+ * Prepares the context for creating a new Drip List.
+ *
+ * @param adapter - A write-enabled blockchain adapter for transaction preparation.
+ * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+ * @param dripList - Configuration for the new Drip List.
+ *
+ * @returns An object containing the prepared transaction, metadata, IPFS hash, salt, and Drip List ID.
+ *
+ * @throws {DripsError} If the chain is not supported or if validation fails.
+ */
 export async function prepareDripListCreation(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,

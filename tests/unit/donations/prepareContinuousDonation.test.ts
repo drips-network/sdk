@@ -10,7 +10,6 @@ import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUti
 import {getCurrentStreamsAndReceivers} from '../../../src/internal/streams/getCurrentStreamReceivers';
 import {validateAndFormatStreamReceivers} from '../../../src/internal/shared/validateAndFormatStreamReceivers';
 import {convertToCallerCall} from '../../../src/internal/shared/convertToCallerCall';
-import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
 import {
   encodeStreamConfig,
   decodeStreamConfig,
@@ -30,7 +29,6 @@ vi.mock('../../../src/internal/streams/getCurrentStreamReceivers');
 vi.mock('../../../src/internal/streams/buildStreamsMetadata');
 vi.mock('../../../src/internal/shared/validateAndFormatStreamReceivers');
 vi.mock('../../../src/internal/shared/convertToCallerCall');
-vi.mock('../../../src/internal/shared/resolveAddressFromAccountId');
 vi.mock('../../../src/internal/shared/encodeMetadataKeyValue');
 vi.mock('../../../src/internal/shared/streamRateUtils', () => ({
   encodeStreamConfig: vi.fn(),
@@ -71,7 +69,6 @@ describe('prepareContinuousDonation', () => {
   const mockReceiverAccountId = 456n;
   const mockErc20 = '0xToken123' as `0x${string}`;
   const mockIpfsHash = 'QmHash123';
-  const mockTransferToAddress = '0xTransferTo123';
   const mockAmount = '100';
   const mockTimeUnit = TimeUnit.DAY;
   const mockTokenDecimals = 6; // USDC
@@ -199,9 +196,6 @@ describe('prepareContinuousDonation', () => {
     vi.mocked(validateAndFormatStreamReceivers)
       .mockReturnValueOnce(mockFormattedCurrentReceivers)
       .mockReturnValueOnce(mockFormattedNewReceivers);
-    vi.mocked(resolveAddressFromAccountId).mockReturnValue(
-      mockTransferToAddress,
-    );
     vi.mocked(encodeStreamConfig).mockReturnValue(mockStreamConfig);
     vi.mocked(parseStreamRate).mockReturnValue(1000000000000000000n); // 1 ETH per second
     vi.mocked(validateStreamRate).mockImplementation(() => {}); // No-op validation
@@ -281,9 +275,6 @@ describe('prepareContinuousDonation', () => {
     expect(validateAndFormatStreamReceivers).toHaveBeenCalledWith(
       mockNewReceivers,
     );
-    expect(resolveAddressFromAccountId).toHaveBeenCalledWith(
-      mockSignerAccountId,
-    );
     expect(buildTx).toHaveBeenCalledWith({
       abi: addressDriverAbi,
       functionName: 'setStreams',
@@ -295,7 +286,7 @@ describe('prepareContinuousDonation', () => {
         mockFormattedNewReceivers,
         0,
         0,
-        mockTransferToAddress,
+        mockSignerAddress,
       ],
     });
     expect(buildStreamsMetadata).toHaveBeenCalledWith(
@@ -386,7 +377,7 @@ describe('prepareContinuousDonation', () => {
         mockFormattedNewReceivers,
         0,
         0,
-        mockTransferToAddress,
+        mockSignerAddress,
       ],
     });
 

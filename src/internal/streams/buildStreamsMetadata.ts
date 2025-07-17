@@ -2,7 +2,7 @@ import {ContinuousDonation} from '../donations/prepareContinuousDonation';
 import {encodeStreamConfig} from '../shared/streamRateUtils';
 import {parseStreamRate} from '../shared/streamRateUtils';
 import encodeStreamId from '../shared/streamIdUtils';
-import {resolveAddressFromAccountId} from '../shared/resolveAddressFromAccountId';
+import {resolveAddressFromAddressDriverId} from '../shared/resolveAddressFromAddressDriverId';
 import {resolveReceiverAccountId} from '../shared/receiverUtils';
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
 import {resolveDriverName} from '../shared/resolveDriverName';
@@ -128,6 +128,6 @@ export async function buildStreamsMetadata(
       },
     ),
     timestamp: Math.floor(new Date().getTime() / 1000),
-    writtenByAddress: resolveAddressFromAccountId(accountId),
+    writtenByAddress: resolveAddressFromAddressDriverId(accountId),
   });
 }

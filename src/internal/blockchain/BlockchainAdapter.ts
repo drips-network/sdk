@@ -18,6 +18,7 @@ type TxMeta = {
   abiFunctionName?: string;
 };
 
+/** A prepared transaction ready for execution by a `WriteBlockchainAdapter`. */
 export type PreparedTx = BaseTx & TxMeta;
 
 export type TxReceipt = {
@@ -36,11 +37,13 @@ export type TxResponse = {
   meta?: Record<string, unknown>;
 };
 
+/** Adapter interface for read-only operations. */
 export interface ReadBlockchainAdapter {
   call(tx: PreparedTx): Promise<Hex>;
   getChainId(): Promise<number>;
 }
 
+/** Adapter interface for read and write operations. */
 export interface WriteBlockchainAdapter extends ReadBlockchainAdapter {
   getAddress(): Promise<Address>;
   sendTx(tx: PreparedTx): Promise<TxResponse>;

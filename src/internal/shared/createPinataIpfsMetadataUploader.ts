@@ -90,6 +90,15 @@ function createIpfsMetadataUploader(
   };
 }
 
+/**
+ * Creates an IPFS metadata uploader function that uses Pinata as infrastructure.
+ *
+ * @param {Object} options - Configuration options.
+ * @param {string} options.pinataJwt - The JWT token for authenticating with Pinata.
+ * @param {string} options.pinataGateway - The Pinata gateway URL for uploads.
+ *
+ * @returns {IpfsMetadataUploaderFn<Metadata>} A function that uploads metadata to IPFS via Pinata.
+ */
 export function createPinataIpfsMetadataUploader({
   pinataJwt,
   pinataGateway,
