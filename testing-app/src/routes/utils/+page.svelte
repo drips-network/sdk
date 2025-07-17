@@ -18,7 +18,7 @@
     createViemReadAdapter,
     calcProjectId,
     utils,
-  } from 'drips-sdk-test-2';
+  } from 'drips-sdk-test-3';
 
   // Form state for different utilities
   let activeTab = 'address-id';
@@ -130,7 +130,7 @@
         if ('publicClient' in result) {
           adapter = createViemReadAdapter(result.publicClient);
         } else if ('provider' in result) {
-          const {createEthersReadAdapter} = await import('drips-sdk-test-2');
+          const {createEthersReadAdapter} = await import('drips-sdk-test-3');
           adapter = createEthersReadAdapter(result.provider);
         } else {
           throw new Error('Unable to create adapter from readonly SDK');
@@ -207,7 +207,7 @@
         if ('publicClient' in result) {
           adapter = createViemReadAdapter(result.publicClient);
         } else if ('provider' in result) {
-          const {createEthersReadAdapter} = await import('drips-sdk-test-2');
+          const {createEthersReadAdapter} = await import('drips-sdk-test-3');
           adapter = createEthersReadAdapter(result.provider);
         } else {
           throw new Error('Unable to create adapter from readonly SDK');
@@ -300,7 +300,7 @@
         if ('publicClient' in result) {
           adapter = createViemReadAdapter(result.publicClient);
         } else if ('provider' in result) {
-          const {createEthersReadAdapter} = await import('drips-sdk-test-2');
+          const {createEthersReadAdapter} = await import('drips-sdk-test-3');
           adapter = createEthersReadAdapter(result.provider);
         } else {
           throw new Error('Unable to create adapter from readonly SDK');
