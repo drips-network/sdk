@@ -1,6 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {sendContinuousDonation} from '../../../src/internal/donations/sendContinuousDonation';
 import {prepareContinuousDonation} from '../../../src/internal/donations/prepareContinuousDonation';
+import {TimeUnit} from '../../../src/internal/shared/streamRateUtils';
 import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 import {
   WriteBlockchainAdapter,
@@ -67,7 +68,9 @@ describe('sendContinuousDonation', () => {
     it('should send continuous donation for address receiver', async () => {
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -102,7 +105,9 @@ describe('sendContinuousDonation', () => {
       const mockGraphQLClient = {} as any;
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -134,7 +139,9 @@ describe('sendContinuousDonation', () => {
 
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -162,7 +169,9 @@ describe('sendContinuousDonation', () => {
 
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -195,7 +204,9 @@ describe('sendContinuousDonation', () => {
 
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -247,7 +258,9 @@ describe('sendContinuousDonation', () => {
 
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,
@@ -309,7 +322,9 @@ describe('sendContinuousDonation', () => {
 
       const donation = {
         erc20: '0xToken123' as `0x${string}`,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: TimeUnit.DAY,
+        tokenDecimals: 18,
         receiver: {
           type: 'address' as const,
           address: '0xReceiver123' as `0x${string}`,

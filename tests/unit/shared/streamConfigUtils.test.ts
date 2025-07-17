@@ -3,7 +3,7 @@ import {
   StreamConfig,
   encodeStreamConfig,
   decodeStreamConfig,
-} from '../../../src/internal/shared/streamConfigUtils';
+} from '../../../src/internal/shared/streamRateUtils';
 
 describe('streamConfigUtils', () => {
   describe('encodeStreamConfig', () => {

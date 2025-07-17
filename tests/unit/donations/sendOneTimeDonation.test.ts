@@ -60,6 +60,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
         batchedTxOverrides: mockBatchedTxOverrides,
       };
 
@@ -82,6 +83,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
       };
 
       const result = await sendOneTimeDonation(mockAdapter, params);
@@ -104,6 +106,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 2000n,
         erc20: '0xToken456' as const,
+        tokenDecimals: 18,
       };
 
       const result = await sendOneTimeDonation(mockAdapter, params);
@@ -126,6 +129,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 3000n,
         erc20: '0xToken789' as const,
+        tokenDecimals: 18,
       };
 
       const result = await sendOneTimeDonation(mockAdapter, params);
@@ -148,6 +152,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 4000n,
         erc20: '0xToken101112' as const,
+        tokenDecimals: 18,
       };
 
       const result = await sendOneTimeDonation(mockAdapter, params);
@@ -170,6 +175,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 5000n,
         erc20: '0xToken131415' as const,
+        tokenDecimals: 18,
       };
 
       const result = await sendOneTimeDonation(mockAdapter, params);
@@ -199,6 +205,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
       };
 
       await expect(sendOneTimeDonation(mockAdapter, params)).rejects.toThrow(
@@ -224,6 +231,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 2000n,
         erc20: '0xToken456' as const,
+        tokenDecimals: 18,
       };
 
       await expect(sendOneTimeDonation(mockAdapter, params)).rejects.toThrow(
@@ -249,6 +257,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 3000n,
         erc20: '0xToken789' as const,
+        tokenDecimals: 18,
       };
 
       await expect(sendOneTimeDonation(mockAdapter, params)).rejects.toThrow(
@@ -289,6 +298,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
       };
 
       await sendOneTimeDonation(mockAdapter, params);
@@ -327,6 +337,7 @@ describe('sendOneTimeDonation', () => {
         },
         amount: 4000n,
         erc20: '0xToken101112' as const,
+        tokenDecimals: 18,
       };
 
       const result = await sendOneTimeDonation(mockAdapter, params);

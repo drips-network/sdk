@@ -11,15 +11,15 @@
     createRandomReadonlySdk,
     localtestnet,
   } from '$lib/utils/sdkFactory';
-  import type {DripsSdk} from 'drips-sdk-test-2';
+  import type {DripsSdk} from 'drips-sdk-test-3';
   import {
     calcAddressId,
     contractsRegistry,
     utils,
     collect,
     createViemWriteAdapter,
-  } from 'drips-sdk-test-2';
-  import type {WriteBlockchainAdapter} from 'drips-sdk-test-2';
+  } from 'drips-sdk-test-3';
+  import type {WriteBlockchainAdapter} from 'drips-sdk-test-3';
 
   // Define SupportedChain type locally since it's not exported
   type SupportedChain = keyof typeof contractsRegistry;

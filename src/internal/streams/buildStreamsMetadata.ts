@@ -1,5 +1,6 @@
 import {ContinuousDonation} from '../donations/prepareContinuousDonation';
-import {encodeStreamConfig} from '../shared/streamConfigUtils';
+import {encodeStreamConfig} from '../shared/streamRateUtils';
+import {parseStreamRate} from '../shared/streamRateUtils';
 import encodeStreamId from '../shared/streamIdUtils';
 import {resolveAddressFromAccountId} from '../shared/resolveAddressFromAccountId';
 import {resolveReceiverAccountId} from '../shared/receiverUtils';
@@ -46,13 +47,21 @@ export async function buildStreamsMetadata(
             config: {
               raw: encodeStreamConfig({
                 dripId: newStream.dripId,
-                start: BigInt(newStream.startAt?.getTime() ?? 0) / 1000n,
+                start: BigInt(newStream.startAt?.getTime() ?? 0) / 1000n, // Convert to seconds.
                 duration: BigInt(newStream.durationSeconds ?? 0),
-                amountPerSec: newStream.amountPerSec,
+                amountPerSec: parseStreamRate(
+                  newStream.amount,
+                  newStream.timeUnit,
+                  newStream.tokenDecimals,
+                ),
               }).toString(),
               dripId: newStream.dripId.toString(),
               amountPerSecond: {
-                amount: newStream.amountPerSec.toString(),
+                amount: parseStreamRate(
+                  newStream.amount,
+                  newStream.timeUnit,
+                  newStream.tokenDecimals,
+                ).toString(),
               },
               durationSeconds: newStream.durationSeconds,
               startDate:

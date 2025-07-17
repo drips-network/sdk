@@ -9,7 +9,13 @@ import {getCurrentStreamsAndReceivers} from '../streams/getCurrentStreamReceiver
 import {
   decodeStreamConfig,
   encodeStreamConfig,
-} from '../shared/streamConfigUtils';
+  StreamConfig,
+} from '../shared/streamRateUtils';
+import {
+  parseStreamRate,
+  validateStreamRate,
+  TimeUnit,
+} from '../shared/streamRateUtils';
 import {DripsGraphQLClient} from '../graphql/createGraphQLClient';
 import {
   IpfsMetadataUploaderFn,
@@ -32,17 +38,17 @@ import {
 export type ContinuousDonation = {
   readonly erc20: Address;
   /**
-   * The rate of tokens to stream per second (e.g. 0.25).
-   *
-   * This value will be scaled by 1_000_000_000 to match the Solidity contract’s
-   * `_AMT_PER_SEC_MULTIPLIER = 1_000_000_000`. That means:
-   * - `1` becomes `1_000_000_000n`
-   * - `0.5` becomes `500_000_000n`
-   *
-   * ⚠️ This value must be >= 0 and small enough that
-   * `raw * 1_000_000_000` does not overflow when converted to bigint.
+   * The amount to stream in the specified `timeUnit` (e.g. "100").
    */
-  readonly amountPerSec: bigint;
+  readonly amount: string;
+  /**
+   * The time unit for the `amount` (e.g. TimeUnit.DAY for daily streaming).
+   */
+  readonly timeUnit: TimeUnit;
+  /**
+   * The number of decimal places for the token (e.g. 18 for ETH, 6 for USDC).
+   */
+  readonly tokenDecimals: number;
   readonly receiver: SdkReceiver;
   readonly name?: string;
   readonly startAt?: Date;
@@ -56,9 +62,6 @@ export type PrepareContinuousDonationResult = {
   readonly preparedTx: PreparedTx;
   readonly metadata: StreamsMetadata;
 };
-
-export const AMT_PER_SEC_MULTIPLIER = 1_000_000_000n;
-
 export async function prepareContinuousDonation(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<StreamsMetadata>,
@@ -71,12 +74,14 @@ export async function prepareContinuousDonation(
 
   const {
     erc20,
+    amount,
     startAt,
+    timeUnit,
     receiver,
     topUpAmount,
-    batchedTxOverrides,
-    amountPerSec: rawAmountPerSec,
+    tokenDecimals,
     durationSeconds,
+    batchedTxOverrides,
   } = donation;
 
   const signerAddress = await adapter.getAddress();
@@ -104,14 +109,17 @@ export async function prepareContinuousDonation(
     4,
   );
 
-  const amountPerSec = rawAmountPerSec * AMT_PER_SEC_MULTIPLIER;
+  const amountPerSec = parseStreamRate(amount, timeUnit, tokenDecimals);
+  validateStreamRate(amountPerSec);
 
-  const newStreamConfig = encodeStreamConfig({
-    amountPerSec,
+  const streamConfig: StreamConfig = {
     dripId: newStreamDripId,
+    amountPerSec,
+    start: BigInt(startAt?.getTime() ?? 0) / 1000n, // Convert to seconds.
     duration: BigInt(durationSeconds ?? 0),
-    start: BigInt(startAt?.getTime() ?? 0) / 1000n,
-  });
+  };
+
+  const newStreamConfig = encodeStreamConfig(streamConfig);
 
   const newReceivers = validateAndFormatStreamReceivers([
     ...currentReceivers,

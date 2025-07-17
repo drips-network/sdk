@@ -59,6 +59,7 @@ describe('createDonationsModule', () => {
         },
         amount: 100n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
       };
       const expectedTxResponse: TxResponse = {
         hash: '0x123456789abcdef' as Hex,
@@ -83,6 +84,7 @@ describe('createDonationsModule', () => {
         },
         amount: 200n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
       };
       const expectedTxResponse: TxResponse = {
         hash: '0x987654321fedcba' as Hex,
@@ -107,6 +109,7 @@ describe('createDonationsModule', () => {
         },
         amount: 300n,
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
+        tokenDecimals: 18,
       };
       const expectedTxResponse: TxResponse = {
         hash: '0xabc123def456' as Hex,
@@ -128,7 +131,9 @@ describe('createDonationsModule', () => {
       // Arrange
       const params: ContinuousDonation = {
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
         receiver: {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
@@ -179,7 +184,9 @@ describe('createDonationsModule', () => {
       // Arrange
       const params: ContinuousDonation = {
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
-        amountPerSec: 100n,
+        amount: '100',
+        timeUnit: 1,
+        tokenDecimals: 18,
         receiver: {
           type: 'drip-list',
           accountId: 123n,

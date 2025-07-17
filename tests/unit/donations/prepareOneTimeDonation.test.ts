@@ -8,6 +8,7 @@ import {
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {addressDriverAbi} from '../../../src/internal/abis/addressDriverAbi';
 import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
+import {parseUnits} from 'viem';
 
 vi.mock('../../../src/internal/shared/receiverUtils');
 vi.mock('../../../src/internal/shared/assertions');
@@ -59,6 +60,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: mockAmount,
         erc20: mockErc20,
+        tokenDecimals: 18,
       };
 
       const result = await prepareOneTimeDonation(mockAdapter, params);
@@ -67,7 +69,7 @@ describe('prepareOneTimeDonation', () => {
       expect(requireSupportedChain).toHaveBeenCalledWith(mockChainId);
       expect(requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
-        'prepareDripListCreation',
+        'prepareOneTimeDonation',
       );
       expect(resolveReceiverAccountId).toHaveBeenCalledWith(
         mockAdapter,
@@ -76,7 +78,7 @@ describe('prepareOneTimeDonation', () => {
       expect(buildTx).toHaveBeenCalledWith({
         abi: addressDriverAbi,
         functionName: 'give',
-        args: [mockAccountId, mockErc20, mockAmount],
+        args: [mockAccountId, mockErc20, parseUnits(mockAmount.toString(), 18)],
         contract: mockAddressDriverAddress,
         batchedTxOverrides: undefined,
       });
@@ -99,6 +101,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: mockAmount,
         erc20: mockErc20,
+        tokenDecimals: 18,
       };
 
       const result = await prepareOneTimeDonation(mockAdapter, params);
@@ -111,7 +114,7 @@ describe('prepareOneTimeDonation', () => {
       expect(buildTx).toHaveBeenCalledWith({
         abi: addressDriverAbi,
         functionName: 'give',
-        args: [mockAccountId, mockErc20, mockAmount],
+        args: [mockAccountId, mockErc20, parseUnits(mockAmount.toString(), 18)],
         contract: mockAddressDriverAddress,
         batchedTxOverrides: undefined,
       });
@@ -135,6 +138,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: mockAmount,
         erc20: mockErc20,
+        tokenDecimals: 18,
       };
 
       const result = await prepareOneTimeDonation(mockAdapter, params);
@@ -147,7 +151,7 @@ describe('prepareOneTimeDonation', () => {
       expect(buildTx).toHaveBeenCalledWith({
         abi: addressDriverAbi,
         functionName: 'give',
-        args: [mockAccountId, mockErc20, mockAmount],
+        args: [mockAccountId, mockErc20, parseUnits(mockAmount.toString(), 18)],
         contract: mockAddressDriverAddress,
         batchedTxOverrides: undefined,
       });
@@ -170,6 +174,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: mockAmount,
         erc20: mockErc20,
+        tokenDecimals: 18,
       };
 
       const result = await prepareOneTimeDonation(mockAdapter, params);
@@ -182,7 +187,7 @@ describe('prepareOneTimeDonation', () => {
       expect(buildTx).toHaveBeenCalledWith({
         abi: addressDriverAbi,
         functionName: 'give',
-        args: [mockAccountId, mockErc20, mockAmount],
+        args: [mockAccountId, mockErc20, parseUnits(mockAmount.toString(), 18)],
         contract: mockAddressDriverAddress,
         batchedTxOverrides: undefined,
       });
@@ -205,6 +210,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: mockAmount,
         erc20: mockErc20,
+        tokenDecimals: 18,
       };
 
       const result = await prepareOneTimeDonation(mockAdapter, params);
@@ -217,7 +223,7 @@ describe('prepareOneTimeDonation', () => {
       expect(buildTx).toHaveBeenCalledWith({
         abi: addressDriverAbi,
         functionName: 'give',
-        args: [mockAccountId, mockErc20, mockAmount],
+        args: [mockAccountId, mockErc20, parseUnits(mockAmount.toString(), 18)],
         contract: mockAddressDriverAddress,
         batchedTxOverrides: undefined,
       });
@@ -243,6 +249,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: mockAmount,
         erc20: mockErc20,
+        tokenDecimals: 18,
         batchedTxOverrides: mockBatchedTxOverrides,
       };
 
@@ -252,7 +259,7 @@ describe('prepareOneTimeDonation', () => {
       expect(buildTx).toHaveBeenCalledWith({
         abi: addressDriverAbi,
         functionName: 'give',
-        args: [mockAccountId, mockErc20, mockAmount],
+        args: [mockAccountId, mockErc20, parseUnits(mockAmount.toString(), 18)],
         contract: mockAddressDriverAddress,
         batchedTxOverrides: mockBatchedTxOverrides,
       });
@@ -272,6 +279,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
       };
 
       await expect(prepareOneTimeDonation(mockAdapter, params)).rejects.toThrow(
@@ -291,6 +299,7 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
       };
 
       await prepareOneTimeDonation(mockAdapter, params);
@@ -310,13 +319,14 @@ describe('prepareOneTimeDonation', () => {
         },
         amount: 1000n,
         erc20: '0xToken123' as const,
+        tokenDecimals: 18,
       };
 
       await prepareOneTimeDonation(mockAdapter, params);
 
       expect(requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
-        'prepareDripListCreation',
+        'prepareOneTimeDonation',
       );
     });
   });

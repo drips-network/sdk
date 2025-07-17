@@ -4,7 +4,15 @@ import {DEFAULT_GRAPHQL_URL} from './internal/graphql/createGraphQLClient';
 import {
   decodeStreamConfig,
   encodeStreamConfig,
-} from './internal/shared/streamConfigUtils';
+} from './internal/shared/streamRateUtils';
+import {
+  parseStreamRate,
+  validateStreamRate,
+  formatStreamRate,
+  AMT_PER_SEC_MULTIPLIER,
+  AMT_PER_SEC_EXTRA_DECIMALS,
+  CYCLE_SECS,
+} from './internal/shared/streamRateUtils';
 import {MAX_STREAMS_RECEIVERS} from './internal/shared/validateAndFormatStreamReceivers';
 import {resolveAddressFromAccountId} from './internal/shared/resolveAddressFromAccountId';
 import {resolveDriverName} from './internal/shared/resolveDriverName';
@@ -57,6 +65,9 @@ export const utils = {
   encodeMetadataKeyValue,
   resolveDriverName,
   resolveAddressFromAccountId,
+  parseStreamRate,
+  validateStreamRate,
+  formatStreamRate,
 };
 
 export {contractsRegistry} from './internal/config/contractsRegistry';
@@ -66,6 +77,9 @@ export const dripsConstants = {
   TOTAL_SPLITS_WEIGHT,
   DEFAULT_GRAPHQL_URL,
   MAX_STREAMS_RECEIVERS,
+  AMT_PER_SEC_MULTIPLIER,
+  AMT_PER_SEC_EXTRA_DECIMALS,
+  CYCLE_SECS,
 };
 
 export {DripsSdk} from './sdk/createDripsSdk';
@@ -104,11 +118,12 @@ export {
 } from './internal/shared/receiverUtils';
 export {Forge, ProjectName} from './internal/projects/calcProjectId';
 export {OneTimeDonation} from './internal/donations/prepareOneTimeDonation';
-export {StreamConfig} from './internal/shared/streamConfigUtils';
+export {StreamConfig} from './internal/shared/streamRateUtils';
 export {
   ContinuousDonation,
   PrepareContinuousDonationResult,
 } from './internal/donations/prepareContinuousDonation';
+export {TimeUnit} from './internal/shared/streamRateUtils';
 export {SendContinuousDonationResult} from './internal/donations/sendContinuousDonation';
 export {
   DripListUpdateConfig,

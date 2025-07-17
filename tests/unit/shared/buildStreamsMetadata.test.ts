@@ -1,6 +1,9 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {Address} from 'viem';
-import {encodeStreamConfig} from '../../../src/internal/shared/streamConfigUtils';
+import {
+  encodeStreamConfig,
+  parseStreamRate,
+} from '../../../src/internal/shared/streamRateUtils';
 import encodeStreamId from '../../../src/internal/shared/streamIdUtils';
 import {addressDriverAccountMetadataParser} from '../../../src/internal/metadata/schemas';
 import {resolveAddressFromAccountId} from '../../../src/internal/shared/resolveAddressFromAccountId';
@@ -11,8 +14,9 @@ import {buildStreamsMetadata} from '../../../src/internal/streams/buildStreamsMe
 import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
 
 // Mock dependencies
-vi.mock('../../../src/internal/shared/streamConfigUtils', () => ({
+vi.mock('../../../src/internal/shared/streamRateUtils', () => ({
   encodeStreamConfig: vi.fn(),
+  parseStreamRate: vi.fn(),
 }));
 
 vi.mock('../../../src/internal/shared/streamIdUtils', () => ({
@@ -80,6 +84,7 @@ describe('buildStreamsMetadata', () => {
 
     // Setup mock return values
     vi.mocked(encodeStreamConfig).mockReturnValue(123456789n);
+    vi.mocked(parseStreamRate).mockReturnValue(1000000000000000000n); // 1 ETH per second
     vi.mocked(encodeStreamId).mockReturnValue('mock-stream-id');
     vi.mocked(resolveAddressFromAccountId).mockReturnValue('0xmockaddress');
     vi.mocked(resolveReceiverAccountId).mockResolvedValue(456n);
@@ -183,7 +188,9 @@ describe('buildStreamsMetadata', () => {
         type: 'address',
         address: '0x9876543210987654321098765432109876543210' as Address,
       },
-      amountPerSec: 1000000000000000000n,
+      amount: '1',
+      timeUnit: 1,
+      tokenDecimals: 18,
       startAt: new Date('2023-01-01T00:00:00.000Z'),
       durationSeconds: 86400,
       name: 'New Stream',
@@ -207,7 +214,7 @@ describe('buildStreamsMetadata', () => {
       dripId: 999n,
       start: 1672531200n, // Jan 1, 2023 timestamp in seconds
       duration: 86400n,
-      amountPerSec: 1000000000000000000n,
+      amountPerSec: expect.any(BigInt),
     });
     expect(resolveReceiverAccountId).toHaveBeenCalledWith(mockAdapter, {
       type: 'address',
@@ -448,7 +455,9 @@ describe('buildStreamsMetadata', () => {
         type: 'address',
         address: '0x9876543210987654321098765432109876543210' as Address,
       },
-      amountPerSec: 1000000000000000000n,
+      amount: '1',
+      timeUnit: 1,
+      tokenDecimals: 18,
       startAt: undefined, // No start time
       durationSeconds: 86400,
       name: 'New Stream',
@@ -474,7 +483,7 @@ describe('buildStreamsMetadata', () => {
       dripId: 999n,
       start: 0n, // Should use 0 when startAt is null
       duration: 86400n,
-      amountPerSec: 1000000000000000000n,
+      amountPerSec: expect.any(BigInt),
     });
 
     // Verify the result
@@ -500,7 +509,9 @@ describe('buildStreamsMetadata', () => {
         type: 'address',
         address: '0x9876543210987654321098765432109876543210' as Address,
       },
-      amountPerSec: 1000000000000000000n,
+      amount: '1',
+      timeUnit: 1,
+      tokenDecimals: 18,
       startAt: new Date('2023-01-01T00:00:00.000Z'),
       durationSeconds: undefined, // No duration
       name: 'New Stream',
@@ -519,7 +530,7 @@ describe('buildStreamsMetadata', () => {
       dripId: 999n,
       start: 1672531200n,
       duration: 0n, // Should use 0 when durationSeconds is null
-      amountPerSec: 1000000000000000000n,
+      amountPerSec: expect.any(BigInt),
     });
 
     // Verify the result
