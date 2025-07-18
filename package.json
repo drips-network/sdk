@@ -1,6 +1,6 @@
 {
   "name": "@drips-network/sdk",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.3",
   "license": "GPL-3.0-or-later",
   "description": "💧TypeScript SDK for Drips",
   "publishConfig": {
@@ -13,12 +13,16 @@
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
     }
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "test": "vitest run tests/unit",
     "test:coverage": "vitest run tests/unit --coverage",
@@ -51,6 +55,7 @@
     "vitest": "^3.2.0"
   },
   "dependencies": {
+    "@drips-network/sdk": "^0.1.0-alpha.2",
     "@efstajas/versioned-parser": "^0.1.4",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",
