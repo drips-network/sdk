@@ -138,3 +138,5 @@ dist
 
 graphql.config.js
 **/.DS_Store
+
+.claude

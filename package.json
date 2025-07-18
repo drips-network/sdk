@@ -11,17 +11,13 @@
     "url": "https://github.com/drips-network/sdk.git"
   },
   "type": "module",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
-  "files": [
-    "build"
-  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "types": "./build/index.d.ts",
-      "default": "./build/index.js"
-    },
-    "./internal/*": null
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
   },
   "scripts": {
     "test": "vitest run tests/unit",
@@ -29,9 +25,9 @@
     "lint": "gts lint",
     "fix": "gts fix",
     "clean": "gts clean && rm -rf build",
-    "compile": "tsc --build --force tsconfig.build.json ",
+    "compile": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --tsconfig tsconfig.build.json",
     "prepare": "npm run compile",
-    "pretest": "tsc --noEmit",
+    "pretest": "tsc --noEmit --project tsconfig.json",
     "posttest": "npm run lint",
     "gql:generate-schema": "./scripts/generate-schema.sh",
     "gql:build-types": "./scripts/build-gql-types.sh",
@@ -50,6 +46,7 @@
     "ethers": "^6.13.4",
     "gts": "^6.0.2",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.0",
     "typescript": "^5.6.3",
     "vitest": "^3.2.0"
   },

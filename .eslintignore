@@ -1,1 +1,4 @@
 build/
+dist/
+node_modules/
+testing-app/.svelte-kit/
