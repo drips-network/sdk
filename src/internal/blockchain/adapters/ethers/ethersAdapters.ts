@@ -13,16 +13,6 @@ import {
 } from './ethersMappers';
 import {createEthersMeta} from './createEthersMeta';
 
-/**
- * Creates a read-only blockchain adapter using an Ethers `Provider`.
- *
- * This adapter supports the following read operations:
- * - `call`: Executes a static contract call and returns raw return data.
- * - `getChainId`: Resolves the current chain ID from the Ethers.js provider.
- *
- * @param provider - The Ethers provider used for read-only operations.
- * @returns A `ReadBlockchainAdapter` that implements read-only operations.
- */
 export function createEthersReadAdapter(
   provider: Provider,
 ): ReadBlockchainAdapter {
@@ -58,19 +48,6 @@ export function createEthersReadAdapter(
   };
 }
 
-/**
- * Creates a blockchain adapter using an Ethers `Signer`.
- *
- * This adapter supports the following read and write operations:
- * - `call`: Executes static contract calls.
- * - `sendTx`: Sends transactions to the network using the provided account.
- * - `getAddress`: Returns the address of the connected account.
- * - `signMsg`: Signs arbitrary messages with the account.
- * - `getChainId`: Resolves the current chain ID from the wallet's chain context.
- *
- * @param signer - An Ethers signer with a connected provider.
- * @returns A `WriteBlockchainAdapter` that implements both read and write capabilities.
- */
 export function createEthersWriteAdapter(
   signer: Signer,
 ): WriteBlockchainAdapter {

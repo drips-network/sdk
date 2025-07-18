@@ -21,11 +21,6 @@ export {createDripsSdk} from './sdk/createDripsSdk';
 
 export {createPinataIpfsMetadataUploader} from './internal/shared/createPinataIpfsMetadataUploader';
 
-export {createViemReadAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
-export {createViemWriteAdapter} from './internal/blockchain/adapters/viem/viemAdapters';
-export {createEthersReadAdapter} from './internal/blockchain/adapters/ethers/ethersAdapters';
-export {createEthersWriteAdapter} from './internal/blockchain/adapters/ethers/ethersAdapters';
-
 export {calcDripListId} from './internal/shared/calcDripListId';
 export {getDripListById} from './internal/drip-lists/getDripListById';
 export {getUserWithdrawableBalances} from './internal/collect/getUserWithdrawableBalances';

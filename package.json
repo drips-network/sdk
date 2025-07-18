@@ -1,8 +1,11 @@
 {
-  "name": "drips-sdk-test-3",
-  "version": "0.0.0-test.0",
+  "name": "@drips-network/sdk",
+  "version": "0.1.0-alpha.0",
   "license": "GPL-3.0-or-later",
   "description": "💧TypeScript SDK for Drips",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/drips-network/sdk.git"

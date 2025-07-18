@@ -17,17 +17,6 @@ import {DripsError} from '../../../shared/DripsError';
 import {requireWalletHasAccount} from '../../../shared/assertions';
 import {createViemMeta} from './createViemMeta';
 
-/**
- * Creates a read-only blockchain adapter using a Viem `PublicClient`.
- *
- * This adapter supports the following read operations:
- * - `call`: Executes a static contract call and returns raw return data.
- * - `getChainId`: Resolves the current chain ID from the Viem client.
- *
- * @param {PublicClient} publicClient - The Viem client instance used for public (read-only) chain access.
- *
- * @returns {ReadBlockchainAdapter} A `ReadBlockchainAdapter` that implements read capabilities.
- */
 export function createViemReadAdapter(
   publicClient: PublicClient,
 ): ReadBlockchainAdapter {
@@ -62,19 +51,6 @@ export function createViemReadAdapter(
   };
 }
 
-/**
- * Creates a blockchain adapter using a Viem `WalletClient` with an attached account.
- *
- * This adapter supports the following read and write operations:
- * - `call`: Executes static contract calls.
- * - `sendTx`: Sends transactions to the network using the provided account.
- * - `getAddress`: Returns the address of the connected account.
- * - `signMsg`: Signs arbitrary messages with the account.
- * - `getChainId`: Resolves the current chain ID from the wallet's chain context.
- *
- * @param walletClient - A Viem wallet client with an attached account.
- * @returns A `WriteBlockchainAdapter` that implements both read and write capabilities.
- */
 export function createViemWriteAdapter(
   walletClient: WalletClient & {account: Account},
 ): WriteBlockchainAdapter {
