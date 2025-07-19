@@ -17,11 +17,12 @@ import {createDripList} from '../../../src/internal/drip-lists/createDripList';
 import {Address} from 'viem';
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 import {updateDripList} from '../../../src/internal/drip-lists/updateDripList';
+import {prepareDripListCreation} from '../../../src/internal/drip-lists/prepareDripListCreation';
+import {prepareDripListUpdate} from '../../../src/internal/drip-lists/prepareDripListUpdate';
 import {
   requireWriteAccess,
   requireMetadataUploader,
 } from '../../../src/internal/shared/assertions';
-import {DripsError} from '../../../src/internal/shared/DripsError';
 
 vi.mock('../../../src/internal/shared/calcDripListId');
 vi.mock('../../../src/internal/drip-lists/getDripListById');
@@ -134,6 +135,43 @@ describe('createDripListsModule', () => {
     // Assert
     expect(result).toBe(expectedResult);
     expect(updateDripList).toHaveBeenCalledWith(
+      adapter,
+      ipfsMetadataUploaderFn,
+      config,
+      graphqlClient,
+    );
+  });
+
+  it('should prepare create a drip list', async () => {
+    // Arrange
+    const params = {name: 'test'} as any;
+    const expectedResult = {result: 'prepared'} as any;
+    vi.mocked(prepareDripListCreation).mockResolvedValue(expectedResult);
+
+    // Act
+    const result = await dripListsModule.prepareCreate(params);
+
+    // Assert
+    expect(result).toBe(expectedResult);
+    expect(prepareDripListCreation).toHaveBeenCalledWith(
+      adapter,
+      ipfsMetadataUploaderFn,
+      params,
+    );
+  });
+
+  it('should prepare update a drip list', async () => {
+    // Arrange
+    const config = {accountId: 1n, name: 'updated'} as any;
+    const expectedResult = {result: 'prepared update'} as any;
+    vi.mocked(prepareDripListUpdate).mockResolvedValue(expectedResult);
+
+    // Act
+    const result = await dripListsModule.prepareUpdate(config);
+
+    // Assert
+    expect(result).toBe(expectedResult);
+    expect(prepareDripListUpdate).toHaveBeenCalledWith(
       adapter,
       ipfsMetadataUploaderFn,
       config,
@@ -313,6 +351,178 @@ describe('createDripListsModule', () => {
     });
   });
 
+  describe('prepareCreate method validation', () => {
+    it('should call requireWriteAccess with correct parameters', async () => {
+      // Arrange
+      const params = {name: 'test'} as any;
+      vi.mocked(prepareDripListCreation).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.prepareCreate(params);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        adapter,
+        'createDripList',
+      );
+    });
+
+    it('should call requireMetadataUploader with correct parameters', async () => {
+      // Arrange
+      const params = {name: 'test'} as any;
+      vi.mocked(prepareDripListCreation).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.prepareCreate(params);
+
+      // Assert
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        ipfsMetadataUploaderFn,
+        'createDripList',
+      );
+    });
+
+    it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
+      // Arrange
+      const readAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as ReadBlockchainAdapter;
+      const moduleWithReadAdapter = createDripListsModule({
+        adapter: readAdapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn,
+      });
+      const params = {name: 'test'} as any;
+      const expectedResult = {result: 'prepared'} as any;
+      vi.mocked(prepareDripListCreation).mockResolvedValue(expectedResult);
+      vi.mocked(requireWriteAccess).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithReadAdapter.prepareCreate(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        readAdapter,
+        'createDripList',
+      );
+    });
+
+    it('should work without ipfsMetadataUploaderFn when requireMetadataUploader is mocked to pass', async () => {
+      // Arrange
+      const moduleWithoutUploader = createDripListsModule({
+        adapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      const params = {name: 'test'} as any;
+      const expectedResult = {result: 'prepared'} as any;
+      vi.mocked(prepareDripListCreation).mockResolvedValue(expectedResult);
+      vi.mocked(requireMetadataUploader).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithoutUploader.prepareCreate(params);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        undefined,
+        'createDripList',
+      );
+    });
+  });
+
+  describe('prepareUpdate method validation', () => {
+    it('should call requireWriteAccess with correct parameters', async () => {
+      // Arrange
+      const config = {accountId: 1n, name: 'updated'} as any;
+      vi.mocked(prepareDripListUpdate).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.prepareUpdate(config);
+
+      // Assert
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        adapter,
+        'updateDripList',
+      );
+    });
+
+    it('should call requireMetadataUploader with correct parameters', async () => {
+      // Arrange
+      const config = {accountId: 1n, name: 'updated'} as any;
+      vi.mocked(prepareDripListUpdate).mockResolvedValue({} as any);
+
+      // Act
+      await dripListsModule.prepareUpdate(config);
+
+      // Assert
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        ipfsMetadataUploaderFn,
+        'updateDripList',
+      );
+    });
+
+    it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
+      // Arrange
+      const readAdapter = {
+        call: vi.fn(),
+        getChainId: vi.fn(),
+      } as ReadBlockchainAdapter;
+      const moduleWithReadAdapter = createDripListsModule({
+        adapter: readAdapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn,
+      });
+      const config = {accountId: 1n, name: 'updated'} as any;
+      const expectedResult = {result: 'prepared update'} as any;
+      vi.mocked(prepareDripListUpdate).mockResolvedValue(expectedResult);
+      vi.mocked(requireWriteAccess).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithReadAdapter.prepareUpdate(config);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireWriteAccess).toHaveBeenCalledWith(
+        readAdapter,
+        'updateDripList',
+      );
+    });
+
+    it('should work without ipfsMetadataUploaderFn when requireMetadataUploader is mocked to pass', async () => {
+      // Arrange
+      const moduleWithoutUploader = createDripListsModule({
+        adapter,
+        graphqlClient,
+        ipfsMetadataUploaderFn: undefined,
+      });
+      const config = {accountId: 1n, name: 'updated'} as any;
+      const expectedResult = {result: 'prepared update'} as any;
+      vi.mocked(prepareDripListUpdate).mockResolvedValue(expectedResult);
+      vi.mocked(requireMetadataUploader).mockImplementation(() => {
+        // Mock passes validation
+      });
+
+      // Act
+      const result = await moduleWithoutUploader.prepareUpdate(config);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+      expect(requireMetadataUploader).toHaveBeenCalledWith(
+        undefined,
+        'updateDripList',
+      );
+    });
+  });
+
   describe('module creation validation', () => {
     it('should work with WriteBlockchainAdapter and valid uploader', () => {
       // Arrange
@@ -336,6 +546,8 @@ describe('createDripListsModule', () => {
       expect(module).toHaveProperty('update');
       expect(module).toHaveProperty('getById');
       expect(module).toHaveProperty('calculateId');
+      expect(module).toHaveProperty('prepareCreate');
+      expect(module).toHaveProperty('prepareUpdate');
     });
   });
 });

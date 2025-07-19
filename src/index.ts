@@ -20,6 +20,14 @@ import {calcProjectId} from './internal/projects/calcProjectId';
 export {createDripsSdk} from './sdk/createDripsSdk';
 
 export {createPinataIpfsMetadataUploader} from './internal/shared/createPinataIpfsMetadataUploader';
+export {
+  createEthersReadAdapter,
+  createEthersWriteAdapter,
+} from './internal/blockchain/adapters/ethers/ethersAdapters';
+export {
+  createViemReadAdapter,
+  createViemWriteAdapter,
+} from './internal/blockchain/adapters/viem/viemAdapters';
 
 export {getDripListById} from './internal/drip-lists/getDripListById';
 export {getUserWithdrawableBalances} from './internal/collect/getUserWithdrawableBalances';
