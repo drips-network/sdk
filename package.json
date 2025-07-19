@@ -29,7 +29,7 @@
     "lint": "gts lint",
     "fix": "gts fix",
     "clean": "gts clean && rm -rf build",
-    "compile": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --tsconfig tsconfig.build.json",
+    "compile": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --tsconfig tsconfig.build.json --external peerDependencies --splitting --treeshake",
     "prepare": "npm run compile",
     "pretest": "tsc --noEmit --project tsconfig.json",
     "posttest": "npm run lint",
@@ -47,20 +47,22 @@
     "@types/node": "^22.7.5",
     "@vitest/coverage-v8": "^3.2.3",
     "dotenv": "^16.5.0",
-    "ethers": "^6.13.4",
     "gts": "^6.0.2",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typescript": "^5.6.3",
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.0",
+    "viem": "^2.30.1"
   },
   "dependencies": {
-    "@drips-network/sdk": "^0.1.0-alpha.2",
     "@efstajas/versioned-parser": "^0.1.4",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",
     "pinata": "^2.4.0",
-    "viem": "^2.30.1",
     "zod": "^3.25.28"
+  },
+  "peerDependencies": {
+    "ethers": "^6.13.4",
+    "viem": "^2.30.1"
   }
 }
