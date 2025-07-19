@@ -11,7 +11,7 @@
     createRandomReadonlySdk,
     localtestnet,
   } from '$lib/utils/sdkFactory';
-  import type {DripsSdk, DripList} from 'drips-sdk-test-3';
+  import type {DripsSdk, DripList} from '@drips-network/sdk';
 
   // Form state
   let graphqlUrl = '';

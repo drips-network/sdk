@@ -21,17 +21,12 @@ export {createDripsSdk} from './sdk/createDripsSdk';
 
 export {createPinataIpfsMetadataUploader} from './internal/shared/createPinataIpfsMetadataUploader';
 
-export {calcDripListId} from './internal/shared/calcDripListId';
 export {getDripListById} from './internal/drip-lists/getDripListById';
 export {getUserWithdrawableBalances} from './internal/collect/getUserWithdrawableBalances';
 export {prepareDripListCreation} from './internal/drip-lists/prepareDripListCreation';
 export {createDripList} from './internal/drip-lists/createDripList';
 export {prepareDripListUpdate} from './internal/drip-lists/prepareDripListUpdate';
 export {updateDripList} from './internal/drip-lists/updateDripList';
-
-export {calcAddressId} from './internal/shared/calcAddressId';
-
-export {calcProjectId} from './internal/projects/calcProjectId';
 
 export {prepareOneTimeDonation} from './internal/donations/prepareOneTimeDonation';
 export {sendOneTimeDonation} from './internal/donations/sendOneTimeDonation';

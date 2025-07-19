@@ -6,19 +6,18 @@
     addLog,
     resetOperation,
   } from '$lib/stores/sdk';
-  import {
-    createViemSdk,
-    createRandomReadonlySdk,
-    localtestnet,
-  } from '$lib/utils/sdkFactory';
-  import {
-    calcAddressId,
-    calcDripListId,
-    createViemWriteAdapter,
-    createViemReadAdapter,
-    calcProjectId,
-    utils,
-  } from 'drips-sdk-test-3';
+  import {createRandomReadonlySdk, type SdkConfig} from '$lib/utils/sdkFactory';
+  import type {DripsSdk} from '@drips-network/sdk';
+  import {onMount} from 'svelte';
+
+  let sdk: DripsSdk;
+
+  onMount(async () => {
+    const {sdk: readonlySdk} = await createRandomReadonlySdk({
+      adapter: 'viem',
+    });
+    sdk = readonlySdk;
+  });
 
   // Form state for different utilities
   let activeTab = 'address-id';
@@ -113,36 +112,11 @@
 
       showStatusMessage('Setting up blockchain adapter...', 'info');
 
-      let adapter;
-      if ($walletStore.isConnected) {
-        const {walletClient} = await createViemSdk({
-          useConnectedWallet: true,
-          rpcUrl: 'http://localhost:8545',
-          pinataJwt: 'dummy',
-          pinataGateway: 'dummy',
-        });
-        adapter = createViemWriteAdapter(walletClient);
-      } else {
-        const result = await createRandomReadonlySdk({
-          rpcUrl: 'http://localhost:8545',
-          adapter: 'viem',
-        });
-        if ('publicClient' in result) {
-          adapter = createViemReadAdapter(result.publicClient);
-        } else if ('provider' in result) {
-          const {createEthersReadAdapter} = await import('drips-sdk-test-3');
-          adapter = createEthersReadAdapter(result.provider);
-        } else {
-          throw new Error('Unable to create adapter from readonly SDK');
-        }
-      }
-
       updateOperationStatus({progress: 60});
 
       showStatusMessage('Calculating address ID...', 'info');
 
-      const accountId = await calcAddressId(
-        adapter,
+      const accountId = await sdk.utils.calcAddressId(
         addressInput as `0x${string}`,
       );
       addressIdResult = accountId;
@@ -190,38 +164,14 @@
 
       showStatusMessage('Setting up blockchain adapter...', 'info');
 
-      let adapter;
-      if ($walletStore.isConnected) {
-        const {walletClient} = await createViemSdk({
-          useConnectedWallet: true,
-          rpcUrl: 'http://localhost:8545',
-          pinataJwt: 'dummy',
-          pinataGateway: 'dummy',
-        });
-        adapter = createViemWriteAdapter(walletClient);
-      } else {
-        const result = await createRandomReadonlySdk({
-          rpcUrl: 'http://localhost:8545',
-          adapter: 'viem',
-        });
-        if ('publicClient' in result) {
-          adapter = createViemReadAdapter(result.publicClient);
-        } else if ('provider' in result) {
-          const {createEthersReadAdapter} = await import('drips-sdk-test-3');
-          adapter = createEthersReadAdapter(result.provider);
-        } else {
-          throw new Error('Unable to create adapter from readonly SDK');
-        }
-      }
-
       updateOperationStatus({progress: 70});
 
       showStatusMessage('Calculating project ID...', 'info');
 
-      const accountId = await calcProjectId(adapter, {
+      const accountId = await sdk.utils.calcProjectId(
         forge,
-        name: `${ownerName}/${repoName}`,
-      });
+        `${ownerName}/${repoName}`,
+      );
       projectIdResult = accountId;
 
       updateOperationStatus({progress: 100});
@@ -283,35 +233,11 @@
 
       showStatusMessage('Setting up blockchain adapter...', 'info');
 
-      let adapter;
-      if ($walletStore.isConnected) {
-        const {walletClient} = await createViemSdk({
-          useConnectedWallet: true,
-          rpcUrl: 'http://localhost:8545',
-          pinataJwt: 'dummy',
-          pinataGateway: 'dummy',
-        });
-        adapter = createViemWriteAdapter(walletClient);
-      } else {
-        const result = await createRandomReadonlySdk({
-          rpcUrl: 'http://localhost:8545',
-          adapter: 'viem',
-        });
-        if ('publicClient' in result) {
-          adapter = createViemReadAdapter(result.publicClient);
-        } else if ('provider' in result) {
-          const {createEthersReadAdapter} = await import('drips-sdk-test-3');
-          adapter = createEthersReadAdapter(result.provider);
-        } else {
-          throw new Error('Unable to create adapter from readonly SDK');
-        }
-      }
-
       updateOperationStatus({progress: 60});
 
       showStatusMessage('Calculating drip list ID...', 'info');
 
-      const dripListId = await calcDripListId(adapter, {
+      const dripListId = await sdk.utils.calcDripListId({
         minter: minterAddress as `0x${string}`,
         salt,
       });
@@ -371,7 +297,7 @@
       updateOperationStatus({progress: 50});
       showStatusMessage('Encoding stream configuration...', 'info');
 
-      const encoded = utils.encodeStreamConfig({
+      const encoded = sdk.utils.encodeStreamConfig({
         dripId,
         amountPerSec: amtPerSec,
         start: startTime,
@@ -427,7 +353,7 @@
       updateOperationStatus({progress: 50});
       showStatusMessage('Decoding stream configuration...', 'info');
 
-      const decoded = utils.decodeStreamConfig(packed);
+      const decoded = sdk.utils.decodeStreamConfig(packed);
       decodedStreamConfig = decoded;
 
       updateOperationStatus({progress: 100});
@@ -443,51 +369,6 @@
             duration: decoded.duration.toString(),
           },
           input: packedStreamConfig,
-        },
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred';
-      showStatusMessage(`Error: ${errorMessage}`, 'error');
-      updateOperationStatus({
-        isRunning: false,
-        error: errorMessage,
-      });
-    }
-  }
-
-  function encodeMetadataKeyValue() {
-    try {
-      resetOperation();
-      encodedMetadata = null;
-      updateOperationStatus({isRunning: true, progress: 0});
-
-      showStatusMessage('Validating metadata inputs...', 'info');
-
-      if (!metadataKey || !metadataValue) {
-        throw new Error('Both key and value are required');
-      }
-
-      updateOperationStatus({progress: 50});
-      showStatusMessage('Encoding metadata key-value pair...', 'info');
-
-      const encoded = utils.encodeMetadataKeyValue({
-        key: metadataKey,
-        value: metadataValue,
-      });
-
-      encodedMetadata = encoded;
-      updateOperationStatus({progress: 100});
-      showStatusMessage('Metadata encoded successfully!', 'success');
-
-      updateOperationStatus({
-        isRunning: false,
-        result: {
-          encodedMetadata: encoded,
-          input: {
-            key: metadataKey,
-            value: metadataValue,
-          },
         },
       });
     } catch (error) {
@@ -565,13 +446,6 @@
     on:click={() => (activeTab = 'stream-decode')}
   >
     🔍 Stream Decode
-  </button>
-  <button
-    class="tab"
-    class:active={activeTab === 'metadata-encode'}
-    on:click={() => (activeTab = 'metadata-encode')}
-  >
-    🏷️ Metadata Encode
   </button>
 </div>
 
@@ -876,67 +750,6 @@
           <div class="result-value">
             <strong>Duration:</strong>
             {decodedStreamConfig.duration.toString()}
-          </div>
-        </div>
-      {/if}
-    </div>
-  </div>
-{/if}
-
-{#if activeTab === 'metadata-encode'}
-  <div class="tab-content">
-    <h2>🏷️ Encode Metadata Key-Value</h2>
-    <div class="info-box">
-      <strong>About:</strong> Encodes metadata key-value pairs for use in the Drips
-      protocol. This converts string keys and values into the proper hex format required
-      by the blockchain.
-    </div>
-
-    <div class="form-container">
-      <div class="form-group">
-        <label for="metadataKey">Metadata Key:</label>
-        <input
-          type="text"
-          id="metadataKey"
-          bind:value={metadataKey}
-          placeholder="ipfs"
-        />
-        <small>Enter the metadata key (max 31 bytes)</small>
-      </div>
-
-      <div class="form-group">
-        <label for="metadataValue">Metadata Value:</label>
-        <input
-          type="text"
-          id="metadataValue"
-          bind:value={metadataValue}
-          placeholder="QmYourIPFSHashHere"
-        />
-        <small>Enter the metadata value (any string)</small>
-      </div>
-
-      <button
-        class="button primary"
-        on:click={encodeMetadataKeyValue}
-        disabled={$operationStatus.isRunning}
-      >
-        {#if $operationStatus.isRunning}
-          🔄 Encoding...
-        {:else}
-          🏷️ Encode Metadata
-        {/if}
-      </button>
-
-      {#if encodedMetadata !== null}
-        <div class="result-display">
-          <h3>✅ Encoded Metadata</h3>
-          <div class="result-value">
-            <strong>Encoded Key:</strong>
-            {encodedMetadata.key}
-          </div>
-          <div class="result-value">
-            <strong>Encoded Value:</strong>
-            {encodedMetadata.value}
           </div>
         </div>
       {/if}

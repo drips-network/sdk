@@ -11,15 +11,9 @@
     createRandomReadonlySdk,
     localtestnet,
   } from '$lib/utils/sdkFactory';
-  import type {DripsSdk} from 'drips-sdk-test-3';
-  import {
-    calcAddressId,
-    contractsRegistry,
-    utils,
-    collect,
-    createViemWriteAdapter,
-  } from 'drips-sdk-test-3';
-  import type {WriteBlockchainAdapter} from 'drips-sdk-test-3';
+  import type {DripsSdk} from '@drips-network/sdk';
+  import {calcAddressId, contractsRegistry} from '@drips-network/sdk';
+  import type {WriteBlockchainAdapter} from '@drips-network/sdk';
 
   // Define SupportedChain type locally since it's not exported
   type SupportedChain = keyof typeof contractsRegistry;
@@ -267,11 +261,7 @@
 
       showStatusMessage('Calculating account ID...', 'info');
 
-      const adapter = createViemWriteAdapter(walletClient);
-
-      // Calculate account ID using the SDK utility
-      const calculatedAccountId = await calcAddressId(
-        adapter,
+      const calculatedAccountId = await sdk.utils.calcAddressId(
         accountId as `0x${string}`,
       );
 
@@ -373,11 +363,7 @@
 
       showStatusMessage('Calculating account ID...', 'info');
 
-      const adapter = createViemWriteAdapter(walletClient);
-
-      // Calculate account ID using the SDK utility
-      const calculatedAccountId = await calcAddressId(
-        adapter,
+      const calculatedAccountId = await sdk.utils.calcAddressId(
         accountId as `0x${string}`,
       );
 

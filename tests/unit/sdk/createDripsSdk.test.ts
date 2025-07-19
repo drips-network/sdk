@@ -14,7 +14,8 @@ import {resolveBlockchainAdapter} from '../../../src/internal/blockchain/resolve
 import {createDripListsModule} from '../../../src/sdk/createDripListsModule';
 import {createDonationsModule} from '../../../src/sdk/createDonationsModule';
 import {createUsersModule} from '../../../src/sdk/createUsersModule';
-import {dripsConstants, utils} from '../../../src';
+import {createUtilsModule} from '../../../src/sdk/createUtilsModule';
+import {dripsConstants} from '../../../src';
 import {
   createGraphQLClient,
   DEFAULT_GRAPHQL_URL,
@@ -26,6 +27,7 @@ vi.mock('../../../src/internal/blockchain/resolveBlockchainAdapter');
 vi.mock('../../../src/sdk/createDripListsModule');
 vi.mock('../../../src/sdk/createDonationsModule');
 vi.mock('../../../src/sdk/createUsersModule');
+vi.mock('../../../src/sdk/createUtilsModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 vi.mock('../../../src/internal/collect/collect');
 vi.mock('../../../src/internal/shared/assertions');
@@ -35,6 +37,7 @@ describe('createDripsSdk', () => {
   const dripListsModule = {} as any;
   const donationsModule = {} as any;
   const usersModule = {} as any;
+  const utilsModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
   const mockGraphqlClient = {
     query: vi.fn(),
@@ -47,6 +50,7 @@ describe('createDripsSdk', () => {
     vi.mocked(createDripListsModule).mockReturnValue(dripListsModule);
     vi.mocked(createDonationsModule).mockReturnValue(donationsModule);
     vi.mocked(createUsersModule).mockReturnValue(usersModule);
+    vi.mocked(createUtilsModule).mockReturnValue(utilsModule);
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
     vi.mocked(requireWriteAccess).mockImplementation(() => {
       // Default implementation does nothing (successful case)
@@ -66,7 +70,7 @@ describe('createDripsSdk', () => {
     expect(sdk.donations).toBe(donationsModule);
     expect(sdk.users).toBe(usersModule);
     expect(sdk.constants).toBe(dripsConstants);
-    expect(sdk.utils).toBe(utils);
+    expect(sdk.utils).toBe(utilsModule);
     expect(typeof sdk.collect).toBe('function');
     expect(createDripListsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
@@ -82,6 +86,9 @@ describe('createDripsSdk', () => {
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
       ipfsMetadataUploaderFn,
+    });
+    expect(createUtilsModule).toHaveBeenCalledWith({
+      adapter: mockAdapter,
     });
   });
 
@@ -253,6 +260,9 @@ describe('createDripsSdk', () => {
         graphqlClient: mockGraphqlClient,
         ipfsMetadataUploaderFn: undefined,
       });
+      expect(createUtilsModule).toHaveBeenCalledWith({
+        adapter: mockAdapter,
+      });
     });
 
     it('should handle undefined options', () => {
@@ -351,7 +361,7 @@ describe('createDripsSdk', () => {
       const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
 
       // Assert
-      expect(sdk.utils).toBe(utils);
+      expect(sdk.utils).toBe(utilsModule);
       expect(typeof sdk.utils).toBe('object');
     });
   });
