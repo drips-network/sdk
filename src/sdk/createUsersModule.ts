@@ -6,7 +6,7 @@ import {
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 
 export interface UsersModule {
-  getWithdrawableBalances(
+  getUserWithdrawableBalances(
     address: Address,
     chainId: number,
   ): Promise<UserWithdrawableBalances>;
@@ -20,7 +20,7 @@ export function createUsersModule(deps: Deps): UsersModule {
   const {graphqlClient} = deps;
 
   return {
-    getWithdrawableBalances: (
+    getUserWithdrawableBalances: (
       address: Address,
       chainId: number,
     ): Promise<UserWithdrawableBalances> => {

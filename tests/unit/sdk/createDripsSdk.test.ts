@@ -13,31 +13,27 @@ import {
 import {resolveBlockchainAdapter} from '../../../src/internal/blockchain/resolveBlockchainAdapter';
 import {createDripListsModule} from '../../../src/sdk/createDripListsModule';
 import {createDonationsModule} from '../../../src/sdk/createDonationsModule';
-import {createUsersModule} from '../../../src/sdk/createUsersModule';
 import {createUtilsModule} from '../../../src/sdk/createUtilsModule';
+import {createFundsModule} from '../../../src/sdk/createFundsModule';
 import {dripsConstants} from '../../../src';
 import {
   createGraphQLClient,
   DEFAULT_GRAPHQL_URL,
 } from '../../../src/internal/graphql/createGraphQLClient';
-import {collect} from '../../../src/internal/collect/collect';
-import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 
 vi.mock('../../../src/internal/blockchain/resolveBlockchainAdapter');
 vi.mock('../../../src/sdk/createDripListsModule');
 vi.mock('../../../src/sdk/createDonationsModule');
-vi.mock('../../../src/sdk/createUsersModule');
 vi.mock('../../../src/sdk/createUtilsModule');
+vi.mock('../../../src/sdk/createFundsModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
-vi.mock('../../../src/internal/collect/collect');
-vi.mock('../../../src/internal/shared/assertions');
 
 describe('createDripsSdk', () => {
   const ipfsMetadataUploaderFn = vi.fn<IpfsMetadataUploaderFn<Metadata>>();
   const dripListsModule = {} as any;
   const donationsModule = {} as any;
-  const usersModule = {} as any;
   const utilsModule = {} as any;
+  const fundsModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
   const mockGraphqlClient = {
     query: vi.fn(),
@@ -49,12 +45,9 @@ describe('createDripsSdk', () => {
     vi.mocked(resolveBlockchainAdapter).mockReturnValue(mockAdapter);
     vi.mocked(createDripListsModule).mockReturnValue(dripListsModule);
     vi.mocked(createDonationsModule).mockReturnValue(donationsModule);
-    vi.mocked(createUsersModule).mockReturnValue(usersModule);
     vi.mocked(createUtilsModule).mockReturnValue(utilsModule);
+    vi.mocked(createFundsModule).mockReturnValue(fundsModule);
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
-    vi.mocked(requireWriteAccess).mockImplementation(() => {
-      // Default implementation does nothing (successful case)
-    });
   });
 
   it('should create a DripsSdk instance', () => {
@@ -68,10 +61,9 @@ describe('createDripsSdk', () => {
     expect(sdk).toBeDefined();
     expect(sdk.dripLists).toBe(dripListsModule);
     expect(sdk.donations).toBe(donationsModule);
-    expect(sdk.users).toBe(usersModule);
+    expect(sdk.funds).toBe(fundsModule);
     expect(sdk.constants).toBe(dripsConstants);
     expect(sdk.utils).toBe(utilsModule);
-    expect(typeof sdk.collect).toBe('function');
     expect(createDripListsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
@@ -82,13 +74,12 @@ describe('createDripsSdk', () => {
       graphqlClient: mockGraphqlClient,
       ipfsMetadataUploaderFn,
     });
-    expect(createUsersModule).toHaveBeenCalledWith({
-      adapter: mockAdapter,
-      graphqlClient: mockGraphqlClient,
-      ipfsMetadataUploaderFn,
-    });
     expect(createUtilsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
+    });
+    expect(createFundsModule).toHaveBeenCalledWith({
+      adapter: mockAdapter,
+      graphqlClient: mockGraphqlClient,
     });
   });
 
@@ -180,61 +171,6 @@ describe('createDripsSdk', () => {
     expect(resolveBlockchainAdapter).toHaveBeenCalledWith(client);
   });
 
-  describe('collect method', () => {
-    it('should call requireWriteAccess and collect function with correct parameters', async () => {
-      // Arrange
-      const client = {} as WalletClient;
-      const writeAdapter = {
-        call: vi.fn(),
-        getChainId: vi.fn(),
-        getAddress: vi.fn(),
-        sendTx: vi.fn(),
-        signMsg: vi.fn(),
-      } as WriteBlockchainAdapter;
-      const collectConfig = {accountId: '123'} as any;
-      const expectedTxResponse = {hash: '0x123'} as any;
-
-      vi.mocked(resolveBlockchainAdapter).mockReturnValue(writeAdapter);
-      vi.mocked(collect).mockResolvedValue(expectedTxResponse);
-
-      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
-
-      // Act
-      const result = await sdk.collect(collectConfig);
-
-      // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(writeAdapter, 'collect');
-      expect(collect).toHaveBeenCalledWith(writeAdapter, collectConfig);
-      expect(result).toBe(expectedTxResponse);
-    });
-
-    it('should throw an error when collect function throws', async () => {
-      // Arrange
-      const client = {} as WalletClient;
-      const writeAdapter = {
-        call: vi.fn(),
-        getChainId: vi.fn(),
-        getAddress: vi.fn(),
-        sendTx: vi.fn(),
-        signMsg: vi.fn(),
-      } as WriteBlockchainAdapter;
-      const collectConfig = {accountId: '123'} as any;
-      const error = new Error('Collection failed');
-
-      vi.mocked(resolveBlockchainAdapter).mockReturnValue(writeAdapter);
-      vi.mocked(collect).mockRejectedValue(error);
-
-      const sdk = createDripsSdk(client, ipfsMetadataUploaderFn);
-
-      // Act & Assert
-      await expect(sdk.collect(collectConfig)).rejects.toThrow(
-        'Collection failed',
-      );
-      expect(requireWriteAccess).toHaveBeenCalledWith(writeAdapter, 'collect');
-      expect(collect).toHaveBeenCalledWith(writeAdapter, collectConfig);
-    });
-  });
-
   describe('edge cases and error handling', () => {
     it('should handle undefined ipfsMetadataUploaderFn', () => {
       // Arrange
@@ -251,11 +187,6 @@ describe('createDripsSdk', () => {
         ipfsMetadataUploaderFn: undefined,
       });
       expect(createDonationsModule).toHaveBeenCalledWith({
-        adapter: mockAdapter,
-        graphqlClient: mockGraphqlClient,
-        ipfsMetadataUploaderFn: undefined,
-      });
-      expect(createUsersModule).toHaveBeenCalledWith({
         adapter: mockAdapter,
         graphqlClient: mockGraphqlClient,
         ipfsMetadataUploaderFn: undefined,

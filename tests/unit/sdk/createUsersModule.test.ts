@@ -53,7 +53,7 @@ describe('createUsersModule', () => {
     });
   });
 
-  describe('getWithdrawableBalances', () => {
+  describe('getUserWithdrawableBalances', () => {
     it('should get withdrawable balances for a user', async () => {
       // Arrange
       vi.mocked(getUserWithdrawableBalances).mockResolvedValue(
@@ -61,7 +61,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -99,7 +99,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         differentAddress,
         mockChainId,
       );
@@ -121,7 +121,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         mainnetChainId,
       );
@@ -143,7 +143,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         localChainId,
       );
@@ -168,7 +168,7 @@ describe('createUsersModule', () => {
       vi.mocked(getUserWithdrawableBalances).mockResolvedValue(emptyBalances);
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -217,7 +217,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -238,7 +238,7 @@ describe('createUsersModule', () => {
 
       // Act & Assert
       await expect(
-        usersModule.getWithdrawableBalances(mockAddress, mockChainId),
+        usersModule.getUserWithdrawableBalances(mockAddress, mockChainId),
       ).rejects.toThrow('GraphQL query failed');
 
       expect(getUserWithdrawableBalances).toHaveBeenCalledWith(
@@ -257,7 +257,7 @@ describe('createUsersModule', () => {
 
       // Act & Assert
       await expect(
-        usersModule.getWithdrawableBalances(mockAddress, 999),
+        usersModule.getUserWithdrawableBalances(mockAddress, 999),
       ).rejects.toThrow('Unsupported chain for GraphQL');
 
       expect(getUserWithdrawableBalances).toHaveBeenCalledWith(
@@ -274,7 +274,7 @@ describe('createUsersModule', () => {
 
       // Act & Assert
       await expect(
-        usersModule.getWithdrawableBalances(mockAddress, mockChainId),
+        usersModule.getUserWithdrawableBalances(mockAddress, mockChainId),
       ).rejects.toThrow('Network request failed');
 
       expect(getUserWithdrawableBalances).toHaveBeenCalledWith(
@@ -293,8 +293,8 @@ describe('createUsersModule', () => {
       });
 
       // Assert
-      expect(module).toHaveProperty('getWithdrawableBalances');
-      expect(typeof module.getWithdrawableBalances).toBe('function');
+      expect(module).toHaveProperty('getUserWithdrawableBalances');
+      expect(typeof module.getUserWithdrawableBalances).toBe('function');
     });
 
     it('should create module with different GraphQL clients', () => {
@@ -309,8 +309,8 @@ describe('createUsersModule', () => {
       });
 
       // Assert
-      expect(module).toHaveProperty('getWithdrawableBalances');
-      expect(typeof module.getWithdrawableBalances).toBe('function');
+      expect(module).toHaveProperty('getUserWithdrawableBalances');
+      expect(typeof module.getUserWithdrawableBalances).toBe('function');
     });
 
     it('should pass the correct GraphQL client to getUserWithdrawableBalances', async () => {
@@ -328,7 +328,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      await moduleWithCustomClient.getWithdrawableBalances(
+      await moduleWithCustomClient.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -358,7 +358,7 @@ describe('createUsersModule', () => {
 
       // Act & Assert
       for (const address of validAddresses) {
-        await usersModule.getWithdrawableBalances(address, mockChainId);
+        await usersModule.getUserWithdrawableBalances(address, mockChainId);
         expect(getUserWithdrawableBalances).toHaveBeenCalledWith(
           address,
           mockChainId,
@@ -381,7 +381,7 @@ describe('createUsersModule', () => {
 
       // Act & Assert
       for (const chainId of validChainIds) {
-        await usersModule.getWithdrawableBalances(mockAddress, chainId);
+        await usersModule.getUserWithdrawableBalances(mockAddress, chainId);
         expect(getUserWithdrawableBalances).toHaveBeenCalledWith(
           mockAddress,
           chainId,
@@ -418,7 +418,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -435,7 +435,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      const result = await usersModule.getWithdrawableBalances(
+      const result = await usersModule.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -471,7 +471,7 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      await moduleWithInjectedClient.getWithdrawableBalances(
+      await moduleWithInjectedClient.getUserWithdrawableBalances(
         mockAddress,
         mockChainId,
       );
@@ -497,8 +497,8 @@ describe('createUsersModule', () => {
       );
 
       // Act
-      await module1.getWithdrawableBalances(mockAddress, mockChainId);
-      await module2.getWithdrawableBalances(mockAddress, mockChainId);
+      await module1.getUserWithdrawableBalances(mockAddress, mockChainId);
+      await module2.getUserWithdrawableBalances(mockAddress, mockChainId);
 
       // Assert
       expect(getUserWithdrawableBalances).toHaveBeenNthCalledWith(

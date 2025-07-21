@@ -105,7 +105,7 @@ describe('Collect', () => {
       // Step 5: Query collectable balances before donation
       console.log('Step 5: Querying collectable balances before donation...');
       const initialWithdrawableBalances =
-        await sdk.users.getWithdrawableBalances(
+        await sdk.funds.getUserWithdrawableBalances(
           account.address,
           localtestnet.id,
         );
@@ -203,7 +203,7 @@ describe('Collect', () => {
       const result = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.users.getWithdrawableBalances(
+            await sdk.funds.getUserWithdrawableBalances(
               account.address,
               localtestnet.id,
             );
@@ -249,7 +249,7 @@ describe('Collect', () => {
 
       // Step 13: Collect the collectable amount
       console.log('Step 13: Collecting collectable amount...');
-      const collectTxResponse = await sdk.collect({
+      const collectTxResponse = await sdk.funds.collect({
         accountId,
         currentReceivers: [],
         tokenAddresses: [erc20Token],
@@ -268,7 +268,7 @@ describe('Collect', () => {
       const collectResult = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.users.getWithdrawableBalances(
+            await sdk.funds.getUserWithdrawableBalances(
               account.address,
               localtestnet.id,
             );
@@ -358,7 +358,7 @@ describe('Collect', () => {
       console.log('Step 5: Querying collectable balances before donation...');
       const walletAddress = await wallet.getAddress();
       const initialWithdrawableBalances =
-        await sdk.users.getWithdrawableBalances(
+        await sdk.funds.getUserWithdrawableBalances(
           walletAddress as Address,
           localtestnet.id,
         );
@@ -481,7 +481,7 @@ describe('Collect', () => {
       const result = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.users.getWithdrawableBalances(
+            await sdk.funds.getUserWithdrawableBalances(
               walletAddress as Address,
               localtestnet.id,
             );
@@ -537,7 +537,7 @@ describe('Collect', () => {
 
       // Step 13: Collect the collectable amount
       console.log('Step 13: Collecting collectable amount...');
-      const collectTxResponse = await sdk.collect({
+      const collectTxResponse = await sdk.funds.collect({
         accountId,
         currentReceivers: [],
         tokenAddresses: [erc20Token],
@@ -556,7 +556,7 @@ describe('Collect', () => {
       const collectResult = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.users.getWithdrawableBalances(
+            await sdk.funds.getUserWithdrawableBalances(
               walletAddress as Address,
               localtestnet.id,
             );
