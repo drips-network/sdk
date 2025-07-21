@@ -70,13 +70,12 @@ describe('createDripListsModule', () => {
     // Arrange
     const salt = 123n;
     const minter = '0x1234' as Address;
-    const chainId = 1;
     const expectedId = 456n;
 
     vi.mocked(calcDripListId).mockResolvedValue(expectedId);
 
     // Act
-    const result = await dripListsModule.calculateId(salt, minter, chainId);
+    const result = await dripListsModule.calculateId(salt, minter);
 
     // Assert
     expect(result).toBe(expectedId);

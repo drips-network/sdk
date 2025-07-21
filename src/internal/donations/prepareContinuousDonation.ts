@@ -63,15 +63,6 @@ export type PrepareContinuousDonationResult = {
   readonly metadata: StreamsMetadata;
 };
 
-/**
- * Prepares the context for a continuous donation stream.
- *
- * @param adapter - Blockchain adapter with write capabilities.
- * @param ipfsMetadataUploaderFn - A function to upload metadata to IPFS.
- * @param donation - Configuration for the donation stream.
- * @param graphqlClient - (Optional) A `DripsGraphQLClient`. If omitted, a default client is created.
- * @returns An object containing the prepared transaction, IPFS hash, and metadata.
- */
 export async function prepareContinuousDonation(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<StreamsMetadata>,

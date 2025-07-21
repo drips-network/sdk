@@ -237,10 +237,10 @@
 
       showStatusMessage('Calculating drip list ID...', 'info');
 
-      const dripListId = await sdk.utils.calcDripListId({
-        minter: minterAddress as `0x${string}`,
+      const dripListId = await sdk.dripLists.calculateId(
         salt,
-      });
+        minterAddress as `0x${string}`,
+      );
       dripListIdResult = dripListId;
 
       updateOperationStatus({progress: 100});

@@ -21,18 +21,6 @@ const forgeMap: Record<Forge, number> = {
   github: 0,
 };
 
-/**
- * Calculates the (`RepoDriver`) account ID for a project.
- *
- * @param adapter - A read-only blockchain adapter used to interact with the chain.
- * @param params - The parameters required to calculate the project account ID.
- * @param params.forge - The forge provider (currently only `'github'` is supported).
- * @param params.name - The project name in the format `'owner/repo'`.
- *
- * @returns The calculated account ID.
- *
- * @throws {DripsError} If the chain is not supported.
- */
 export async function calcProjectId(
   adapter: ReadBlockchainAdapter,
   params: {

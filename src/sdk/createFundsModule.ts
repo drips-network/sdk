@@ -18,11 +18,36 @@ import {requireWriteAccess} from '../internal/shared/assertions';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 
 export interface FundsModule {
-  getUserWithdrawableBalances(
-    address: Address,
-    chainId: number,
-  ): Promise<UserWithdrawableBalances>;
+  /**
+   * Fetches withdrawable balances for the connected user on a specific chain.
+   *
+   * @param chainId - The chain ID for the target network.
+   *
+   * @throws {DripsError} If the chain is not supported.
+   * @returns An object containing the user's withdrawable balances.
+   */
+  getWithdrawableBalances(chainId: number): Promise<UserWithdrawableBalances>;
+
+  /**
+   * Prepares a transaction for collecting funds from streams and splits.
+   *
+   * @param config - Configuration for the collection operation.
+   *
+   * @returns A prepared transaction ready for execution.
+   *
+   * @throws {DripsError} If the chain is not supported, no tokens are provided, or configuration is invalid.
+   */
   prepareCollection(config: CollectConfig): Promise<PreparedTx>;
+
+  /**
+   * Collects funds for an account.
+   *
+   * @param config - Configuration for the collection operation.
+   *
+   * @returns The transaction response from the blockchain.
+   *
+   * @throws {DripsError} If the chain is not supported, no tokens are provided, configuration is invalid, or transaction execution fails.
+   */
   collect(config: CollectConfig): Promise<TxResponse>;
 }
 
@@ -35,15 +60,19 @@ export function createFundsModule(deps: Deps): FundsModule {
   const {adapter, graphqlClient} = deps;
 
   return {
-    getUserWithdrawableBalances: (
-      address: Address,
+    getWithdrawableBalances: async (
       chainId: number,
     ): Promise<UserWithdrawableBalances> => {
-      return getUserWithdrawableBalances(address, chainId, graphqlClient);
+      requireWriteAccess(adapter, 'getWithdrawableBalances');
+      return getUserWithdrawableBalances(
+        await adapter.getAddress(),
+        chainId,
+        graphqlClient,
+      );
     },
 
     prepareCollection: (config: CollectConfig) => {
-      requireWriteAccess(adapter, collect.name);
+      requireWriteAccess(adapter, prepareCollection.name);
       return prepareCollection(adapter, config);
     },
 

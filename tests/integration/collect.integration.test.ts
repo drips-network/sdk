@@ -105,10 +105,7 @@ describe('Collect', () => {
       // Step 5: Query collectable balances before donation
       console.log('Step 5: Querying collectable balances before donation...');
       const initialWithdrawableBalances =
-        await sdk.funds.getUserWithdrawableBalances(
-          account.address,
-          localtestnet.id,
-        );
+        await sdk.funds.getWithdrawableBalances(localtestnet.id);
       console.log('✓ Initial withdrawable balances retrieved');
 
       const erc20Token = process.env.TEST_ERC20_ADDRESS! as Address;
@@ -203,10 +200,7 @@ describe('Collect', () => {
       const result = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.funds.getUserWithdrawableBalances(
-              account.address,
-              localtestnet.id,
-            );
+            await sdk.funds.getWithdrawableBalances(localtestnet.id);
 
           let currentCollectableAmount = BigInt(0);
           currentWithdrawableBalances.forEach(chainData => {
@@ -268,10 +262,7 @@ describe('Collect', () => {
       const collectResult = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.funds.getUserWithdrawableBalances(
-              account.address,
-              localtestnet.id,
-            );
+            await sdk.funds.getWithdrawableBalances(localtestnet.id);
 
           let currentCollectableAmount = BigInt(0);
           currentWithdrawableBalances.forEach(chainData => {
@@ -358,10 +349,7 @@ describe('Collect', () => {
       console.log('Step 5: Querying collectable balances before donation...');
       const walletAddress = await wallet.getAddress();
       const initialWithdrawableBalances =
-        await sdk.funds.getUserWithdrawableBalances(
-          walletAddress as Address,
-          localtestnet.id,
-        );
+        await sdk.funds.getWithdrawableBalances(localtestnet.id);
       console.log('✓ Initial withdrawable balances retrieved');
 
       const erc20Token = process.env.TEST_ERC20_ADDRESS! as Address;
@@ -481,10 +469,7 @@ describe('Collect', () => {
       const result = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.funds.getUserWithdrawableBalances(
-              walletAddress as Address,
-              localtestnet.id,
-            );
+            await sdk.funds.getWithdrawableBalances(localtestnet.id);
 
           let currentCollectableAmount = BigInt(0);
           currentWithdrawableBalances.forEach(chainData => {
@@ -556,10 +541,7 @@ describe('Collect', () => {
       const collectResult = await expectUntil(
         async () => {
           const currentWithdrawableBalances =
-            await sdk.funds.getUserWithdrawableBalances(
-              walletAddress as Address,
-              localtestnet.id,
-            );
+            await sdk.funds.getWithdrawableBalances(localtestnet.id);
 
           let currentCollectableAmount = BigInt(0);
           currentWithdrawableBalances.forEach(chainData => {

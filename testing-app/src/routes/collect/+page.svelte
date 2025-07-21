@@ -12,7 +12,7 @@
     localtestnet,
   } from '$lib/utils/sdkFactory';
   import type {DripsSdk} from '@drips-network/sdk';
-  import {calcAddressId, contractsRegistry} from '@drips-network/sdk';
+  import {contractsRegistry} from '@drips-network/sdk';
   import type {WriteBlockchainAdapter} from '@drips-network/sdk';
 
   // Define SupportedChain type locally since it's not exported
@@ -131,10 +131,10 @@
 
       // Debug: Check SDK structure
       console.log('SDK object:', sdk);
-      console.log('SDK users module:', sdk.users);
+      console.log('SDK funds module:', sdk.funds);
       console.log(
-        'SDK users getWithdrawableBalances:',
-        sdk.users?.getWithdrawableBalances,
+        'SDK funds getUserWithdrawableBalances:',
+        sdk.funds?.getWithdrawableBalances,
       );
 
       // Step 3: Query withdrawable balances
@@ -143,16 +143,13 @@
         'info',
       );
 
-      if (!sdk.users || !sdk.users.getWithdrawableBalances) {
+      if (!sdk.funds || !sdk.funds.getWithdrawableBalances) {
         throw new Error(
-          'SDK users module or getWithdrawableBalances method not available',
+          'SDK funds module or getUserWithdrawableBalances method not available',
         );
       }
 
-      const balances = await sdk.users.getWithdrawableBalances(
-        accountId as `0x${string}`,
-        localtestnet.id,
-      );
+      const balances = await sdk.funds.getWithdrawableBalances(localtestnet.id);
 
       showStatusMessage(
         'Withdrawable balances retrieved successfully!',
@@ -375,8 +372,8 @@
 
       showStatusMessage('Preparing collection transaction...', 'info');
 
-      // Use the SDK's collect function
-      const collectTxResponse = await sdk.collect({
+      // Use the SDK's funds module collect function
+      const collectTxResponse = await sdk.funds.collect({
         accountId: calculatedAccountId,
         currentReceivers: [],
         tokenAddresses: [tokenAddress as `0x${string}`],

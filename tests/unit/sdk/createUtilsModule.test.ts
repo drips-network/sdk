@@ -58,7 +58,6 @@ describe('createUtilsModule', () => {
       expect(module).toHaveProperty('buildTx');
       expect(module).toHaveProperty('calcAddressId');
       expect(module).toHaveProperty('calcProjectId');
-      expect(module).toHaveProperty('calcDripListId');
       expect(module).toHaveProperty('encodeStreamConfig');
       expect(module).toHaveProperty('decodeStreamConfig');
       expect(module).toHaveProperty('resolveDriverName');
@@ -82,7 +81,6 @@ describe('createUtilsModule', () => {
       expect(module).toHaveProperty('buildTx');
       expect(module).toHaveProperty('calcAddressId');
       expect(module).toHaveProperty('calcProjectId');
-      expect(module).toHaveProperty('calcDripListId');
       expect(module).toHaveProperty('encodeStreamConfig');
       expect(module).toHaveProperty('decodeStreamConfig');
       expect(module).toHaveProperty('resolveDriverName');
@@ -157,41 +155,6 @@ describe('createUtilsModule', () => {
     });
   });
 
-  describe('calcDripListId', () => {
-    it('should call calcDripListId with adapter and params', async () => {
-      // Arrange
-      const params = {
-        salt: 789n,
-        minter: '0x1234567890123456789012345678901234567890' as Address,
-      };
-      const expectedResult = 101112n;
-      vi.mocked(calcDripListId).mockResolvedValue(expectedResult);
-
-      // Act
-      const result = await utilsModule.calcDripListId(params);
-
-      // Assert
-      expect(result).toBe(expectedResult);
-      expect(calcDripListId).toHaveBeenCalledWith(adapter, params);
-    });
-
-    it('should propagate errors from calcDripListId', async () => {
-      // Arrange
-      const params = {
-        salt: 789n,
-        minter: '0x1234567890123456789012345678901234567890' as Address,
-      };
-      const error = new Error('Invalid salt');
-      vi.mocked(calcDripListId).mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(utilsModule.calcDripListId(params)).rejects.toThrow(
-        'Invalid salt',
-      );
-      expect(calcDripListId).toHaveBeenCalledWith(adapter, params);
-    });
-  });
-
   describe('encodeStreamConfig', () => {
     it('should expose encodeStreamConfig function directly', () => {
       // Act & Assert
@@ -240,12 +203,10 @@ describe('createUtilsModule', () => {
       // Act
       await utilsModule.calcAddressId(address);
       await utilsModule.calcProjectId(forge, name);
-      await utilsModule.calcDripListId(dripListParams);
 
       // Assert
       expect(calcAddressId).toHaveBeenCalledWith(adapter, address);
       expect(calcProjectId).toHaveBeenCalledWith(adapter, {forge, name});
-      expect(calcDripListId).toHaveBeenCalledWith(adapter, dripListParams);
     });
 
     it('should work with different adapter types', async () => {
@@ -280,9 +241,6 @@ describe('createUtilsModule', () => {
 
       expect(typeof utilsModule.calcProjectId).toBe('function');
       expect(utilsModule.calcProjectId.length).toBe(2); // forge and name parameters
-
-      expect(typeof utilsModule.calcDripListId).toBe('function');
-      expect(utilsModule.calcDripListId.length).toBe(1); // Only params object
     });
 
     it('should have correct method signatures for direct utility functions', () => {

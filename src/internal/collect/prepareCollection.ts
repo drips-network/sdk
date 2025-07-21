@@ -69,16 +69,6 @@ export type CollectConfig = {
   readonly transferToAddress?: Address;
 };
 
-/**
- * Prepares a transaction for collecting funds from streams and splits.
- *
- * @param adapter - A write-enabled blockchain adapter for transaction preparation.
- * @param config - Configuration for the collection operation.
- *
- * @returns A prepared transaction ready for execution.
- *
- * @throws {DripsError} If the chain is not supported, no tokens are provided, or configuration is invalid.
- */
 export async function prepareCollection(
   adapter: WriteBlockchainAdapter,
   config: CollectConfig,

@@ -30,16 +30,6 @@ const GET_USER_WITHDRAWABLE_BALANCES_QUERY = gql`
 export type UserWithdrawableBalances =
   GetUserByAddressQuery['userByAddress']['chainData'];
 
-/**
- * Fetches withdrawable balances for a given user address on a specific chain.
- *
- * @param address - The user's address.
- * @param chainId - The chain ID for the target network.
- * @param graphqlClient - (Optional) A `DripsGraphQLClient`. If omitted, a default client is created.
- *
- * @throws {DripsError} If the chain is not supported.
- * @returns An object containing the user's withdrawable balances.
- */
 export async function getUserWithdrawableBalances(
   address: Address,
   chainId: number,

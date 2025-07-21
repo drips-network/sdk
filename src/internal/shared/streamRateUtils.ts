@@ -140,12 +140,6 @@ function validateStreamConfig(config: StreamConfig): void {
     throw new Error(`'duration' must be in [0, ${MAX_DURATION}]`);
 }
 
-/**
- * Encodes a `StreamConfig` into a `bigint` representation.
- *
- * @param config - The stream config to encode.
- * @returns A bigint representing the packed stream config.
- */
 export function encodeStreamConfig(config: StreamConfig): bigint {
   validateStreamConfig(config);
 
@@ -157,12 +151,6 @@ export function encodeStreamConfig(config: StreamConfig): bigint {
   return packed;
 }
 
-/**
- * Decodes a `bigint` representation of a stream config into a `StreamConfig` object.
- *
- * @param packed - The encoded stream config.
- * @returns A validated `StreamConfig` object.
- */
 export function decodeStreamConfig(packed: bigint): StreamConfig {
   const mask32 = (1n << 32n) - 1n;
   const mask160 = (1n << 160n) - 1n;

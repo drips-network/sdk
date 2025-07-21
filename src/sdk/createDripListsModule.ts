@@ -37,13 +37,80 @@ import {
 } from '../internal/shared/assertions';
 
 export interface DripListsModule {
-  calculateId(salt: bigint, minter: Address, chainId: number): Promise<bigint>;
-  getById(accountId: bigint, chainId: number): Promise<DripList | null>;
+  /**
+   * Calculates the Drip List ID (token ID) for a given `minter` and `salt`.
+   *
+   * This allows the caller to precompute the ID of a Drip List before it is actually minted.
+   *
+   * @param salt - A salt value used to ensure uniqueness in the token ID derivation.
+   * @param minter - The address of the account that would mint the Drip List.
+   *
+   * @returns The Drip List ID.
+   *
+   * @throws {DripsError} If the chain is not supported.
+   */
+  calculateId(salt: bigint, minter: Address): Promise<bigint>;
+
+  /**
+   * Fetches a `DripList` by its ID and chain ID.
+   *
+   * @param id - The Drip List ID.
+   * @param chainId - The chain ID.
+   *
+   * @throws {DripsError} If the chain is not supported.
+   *
+   * @returns The `DripList`, or `null` if not found.
+   */
+  getById(id: bigint, chainId: number): Promise<DripList | null>;
+
+  /**
+   * Prepares the context for creating a new Drip List.
+   *
+   * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+   * @param dripList - Configuration for the new Drip List.
+   *
+   * @returns An object containing the prepared transaction, metadata, IPFS hash, salt, and Drip List ID.
+   *
+   * @throws {DripsError} If the chain is not supported or if validation fails.
+   */
   prepareCreate(dripList: NewDripList): Promise<PrepareDripListCreationResult>;
+
+  /**
+   * Creates a new Drip List.
+   *
+   * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+   * @param dripList - Configuration for the new Drip List.
+   *
+   * @returns An object containing the transaction response, metadata, IPFS hash, salt, and Drip List ID.
+   *
+   * @throws {DripsError} If the chain is not supported, validation fails, or transaction execution fails.
+   */
   create(dripList: NewDripList): Promise<CreateDripListResult>;
+
+  /**
+   * Prepares the context for updating a Drip List.
+   *
+   * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+   * @param config - Configuration specifying what to update in the Drip List.
+   *
+   * @returns An object containing the prepared transaction, new metadata, and IPFS hash.
+   *
+   * @throws {DripsError} If the Drip List is not found, chain is not supported, or no updates are provided.
+   */
   prepareUpdate(
     config: DripListUpdateConfig,
   ): Promise<PrepareDripListUpdateResult>;
+
+  /**
+   * Updates a Drip List.
+   *
+   * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+   * @param config - Configuration specifying what to update in the Drip List.
+   *
+   * @returns An object containing the transaction response, new metadata, and IPFS hash.
+   *
+   * @throws {DripsError} If the Drip List is not found, chain is not supported, no updates are provided, or transaction execution fails.
+   */
   update(config: DripListUpdateConfig): Promise<UpdateDripListResult>;
 }
 

@@ -29,11 +29,50 @@ import {
 } from '../internal/shared/createPinataIpfsMetadataUploader';
 
 export interface DonationsModule {
+  /**
+   * Prepares a transaction for making a one-time donation.
+   *
+   * @param donation - Configuration for the one-time donation.
+   *
+   * @returns A prepared transaction ready for execution.
+   *
+   * @throws {DripsError} If the chain is not supported or receiver resolution fails.
+   */
   prepareOneTime(donation: OneTimeDonation): Promise<PreparedTx>;
+
+  /**
+   * Sends a one-time donation.
+   *
+   * @param donation - The one-time donation configuration to send.
+   *
+   * @returns The transaction response from the blockchain.
+   *
+   * @throws {DripsError} If the chain is not supported, receiver resolution fails, or transaction execution fails.
+   */
   sendOneTime(donation: OneTimeDonation): Promise<TxResponse>;
+
+  /**
+   * Prepares the context for a continuous donation stream.
+   *
+   * @param ipfsMetadataUploaderFn - A function to upload metadata to IPFS.
+   * @param donation - Configuration for the donation stream.
+   *
+   * @returns An object containing the prepared transaction, IPFS hash, and metadata.
+   */
   prepareContinuous(
     donation: ContinuousDonation,
   ): Promise<PrepareContinuousDonationResult>;
+
+  /**
+   * Sends a continuous donation by preparing and executing the transaction.
+   *
+   * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
+   * @param donation - Configuration for the continuous donation stream.
+   *
+   * @returns An object containing the transaction response, metadata, and IPFS hash.
+   *
+   * @throws {DripsError} If the chain is not supported, validation fails, or transaction execution fails.
+   */
   sendContinuous(
     donation: ContinuousDonation,
   ): Promise<SendContinuousDonationResult>;

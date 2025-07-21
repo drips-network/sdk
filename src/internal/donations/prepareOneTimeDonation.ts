@@ -25,16 +25,6 @@ export type OneTimeDonation = {
   batchedTxOverrides?: BatchedTxOverrides;
 };
 
-/**
- * Prepares a transaction for making a one-time donation.
- *
- * @param adapter - A write-enabled blockchain adapter for transaction preparation.
- * @param donation - Configuration for the one-time donation.
- *
- * @returns A prepared transaction ready for execution.
- *
- * @throws {DripsError} If the chain is not supported or receiver resolution fails.
- */
 export async function prepareOneTimeDonation(
   adapter: WriteBlockchainAdapter,
   donation: OneTimeDonation,

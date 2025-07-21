@@ -51,18 +51,6 @@ export type PrepareDripListUpdateResult = {
   readonly metadata: DripListMetadata;
 };
 
-/**
- * Prepares the context for updating a Drip List.
- *
- * @param adapter - A write-enabled blockchain adapter for transaction preparation.
- * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
- * @param config - Configuration specifying what to update in the Drip List.
- * @param graphqlClient - (Optional) A `DripsGraphQLClient`.
- *
- * @returns An object containing the prepared transaction, new metadata, and IPFS hash.
- *
- * @throws {DripsError} If the Drip List is not found, chain is not supported, or no updates are provided.
- */
 export async function prepareDripListUpdate(
   adapter: WriteBlockchainAdapter,
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,

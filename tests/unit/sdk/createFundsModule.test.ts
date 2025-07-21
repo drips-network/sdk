@@ -63,7 +63,7 @@ describe('createFundsModule', () => {
 
       expect(assertions.requireWriteAccess).toHaveBeenCalledWith(
         mockAdapter,
-        collectModule.collect.name,
+        prepareCollectionModule.prepareCollection.name,
       );
     });
 
@@ -110,10 +110,7 @@ describe('createFundsModule', () => {
         getUserWithdrawableBalancesModule.getUserWithdrawableBalances,
       ).mockResolvedValue(mockBalances);
 
-      const result = await fundsModule.getUserWithdrawableBalances(
-        mockAddress,
-        mockChainId,
-      );
+      const result = await fundsModule.getWithdrawableBalances(mockChainId);
 
       expect(
         getUserWithdrawableBalancesModule.getUserWithdrawableBalances,
