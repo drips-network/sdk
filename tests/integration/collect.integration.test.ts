@@ -129,7 +129,7 @@ describe('Collect', () => {
         address: account.address,
       };
 
-      const donationAmount = 1n; // 1 token
+      const donationAmount = '1'; // 1 token
 
       // Step 7: Approve token spending
       console.log('Step 7: Approving token spending...');
@@ -195,7 +195,7 @@ describe('Collect', () => {
         'Step 11: Awaiting indexing by polling collectable amount...',
       );
       const expectedCollectableAmount =
-        initialCollectableAmount + donationAmount;
+        initialCollectableAmount + BigInt(donationAmount);
 
       const result = await expectUntil(
         async () => {
@@ -373,7 +373,7 @@ describe('Collect', () => {
         address: walletAddress as Address,
       };
 
-      const donationAmount = 1n; // 1 token
+      const donationAmount = '1'; // 1 token
 
       // Step 7: Approve token spending
       console.log('Step 7: Approving token spending...');
@@ -464,7 +464,7 @@ describe('Collect', () => {
         'Step 11: Awaiting indexing by polling collectable amount...',
       );
       const expectedCollectableAmount =
-        initialCollectableAmount + donationAmount;
+        initialCollectableAmount + BigInt(donationAmount);
 
       const result = await expectUntil(
         async () => {

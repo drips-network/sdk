@@ -76,7 +76,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -101,7 +101,7 @@ describe('createDonationsModule', () => {
           type: 'project',
           url: 'https://github.com/user/repo',
         },
-        amount: 200n,
+        amount: '200',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -126,7 +126,7 @@ describe('createDonationsModule', () => {
           type: 'drip-list',
           accountId: 123n,
         },
-        amount: 300n,
+        amount: '300',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -153,7 +153,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -176,7 +176,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -208,7 +208,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -241,7 +241,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -379,7 +379,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -405,7 +405,7 @@ describe('createDonationsModule', () => {
           type: 'project',
           url: 'https://github.com/user/repo',
         },
-        amount: 200n,
+        amount: '200',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -431,7 +431,7 @@ describe('createDonationsModule', () => {
           type: 'drip-list',
           accountId: 123n,
         },
-        amount: 300n,
+        amount: '300',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -549,7 +549,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -572,7 +572,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -604,7 +604,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };
@@ -637,7 +637,7 @@ describe('createDonationsModule', () => {
           type: 'address',
           address: '0x1234567890123456789012345678901234567890' as Address,
         },
-        amount: 100n,
+        amount: '100',
         erc20: '0xabcdef1234567890abcdef1234567890abcdef12' as Hex,
         tokenDecimals: 18,
       };

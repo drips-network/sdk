@@ -125,7 +125,7 @@ describe('Donations', () => {
           accountId: dripListId, // The Drip List ID we just created.
         };
 
-        const donationAmount = 1n; // 1 token
+        const donationAmount = '1'; // 1 token
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
 
         // Step 8: Approve token spending
@@ -297,7 +297,7 @@ describe('Donations', () => {
           accountId: dripListId, // The Drip List ID we just created.
         };
 
-        const donationAmount = 1n; // 1 token
+        const donationAmount = '1'; // 1 token
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
 
         // Step 8: Approve token spending

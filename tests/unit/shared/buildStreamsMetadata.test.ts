@@ -217,11 +217,16 @@ describe('buildStreamsMetadata', () => {
       '0x1234567890123456789012345678901234567890',
       '999',
     );
+    const expectedAmountPerSec = parseStreamRate(
+      newStream.amount,
+      newStream.timeUnit,
+      newStream.tokenDecimals,
+    );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
       dripId: 999n,
       start: 1672531200n, // Jan 1, 2023 timestamp in seconds
       duration: 86400n,
-      amountPerSec: expect.any(BigInt),
+      amountPerSec: expectedAmountPerSec,
     });
     expect(resolveReceiverAccountId).toHaveBeenCalledWith(mockAdapter, {
       type: 'address',
@@ -486,11 +491,16 @@ describe('buildStreamsMetadata', () => {
     Date.now = originalDateNow;
 
     // Assert
+    const expectedAmountPerSec = parseStreamRate(
+      newStreamWithoutStartAt.amount,
+      newStreamWithoutStartAt.timeUnit,
+      newStreamWithoutStartAt.tokenDecimals,
+    );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
       dripId: 999n,
       start: 0n, // Should use 0 when startAt is null
       duration: 86400n,
-      amountPerSec: expect.any(BigInt),
+      amountPerSec: expectedAmountPerSec,
     });
 
     // Verify the result
@@ -533,11 +543,16 @@ describe('buildStreamsMetadata', () => {
     );
 
     // Assert
+    const expectedAmountPerSec = parseStreamRate(
+      newStreamWithoutDuration.amount,
+      newStreamWithoutDuration.timeUnit,
+      newStreamWithoutDuration.tokenDecimals,
+    );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
       dripId: 999n,
       start: 1672531200n,
       duration: 0n, // Should use 0 when durationSeconds is null
-      amountPerSec: expect.any(BigInt),
+      amountPerSec: expectedAmountPerSec,
     });
 
     // Verify the result

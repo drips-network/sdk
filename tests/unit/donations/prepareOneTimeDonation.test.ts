@@ -43,7 +43,7 @@ describe('prepareOneTimeDonation', () => {
   describe('project receiver', () => {
     it('should prepare transaction for project receiver', async () => {
       const mockAccountId = 123n;
-      const mockAmount = 1000n;
+      const mockAmount = '1000';
       const mockErc20 = '0xToken123' as const;
 
       vi.mocked(resolveReceiverAccountId).mockResolvedValue(mockAccountId);
@@ -52,7 +52,6 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'project' as const,
           url: 'https://github.com/owner/repo',
-          amount: mockAmount,
         },
         amount: mockAmount,
         erc20: mockErc20,
@@ -80,7 +79,7 @@ describe('prepareOneTimeDonation', () => {
   describe('drip-list receiver', () => {
     it('should prepare transaction for drip-list receiver', async () => {
       const mockAccountId = 456n;
-      const mockAmount = 2000n;
+      const mockAmount = '2000';
       const mockErc20 = '0xToken456' as const;
 
       vi.mocked(resolveReceiverAccountId).mockResolvedValue(mockAccountId);
@@ -89,7 +88,6 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'drip-list' as const,
           accountId: mockAccountId,
-          amount: mockAmount,
         },
         amount: mockAmount,
         erc20: mockErc20,
@@ -116,7 +114,7 @@ describe('prepareOneTimeDonation', () => {
   describe('address receiver', () => {
     it('should prepare transaction for address receiver', async () => {
       const mockAccountId = 789n;
-      const mockAmount = 3000n;
+      const mockAmount = '3000';
       const mockErc20 = '0xToken789' as const;
       const mockAddress = '0x1234567890123456789012345678901234567890' as const;
 
@@ -126,7 +124,6 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'address' as const,
           address: mockAddress,
-          amount: mockAmount,
         },
         amount: mockAmount,
         erc20: mockErc20,
@@ -153,7 +150,7 @@ describe('prepareOneTimeDonation', () => {
   describe('ecosystem-main-account receiver', () => {
     it('should prepare transaction for ecosystem-main-account receiver', async () => {
       const mockAccountId = 101112n;
-      const mockAmount = 4000n;
+      const mockAmount = '4000';
       const mockErc20 = '0xToken101112' as const;
 
       vi.mocked(resolveReceiverAccountId).mockResolvedValue(mockAccountId);
@@ -162,7 +159,6 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'ecosystem-main-account' as const,
           accountId: mockAccountId,
-          amount: mockAmount,
         },
         amount: mockAmount,
         erc20: mockErc20,
@@ -189,7 +185,7 @@ describe('prepareOneTimeDonation', () => {
   describe('sub-list receiver', () => {
     it('should prepare transaction for sub-list receiver', async () => {
       const mockAccountId = 131415n;
-      const mockAmount = 5000n;
+      const mockAmount = '5000';
       const mockErc20 = '0xToken131415' as const;
 
       vi.mocked(resolveReceiverAccountId).mockResolvedValue(mockAccountId);
@@ -198,7 +194,6 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'sub-list' as const,
           accountId: mockAccountId,
-          amount: mockAmount,
         },
         amount: mockAmount,
         erc20: mockErc20,
@@ -225,7 +220,7 @@ describe('prepareOneTimeDonation', () => {
   describe('with batchedTxOverrides', () => {
     it('should pass batchedTxOverrides to buildTx', async () => {
       const mockAccountId = 123n;
-      const mockAmount = 1000n;
+      const mockAmount = '1000';
       const mockErc20 = '0xToken123' as const;
       const mockBatchedTxOverrides = {
         gasLimit: 100000n,
@@ -237,7 +232,6 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'project' as const,
           url: 'https://github.com/owner/repo',
-          amount: mockAmount,
         },
         amount: mockAmount,
         erc20: mockErc20,
@@ -267,9 +261,8 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'project' as const,
           url: 'https://github.com/owner/repo',
-          amount: 1000n,
         },
-        amount: 1000n,
+        amount: '1000',
         erc20: '0xToken123' as const,
         tokenDecimals: 18,
       };
@@ -287,9 +280,8 @@ describe('prepareOneTimeDonation', () => {
         receiver: {
           type: 'drip-list' as const,
           accountId: mockAccountId,
-          amount: 1000n,
         },
-        amount: 1000n,
+        amount: '1000',
         erc20: '0xToken123' as const,
         tokenDecimals: 18,
       };

@@ -266,8 +266,13 @@ describe('prepareContinuousDonation', () => {
     expect(validateAndFormatStreamReceivers).toHaveBeenCalledWith(
       mockCurrentReceivers,
     );
+    const expectedAmountPerSec = parseStreamRate(
+      donation.amount,
+      donation.timeUnit,
+      donation.tokenDecimals,
+    );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      amountPerSec: expect.any(BigInt),
+      amountPerSec: expectedAmountPerSec,
       dripId: expect.any(BigInt),
       duration: BigInt(donation.durationSeconds),
       start: BigInt(donation.startAt.getTime()) / 1000n,
@@ -360,8 +365,13 @@ describe('prepareContinuousDonation', () => {
       donation,
     );
 
+    const expectedAmountPerSec = parseStreamRate(
+      donation.amount,
+      donation.timeUnit,
+      donation.tokenDecimals,
+    );
     expect(encodeStreamConfig).toHaveBeenCalledWith({
-      amountPerSec: expect.any(BigInt),
+      amountPerSec: expectedAmountPerSec,
       dripId: expect.any(BigInt),
       duration: 0n,
       start: 0n,

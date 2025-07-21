@@ -54,9 +54,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'project' as const,
           url: 'https://github.com/owner/repo',
-          amount: 1000n,
         },
-        amount: 1000n,
+        amount: '1000',
         erc20: '0xToken123' as const,
         tokenDecimals: 18,
         batchedTxOverrides: mockBatchedTxOverrides,
@@ -73,9 +72,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'project' as const,
           url: 'https://github.com/owner/repo',
-          amount: 1000n,
         },
-        amount: 1000n,
+        amount: '1000',
         erc20: '0xToken123' as const,
         tokenDecimals: 18,
       };
@@ -92,9 +90,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'drip-list' as const,
           accountId: 456n,
-          amount: 2000n,
         },
-        amount: 2000n,
+        amount: '2000',
         erc20: '0xToken456' as const,
         tokenDecimals: 18,
       };
@@ -111,9 +108,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'address' as const,
           address: '0x1234567890123456789012345678901234567890' as const,
-          amount: 3000n,
         },
-        amount: 3000n,
+        amount: '3000',
         erc20: '0xToken789' as const,
         tokenDecimals: 18,
       };
@@ -130,9 +126,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'ecosystem-main-account' as const,
           accountId: 101112n,
-          amount: 4000n,
         },
-        amount: 4000n,
+        amount: '4000',
         erc20: '0xToken101112' as const,
         tokenDecimals: 18,
       };
@@ -149,9 +144,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'sub-list' as const,
           accountId: 131415n,
-          amount: 5000n,
         },
-        amount: 5000n,
+        amount: '5000',
         erc20: '0xToken131415' as const,
         tokenDecimals: 18,
       };
@@ -173,9 +167,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'drip-list' as const,
           accountId: 456n,
-          amount: 2000n,
         },
-        amount: 2000n,
+        amount: '2000',
         erc20: '0xToken456' as const,
         tokenDecimals: 18,
       };
@@ -195,9 +188,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'address' as const,
           address: '0x1234567890123456789012345678901234567890' as const,
-          amount: 3000n,
         },
-        amount: 3000n,
+        amount: '3000',
         erc20: '0xToken789' as const,
         tokenDecimals: 18,
       };
@@ -228,9 +220,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'project' as const,
           url: 'https://github.com/owner/repo',
-          amount: 1000n,
         },
-        amount: 1000n,
+        amount: '1000',
         erc20: '0xToken123' as const,
         tokenDecimals: 18,
       };
@@ -263,9 +254,8 @@ describe('sendOneTimeDonation', () => {
         receiver: {
           type: 'ecosystem-main-account' as const,
           accountId: 101112n,
-          amount: 4000n,
         },
-        amount: 4000n,
+        amount: '4000',
         erc20: '0xToken101112' as const,
         tokenDecimals: 18,
       };

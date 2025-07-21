@@ -13,8 +13,8 @@ import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
 export type OneTimeDonation = {
   /** The receiver of the donation. */
   readonly receiver: SdkReceiver;
-  /** The amount to donate in the smallest unit of the token. */
-  readonly amount: bigint;
+  /** The amount to donate in human-readable format (e.g., "10.5" for 10.5 USDC) */
+  readonly amount: string;
   /** The ERC-20 token address to donate. */
   readonly erc20: Address;
   /**
@@ -32,13 +32,13 @@ export async function prepareOneTimeDonation(
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
   const {receiver, erc20, amount, batchedTxOverrides, tokenDecimals} = donation;
-  const amountWithDecimals = parseUnits(amount.toString(), tokenDecimals);
+  const amountInWei = parseUnits(amount, tokenDecimals);
   const receiverId = await resolveReceiverAccountId(adapter, receiver);
 
   return buildTx({
     abi: addressDriverAbi,
     functionName: 'give',
-    args: [receiverId, erc20, amountWithDecimals],
+    args: [receiverId, erc20, amountInWei],
     contract: contractsRegistry[chainId].addressDriver.address,
     batchedTxOverrides,
   });
