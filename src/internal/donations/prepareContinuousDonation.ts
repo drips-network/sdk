@@ -1,4 +1,4 @@
-import {Address} from 'viem';
+import {Address, parseUnits} from 'viem';
 import {
   PreparedTx,
   BatchedTxOverrides,
@@ -33,6 +33,7 @@ import {
   encodeMetadataKeyValue,
   USER_METADATA_KEY,
 } from '../shared/encodeMetadataKeyValue';
+import {randomBigintUntilUnique} from '../shared/randomBigintUntilUnique';
 
 export type ContinuousDonation = {
   /** The ERC20 token address to stream. */
@@ -50,9 +51,9 @@ export type ContinuousDonation = {
   /** Optional start time for the stream. Defaults to "now". */
   readonly startAt?: Date;
   /** Optional stream duration in seconds. If omitted, stream runs until funds run out. */
-  readonly durationSeconds?: number;
+  readonly durationSeconds?: bigint;
   /** Optional amount of tokens to top up when setting the stream. */
-  readonly topUpAmount?: bigint;
+  readonly topUpAmount?: string;
   /** Optional transaction overrides for the returned `PreparedTx`. */
   batchedTxOverrides?: BatchedTxOverrides;
 };
@@ -116,7 +117,7 @@ export async function prepareContinuousDonation(
     dripId: newStreamDripId,
     amountPerSec,
     start: BigInt(startAt?.getTime() ?? 0) / 1000n, // Convert to seconds.
-    duration: BigInt(durationSeconds ?? 0),
+    duration: durationSeconds ?? 0n,
   };
 
   const newStreamConfig = encodeStreamConfig(streamConfig);
@@ -136,7 +137,7 @@ export async function prepareContinuousDonation(
     args: [
       erc20,
       currentReceivers,
-      topUpAmount ?? 0n,
+      parseUnits(topUpAmount ?? '0', tokenDecimals),
       newReceivers,
       0,
       0,
@@ -177,28 +178,4 @@ export async function prepareContinuousDonation(
     ipfsHash: newIpfsHash,
     metadata: newMetadata,
   };
-}
-
-function randomBigintUntilUnique(
-  existing: bigint[],
-  byteLength: number,
-): bigint {
-  const randomBigint = (): bigint => {
-    const bytes = new Uint8Array(byteLength);
-    globalThis.crypto.getRandomValues(bytes);
-
-    let result = 0n;
-    for (let i = 0; i < byteLength; i++) {
-      result |= BigInt(bytes[i]) << BigInt(i * 8); // Little-endian
-    }
-
-    return result;
-  };
-
-  let result = randomBigint();
-  while (existing.includes(result)) {
-    result = randomBigint();
-  }
-
-  return result;
 }

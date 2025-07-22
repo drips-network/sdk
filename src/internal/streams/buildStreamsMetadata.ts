@@ -111,7 +111,7 @@ export async function buildStreamsMetadata(
                 raw: stream.config.raw,
                 dripId: stream.config.dripId,
                 amountPerSecond: BigInt(stream.config.amountPerSecond.amount),
-                durationSeconds: stream.config.durationSeconds || 0,
+                durationSeconds: Number(stream.config.durationSeconds || 0),
                 startTimestamp: Math.floor(
                   new Date(stream.config.startDate).getTime() / 1000,
                 ),

@@ -495,8 +495,8 @@ describe('Donations', () => {
         // Step 7: Define the continuous donation parameters
         console.log('Step 7: Defining continuous donation parameters...');
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
-        const durationSeconds = 86400; // 1 day
-        const topUpAmount = BigInt(10000000);
+        const durationSeconds = 86400n; // 1 day
+        const topUpAmount = '1';
 
         // Step 8: Approve token spending
         console.log('Step 8: Approving token spending...');
@@ -508,7 +508,7 @@ describe('Donations', () => {
           address: erc20Token,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [addressDriverAddress, topUpAmount],
+          args: [addressDriverAddress, parseUnits(topUpAmount, 18)],
         });
 
         console.log(
@@ -606,7 +606,7 @@ describe('Donations', () => {
           expectedAmountPerSec.toString(),
         );
         expect(streamSupport.stream.config.durationSeconds).toBe(
-          durationSeconds,
+          Number(durationSeconds),
         );
         expect(streamSupport.stream.name).toBe(streamName);
 
@@ -677,8 +677,8 @@ describe('Donations', () => {
         // Step 7: Define the continuous donation parameters
         console.log('Step 7: Defining continuous donation parameters...');
         const erc20Token = process.env.TEST_ERC20_ADDRESS! as `0x${string}`;
-        const durationSeconds = 86400; // 1 day
-        const topUpAmount = BigInt(10000000); // Initial top-up amount
+        const durationSeconds = 86400n; // 1 day
+        const topUpAmount = '1';
 
         // Step 8: Approve token spending for the address driver contract
         console.log('Step 8: Approving token spending...');
@@ -705,7 +705,7 @@ describe('Donations', () => {
 
         const approveTx = await erc20Contract.approve(
           addressDriverAddress,
-          topUpAmount,
+          parseUnits(topUpAmount, 18),
         );
 
         console.log(
@@ -806,7 +806,7 @@ describe('Donations', () => {
           expectedAmountPerSec.toString(),
         );
         expect(streamSupport.stream.config.durationSeconds).toBe(
-          durationSeconds,
+          Number(durationSeconds),
         );
         expect(streamSupport.stream.name).toBe(streamName);
 

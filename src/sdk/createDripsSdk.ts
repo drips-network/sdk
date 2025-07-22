@@ -65,9 +65,10 @@ export type SupportedBlockchainClient =
  * ## Operation Types
  *
  * All **write operations** require:
- * - A **signer/wallet client** with a connected signer/account
+ * - A blockchain client with signing capability:
+ *   - **Viem**: `WalletClient` with a connected `account`
+ *   - **Ethers**: `Signer` with a connected `provider`
  * - Connection to the target **blockchain network**
- * - Sufficient **gas fees** for transaction execution
  *
  * **Read operations** work with any client type.
  *

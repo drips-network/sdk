@@ -199,7 +199,7 @@ describe('buildStreamsMetadata', () => {
       timeUnit: 1,
       tokenDecimals: 18,
       startAt: new Date('2023-01-01T00:00:00.000Z'),
-      durationSeconds: 86400,
+      durationSeconds: 86400n,
       name: 'New Stream',
     };
 
@@ -471,7 +471,7 @@ describe('buildStreamsMetadata', () => {
       timeUnit: 1,
       tokenDecimals: 18,
       startAt: undefined, // No start time
-      durationSeconds: 86400,
+      durationSeconds: 86400n,
       name: 'New Stream',
     };
 
