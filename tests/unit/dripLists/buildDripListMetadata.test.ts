@@ -1,7 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {buildDripListMetadata} from '../../../src/internal/drip-lists/buildDripListMetadata';
-import {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
-import {Address} from 'viem';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireSupportedChain: vi.fn(),
@@ -57,6 +55,7 @@ describe('buildDripListMetadata', () => {
     name: 'Test Drip List',
     description: 'A test drip list description',
     isVisible: true,
+    latestVotingRoundId: 'latestVotingRoundId',
   };
 
   describe('successful metadata building', () => {
@@ -75,6 +74,7 @@ describe('buildDripListMetadata', () => {
         name: 'Test Drip List',
         description: 'A test drip list description',
         isVisible: true,
+        latestVotingRoundId: 'latestVotingRoundId',
         recipients: [
           {
             type: 'address',

@@ -1,6 +1,6 @@
 {
   "name": "@drips-network/sdk",
-  "version": "0.1.0-alpha.9",
+  "version": "0.1.0-alpha.11",
   "license": "GPL-3.0-or-later",
   "description": "💧TypeScript SDK for Drips",
   "publishConfig": {

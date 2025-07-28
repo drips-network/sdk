@@ -44,6 +44,8 @@ export type NewDripList = {
   readonly transferTo?: Address;
   /** Optional transaction overrides for the returned `PreparedTx`. */
   readonly batchedTxOverrides?: BatchedTxOverrides;
+  /** Optional latest voting round ID for the Drip List. */
+  readonly latestVotingRoundId?: string;
 };
 
 export type PrepareDripListCreationResult = {
@@ -70,6 +72,7 @@ export async function prepareDripListCreation(
     description,
     batchedTxOverrides,
     salt: maybeSalt,
+    latestVotingRoundId,
   } = dripList;
 
   const {metadata: metadataSplitsReceivers, onChain: onChainSplitsReceivers} =
@@ -86,6 +89,7 @@ export async function prepareDripListCreation(
     dripListId,
     description,
     receivers: metadataSplitsReceivers,
+    latestVotingRoundId,
   });
 
   const ipfsHash = await ipfsMetadataUploaderFn(metadata);

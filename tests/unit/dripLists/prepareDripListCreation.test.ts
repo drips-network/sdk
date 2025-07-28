@@ -80,6 +80,7 @@ describe('prepareDripListCreation', () => {
     ],
     name: 'Test Drip List',
     description: 'A test drip list',
+    latestVotingRoundId: 'latestVotingRoundId',
   };
 
   const mockMinterAddress =
@@ -197,6 +198,7 @@ describe('prepareDripListCreation', () => {
         receivers: mockMetadataReceivers,
         dripListId: mockDripListId,
         description: validParams.description,
+        latestVotingRoundId: validParams.latestVotingRoundId,
       });
       expect(mockIpfsMetadataUploader).toHaveBeenCalledWith(mockMetadata);
       expect(encodeMetadataKeyValue).toHaveBeenCalledWith({
@@ -245,6 +247,7 @@ describe('prepareDripListCreation', () => {
         receivers: [],
         dripListId: mockDripListId,
         description: validParams.description,
+        latestVotingRoundId: validParams.latestVotingRoundId,
       });
       // Should only build mint tx, not setSplits tx
       expect(buildTx).toHaveBeenCalledTimes(2); // mint + batched

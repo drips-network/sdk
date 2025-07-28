@@ -11,7 +11,14 @@ export function buildDripListMetadata(
     'minter' | 'chainId'
   >,
 ): DripListMetadata {
-  const {dripListId, receivers, name, description, isVisible} = params;
+  const {
+    dripListId,
+    receivers,
+    name,
+    description,
+    isVisible,
+    latestVotingRoundId,
+  } = params;
 
   return {
     driver: 'nft',
@@ -24,5 +31,6 @@ export function buildDripListMetadata(
     description: description ?? undefined,
     isVisible,
     recipients: [...receivers],
+    latestVotingRoundId,
   };
 }
