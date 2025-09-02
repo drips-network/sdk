@@ -58,6 +58,23 @@ export type ChainAmount = {
   tokenAddress: Scalars['String']['output'];
 };
 
+export type ChainStats = {
+  __typename: 'ChainStats';
+  chain: SupportedChain;
+  claimedProjectsCount: Scalars['Int']['output'];
+  dripListsCount: Scalars['Int']['output'];
+  receiversCount: Scalars['Int']['output'];
+};
+
+export type ClaimedOrcidAccountData = {
+  __typename: 'ClaimedOrcidAccountData';
+  chain: SupportedChain;
+  linkedTo: AddressDriverAccount;
+  support: Array<SupportItem>;
+  totalEarned: Array<Amount>;
+  withdrawableBalances: Array<WithdrawableBalance>;
+};
+
 export type ClaimedProjectData = {
   __typename: 'ClaimedProjectData';
   avatar: Avatar;
@@ -102,6 +119,15 @@ export type DripListReceiver = Receiver & {
   dripList: DripList;
   driver: Driver;
   weight: Scalars['Int']['output'];
+};
+
+export enum DripListSortField {
+  MintedAt = 'mintedAt',
+}
+
+export type DripListSortInput = {
+  direction?: InputMaybe<SortDirection>;
+  field: DripListSortField;
 };
 
 export type DripListSupport = {
@@ -209,6 +235,20 @@ export type ImmutableSplitsDriverAccount = Account & {
   driver: Driver;
 };
 
+export type LinkedIdentity = {
+  __typename: 'LinkedIdentity';
+  account: RepoDriverAccount;
+  createdAt: Scalars['Date']['output'];
+  identityType: LinkedIdentityType;
+  isLinked: Scalars['Boolean']['output'];
+  owner: AddressDriverAccount;
+  updatedAt: Scalars['Date']['output'];
+};
+
+export enum LinkedIdentityType {
+  Orcid = 'ORCID',
+}
+
 export type MintedTokens = {
   __typename: 'MintedTokens';
   chain: SupportedChain;
@@ -226,6 +266,45 @@ export type OneTimeDonationSupport = {
   account: AddressDriverAccount;
   amount: Amount;
   date: Scalars['Date']['output'];
+};
+
+export type OrcidAccount = {
+  __typename: 'OrcidAccount';
+  account: RepoDriverAccount;
+  chainData: Array<OrcidAccountData>;
+  source: OrcidSource;
+};
+
+export type OrcidAccountData =
+  | ClaimedOrcidAccountData
+  | UnClaimedOrcidAccountData;
+
+export enum OrcidAccountSortField {
+  CreatedAt = 'createdAt',
+}
+
+export type OrcidAccountSortInput = {
+  direction?: InputMaybe<SortDirection>;
+  field: OrcidAccountSortField;
+};
+
+export type OrcidAccountWhereInput = {
+  accountId?: InputMaybe<Scalars['String']['input']>;
+  isLinked?: InputMaybe<Scalars['Boolean']['input']>;
+  ownerAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type OrcidReceiver = Receiver & {
+  __typename: 'OrcidReceiver';
+  account: RepoDriverAccount;
+  driver: Driver;
+  linkedIdentity: LinkedIdentity;
+  weight: Scalars['Int']['output'];
+};
+
+export type OrcidSource = {
+  __typename: 'OrcidSource';
+  url: Scalars['String']['output'];
 };
 
 export type Project = {
@@ -280,17 +359,24 @@ export type ProjectWhereInput = {
 
 export type Query = {
   __typename: 'Query';
+  chainStats: Array<ChainStats>;
   dripList?: Maybe<DripList>;
   dripLists: Array<DripList>;
   earnedFunds: Array<ChainAmount>;
   ecosystemMainAccount?: Maybe<EcosystemMainAccount>;
   mintedTokensCountByOwnerAddress: MintedTokens;
+  orcidAccountById?: Maybe<OrcidAccount>;
+  orcidAccounts: Array<OrcidAccount>;
   projectById?: Maybe<Project>;
   projectByUrl?: Maybe<Project>;
   projects: Array<Project>;
   streams: Array<Stream>;
   userByAddress: User;
   userById: User;
+};
+
+export type QueryChainStatsArgs = {
+  chains?: InputMaybe<Array<SupportedChain>>;
 };
 
 export type QueryDripListArgs = {
@@ -300,6 +386,8 @@ export type QueryDripListArgs = {
 
 export type QueryDripListsArgs = {
   chains?: InputMaybe<Array<SupportedChain>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<DripListSortInput>;
   where?: InputMaybe<DripListWhereInput>;
 };
 
@@ -318,6 +406,18 @@ export type QueryMintedTokensCountByOwnerAddressArgs = {
   ownerAddress: Scalars['String']['input'];
 };
 
+export type QueryOrcidAccountByIdArgs = {
+  chains?: InputMaybe<Array<SupportedChain>>;
+  id: Scalars['ID']['input'];
+};
+
+export type QueryOrcidAccountsArgs = {
+  chains?: InputMaybe<Array<SupportedChain>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<OrcidAccountSortInput>;
+  where?: InputMaybe<OrcidAccountWhereInput>;
+};
+
 export type QueryProjectByIdArgs = {
   chains?: InputMaybe<Array<SupportedChain>>;
   id: Scalars['ID']['input'];
@@ -330,6 +430,7 @@ export type QueryProjectByUrlArgs = {
 
 export type QueryProjectsArgs = {
   chains?: InputMaybe<Array<SupportedChain>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
   sort?: InputMaybe<ProjectSortInput>;
   where?: InputMaybe<ProjectWhereInput>;
 };
@@ -384,6 +485,7 @@ export type SplitsReceiver =
   | AddressReceiver
   | DripListReceiver
   | EcosystemMainAccountReceiver
+  | OrcidReceiver
   | ProjectReceiver
   | SubListReceiver;
 
@@ -494,6 +596,14 @@ export enum TimelineItemType {
   Start = 'START',
 }
 
+export type UnClaimedOrcidAccountData = {
+  __typename: 'UnClaimedOrcidAccountData';
+  chain: SupportedChain;
+  linkedTo?: Maybe<AddressDriverAccount>;
+  support: Array<SupportItem>;
+  withdrawableBalances: Array<WithdrawableBalance>;
+};
+
 export type UnClaimedProjectData = {
   __typename: 'UnClaimedProjectData';
   chain: SupportedChain;
@@ -530,6 +640,7 @@ export type UserData = {
   chain: SupportedChain;
   dripLists: Array<Maybe<DripList>>;
   latestMetadataIpfsHash?: Maybe<Scalars['String']['output']>;
+  linkedIdentities: Array<LinkedIdentity>;
   projects: Array<Maybe<Project>>;
   streams: UserStreams;
   support: Array<SupportItem>;

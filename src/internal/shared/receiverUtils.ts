@@ -47,12 +47,18 @@ export type SdkAddressReceiver = {
   address: Address;
 };
 
+export type SdkOrcidReceiver = {
+  type: 'orcid';
+  orcid: string;
+};
+
 export type SdkReceiver =
   | SdkProjectReceiver
   | SdkDripListReceiver
   | SdkSubListReceiver
   | SdkAddressReceiver
-  | SdkEcosystemMainAccountReceiver;
+  | SdkEcosystemMainAccountReceiver
+  | SdkOrcidReceiver;
 
 export type SdkSplitsReceiver = SdkReceiver & {
   weight: number;
