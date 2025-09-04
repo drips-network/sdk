@@ -47,17 +47,3 @@ function extractStringFromPaddedBytes(paddedBytes: bigint, maxLength: number): s
   // Convert bytes to string
   return String.fromCharCode(...bytes);
 }
-
-// Example usage:
-/*
-const accountId = "0x00000002046162636465666768696a6b6c6d2f6e6f707172737475767778797a";
-const driverId = 2;
-
-const result = extractORCIDFromAccountId(accountId, driverId);
-console.log(result);
-// Output: { forge: 'ORCID', orcid: 'abcdefghijklm/nopqrstuvwxyz', success: true }
-
-// Verify the extraction
-const isValid = verifyORCIDForAccountId(accountId, result.orcid, driverId);
-console.log('Verification:', isValid); // true
-*/
