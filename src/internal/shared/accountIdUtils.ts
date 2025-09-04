@@ -1,48 +1,33 @@
 /**
- * Extracts ORCID from a RepoDriver account ID
+ * Extracts ORCID iD from a RepoDriver account ID
+ *
  * @param accountId - The account ID as a string (hex) or bigint
- * @param expectedDriverId - The expected driver ID to validate against
- * @returns ExtractionResult containing the forge type, ORCID (if extractable), and success status
+ * @returns String containing the ORCID iD, or null if extraction fails
  */
-export function extractORCIDFromAccountId(
-  accountId: string | bigint,
-  expectedDriverId: number
+export function extractOrcidIdFromAccountId(
+  accountId: string | bigint
 ): string | null {
-  try {
-    // Convert to bigint for bit operations
-    const accountIdBigInt = typeof accountId === 'string'
-      ? BigInt(accountId)
-      : accountId;
+  // Convert to bigint for bit operations
+  const accountIdBigInt = typeof accountId === 'string'
+    ? BigInt(accountId)
+    : accountId;
 
-    // Extract the driver ID (top 32 bits)
-    const extractedDriverId = Number(accountIdBigInt >> 224n);
+  // Extract the name encoded part directly (bottom 216 bits)
+  const nameEncoded = accountIdBigInt & ((1n << 216n) - 1n);
 
-    // Verify this account belongs to the expected driver
-    if (extractedDriverId !== expectedDriverId) {
-      return null
-    }
+  // Extract ORCID from nameEncoded (stored as right-padded bytes)
+  const orcid = extractStringFromPaddedBytes(nameEncoded, 27);
 
-    // Extract the forge ID (next 8 bits)
-    const forgeId = Number((accountIdBigInt >> 216n) & 0xFFn);
-
-    // Extract the name encoded part (bottom 216 bits)
-    const nameEncoded = accountIdBigInt & ((1n << 216n) - 1n);
-
-    // Extract ORCID from nameEncoded (stored as right-padded bytes)
-    const orcid = extractStringFromPaddedBytes(nameEncoded, 27);
-
-    if (orcid.length === 0) {
-      return null
-    }
-
-    return orcid
-  } catch (error) {
+  if (orcid.length === 0) {
     return null
   }
+
+  return orcid
 }
 
 /**
  * Extracts a string from right-padded bytes stored as a bigint
+ *
  * @param paddedBytes - The bytes as a bigint (right-padded with zeros)
  * @param maxLength - Maximum length in bytes
  * @returns The extracted string

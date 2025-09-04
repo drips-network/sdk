@@ -18,7 +18,8 @@ import {
   OrcidReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
-import { extractORCIDFromAccountId } from './accountIdUtils';
+import { extractOrcidIdFromAccountId } from './accountIdUtils';
+import { orcidSplitReceiverSchema } from '../metadata/schemas/repo-driver/v6';
 
 /** Maximum number of splits receivers of a single account. */
 export const MAX_SPLITS_RECEIVERS = 200;
@@ -52,7 +53,7 @@ export type SdkAddressReceiver = {
 
 export type SdkOrcidReceiver = {
   type: 'orcid';
-  orcid: string;
+  orcidId: string;
 };
 
 export type SdkReceiver =
@@ -75,13 +76,14 @@ export type OnChainSplitsReceiver = {
 type MetadataDripListReceiver = z.output<typeof dripListSplitReceiverSchema>;
 
 type MetadataProjectReceiver = z.output<typeof repoDriverSplitReceiverSchema>;
-type MetadataOrcidReceiver = z.output<typeof repoDriverSplitReceiverSchema>;
 
 type MetadataAddressReceiver = z.output<
   typeof addressDriverSplitReceiverSchema
 >;
 
 type SubListMetadataReceiver = z.output<typeof subListSplitReceiverSchema>;
+
+type MetadataOrcidReceiver = z.output<typeof orcidSplitReceiverSchema>;
 
 export type MetadataSplitsReceiver =
   | MetadataProjectReceiver
@@ -119,8 +121,8 @@ export async function resolveReceiverAccountId(
     }
     return await calcAddressId(adapter, receiver.address);
   } else if (receiver.type === 'orcid') {
-    if (!receiver.orcid) {
-      throw new DripsError('Orcid receiver must have an orcid', {
+    if (!receiver.orcidId) {
+      throw new DripsError('ORCID receiver must have an ORCID iD', {
         meta: {
           operation: resolveReceiverAccountId.name,
           receiver,
@@ -129,7 +131,7 @@ export async function resolveReceiverAccountId(
     }
     return await calcProjectId(adapter, {
       forge: supportedForges[1],
-      name: receiver.orcid,
+      name: receiver.orcidId,
     });
   }
   else if (
@@ -162,7 +164,7 @@ export function mapApiSplitsToSdkSplitsReceivers(
   return splits.map(s => {
     const {weight, account} = s;
 
-    // ok so this could also mean that it's a ORCID account
+    // Can be a project or an ORCID
     if (account.driver === 'REPO') {
       if (s.__typename === 'ProjectReceiver') {
         const receiver = s as ProjectReceiver;
@@ -179,9 +181,8 @@ export function mapApiSplitsToSdkSplitsReceivers(
         };
       }
 
-      // TODO: is this strange?
-      const orcid = extractORCIDFromAccountId(account.accountId, 2)
-      if (!orcid) {
+      const orcidId = extractOrcidIdFromAccountId(account.accountId)
+      if (!orcidId) {
         throw new DripsError('Failed to extract ORCID iD from account ID', {
           meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
         });
@@ -189,7 +190,7 @@ export function mapApiSplitsToSdkSplitsReceivers(
 
       return {
         type: 'orcid',
-        orcid,
+        orcidId,
         weight,
       };
     } else if (account.driver === 'NFT') {
@@ -258,16 +259,11 @@ async function mapSdkToMetadataSplitsReceiver(
     };
   } else if (receiver.type === 'orcid') {
     return {
-      type: 'repoDriver',
+      type: 'orcid',
       weight: receiver.weight,
       accountId: accountId.toString(),
-      source: {
-        forge: supportedForges[1],
-        url: '', // the full ORCID iD URL?
-        ownerName: '',
-        repoName: '', // TODO: eventually just the ORCID iD?
-      },
-    };
+      orcidId: receiver.orcidId
+    }
   }
 
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
