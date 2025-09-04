@@ -179,10 +179,17 @@ export function mapApiSplitsToSdkSplitsReceivers(
         };
       }
 
+      // TODO: is this strange?
+      const orcid = extractORCIDFromAccountId(account.accountId, 2)
+      if (!orcid) {
+        throw new DripsError('Failed to extract ORCID iD from account ID', {
+          meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
+        });
+      }
+
       return {
         type: 'orcid',
-        // TODO: is this strange?
-        orcid: extractORCIDFromAccountId(account.accountId, 2),
+        orcid,
         weight,
       };
     } else if (account.driver === 'NFT') {
