@@ -39,7 +39,7 @@ function extractStringFromPaddedBytes(paddedBytes: bigint, maxLength: number): s
   // Convert hex pairs to bytes and find actual length
   const bytes: number[] = [];
   for (let i = 0; i < hexString.length; i += 2) {
-    const byte = parseInt(hexString.substr(i, 2), 16);
+    const byte = parseInt(hexString.slice(i, i + 2), 16);
     if (byte === 0) break; // Stop at first zero byte (padding)
     bytes.push(byte);
   }
