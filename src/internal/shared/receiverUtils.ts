@@ -1,6 +1,6 @@
 import {Address} from 'viem';
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
-import {calcProjectId} from '../projects/calcProjectId';
+import {calcProjectId, supportedForges} from '../projects/calcProjectId';
 import {destructProjectUrl} from '../projects/destructProjectUrl';
 import {calcAddressId} from './calcAddressId';
 import {DripsError} from './DripsError';
@@ -14,8 +14,11 @@ import {
 import {DripList} from '../drip-lists/getDripListById';
 import {
   AddressReceiver,
+  Forge,
+  OrcidReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
+import { extractORCIDFromAccountId } from './accountIdUtils';
 
 /** Maximum number of splits receivers of a single account. */
 export const MAX_SPLITS_RECEIVERS = 200;
@@ -72,6 +75,7 @@ export type OnChainSplitsReceiver = {
 type MetadataDripListReceiver = z.output<typeof dripListSplitReceiverSchema>;
 
 type MetadataProjectReceiver = z.output<typeof repoDriverSplitReceiverSchema>;
+type MetadataOrcidReceiver = z.output<typeof repoDriverSplitReceiverSchema>;
 
 type MetadataAddressReceiver = z.output<
   typeof addressDriverSplitReceiverSchema
@@ -83,7 +87,8 @@ export type MetadataSplitsReceiver =
   | MetadataProjectReceiver
   | MetadataDripListReceiver
   | MetadataAddressReceiver
-  | SubListMetadataReceiver;
+  | SubListMetadataReceiver
+  | MetadataOrcidReceiver;
 
 export async function resolveReceiverAccountId(
   adapter: ReadBlockchainAdapter,
@@ -113,7 +118,21 @@ export async function resolveReceiverAccountId(
       });
     }
     return await calcAddressId(adapter, receiver.address);
-  } else if (
+  } else if (receiver.type === 'orcid') {
+    if (!receiver.orcid) {
+      throw new DripsError('Orcid receiver must have an orcid', {
+        meta: {
+          operation: resolveReceiverAccountId.name,
+          receiver,
+        },
+      });
+    }
+    return await calcProjectId(adapter, {
+      forge: supportedForges[1],
+      name: receiver.orcid,
+    });
+  }
+  else if (
     receiver.type === 'drip-list' ||
     receiver.type === 'sub-list' ||
     receiver.type === 'ecosystem-main-account'
@@ -143,17 +162,27 @@ export function mapApiSplitsToSdkSplitsReceivers(
   return splits.map(s => {
     const {weight, account} = s;
 
+    // ok so this could also mean that it's a ORCID account
     if (account.driver === 'REPO') {
-      const receiver = s as ProjectReceiver;
-      if (!receiver.project?.source.url) {
-        throw new DripsError('Missing project URL for REPO receiver', {
-          meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
-        });
+      if (s.__typename === 'ProjectReceiver') {
+        const receiver = s as ProjectReceiver;
+        if (!receiver.project?.source.url) {
+          throw new DripsError('Missing project URL for REPO receiver', {
+            meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
+          });
+        }
+
+        return {
+          type: 'project',
+          url: receiver.project.source.url,
+          weight,
+        };
       }
 
       return {
-        type: 'project',
-        url: receiver.project.source.url,
+        type: 'orcid',
+        // TODO: is this strange?
+        orcid: extractORCIDFromAccountId(account.accountId, 2),
         weight,
       };
     } else if (account.driver === 'NFT') {
@@ -219,6 +248,18 @@ async function mapSdkToMetadataSplitsReceiver(
       type: 'address',
       weight: receiver.weight,
       accountId: accountId.toString(),
+    };
+  } else if (receiver.type === 'orcid') {
+    return {
+      type: 'repoDriver',
+      weight: receiver.weight,
+      accountId: accountId.toString(),
+      source: {
+        forge: supportedForges[1],
+        url: '', // the full ORCID iD URL?
+        ownerName: '',
+        repoName: '', // TODO: eventually just the ORCID iD?
+      },
     };
   }
 

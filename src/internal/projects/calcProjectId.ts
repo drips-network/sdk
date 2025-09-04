@@ -19,6 +19,7 @@ export type ProjectName = `${string}/${string}`;
 
 /**
  * ORCID iD in the format ^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$
+ * TODO: upgrade to branded type?
  */
 export type OrcidId = string;
 
@@ -38,7 +39,7 @@ export async function calcProjectId(
   adapter: ReadBlockchainAdapter,
   params: {
     forge: Forge;
-    name: ProjectName;
+    name: ProjectName | OrcidId;
   },
 ): Promise<bigint> {
   return calcRepoDriverAccountId(adapter, params);
