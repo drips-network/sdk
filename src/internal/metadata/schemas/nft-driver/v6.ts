@@ -31,7 +31,7 @@ const ecosystemVariant = base.extend({
   avatar: emojiAvatarSchema,
 });
 
-const dripListVariant = base.extend({
+export const dripListVariant = base.extend({
   type: z.literal('dripList'),
   recipients: z.array(
     z.union([
