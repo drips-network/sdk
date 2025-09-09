@@ -14,8 +14,6 @@ import {
 import {DripList} from '../drip-lists/getDripListById';
 import {
   AddressReceiver,
-  Forge,
-  OrcidReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
 import { extractOrcidIdFromAccountId } from './accountIdUtils';
@@ -166,7 +164,7 @@ export function mapApiSplitsToSdkSplitsReceivers(
 
     // Can be a project or an ORCID
     if (account.driver === 'REPO') {
-      if (s.__typename === 'ProjectReceiver') {
+      if ('project' in s) {
         const receiver = s as ProjectReceiver;
         if (!receiver.project?.source.url) {
           throw new DripsError('Missing project URL for REPO receiver', {
@@ -181,6 +179,7 @@ export function mapApiSplitsToSdkSplitsReceivers(
         };
       }
 
+      // TODO: needs to be more precise
       const orcidId = extractOrcidIdFromAccountId(account.accountId)
       if (!orcidId) {
         throw new DripsError('Failed to extract ORCID iD from account ID', {

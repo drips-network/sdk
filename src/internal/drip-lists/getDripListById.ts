@@ -81,7 +81,7 @@ const GET_DRIP_LIST_QUERY = gql`
             driver
           }
         }
-        ... on OrcidReceiver {
+        ... on LinkedIdentityReceiver {
           __typename
           weight
           account {

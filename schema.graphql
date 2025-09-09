@@ -192,17 +192,13 @@ type ImmutableSplitsDriverAccount implements Account {
   driver: Driver!
 }
 
-type LinkedIdentity {
-  account: RepoDriverAccount!
-  createdAt: Date!
-  identityType: LinkedIdentityType!
-  isLinked: Boolean!
-  owner: AddressDriverAccount!
-  updatedAt: Date!
-}
+union LinkedIdentity = OrcidLinkedIdentity
 
-enum LinkedIdentityType {
-  ORCID
+type LinkedIdentityReceiver implements Receiver {
+  account: RepoDriverAccount!
+  driver: Driver!
+  linkedIdentity: LinkedIdentity!
+  weight: Int!
 }
 
 type MintedTokens {
@@ -244,11 +240,13 @@ input OrcidAccountWhereInput {
   ownerAddress: String
 }
 
-type OrcidReceiver implements Receiver {
+type OrcidLinkedIdentity {
   account: RepoDriverAccount!
-  driver: Driver!
-  linkedIdentity: LinkedIdentity!
-  weight: Int!
+  createdAt: Date!
+  isLinked: Boolean!
+  orcid: String!
+  owner: AddressDriverAccount!
+  updatedAt: Date!
 }
 
 type OrcidSource {
@@ -259,6 +257,7 @@ type Project {
   account: RepoDriverAccount!
   chainData: [ProjectData!]!
   isVisible: Boolean!
+  repoMetadata: RepoMetadata
   source: Source!
 }
 
@@ -330,6 +329,13 @@ type RepoDriverAccount implements Account {
   driver: Driver!
 }
 
+type RepoMetadata {
+  defaultBranch: String!
+  description: String
+  forksCount: Int!
+  stargazersCount: Int!
+}
+
 enum SortDirection {
   ASC
   DESC
@@ -347,7 +353,7 @@ type Splits {
   maintainers: [AddressReceiver!]!
 }
 
-union SplitsReceiver = AddressReceiver | DripListReceiver | EcosystemMainAccountReceiver | OrcidReceiver | ProjectReceiver | SubListReceiver
+union SplitsReceiver = AddressReceiver | DripListReceiver | EcosystemMainAccountReceiver | LinkedIdentityReceiver | ProjectReceiver | SubListReceiver
 
 type Stream {
   chain: SupportedChain!

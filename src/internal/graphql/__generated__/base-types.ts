@@ -235,19 +235,15 @@ export type ImmutableSplitsDriverAccount = Account & {
   driver: Driver;
 };
 
-export type LinkedIdentity = {
-  __typename: 'LinkedIdentity';
-  account: RepoDriverAccount;
-  createdAt: Scalars['Date']['output'];
-  identityType: LinkedIdentityType;
-  isLinked: Scalars['Boolean']['output'];
-  owner: AddressDriverAccount;
-  updatedAt: Scalars['Date']['output'];
-};
+export type LinkedIdentity = OrcidLinkedIdentity;
 
-export enum LinkedIdentityType {
-  Orcid = 'ORCID',
-}
+export type LinkedIdentityReceiver = Receiver & {
+  __typename: 'LinkedIdentityReceiver';
+  account: RepoDriverAccount;
+  driver: Driver;
+  linkedIdentity: LinkedIdentity;
+  weight: Scalars['Int']['output'];
+};
 
 export type MintedTokens = {
   __typename: 'MintedTokens';
@@ -294,12 +290,14 @@ export type OrcidAccountWhereInput = {
   ownerAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type OrcidReceiver = Receiver & {
-  __typename: 'OrcidReceiver';
+export type OrcidLinkedIdentity = {
+  __typename: 'OrcidLinkedIdentity';
   account: RepoDriverAccount;
-  driver: Driver;
-  linkedIdentity: LinkedIdentity;
-  weight: Scalars['Int']['output'];
+  createdAt: Scalars['Date']['output'];
+  isLinked: Scalars['Boolean']['output'];
+  orcid: Scalars['String']['output'];
+  owner: AddressDriverAccount;
+  updatedAt: Scalars['Date']['output'];
 };
 
 export type OrcidSource = {
@@ -312,6 +310,7 @@ export type Project = {
   account: RepoDriverAccount;
   chainData: Array<ProjectData>;
   isVisible: Scalars['Boolean']['output'];
+  repoMetadata?: Maybe<RepoMetadata>;
   source: Source;
 };
 
@@ -462,6 +461,14 @@ export type RepoDriverAccount = Account & {
   driver: Driver;
 };
 
+export type RepoMetadata = {
+  __typename: 'RepoMetadata';
+  defaultBranch: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  forksCount: Scalars['Int']['output'];
+  stargazersCount: Scalars['Int']['output'];
+};
+
 export enum SortDirection {
   Asc = 'ASC',
   Desc = 'DESC',
@@ -485,7 +492,7 @@ export type SplitsReceiver =
   | AddressReceiver
   | DripListReceiver
   | EcosystemMainAccountReceiver
-  | OrcidReceiver
+  | LinkedIdentityReceiver
   | ProjectReceiver
   | SubListReceiver;
 

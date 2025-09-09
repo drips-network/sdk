@@ -1,49 +1,25 @@
 /**
- * Extracts ORCID iD from a RepoDriver account ID
- *
- * @param accountId - The account ID as a string (hex) or bigint
- * @returns String containing the ORCID iD, or null if extraction fails
+ * Extracts the ORCID identifier from a RepoDriver account ID.
+ * @param accountId The RepoDriver account ID representing an ORCID account
+ * @returns The ORCID identifier (e.g., "0009-0001-4272-298X")
  */
-export function extractOrcidIdFromAccountId(
-  accountId: string | bigint
-): string | null {
-  // Convert to bigint for bit operations
-  const accountIdBigInt = typeof accountId === 'string'
-    ? BigInt(accountId)
-    : accountId;
+export function extractOrcidIdFromAccountId(accountId: string): string {
+  // if (!isOrcidAccount(accountId)) {
+  //   throw new Error(
+  //     `Cannot extract ORCID: '${accountId}' is not an ORCID account.`,
+  //   );
+  // }
 
-  // Extract the name encoded part directly (bottom 216 bits)
-  const nameEncoded = accountIdBigInt & ((1n << 216n) - 1n);
+  const accountIdAsBigInt = BigInt(accountId);
+  // Extract nameEncoded from bits 0-215 (216 bits) using bit mask
+  // (1n << 216n) - 1n creates mask of 216 ones: 0x0...0FFFFFFFFFF...FF
+  const nameEncoded = accountIdAsBigInt & ((1n << 216n) - 1n);
 
-  // Extract ORCID from nameEncoded (stored as right-padded bytes)
-  const orcid = extractStringFromPaddedBytes(nameEncoded, 27);
+  // Convert BigInt to hex string, then to bytes and remove null padding
+  const nameBytes = nameEncoded.toString(16).padStart(54, '0'); // 216 bits = 27 bytes = 54 hex chars
+  const nameStr = Buffer.from(nameBytes, 'hex')
+    .toString('utf8')
+    .replace(/\0+$/, '');
 
-  if (orcid.length === 0) {
-    return null
-  }
-
-  return orcid
-}
-
-/**
- * Extracts a string from right-padded bytes stored as a bigint
- *
- * @param paddedBytes - The bytes as a bigint (right-padded with zeros)
- * @param maxLength - Maximum length in bytes
- * @returns The extracted string
- */
-function extractStringFromPaddedBytes(paddedBytes: bigint, maxLength: number): string {
-  // Convert bigint to hex string and pad to correct length
-  const hexString = paddedBytes.toString(16).padStart(maxLength * 2, '0');
-
-  // Convert hex pairs to bytes and find actual length
-  const bytes: number[] = [];
-  for (let i = 0; i < hexString.length; i += 2) {
-    const byte = parseInt(hexString.slice(i, i + 2), 16);
-    if (byte === 0) break; // Stop at first zero byte (padding)
-    bytes.push(byte);
-  }
-
-  // Convert bytes to string
-  return String.fromCharCode(...bytes);
+  return nameStr;
 }

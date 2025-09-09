@@ -58,7 +58,7 @@ export type GetDripListQuery = {
           };
         }
       | {
-          __typename: 'OrcidReceiver';
+          __typename: 'LinkedIdentityReceiver';
           weight: number;
           account: {
             __typename: 'RepoDriverAccount';
