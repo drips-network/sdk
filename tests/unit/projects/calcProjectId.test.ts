@@ -630,6 +630,7 @@ describe('calcProjectId', () => {
     });
   });
 
+  // TODO: perhaps some sort of segregation of orcid and projects
   describe('constants and types', () => {
     it('should export supportedForges constant', () => {
       expect(supportedForges).toEqual(['github', 'orcid']);
