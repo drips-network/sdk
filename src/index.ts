@@ -99,6 +99,7 @@ export {
   SdkDripListReceiver,
   SdkSubListReceiver,
   SdkAddressReceiver,
+  SdkOrcidReceiver,
   SdkEcosystemMainAccountReceiver,
   SdkSplitsReceiver,
   OnChainSplitsReceiver,
