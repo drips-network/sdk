@@ -1,6 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {
   calcProjectId,
+  calcOrcidAccountId,
   supportedForges,
   type Forge,
   type ProjectName,
@@ -28,6 +29,7 @@ vi.mock('../../../src/internal/shared/buildTx', () => ({
 import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {decodeFunctionResult, toHex} from 'viem';
 import {buildTx} from '../../../src/internal/shared/buildTx';
+import {repoDriverAbi} from '../../../src/internal/abis/repoDriverAbi';
 
 describe('calcProjectId', () => {
   const mockAdapter: ReadBlockchainAdapter = {
@@ -49,6 +51,7 @@ describe('calcProjectId', () => {
   const mockEncodedResult = '0xencodedresult' as const;
   const mockProjectId = 123456789n;
   const mockHexName = '0x6f776e65722f7265706f' as const;
+  const mockOrcidHex = '0x303030302d303030302d303030302d30303058' as const;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -71,14 +74,14 @@ describe('calcProjectId', () => {
       expect(requireSupportedChain).toHaveBeenCalledWith(11155111);
       expect(toHex).toHaveBeenCalledWith(validParams.name);
       expect(buildTx).toHaveBeenCalledWith({
-        abi: expect.any(Array), // repoDriverAbi
+        abi: repoDriverAbi,
         contract: '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B',
         functionName: 'calcAccountId',
         args: [0, mockHexName], // github forge = 0
       });
       expect(mockAdapter.call).toHaveBeenCalledWith(mockTxData);
       expect(decodeFunctionResult).toHaveBeenCalledWith({
-        abi: expect.any(Array), // repoDriverAbi
+        abi: repoDriverAbi,
         functionName: 'calcAccountId',
         data: mockEncodedResult,
       });
@@ -202,6 +205,25 @@ describe('calcProjectId', () => {
         functionName: 'calcAccountId',
         args: [0, mockHexName], // github should map to 0
       });
+    });
+
+    it('should use correct forge ID for orcid via calcOrcidAccountId', async () => {
+      // Arrange
+      const orcidId = '0000-0000-0000-0000X';
+      vi.mocked(toHex).mockReturnValueOnce(mockOrcidHex);
+
+      // Act
+      const result = await calcOrcidAccountId(mockAdapter, orcidId);
+
+      // Assert
+      expect(toHex).toHaveBeenCalledWith(orcidId);
+      expect(buildTx).toHaveBeenCalledWith({
+        abi: expect.any(Array),
+        contract: expect.any(String),
+        functionName: 'calcAccountId',
+        args: [2, mockOrcidHex], // orcid should map to 2
+      });
+      expect(result).toBe(mockProjectId);
     });
   });
 
@@ -610,12 +632,31 @@ describe('calcProjectId', () => {
 
   describe('constants and types', () => {
     it('should export supportedForges constant', () => {
-      expect(supportedForges).toEqual(['github']);
+      expect(supportedForges).toEqual(['github', 'orcid']);
     });
 
-    it('should have github as the only supported forge', () => {
-      expect(supportedForges).toHaveLength(1);
-      expect(supportedForges[0]).toBe('github');
+    it('should include github and orcid as supported forges', () => {
+      expect(supportedForges).toHaveLength(2);
+      expect(supportedForges).toContain('github');
+      expect(supportedForges).toContain('orcid');
+    });
+  });
+
+  describe('delegation', () => {
+    it('calcProjectId should call underlying execution path (call-through)', async () => {
+      await calcProjectId(mockAdapter, validParams);
+      expect(mockAdapter.getChainId).toHaveBeenCalled();
+      expect(buildTx).toHaveBeenCalled();
+      expect(mockAdapter.call).toHaveBeenCalled();
+    });
+
+    it('calcOrcidAccountId should call underlying execution path (call-through)', async () => {
+      const orcidId = '0000-0000-0000-0000X';
+      vi.mocked(toHex).mockReturnValueOnce(mockOrcidHex);
+      await calcOrcidAccountId(mockAdapter, orcidId);
+      expect(mockAdapter.getChainId).toHaveBeenCalled();
+      expect(buildTx).toHaveBeenCalled();
+      expect(mockAdapter.call).toHaveBeenCalled();
     });
   });
 

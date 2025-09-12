@@ -55,6 +55,8 @@ import {
   parseSplitsReceivers,
   mapApiSplitsToSdkSplitsReceivers,
 } from '../../../src/internal/shared/receiverUtils';
+import {callerAbi} from '../../../src/internal/abis/callerAbi';
+import {nftDriverAbi} from '../../../src/internal/abis/nftDriverAbi';
 
 describe('prepareDripListUpdate', () => {
   const mockAdapter: WriteBlockchainAdapter = {
@@ -378,7 +380,7 @@ describe('prepareDripListUpdate', () => {
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(3, {
-        abi: expect.any(Array), // callerAbi
+        abi: callerAbi,
         contract: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
         functionName: 'callBatched',
         args: [[mockCallerCall2, mockCallerCall1]],
@@ -502,7 +504,7 @@ describe('prepareDripListUpdate', () => {
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(1, {
-        abi: expect.any(Array), // nftDriverAbi
+        abi: nftDriverAbi,
         functionName: 'emitAccountMetadata',
         args: [mockDripListId, [mockEncodedMetadata]],
         contract: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
@@ -520,7 +522,7 @@ describe('prepareDripListUpdate', () => {
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(2, {
-        abi: expect.any(Array), // nftDriverAbi
+        abi: nftDriverAbi,
         contract: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
         functionName: 'setSplits',
         args: [mockDripListId, mockOnChainReceivers],
@@ -538,7 +540,7 @@ describe('prepareDripListUpdate', () => {
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(3, {
-        abi: expect.any(Array), // callerAbi
+        abi: callerAbi,
         contract: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
         functionName: 'callBatched',
         args: [[mockCallerCall2, mockCallerCall1]],

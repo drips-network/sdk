@@ -5,10 +5,10 @@ import {contractsRegistry} from '../config/contractsRegistry';
 import {requireSupportedChain} from '../shared/assertions';
 import {repoDriverAbi} from '../abis/repoDriverAbi';
 
-export const supportedForges = ['github'] as const;
+export const supportedForges = ['github', 'orcid'] as const;
 
 /**
- * Supported forge providers for project repositories.
+ * Supported forges.
  */
 export type Forge = (typeof supportedForges)[number];
 
@@ -17,15 +17,38 @@ export type Forge = (typeof supportedForges)[number];
  */
 export type ProjectName = `${string}/${string}`;
 
+/**
+ * ORCID iD in the format ^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$
+ */
+export type OrcidId = string;
+
 const forgeMap: Record<Forge, number> = {
   github: 0,
+  orcid: 2,
 };
+
+export async function calcOrcidAccountId(
+  adapter: ReadBlockchainAdapter,
+  orcidId: OrcidId,
+): Promise<bigint> {
+  return calcRepoDriverAccountId(adapter, {forge: 'orcid', name: orcidId});
+}
 
 export async function calcProjectId(
   adapter: ReadBlockchainAdapter,
   params: {
     forge: Forge;
     name: ProjectName;
+  },
+): Promise<bigint> {
+  return calcRepoDriverAccountId(adapter, params);
+}
+
+async function calcRepoDriverAccountId(
+  adapter: ReadBlockchainAdapter,
+  params: {
+    forge: Forge;
+    name: ProjectName | OrcidId;
   },
 ): Promise<bigint> {
   const chainId = await adapter.getChainId();

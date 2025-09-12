@@ -15,6 +15,7 @@ import {createDripListsModule} from '../../../src/sdk/createDripListsModule';
 import {createDonationsModule} from '../../../src/sdk/createDonationsModule';
 import {createUtilsModule} from '../../../src/sdk/createUtilsModule';
 import {createFundsModule} from '../../../src/sdk/createFundsModule';
+import {createLinkedIdentitiesModule} from '../../../src/sdk/createLinkedIdentitiesModule';
 import {dripsConstants} from '../../../src';
 import {
   createGraphQLClient,
@@ -26,6 +27,7 @@ vi.mock('../../../src/sdk/createDripListsModule');
 vi.mock('../../../src/sdk/createDonationsModule');
 vi.mock('../../../src/sdk/createUtilsModule');
 vi.mock('../../../src/sdk/createFundsModule');
+vi.mock('../../../src/sdk/createLinkedIdentitiesModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 
 describe('createDripsSdk', () => {
@@ -34,6 +36,7 @@ describe('createDripsSdk', () => {
   const donationsModule = {} as any;
   const utilsModule = {} as any;
   const fundsModule = {} as any;
+  const linkedIdentitiesModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
   const mockGraphqlClient = {
     query: vi.fn(),
@@ -47,6 +50,9 @@ describe('createDripsSdk', () => {
     vi.mocked(createDonationsModule).mockReturnValue(donationsModule);
     vi.mocked(createUtilsModule).mockReturnValue(utilsModule);
     vi.mocked(createFundsModule).mockReturnValue(fundsModule);
+    vi.mocked(createLinkedIdentitiesModule).mockReturnValue(
+      linkedIdentitiesModule,
+    );
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
   });
 
@@ -62,6 +68,7 @@ describe('createDripsSdk', () => {
     expect(sdk.dripLists).toBe(dripListsModule);
     expect(sdk.donations).toBe(donationsModule);
     expect(sdk.funds).toBe(fundsModule);
+    expect(sdk.linkedIdentities).toBe(linkedIdentitiesModule);
     expect(sdk.constants).toBe(dripsConstants);
     expect(sdk.utils).toBe(utilsModule);
     expect(createDripListsModule).toHaveBeenCalledWith({
@@ -80,6 +87,9 @@ describe('createDripsSdk', () => {
     expect(createFundsModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
       graphqlClient: mockGraphqlClient,
+    });
+    expect(createLinkedIdentitiesModule).toHaveBeenCalledWith({
+      adapter: mockAdapter,
     });
   });
 
@@ -192,6 +202,9 @@ describe('createDripsSdk', () => {
         ipfsMetadataUploaderFn: undefined,
       });
       expect(createUtilsModule).toHaveBeenCalledWith({
+        adapter: mockAdapter,
+      });
+      expect(createLinkedIdentitiesModule).toHaveBeenCalledWith({
         adapter: mockAdapter,
       });
     });

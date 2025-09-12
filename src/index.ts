@@ -44,6 +44,9 @@ export {sendContinuousDonation} from './internal/donations/sendContinuousDonatio
 export {prepareCollection} from './internal/collect/prepareCollection';
 export {collect} from './internal/collect/collect';
 
+export {prepareClaimOrcid} from './internal/linked-identities/prepareClaimOrcid';
+export {claimOrcid} from './internal/linked-identities/claimOrcid';
+
 export const utils = {
   buildTx,
   calcAddressId,
@@ -120,3 +123,4 @@ export {
   SqueezeArgs,
   StreamsHistory,
 } from './internal/collect/prepareCollection';
+export {ClaimOrcidParams} from './internal/linked-identities/prepareClaimOrcid';

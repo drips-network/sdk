@@ -1,8 +1,8 @@
-import {Forge} from './calcProjectId';
 import {requireSupportedForge} from '../shared/assertions';
+import {Forge} from './calcProjectId';
 
 export function destructProjectUrl(url: string): {
-  forge: Forge;
+  forge: Extract<Forge, 'github'>;
   ownerName: string;
   repoName: string;
 } {
@@ -21,7 +21,7 @@ export function destructProjectUrl(url: string): {
   const repoName = match[3];
 
   return {
-    forge,
+    forge: 'github', // TODO: refactor when supporting more forges
     ownerName,
     repoName,
   };

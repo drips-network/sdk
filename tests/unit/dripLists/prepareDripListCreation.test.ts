@@ -51,6 +51,8 @@ import {encodeMetadataKeyValue} from '../../../src/internal/shared/encodeMetadat
 import {buildDripListMetadata} from '../../../src/internal/drip-lists/buildDripListMetadata';
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 import {parseSplitsReceivers} from '../../../src/internal/shared/receiverUtils';
+import {nftDriverAbi} from '../../../src/internal/abis/nftDriverAbi';
+import {callerAbi} from '../../../src/internal/abis/callerAbi';
 
 describe('prepareDripListCreation', () => {
   const mockAdapter: WriteBlockchainAdapter = {
@@ -379,7 +381,7 @@ describe('prepareDripListCreation', () => {
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(1, {
         contract: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
-        abi: expect.any(Array), // nftDriverAbi
+        abi: nftDriverAbi,
         functionName: 'safeMintWithSalt',
         args: [mockSalt, mockMinterAddress, [mockEncodedMetadata]],
       });
@@ -397,7 +399,7 @@ describe('prepareDripListCreation', () => {
       expect(buildTx).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          abi: expect.any(Array), // nftDriverAbi
+          abi: nftDriverAbi,
           contract: '0xdC773a04C0D6EFdb80E7dfF961B6a7B063a28B44',
           functionName: 'setSplits',
           args: [mockDripListId, mockOnChainReceivers],
@@ -415,7 +417,7 @@ describe('prepareDripListCreation', () => {
 
       // Assert
       expect(buildTx).toHaveBeenNthCalledWith(3, {
-        abi: expect.any(Array), // callerAbi
+        abi: callerAbi,
         contract: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
         functionName: 'callBatched',
         args: [[mockCallerCall1, mockCallerCall2]],
