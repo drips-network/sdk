@@ -122,10 +122,7 @@ describe('createLinkedIdentitiesModule', () => {
       await linkedIdentitiesModule.claimOrcid(params);
 
       // Assert
-      expect(requireWriteAccess).toHaveBeenCalledWith(
-        adapter,
-        'claimOrcid',
-      );
+      expect(requireWriteAccess).toHaveBeenCalledWith(adapter, 'claimOrcid');
     });
 
     it('should work with ReadBlockchainAdapter when requireWriteAccess is mocked to pass', async () => {
@@ -178,4 +175,3 @@ describe('createLinkedIdentitiesModule', () => {
     });
   });
 });
-

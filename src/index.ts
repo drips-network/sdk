@@ -21,10 +21,6 @@ export {createDripsSdk} from './sdk/createDripsSdk';
 
 export {createPinataIpfsMetadataUploader} from './internal/shared/createPinataIpfsMetadataUploader';
 export {
-  createEthersReadAdapter,
-  createEthersWriteAdapter,
-} from './internal/blockchain/adapters/ethers/ethersAdapters';
-export {
   createViemReadAdapter,
   createViemWriteAdapter,
 } from './internal/blockchain/adapters/viem/viemAdapters';

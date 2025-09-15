@@ -2,8 +2,7 @@ import {
   IpfsMetadataUploaderFn,
   Metadata,
 } from '../internal/shared/createPinataIpfsMetadataUploader';
-import {PublicClient, WalletClient} from 'viem';
-import type {Provider, Signer} from 'ethers';
+import type {PublicClient, WalletClient} from 'viem';
 import {
   ReadBlockchainAdapter,
   WriteBlockchainAdapter,
@@ -39,11 +38,23 @@ type DripsSdkOptions = {
   };
 };
 
+interface EthersLikeProvider {
+  call: (...args: any[]) => Promise<any>;
+  getNetwork: () => Promise<{chainId: bigint | number}>;
+}
+
+interface EthersLikeSigner {
+  getAddress: () => Promise<string>;
+  signMessage: (message: string | Uint8Array) => Promise<any>;
+  sendTransaction: (...args: any[]) => Promise<any>;
+  provider?: unknown;
+}
+
 export type SupportedBlockchainClient =
   | PublicClient
   | WalletClient
-  | Provider
-  | Signer
+  | EthersLikeProvider
+  | EthersLikeSigner
   | (ReadBlockchainAdapter & {type: 'custom'})
   | (WriteBlockchainAdapter & {type: 'custom'});
 

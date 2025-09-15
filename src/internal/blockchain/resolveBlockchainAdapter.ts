@@ -1,5 +1,4 @@
 import {WalletClient} from 'viem';
-import type {Provider, Signer} from 'ethers';
 import {SupportedBlockchainClient} from '../../sdk/createDripsSdk';
 import {DripsError} from '../shared/DripsError';
 import {
@@ -54,7 +53,8 @@ export function resolveBlockchainAdapter(
     !('transport' in client) &&
     hasRequiredMethods(client, ['signMessage', 'getAddress'])
   ) {
-    return createEthersWriteAdapter(client as Signer);
+    // Cast to any to avoid leaking ethers types from public API.
+    return createEthersWriteAdapter(client as any);
   }
 
   // Ethers read-only client
@@ -63,7 +63,7 @@ export function resolveBlockchainAdapter(
     hasRequiredMethods(client, ['call']) &&
     !('signMessage' in client)
   ) {
-    return createEthersReadAdapter(client as Provider);
+    return createEthersReadAdapter(client as any);
   }
 
   throw new DripsError('Unsupported client type for blockchain adapter', {

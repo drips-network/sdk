@@ -16,8 +16,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
+    },
+    "./ethers": {
+      "types": "./dist/internal/blockchain/adapters/ethers/ethersAdapters.d.ts",
+      "require": "./dist/internal/blockchain/adapters/ethers/ethersAdapters.cjs",
+      "import": "./dist/internal/blockchain/adapters/ethers/ethersAdapters.js"
     }
   },
   "files": [
@@ -29,7 +35,7 @@
     "lint": "gts lint",
     "fix": "gts fix",
     "clean": "gts clean && rm -rf build",
-    "compile": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --tsconfig tsconfig.build.json --external peerDependencies --splitting --treeshake",
+    "compile": "tsup src/index.ts src/internal/blockchain/adapters/ethers/ethersAdapters.ts --format esm,cjs --dts --out-dir dist --tsconfig tsconfig.build.json --external peerDependencies --splitting --treeshake",
     "prepare": "npm run compile",
     "pretest": "tsc --noEmit --project tsconfig.json",
     "posttest": "npm run lint",
