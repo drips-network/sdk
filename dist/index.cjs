@@ -1470,7 +1470,13 @@ var forgeMap = {
   github: 0,
   orcid: 2
 };
+async function calcOrcidAccountId(adapter, orcidId) {
+  return calcRepoDriverAccountId(adapter, { forge: "orcid", name: orcidId });
+}
 async function calcProjectId(adapter, params) {
+  return calcRepoDriverAccountId(adapter, params);
+}
+async function calcRepoDriverAccountId(adapter, params) {
   const chainId = await adapter.getChainId();
   const { forge, name } = params;
   requireSupportedChain(chainId);
@@ -1925,12 +1931,16 @@ async function calcAddressId(adapter, address) {
 }
 
 // src/internal/shared/accountIdUtils.ts
+var ORCID_FORMAT_REGEX = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
 function extractOrcidIdFromAccountId(accountId) {
   const accountIdAsBigInt = BigInt(accountId);
   const nameEncoded = accountIdAsBigInt & (1n << 216n) - 1n;
   const nameBytes = nameEncoded.toString(16).padStart(54, "0");
   const nameStr = Buffer.from(nameBytes, "hex").toString("utf8").replace(/\0+$/, "");
-  return nameStr;
+  if (ORCID_FORMAT_REGEX.test(nameStr)) {
+    return nameStr;
+  }
+  return null;
 }
 
 // src/internal/shared/receiverUtils.ts
@@ -4611,6 +4621,111 @@ function createUtilsModule(deps) {
   };
 }
 
+// src/internal/linked-identities/orcidUtils.ts
+function assertValidOrcidId(orcidId) {
+  if (typeof orcidId !== "string") {
+    throw new DripsError("Invalid ORCID: expected string.", {
+      meta: { operation: assertValidOrcidId.name, orcidId }
+    });
+  }
+  const baseStr = orcidId.replace(/[-\s]/g, "");
+  const orcidPattern = /^\d{15}[\dX]$/i;
+  if (!orcidPattern.test(baseStr.toUpperCase())) {
+    throw new DripsError("Invalid ORCID format.", {
+      meta: { operation: assertValidOrcidId.name, orcidId }
+    });
+  }
+  let total = 0;
+  for (let i = 0; i < 15; i++) {
+    const digit = parseInt(baseStr[i], 10);
+    if (Number.isNaN(digit)) {
+      throw new DripsError("Invalid ORCID digits.", {
+        meta: { operation: assertValidOrcidId.name, orcidId }
+      });
+    }
+    total = (total + digit) * 2;
+  }
+  const remainder = total % 11;
+  const result = (12 - remainder) % 11;
+  const calculatedCheckDigit = result === 10 ? "X" : String(result);
+  const actualCheckDigit = baseStr.charAt(15).toUpperCase();
+  if (calculatedCheckDigit !== actualCheckDigit) {
+    throw new DripsError("Invalid ORCID checksum.", {
+      meta: { operation: assertValidOrcidId.name, orcidId }
+    });
+  }
+}
+function normalizeOrcidForContract(orcidId) {
+  const trimmed = (orcidId ?? "").trim();
+  if (trimmed.length === 0) {
+    throw new DripsError("ORCID is empty.", {
+      meta: { operation: normalizeOrcidForContract.name, orcidId }
+    });
+  }
+  return trimmed;
+}
+
+// src/internal/linked-identities/prepareClaimOrcid.ts
+var ORCID_FORGE_ID = 2;
+async function prepareClaimOrcid(adapter, params) {
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId, prepareClaimOrcid.name);
+  const { orcidId, batchedTxOverrides } = params;
+  assertValidOrcidId(orcidId);
+  const { repoDriver, caller } = contractsRegistry[chainId];
+  const txs = [];
+  const requestUpdateOwnerTx = buildTx({
+    abi: repoDriverAbi,
+    contract: contractsRegistry[chainId].repoDriver.address,
+    functionName: "requestUpdateOwner",
+    args: [ORCID_FORGE_ID, viem.toHex(normalizeOrcidForContract(orcidId))]
+  });
+  txs.push(requestUpdateOwnerTx);
+  const orcidAccountId = await calcOrcidAccountId(adapter, orcidId);
+  const splitReceiver = {
+    // If the connected wallet is not the owner of the ORCID account, the `setSplits` call will fail (and so the whole batched call).
+    accountId: await calcAddressId(adapter, await adapter.getAddress()),
+    // The owner of the ORCID account must be the receiver of the splits.
+    weight: TOTAL_SPLITS_WEIGHT
+  };
+  const setSplitsTx = buildTx({
+    abi: repoDriverAbi,
+    contract: repoDriver.address,
+    functionName: "setSplits",
+    args: [orcidAccountId, [splitReceiver]]
+  });
+  txs.push(setSplitsTx);
+  const preparedTx = buildTx({
+    abi: callerAbi,
+    contract: caller.address,
+    functionName: "callBatched",
+    args: [txs.map(convertToCallerCall)],
+    batchedTxOverrides
+  });
+  return preparedTx;
+}
+
+// src/internal/linked-identities/claimOrcid.ts
+async function claimOrcid(adapter, params) {
+  const preparedTx = await prepareClaimOrcid(adapter, params);
+  return adapter.sendTx(preparedTx);
+}
+
+// src/sdk/createLinkedIdentitiesModule.ts
+function createLinkedIdentitiesModule(deps) {
+  const { adapter } = deps;
+  return {
+    prepareClaimOrcid: (params) => {
+      requireWriteAccess(adapter, prepareClaimOrcid.name);
+      return prepareClaimOrcid(adapter, params);
+    },
+    claimOrcid: (params) => {
+      requireWriteAccess(adapter, claimOrcid.name);
+      return claimOrcid(adapter, params);
+    }
+  };
+}
+
 // src/internal/abis/dripsAbi.ts
 var dripsAbi = [
   {
@@ -6054,7 +6169,8 @@ function createDripsSdk(blockchainClient, ipfsMetadataUploaderFn, options) {
     utils: createUtilsModule({ adapter }),
     dripLists: createDripListsModule(deps),
     donations: createDonationsModule(deps),
-    funds: createFundsModule({ adapter, graphqlClient })
+    funds: createFundsModule({ adapter, graphqlClient }),
+    linkedIdentities: createLinkedIdentitiesModule({ adapter })
   };
 }
 function toJsonSafe(value) {
@@ -6141,6 +6257,7 @@ var dripsConstants = {
 };
 
 exports.TimeUnit = TimeUnit;
+exports.claimOrcid = claimOrcid;
 exports.collect = collect;
 exports.contractsRegistry = contractsRegistry;
 exports.createDripList = createDripList;
@@ -6153,6 +6270,7 @@ exports.createViemWriteAdapter = createViemWriteAdapter;
 exports.dripsConstants = dripsConstants;
 exports.getDripListById = getDripListById;
 exports.getUserWithdrawableBalances = getUserWithdrawableBalances;
+exports.prepareClaimOrcid = prepareClaimOrcid;
 exports.prepareCollection = prepareCollection;
 exports.prepareContinuousDonation = prepareContinuousDonation;
 exports.prepareDripListCreation = prepareDripListCreation;

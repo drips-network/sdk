@@ -105,7 +105,7 @@ declare function calcAddressId(adapter: ReadBlockchainAdapter, address: Address)
 
 declare const supportedForges: readonly ["github", "orcid"];
 /**
- * Supported forge providers for project repositories.
+ * Supported forges.
  */
 type Forge$1 = (typeof supportedForges)[number];
 /**
@@ -114,7 +114,6 @@ type Forge$1 = (typeof supportedForges)[number];
 type ProjectName = `${string}/${string}`;
 /**
  * ORCID iD in the format ^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$
- * TODO: upgrade to branded type?
  */
 type OrcidId = string;
 declare function calcProjectId(adapter: ReadBlockchainAdapter, params: {
@@ -1368,6 +1367,37 @@ interface UtilsModule {
     resolveAddressFromAddressDriverId: typeof resolveAddressFromAddressDriverId;
 }
 
+type ClaimOrcidParams = {
+    /** The ORCID ID to claim (e.g., '0000-0002-1825-0097'). */
+    readonly orcidId: string;
+    /** Optional transaction overrides for the returned `PreparedTx`. */
+    readonly batchedTxOverrides?: BatchedTxOverrides;
+};
+declare function prepareClaimOrcid(adapter: WriteBlockchainAdapter, params: ClaimOrcidParams): Promise<PreparedTx>;
+
+interface LinkedIdentitiesModule {
+    /**
+     * Prepares a transaction to claim an ORCID identity for the connected account.
+     *
+     * @param params - Parameters for claiming the ORCID identity.
+     *
+     * @returns A prepared transaction ready for execution.
+     *
+     * @throws {DripsError} If the chain is not supported or the ORCID ID is invalid.
+     */
+    prepareClaimOrcid(params: ClaimOrcidParams): Promise<PreparedTx>;
+    /**
+     * Claims an ORCID identity.
+     *
+     * @param params - Parameters for claiming the ORCID identity.
+     *
+     * @returns The transaction response.
+     *
+     * @throws {DripsError} If the chain is not supported, the ORCID ID is invalid, or transaction execution fails.
+     */
+    claimOrcid(params: ClaimOrcidParams): Promise<TxResponse>;
+}
+
 type OnChainStreamReceiver = {
     accountId: bigint;
     config: bigint;
@@ -1480,6 +1510,7 @@ interface DripsSdk {
     readonly donations: DonationsModule;
     readonly utils: UtilsModule;
     readonly funds: FundsModule;
+    readonly linkedIdentities: LinkedIdentitiesModule;
     readonly constants: typeof dripsConstants;
 }
 type DripsSdkOptions = {
@@ -1552,6 +1583,8 @@ declare function createViemWriteAdapter(walletClient: WalletClient & {
 declare function sendOneTimeDonation(adapter: WriteBlockchainAdapter, donation: OneTimeDonation): Promise<TxResponse>;
 
 declare function collect(adapter: WriteBlockchainAdapter, config: CollectConfig): Promise<TxResponse>;
+
+declare function claimOrcid(adapter: WriteBlockchainAdapter, params: ClaimOrcidParams): Promise<TxResponse>;
 
 declare const contractsRegistry: {
     readonly 1: {
@@ -1756,4 +1789,4 @@ declare const dripsConstants: {
     CYCLE_SECS: number;
 };
 
-export { type CollectConfig, type ContinuousDonation, type CreateDripListResult, type DripList, type DripListMetadata, type DripListUpdateConfig, type DripsGraphQLClient, type DripsSdk, type Forge$1 as Forge, type IpfsMetadataUploaderFn, type Metadata, type MetadataSplitsReceiver, type NewDripList, type OnChainSplitsReceiver, type OnChainStreamReceiver, type OneTimeDonation, type PrepareContinuousDonationResult, type PrepareDripListCreationResult, type PrepareDripListUpdateResult, type PreparedTx, type ProjectMetadata, type ProjectName, type ReadBlockchainAdapter, type SdkAddressReceiver, type SdkDripListReceiver, type SdkEcosystemMainAccountReceiver, type SdkOrcidReceiver, type SdkProjectReceiver, type SdkReceiver, type SdkSplitsReceiver, type SdkSubListReceiver, type SendContinuousDonationResult, type SqueezeArgs, type StreamConfig, type StreamsHistory, type SubListMetadata, TimeUnit, type TxReceipt, type TxResponse, type UpdateDripListResult, type UserWithdrawableBalances, type WriteBlockchainAdapter, collect, contractsRegistry, createDripList, createDripsSdk, createEthersReadAdapter, createEthersWriteAdapter, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils };
+export { type ClaimOrcidParams, type CollectConfig, type ContinuousDonation, type CreateDripListResult, type DripList, type DripListMetadata, type DripListUpdateConfig, type DripsGraphQLClient, type DripsSdk, type Forge$1 as Forge, type IpfsMetadataUploaderFn, type Metadata, type MetadataSplitsReceiver, type NewDripList, type OnChainSplitsReceiver, type OnChainStreamReceiver, type OneTimeDonation, type PrepareContinuousDonationResult, type PrepareDripListCreationResult, type PrepareDripListUpdateResult, type PreparedTx, type ProjectMetadata, type ProjectName, type ReadBlockchainAdapter, type SdkAddressReceiver, type SdkDripListReceiver, type SdkEcosystemMainAccountReceiver, type SdkOrcidReceiver, type SdkProjectReceiver, type SdkReceiver, type SdkSplitsReceiver, type SdkSubListReceiver, type SendContinuousDonationResult, type SqueezeArgs, type StreamConfig, type StreamsHistory, type SubListMetadata, TimeUnit, type TxReceipt, type TxResponse, type UpdateDripListResult, type UserWithdrawableBalances, type WriteBlockchainAdapter, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createEthersReadAdapter, createEthersWriteAdapter, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareClaimOrcid, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils };
