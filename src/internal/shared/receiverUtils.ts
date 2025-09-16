@@ -179,7 +179,6 @@ export function mapApiSplitsToSdkSplitsReceivers(
         };
       }
 
-      // TODO: needs to be more precise
       const orcidId = extractOrcidIdFromAccountId(account.accountId)
       if (!orcidId) {
         throw new DripsError('Failed to extract ORCID iD from account ID', {
