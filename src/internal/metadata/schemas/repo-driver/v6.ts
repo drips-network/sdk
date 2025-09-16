@@ -6,7 +6,3 @@ export const orcidSplitReceiverSchema = z.object({
   accountId: z.string(),
   orcidId: z.string()
 });
-
-// TODO: actually export new version
-// should allow orcidSplitReceiverSchema as a dependency
-// for repoDriverAccountSplitsSchema

@@ -14,6 +14,17 @@ describe('accountIdUtils', () => {
         // Assert
         expect(result).toBe('0009-0007-1106-8413');
       });
+
+      it('should return null when extraction produces something that does not resemble an ORCID iD', () => {
+        // Arrange - The account ID for the svelte project
+        const accountId = '80927338512810702724070905882237017022089417038277884279346528518144'
+
+        // Act
+        const result = extractOrcidIdFromAccountId(accountId);
+
+        // Assert
+        expect(result).toBe(null);
+      });
     });
   });
 });
