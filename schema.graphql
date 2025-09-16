@@ -35,14 +35,6 @@ type ChainStats {
   receiversCount: Int!
 }
 
-type ClaimedOrcidAccountData {
-  chain: SupportedChain!
-  linkedTo: AddressDriverAccount!
-  support: [SupportItem!]!
-  totalEarned: [Amount!]!
-  withdrawableBalances: [WithdrawableBalance!]!
-}
-
 type ClaimedProjectData {
   avatar: Avatar!
   chain: SupportedChain!
@@ -201,6 +193,26 @@ type LinkedIdentityReceiver implements Receiver {
   weight: Int!
 }
 
+enum LinkedIdentitySortField {
+  createdAt
+}
+
+input LinkedIdentitySortInput {
+  direction: SortDirection
+  field: LinkedIdentitySortField!
+}
+
+enum LinkedIdentityTypeField {
+  orcid
+}
+
+input LinkedIdentityWhereInput {
+  accountId: String
+  areSplitsValid: Boolean
+  ownerAddress: String
+  type: LinkedIdentityTypeField
+}
+
 type MintedTokens {
   chain: SupportedChain!
   total: Int!
@@ -217,40 +229,16 @@ type OneTimeDonationSupport {
   date: Date!
 }
 
-type OrcidAccount {
-  account: RepoDriverAccount!
-  chainData: [OrcidAccountData!]!
-  source: OrcidSource!
-}
-
-union OrcidAccountData = ClaimedOrcidAccountData | UnClaimedOrcidAccountData
-
-enum OrcidAccountSortField {
-  createdAt
-}
-
-input OrcidAccountSortInput {
-  direction: SortDirection
-  field: OrcidAccountSortField!
-}
-
-input OrcidAccountWhereInput {
-  accountId: String
-  isLinked: Boolean
-  ownerAddress: String
-}
-
 type OrcidLinkedIdentity {
   account: RepoDriverAccount!
-  createdAt: Date!
-  isLinked: Boolean!
+  areSplitsValid: Boolean!
+  chain: SupportedChain!
+  isClaimed: Boolean!
   orcid: String!
-  owner: AddressDriverAccount!
-  updatedAt: Date!
-}
-
-type OrcidSource {
-  url: String!
+  owner: AddressDriverAccount
+  support: [SupportItem!]!
+  totalEarned: [Amount!]!
+  withdrawableBalances: [WithdrawableBalance!]!
 }
 
 type Project {
@@ -307,9 +295,10 @@ type Query {
   dripLists(chains: [SupportedChain!], limit: Int = 100, sort: DripListSortInput, where: DripListWhereInput): [DripList!]!
   earnedFunds(chains: [SupportedChain!], projectId: String!): [ChainAmount!]!
   ecosystemMainAccount(chain: SupportedChain!, id: ID!): EcosystemMainAccount
+  linkedIdentities(chains: [SupportedChain!], limit: Int = 100, sort: LinkedIdentitySortInput, where: LinkedIdentityWhereInput): [LinkedIdentity!]!
+  linkedIdentityById(chain: SupportedChain!, id: ID!): LinkedIdentity
   mintedTokensCountByOwnerAddress(chain: SupportedChain!, ownerAddress: String!): MintedTokens!
-  orcidAccountById(chains: [SupportedChain!], id: ID!): OrcidAccount
-  orcidAccounts(chains: [SupportedChain!], limit: Int = 100, sort: OrcidAccountSortInput, where: OrcidAccountWhereInput): [OrcidAccount!]!
+  orcidLinkedIdentityByOrcid(chain: SupportedChain!, orcid: String!): OrcidLinkedIdentity
   projectById(chains: [SupportedChain!], id: ID!): Project
   projectByUrl(chains: [SupportedChain!], url: String!): Project
   projects(chains: [SupportedChain!], limit: Int = 100, sort: ProjectSortInput, where: ProjectWhereInput): [Project!]!
@@ -443,13 +432,6 @@ enum TimelineItemType {
   OUT_OF_FUNDS
   PAUSE
   START
-}
-
-type UnClaimedOrcidAccountData {
-  chain: SupportedChain!
-  linkedTo: AddressDriverAccount
-  support: [SupportItem!]!
-  withdrawableBalances: [WithdrawableBalance!]!
 }
 
 type UnClaimedProjectData {

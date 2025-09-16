@@ -66,15 +66,6 @@ export type ChainStats = {
   receiversCount: Scalars['Int']['output'];
 };
 
-export type ClaimedOrcidAccountData = {
-  __typename: 'ClaimedOrcidAccountData';
-  chain: SupportedChain;
-  linkedTo: AddressDriverAccount;
-  support: Array<SupportItem>;
-  totalEarned: Array<Amount>;
-  withdrawableBalances: Array<WithdrawableBalance>;
-};
-
 export type ClaimedProjectData = {
   __typename: 'ClaimedProjectData';
   avatar: Avatar;
@@ -245,6 +236,26 @@ export type LinkedIdentityReceiver = Receiver & {
   weight: Scalars['Int']['output'];
 };
 
+export enum LinkedIdentitySortField {
+  CreatedAt = 'createdAt',
+}
+
+export type LinkedIdentitySortInput = {
+  direction?: InputMaybe<SortDirection>;
+  field: LinkedIdentitySortField;
+};
+
+export enum LinkedIdentityTypeField {
+  Orcid = 'orcid',
+}
+
+export type LinkedIdentityWhereInput = {
+  accountId?: InputMaybe<Scalars['String']['input']>;
+  areSplitsValid?: InputMaybe<Scalars['Boolean']['input']>;
+  ownerAddress?: InputMaybe<Scalars['String']['input']>;
+  type?: InputMaybe<LinkedIdentityTypeField>;
+};
+
 export type MintedTokens = {
   __typename: 'MintedTokens';
   chain: SupportedChain;
@@ -264,45 +275,17 @@ export type OneTimeDonationSupport = {
   date: Scalars['Date']['output'];
 };
 
-export type OrcidAccount = {
-  __typename: 'OrcidAccount';
-  account: RepoDriverAccount;
-  chainData: Array<OrcidAccountData>;
-  source: OrcidSource;
-};
-
-export type OrcidAccountData =
-  | ClaimedOrcidAccountData
-  | UnClaimedOrcidAccountData;
-
-export enum OrcidAccountSortField {
-  CreatedAt = 'createdAt',
-}
-
-export type OrcidAccountSortInput = {
-  direction?: InputMaybe<SortDirection>;
-  field: OrcidAccountSortField;
-};
-
-export type OrcidAccountWhereInput = {
-  accountId?: InputMaybe<Scalars['String']['input']>;
-  isLinked?: InputMaybe<Scalars['Boolean']['input']>;
-  ownerAddress?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type OrcidLinkedIdentity = {
   __typename: 'OrcidLinkedIdentity';
   account: RepoDriverAccount;
-  createdAt: Scalars['Date']['output'];
-  isLinked: Scalars['Boolean']['output'];
+  areSplitsValid: Scalars['Boolean']['output'];
+  chain: SupportedChain;
+  isClaimed: Scalars['Boolean']['output'];
   orcid: Scalars['String']['output'];
-  owner: AddressDriverAccount;
-  updatedAt: Scalars['Date']['output'];
-};
-
-export type OrcidSource = {
-  __typename: 'OrcidSource';
-  url: Scalars['String']['output'];
+  owner?: Maybe<AddressDriverAccount>;
+  support: Array<SupportItem>;
+  totalEarned: Array<Amount>;
+  withdrawableBalances: Array<WithdrawableBalance>;
 };
 
 export type Project = {
@@ -363,9 +346,10 @@ export type Query = {
   dripLists: Array<DripList>;
   earnedFunds: Array<ChainAmount>;
   ecosystemMainAccount?: Maybe<EcosystemMainAccount>;
+  linkedIdentities: Array<LinkedIdentity>;
+  linkedIdentityById?: Maybe<LinkedIdentity>;
   mintedTokensCountByOwnerAddress: MintedTokens;
-  orcidAccountById?: Maybe<OrcidAccount>;
-  orcidAccounts: Array<OrcidAccount>;
+  orcidLinkedIdentityByOrcid?: Maybe<OrcidLinkedIdentity>;
   projectById?: Maybe<Project>;
   projectByUrl?: Maybe<Project>;
   projects: Array<Project>;
@@ -400,21 +384,26 @@ export type QueryEcosystemMainAccountArgs = {
   id: Scalars['ID']['input'];
 };
 
+export type QueryLinkedIdentitiesArgs = {
+  chains?: InputMaybe<Array<SupportedChain>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<LinkedIdentitySortInput>;
+  where?: InputMaybe<LinkedIdentityWhereInput>;
+};
+
+export type QueryLinkedIdentityByIdArgs = {
+  chain: SupportedChain;
+  id: Scalars['ID']['input'];
+};
+
 export type QueryMintedTokensCountByOwnerAddressArgs = {
   chain: SupportedChain;
   ownerAddress: Scalars['String']['input'];
 };
 
-export type QueryOrcidAccountByIdArgs = {
-  chains?: InputMaybe<Array<SupportedChain>>;
-  id: Scalars['ID']['input'];
-};
-
-export type QueryOrcidAccountsArgs = {
-  chains?: InputMaybe<Array<SupportedChain>>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  sort?: InputMaybe<OrcidAccountSortInput>;
-  where?: InputMaybe<OrcidAccountWhereInput>;
+export type QueryOrcidLinkedIdentityByOrcidArgs = {
+  chain: SupportedChain;
+  orcid: Scalars['String']['input'];
 };
 
 export type QueryProjectByIdArgs = {
@@ -602,14 +591,6 @@ export enum TimelineItemType {
   Pause = 'PAUSE',
   Start = 'START',
 }
-
-export type UnClaimedOrcidAccountData = {
-  __typename: 'UnClaimedOrcidAccountData';
-  chain: SupportedChain;
-  linkedTo?: Maybe<AddressDriverAccount>;
-  support: Array<SupportItem>;
-  withdrawableBalances: Array<WithdrawableBalance>;
-};
 
 export type UnClaimedProjectData = {
   __typename: 'UnClaimedProjectData';
