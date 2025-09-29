@@ -13,10 +13,14 @@ import {
   orcidSplitReceiverSchema,
 } from '../repo-driver/v6';
 
-const base = nftDriverAccountMetadataSchemaV5.omit({
-  isDripList: true,
-  projects: true,
-});
+const base = nftDriverAccountMetadataSchemaV5
+  .omit({
+    isDripList: true,
+    projects: true,
+  })
+  .extend({
+    allowExternalDonations: z.boolean().optional(),
+  });
 
 const ecosystemVariant = base.extend({
   type: z.literal('ecosystem'),
