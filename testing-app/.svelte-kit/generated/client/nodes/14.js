@@ -1,1 +1,0 @@
-export { default as component } from "../../../../src/routes/drip-lists/update-viem/+page.svelte";
