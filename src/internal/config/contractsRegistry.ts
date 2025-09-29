@@ -1,4 +1,7 @@
+import {zeroAddress} from 'viem';
+
 export const contractsRegistry = {
+  // Mainnet
   1: {
     repoDriver: {
       address: '0x770023d55D09A9C110694827F1a6B32D5c2b373E',
@@ -16,9 +19,13 @@ export const contractsRegistry = {
       address: '0x60F25ac5F289Dc7F640f948521d486C964A248e5',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: zeroAddress,
     },
   },
+  // Polygon Amoy
   80002: {
     repoDriver: {
       address: '0x54372850Db72915Fd9C5EC745683EB607b4a8642',
@@ -36,9 +43,13 @@ export const contractsRegistry = {
       address: '0x5C7c5AA20b15e13229771CB7De36Fe1F54238372',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: zeroAddress,
     },
   },
+  // OP Sepolia
   11155420: {
     repoDriver: {
       address: '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B',
@@ -56,9 +67,13 @@ export const contractsRegistry = {
       address: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: '0xE57A3111414E0FaB39cc6e8fDe957b1f6471cd49',
     },
   },
+  // Sepolia
   11155111: {
     repoDriver: {
       address: '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B',
@@ -76,9 +91,13 @@ export const contractsRegistry = {
       address: '0x09e04Cb8168bd0E8773A79Cc2099f19C46776Fee',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: '0x4e576318213e3c9b436d0758a021a485c5d8b929',
     },
   },
+  // Local Testnet
   31337: {
     repoDriver: {
       address: '0x971e08fc533d2A5f228c7944E511611dA3B56B24',
@@ -96,9 +115,13 @@ export const contractsRegistry = {
       address: '0x2eac4218a453B1A52544Be315d2376B9A76614F1',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: '0xFD9Aa049A4f3dC1a2CD3355Ce52A943418Fa54e3',
     },
   },
+  // Base Sepolia
   84532: {
     repoDriver: {
       address: '0x54372850Db72915Fd9C5EC745683EB607b4a8642',
@@ -116,9 +139,13 @@ export const contractsRegistry = {
       address: '0x5C7c5AA20b15e13229771CB7De36Fe1F54238372',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: zeroAddress,
     },
   },
+  // Filecoin
   314: {
     repoDriver: {
       address: '0xe75f56B26857cAe06b455Bfc9481593Ae0FB4257',
@@ -138,7 +165,11 @@ export const contractsRegistry = {
     nativeTokenUnwrapper: {
       address: '0x64e0d60C70e9778C2E649FfBc90259C86a6Bf396',
     },
+    repoDeadlineDriver: {
+      address: '0x0386b66e2b0106ff27ef26e84102ca78a5c0edef',
+    },
   },
+  // Metis
   1088: {
     repoDriver: {
       address: '0xe75f56B26857cAe06b455Bfc9481593Ae0FB4257',
@@ -156,9 +187,13 @@ export const contractsRegistry = {
       address: '0xd6Ab8e72dE3742d45AdF108fAa112Cd232718828',
     },
     nativeTokenUnwrapper: {
-      address: undefined,
+      address: zeroAddress,
+    },
+    repoDeadlineDriver: {
+      address: '0x0386b66e2b0106ff27ef26e84102ca78a5c0edef',
     },
   },
+  // OP Mainnet
   10: {
     repoDriver: {
       address: '0xe75f56B26857cAe06b455Bfc9481593Ae0FB4257',
@@ -177,6 +212,9 @@ export const contractsRegistry = {
     },
     nativeTokenUnwrapper: {
       address: '0x64e0d60C70e9778C2E649FfBc90259C86a6Bf396',
+    },
+    repoDeadlineDriver: {
+      address: '0x0386b66e2b0106ff27ef26e84102ca78a5c0edef',
     },
   },
 } as const;

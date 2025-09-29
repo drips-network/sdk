@@ -27,6 +27,8 @@ export function resolveDriverName(accountId: bigint) {
       return 'repo';
     case 4n:
       return 'repoSubAccount';
+    case 5n:
+      return 'repoDeadline';
     default:
       throw new Error(`Unknown  for ID ${accountId}.`);
   }
