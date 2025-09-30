@@ -43,6 +43,10 @@ vi.mock('../../../src/internal/shared/calcDripListId', () => ({
   calcDripListId: vi.fn(),
 }));
 
+vi.mock('../../../src/internal/shared/calcAddressId', () => ({
+  calcAddressId: vi.fn(),
+}));
+
 import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {calculateRandomSalt} from '../../../src/internal/drip-lists/calculateRandomSalt';
 import {buildTx} from '../../../src/internal/shared/buildTx';
@@ -51,6 +55,7 @@ import {encodeMetadataKeyValue} from '../../../src/internal/shared/encodeMetadat
 import {buildDripListMetadata} from '../../../src/internal/drip-lists/buildDripListMetadata';
 import {calcDripListId} from '../../../src/internal/shared/calcDripListId';
 import {parseSplitsReceivers} from '../../../src/internal/shared/receiverUtils';
+import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
 
 describe('prepareDripListCreation', () => {
   const mockAdapter: WriteBlockchainAdapter = {
@@ -96,6 +101,7 @@ describe('prepareDripListCreation', () => {
       accountId: '999',
     },
     isVisible: true,
+    allowExternalDonations: true,
     name: 'Test Drip List',
     description: 'A test drip list',
     recipients: [],
@@ -145,6 +151,7 @@ describe('prepareDripListCreation', () => {
     data: '0xbatcheddata' as const,
     abiFunctionName: 'callBatched',
   };
+  const mockOwnerAccountId = 2024n;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -168,6 +175,7 @@ describe('prepareDripListCreation', () => {
     vi.mocked(convertToCallerCall)
       .mockReturnValueOnce(mockCallerCall1)
       .mockReturnValueOnce(mockCallerCall2);
+    vi.mocked(calcAddressId).mockResolvedValue(mockOwnerAccountId);
   });
 
   describe('successful execution', () => {
@@ -188,9 +196,14 @@ describe('prepareDripListCreation', () => {
         salt: mockSalt,
         minter: mockMinterAddress,
       });
+      expect(calcAddressId).toHaveBeenCalledWith(
+        mockAdapter,
+        mockMinterAddress,
+      );
       expect(parseSplitsReceivers).toHaveBeenCalledWith(
         mockAdapter,
         validParams.receivers,
+        undefined,
       );
       expect(buildDripListMetadata).toHaveBeenCalledWith({
         name: validParams.name,
@@ -199,6 +212,7 @@ describe('prepareDripListCreation', () => {
         dripListId: mockDripListId,
         description: validParams.description,
         latestVotingRoundId: validParams.latestVotingRoundId,
+        allowExternalDonations: true,
       });
       expect(mockIpfsMetadataUploader).toHaveBeenCalledWith(mockMetadata);
       expect(encodeMetadataKeyValue).toHaveBeenCalledWith({
@@ -212,6 +226,7 @@ describe('prepareDripListCreation', () => {
         dripListId: mockDripListId,
         preparedTx: mockBatchedTx,
         metadata: mockMetadata,
+        allowExternalDonations: true,
       });
     });
 
@@ -240,7 +255,11 @@ describe('prepareDripListCreation', () => {
       );
 
       // Assert
-      expect(parseSplitsReceivers).toHaveBeenCalledWith(mockAdapter, []);
+      expect(parseSplitsReceivers).toHaveBeenCalledWith(
+        mockAdapter,
+        [],
+        undefined,
+      );
       expect(buildDripListMetadata).toHaveBeenCalledWith({
         name: validParams.name,
         isVisible: validParams.isVisible,
@@ -248,6 +267,7 @@ describe('prepareDripListCreation', () => {
         dripListId: mockDripListId,
         description: validParams.description,
         latestVotingRoundId: validParams.latestVotingRoundId,
+        allowExternalDonations: true,
       });
       // Should only build mint tx, not setSplits tx
       expect(buildTx).toHaveBeenCalledTimes(2); // mint + batched
@@ -293,9 +313,146 @@ describe('prepareDripListCreation', () => {
       );
 
       // Assert
+      expect(calcAddressId).toHaveBeenCalledWith(
+        mockAdapter,
+        transferToAddress,
+      );
       expect(buildTx).toHaveBeenCalledWith(
         expect.objectContaining({
           args: [mockSalt, transferToAddress, [mockEncodedMetadata]],
+        }),
+      );
+    });
+
+    it('should pass deadlineConfig to parseSplitsReceivers when provided', async () => {
+      // Arrange
+      const deadlineConfig = {
+        deadline: new Date('2025-12-31'),
+        refundAddress: mockMinterAddress,
+      };
+      const paramsWithDeadline = {
+        ...validParams,
+        deadlineConfig,
+      };
+
+      // Act
+      await prepareDripListCreation(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        paramsWithDeadline,
+      );
+
+      // Assert
+      expect(parseSplitsReceivers).toHaveBeenCalledWith(
+        mockAdapter,
+        validParams.receivers,
+        {deadlineConfig},
+      );
+    });
+
+    it('should set allowExternalDonations to false when deadline receiver refund account matches owner', async () => {
+      // Arrange
+      const deadlineMetadataReceivers = [
+        {
+          type: 'deadline' as const,
+          accountId: '123',
+          weight: 500000,
+          deadline: new Date('2025-12-31'),
+          claimableProject: {
+            accountId: '789',
+            source: {
+              forge: 'github' as const,
+              repoName: 'test-repo',
+              ownerName: 'test-owner',
+              url: 'https://github.com/test-owner/test-repo',
+            },
+          },
+          recipientAccountId: '456',
+          refundAccountId: mockOwnerAccountId.toString(),
+        },
+        {
+          type: 'address' as const,
+          accountId: '456',
+          weight: 500000,
+        },
+      ];
+      vi.mocked(parseSplitsReceivers).mockResolvedValue({
+        onChain: mockOnChainReceivers,
+        metadata: deadlineMetadataReceivers,
+      });
+
+      // Act
+      const result = await prepareDripListCreation(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        validParams,
+      );
+
+      // Assert
+      expect(result.allowExternalDonations).toBe(false);
+      expect(buildDripListMetadata).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowExternalDonations: false,
+        }),
+      );
+    });
+
+    it('should set allowExternalDonations to true when no deadline receivers', async () => {
+      // Act
+      const result = await prepareDripListCreation(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        validParams,
+      );
+
+      // Assert
+      expect(result.allowExternalDonations).toBe(true);
+    });
+
+    it('should set allowExternalDonations to true when deadline receiver refund account does not match owner', async () => {
+      // Arrange
+      const differentAccountId = 9999n;
+      const deadlineMetadataReceivers = [
+        {
+          type: 'deadline' as const,
+          accountId: '123',
+          weight: 500000,
+          deadline: new Date('2025-12-31'),
+          claimableProject: {
+            accountId: '789',
+            source: {
+              forge: 'github' as const,
+              repoName: 'test-repo',
+              ownerName: 'test-owner',
+              url: 'https://github.com/test-owner/test-repo',
+            },
+          },
+          recipientAccountId: '456',
+          refundAccountId: differentAccountId.toString(),
+        },
+        {
+          type: 'address' as const,
+          accountId: '456',
+          weight: 500000,
+        },
+      ];
+      vi.mocked(parseSplitsReceivers).mockResolvedValue({
+        onChain: mockOnChainReceivers,
+        metadata: deadlineMetadataReceivers,
+      });
+
+      // Act
+      const result = await prepareDripListCreation(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        validParams,
+      );
+
+      // Assert
+      expect(result.allowExternalDonations).toBe(true);
+      expect(buildDripListMetadata).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowExternalDonations: true,
         }),
       );
     });

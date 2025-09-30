@@ -4,6 +4,7 @@ import {calcProjectId} from '../projects/calcProjectId';
 import {destructProjectUrl} from '../projects/destructProjectUrl';
 import {calcAddressId} from './calcAddressId';
 import {DripsError} from './DripsError';
+import {requireSupportedChain} from './assertions';
 import z from 'zod';
 import {subListSplitReceiverSchema} from '../metadata/schemas/immutable-splits-driver/v1';
 import {dripListSplitReceiverSchema} from '../metadata/schemas/nft-driver/v2';
@@ -11,11 +12,16 @@ import {
   repoDriverSplitReceiverSchema,
   addressDriverSplitReceiverSchema,
 } from '../metadata/schemas/repo-driver/v2';
+import {deadlineSplitReceiverSchema} from '../metadata/schemas/repo-driver/v6';
+import {calcDeadlineDriverAccountId} from './calcDeadlineDriverAccountId';
+import {toDeadlineSeconds} from './toDeadlineSeconds';
 import {DripList} from '../drip-lists/getDripListById';
 import {
   AddressReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
+import {unreachable} from './unreachable';
+import {DripListDeadlineConfig} from '../drip-lists/prepareDripListCreation';
 
 /** Maximum number of splits receivers of a single account. */
 export const MAX_SPLITS_RECEIVERS = 200;
@@ -71,13 +77,127 @@ type MetadataAddressReceiver = z.output<
   typeof addressDriverSplitReceiverSchema
 >;
 
+type MetadataDeadlineReceiver = z.output<typeof deadlineSplitReceiverSchema>;
+
 type SubListMetadataReceiver = z.output<typeof subListSplitReceiverSchema>;
 
 export type MetadataSplitsReceiver =
   | MetadataProjectReceiver
   | MetadataDripListReceiver
   | MetadataAddressReceiver
+  | MetadataDeadlineReceiver
   | SubListMetadataReceiver;
+
+export type ParseSplitsReceiversOptions = {
+  readonly deadlineConfig?: DripListDeadlineConfig;
+};
+
+type ResolvedDeadlineReceiver = {
+  readonly receiver: SdkSplitsReceiver;
+  readonly deadlineAccountId: bigint;
+  readonly repoAccountId: bigint;
+  readonly source: {
+    readonly forge: string;
+    readonly ownerName: string;
+    readonly repoName: string;
+    readonly url: string;
+  };
+};
+
+async function parseDeadlineReceivers(
+  adapter: ReadBlockchainAdapter,
+  sdkReceivers: ReadonlyArray<SdkSplitsReceiver>,
+  deadlineConfig: DripListDeadlineConfig,
+): Promise<{
+  onChain: OnChainSplitsReceiver[];
+  metadata: MetadataSplitsReceiver[];
+}> {
+  if (sdkReceivers.length === 0) {
+    return {onChain: [], metadata: []};
+  }
+
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId);
+
+  const refundAccountId = await calcAddressId(
+    adapter,
+    deadlineConfig.refundAddress,
+  );
+  const deadlineSeconds = toDeadlineSeconds(deadlineConfig.deadline);
+
+  const resolved = await Promise.all(
+    sdkReceivers.map(async receiver => {
+      if (receiver.type !== 'project') {
+        unreachable('Only project receivers can be used with deadlines');
+      }
+
+      const {url} = receiver;
+      const {forge, ownerName, repoName} = destructProjectUrl(url);
+      const repoAccountId = await calcProjectId(adapter, {
+        forge,
+        name: `${ownerName}/${repoName}`,
+      });
+      const deadlineAccountId = await calcDeadlineDriverAccountId(adapter, {
+        repoAccountId,
+        recipientAccountId: repoAccountId,
+        refundAccountId,
+        deadlineSeconds,
+      });
+
+      return {
+        receiver,
+        deadlineAccountId,
+        repoAccountId,
+        source: {forge, ownerName, repoName, url},
+      } as ResolvedDeadlineReceiver;
+    }),
+  );
+
+  resolved.sort((a, b) => (a.deadlineAccountId > b.deadlineAccountId ? 1 : -1));
+
+  const onChain: OnChainSplitsReceiver[] = [];
+  const metadata: MetadataSplitsReceiver[] = [];
+
+  let previousAccountId: bigint | null = null;
+
+  for (const entry of resolved) {
+    const {receiver, deadlineAccountId, repoAccountId, source} = entry;
+    const {weight} = receiver;
+
+    if (weight <= 0 || weight > TOTAL_SPLITS_WEIGHT) {
+      throw new DripsError(`Invalid weight: ${weight}`, {
+        meta: {operation: parseDeadlineReceivers.name, receiver},
+      });
+    }
+
+    if (previousAccountId !== null && deadlineAccountId <= previousAccountId) {
+      throw new DripsError(
+        `Splits receivers not strictly sorted or deduplicated: ${deadlineAccountId} after ${previousAccountId}`,
+        {
+          meta: {operation: parseDeadlineReceivers.name},
+        },
+      );
+    }
+
+    previousAccountId = deadlineAccountId;
+
+    onChain.push({accountId: deadlineAccountId, weight});
+    metadata.push({
+      type: 'deadline',
+      weight,
+      accountId: deadlineAccountId.toString(),
+      claimableProject: {
+        accountId: repoAccountId.toString(),
+        source,
+      },
+      recipientAccountId: repoAccountId.toString(),
+      refundAccountId: refundAccountId.toString(),
+      deadline: deadlineConfig.deadline,
+    } as MetadataDeadlineReceiver);
+  }
+
+  return {onChain, metadata};
+}
 
 export async function resolveReceiverAccountId(
   adapter: ReadBlockchainAdapter,
@@ -227,6 +347,7 @@ async function mapSdkToMetadataSplitsReceiver(
 export async function parseSplitsReceivers(
   adapter: ReadBlockchainAdapter,
   sdkReceivers: ReadonlyArray<SdkSplitsReceiver>,
+  options?: ParseSplitsReceiversOptions,
 ): Promise<{
   onChain: OnChainSplitsReceiver[];
   metadata: MetadataSplitsReceiver[];
@@ -244,15 +365,65 @@ export async function parseSplitsReceivers(
     );
   }
 
-  const resolved = await Promise.all(
-    sdkReceivers.map(async r => ({
-      receiver: r,
-      accountId: await resolveReceiverAccountId(adapter, r),
-    })),
-  );
+  const resolvedEntries: Array<{
+    accountId: bigint;
+    weight: number;
+    metadata: MetadataSplitsReceiver;
+  }> = [];
 
-  // Sort by accountId ascending (strictly increasing)
-  resolved.sort((a, b) => (a.accountId > b.accountId ? 1 : -1));
+  if (options?.deadlineConfig) {
+    const projectReceivers = sdkReceivers.filter(r => r.type === 'project');
+    const otherReceivers = sdkReceivers.filter(r => r.type !== 'project');
+
+    const {onChain: deadlineOnChain, metadata: deadlineMetadata} =
+      await parseDeadlineReceivers(
+        adapter,
+        projectReceivers,
+        options.deadlineConfig,
+      );
+
+    if (deadlineOnChain.length !== deadlineMetadata.length) {
+      throw new DripsError('Mismatch resolving deadline receivers.', {
+        meta: {operation: parseSplitsReceivers.name},
+      });
+    }
+
+    deadlineOnChain.forEach((onChainReceiver, index) => {
+      resolvedEntries.push({
+        accountId: onChainReceiver.accountId,
+        weight: onChainReceiver.weight,
+        metadata: deadlineMetadata[index],
+      });
+    });
+
+    const resolvedOthers = await Promise.all(
+      otherReceivers.map(async receiver => {
+        const accountId = await resolveReceiverAccountId(adapter, receiver);
+        const metadata = await mapSdkToMetadataSplitsReceiver(
+          accountId,
+          receiver,
+        );
+        return {accountId, weight: receiver.weight, metadata};
+      }),
+    );
+
+    resolvedEntries.push(...resolvedOthers);
+  } else {
+    const resolved = await Promise.all(
+      sdkReceivers.map(async receiver => {
+        const accountId = await resolveReceiverAccountId(adapter, receiver);
+        const metadata = await mapSdkToMetadataSplitsReceiver(
+          accountId,
+          receiver,
+        );
+        return {accountId, weight: receiver.weight, metadata};
+      }),
+    );
+
+    resolvedEntries.push(...resolved);
+  }
+
+  resolvedEntries.sort((a, b) => (a.accountId > b.accountId ? 1 : -1));
 
   const onChain: OnChainSplitsReceiver[] = [];
   const metadata: MetadataSplitsReceiver[] = [];
@@ -260,12 +431,12 @@ export async function parseSplitsReceivers(
   let totalWeight = 0;
   let prevAccountId: bigint | null = null;
 
-  for (const {receiver, accountId} of resolved) {
-    const {weight} = receiver;
+  for (const entry of resolvedEntries) {
+    const {accountId, weight, metadata: metadataEntry} = entry;
 
     if (weight <= 0 || weight > TOTAL_SPLITS_WEIGHT) {
       throw new DripsError(`Invalid weight: ${weight}`, {
-        meta: {operation: parseSplitsReceivers.name, receiver},
+        meta: {operation: parseSplitsReceivers.name},
       });
     }
 
@@ -282,7 +453,7 @@ export async function parseSplitsReceivers(
     prevAccountId = accountId;
 
     onChain.push({accountId, weight});
-    metadata.push(await mapSdkToMetadataSplitsReceiver(accountId, receiver));
+    metadata.push(metadataEntry);
   }
 
   if (totalWeight !== TOTAL_SPLITS_WEIGHT) {

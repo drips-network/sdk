@@ -18,10 +18,18 @@ import {
 import {requireSupportedChain} from '../shared/assertions';
 import {parseSplitsReceivers, SdkSplitsReceiver} from '../shared/receiverUtils';
 import {calcDripListId} from '../shared/calcDripListId';
+import {calcAddressId} from '../shared/calcAddressId';
 import {
   encodeMetadataKeyValue,
   USER_METADATA_KEY,
 } from '../shared/encodeMetadataKeyValue';
+
+export type DripListDeadlineConfig = {
+  /** The deadline by which funds must be claimed. */
+  readonly deadline: Date;
+  /** The address to refund unclaimed funds to. */
+  readonly refundAddress: Address;
+};
 
 export type NewDripList = {
   /** Indicates whether the Drip List is visible. */
@@ -46,6 +54,8 @@ export type NewDripList = {
   readonly batchedTxOverrides?: BatchedTxOverrides;
   /** Optional latest voting round ID for the Drip List. */
   readonly latestVotingRoundId?: string;
+  /** Optional deadline configuration for the Drip List receivers. */
+  readonly deadlineConfig?: DripListDeadlineConfig;
 };
 
 export type PrepareDripListCreationResult = {
@@ -54,6 +64,7 @@ export type PrepareDripListCreationResult = {
   readonly dripListId: bigint;
   readonly preparedTx: PreparedTx;
   readonly metadata: DripListMetadata;
+  readonly allowExternalDonations: boolean;
 };
 
 export async function prepareDripListCreation(
@@ -73,15 +84,27 @@ export async function prepareDripListCreation(
     batchedTxOverrides,
     salt: maybeSalt,
     latestVotingRoundId,
+    deadlineConfig,
   } = dripList;
 
   const {metadata: metadataSplitsReceivers, onChain: onChainSplitsReceivers} =
-    await parseSplitsReceivers(adapter, receivers);
+    await parseSplitsReceivers(
+      adapter,
+      receivers,
+      deadlineConfig ? {deadlineConfig} : undefined,
+    );
 
   const salt = maybeSalt ?? calculateRandomSalt();
   const {nftDriver, caller} = contractsRegistry[chainId];
   const minter = await adapter.getAddress();
+  const ownerAddress = transferTo ?? minter;
+  const ownerAccountId = await calcAddressId(adapter, ownerAddress);
   const dripListId = await calcDripListId(adapter, {salt, minter});
+
+  // External donations are not allowed if any of the receivers is a deadline and the refund account is the owner.
+  const allowExternalDonations = !metadataSplitsReceivers
+    .filter(receiver => receiver.type === 'deadline')
+    .some(receiver => receiver.refundAccountId === ownerAccountId.toString());
 
   const metadata = buildDripListMetadata({
     name,
@@ -90,6 +113,7 @@ export async function prepareDripListCreation(
     description,
     receivers: metadataSplitsReceivers,
     latestVotingRoundId,
+    allowExternalDonations,
   });
 
   const ipfsHash = await ipfsMetadataUploaderFn(metadata);
@@ -102,7 +126,7 @@ export async function prepareDripListCreation(
     functionName: 'safeMintWithSalt',
     args: [
       salt,
-      transferTo ?? minter,
+      ownerAddress,
       [encodeMetadataKeyValue({key: USER_METADATA_KEY, value: ipfsHash})],
     ],
   });
@@ -127,5 +151,12 @@ export async function prepareDripListCreation(
     batchedTxOverrides,
   });
 
-  return {preparedTx, metadata, ipfsHash, salt, dripListId};
+  return {
+    preparedTx,
+    metadata,
+    ipfsHash,
+    salt,
+    dripListId,
+    allowExternalDonations,
+  };
 }

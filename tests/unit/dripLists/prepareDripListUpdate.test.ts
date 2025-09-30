@@ -250,6 +250,7 @@ describe('prepareDripListUpdate', () => {
         name: validConfig.metadata!.name,
         isVisible: validConfig.metadata!.isVisible,
         description: validConfig.metadata!.description,
+        allowExternalDonations: true,
       });
       expect(mockIpfsMetadataUploader).toHaveBeenCalledWith(mockMetadata);
       expect(encodeMetadataKeyValue).toHaveBeenCalledWith({
@@ -261,6 +262,7 @@ describe('prepareDripListUpdate', () => {
         preparedTx: mockBatchedTx,
         ipfsHash: mockIpfsHash,
         metadata: mockMetadata,
+        allowExternalDonations: true,
       });
     });
 
@@ -297,6 +299,7 @@ describe('prepareDripListUpdate', () => {
         name: 'Updated Name Only',
         isVisible: mockExistingDripList.isVisible,
         description: mockExistingDripList.description,
+        allowExternalDonations: true,
       });
       // Should only build emit metadata tx, not setSplits tx
       expect(buildTx).toHaveBeenCalledTimes(2); // emit metadata + batched
@@ -325,6 +328,7 @@ describe('prepareDripListUpdate', () => {
         name: mockExistingDripList.name,
         isVisible: mockExistingDripList.isVisible,
         description: mockExistingDripList.description,
+        allowExternalDonations: true,
       });
       // Should build both emit metadata and setSplits txs
       expect(buildTx).toHaveBeenCalledTimes(3); // emit metadata + setSplits + batched
@@ -356,6 +360,7 @@ describe('prepareDripListUpdate', () => {
         name: 'New Name',
         isVisible: mockExistingDripList.isVisible, // from existing
         description: mockExistingDripList.description, // from existing
+        allowExternalDonations: true,
       });
     });
 
@@ -384,6 +389,117 @@ describe('prepareDripListUpdate', () => {
         args: [[mockCallerCall2, mockCallerCall1]],
         batchedTxOverrides: {gasLimit: 500000n},
       });
+    });
+
+    it('should set allowExternalDonations to false when deadline receiver refund account matches owner', async () => {
+      // Arrange
+      const ownerAccountId = BigInt(mockExistingDripList.owner.accountId);
+      const deadlineMetadataReceivers = [
+        {
+          type: 'deadline' as const,
+          accountId: '123',
+          weight: 500000,
+          deadline: new Date('2025-12-31'),
+          claimableProject: {
+            accountId: '789',
+            source: {
+              forge: 'github' as const,
+              repoName: 'test-repo',
+              ownerName: 'test-owner',
+              url: 'https://github.com/test-owner/test-repo',
+            },
+          },
+          recipientAccountId: '456',
+          refundAccountId: ownerAccountId.toString(),
+        },
+        {
+          type: 'address' as const,
+          accountId: '456',
+          weight: 500000,
+        },
+      ];
+      vi.mocked(parseSplitsReceivers).mockResolvedValue({
+        onChain: mockOnChainReceivers,
+        metadata: deadlineMetadataReceivers,
+      });
+
+      // Act
+      const result = await prepareDripListUpdate(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        validConfig,
+        mockGraphqlClient,
+      );
+
+      // Assert
+      expect(result.allowExternalDonations).toBe(false);
+      expect(buildDripListMetadata).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowExternalDonations: false,
+        }),
+      );
+    });
+
+    it('should set allowExternalDonations to true when no deadline receivers', async () => {
+      // Act
+      const result = await prepareDripListUpdate(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        validConfig,
+        mockGraphqlClient,
+      );
+
+      // Assert
+      expect(result.allowExternalDonations).toBe(true);
+    });
+
+    it('should set allowExternalDonations to true when deadline receiver refund account does not match owner', async () => {
+      // Arrange
+      const differentAccountId = 9999n;
+      const deadlineMetadataReceivers = [
+        {
+          type: 'deadline' as const,
+          accountId: '123',
+          weight: 500000,
+          deadline: new Date('2025-12-31'),
+          claimableProject: {
+            accountId: '789',
+            source: {
+              forge: 'github' as const,
+              repoName: 'test-repo',
+              ownerName: 'test-owner',
+              url: 'https://github.com/test-owner/test-repo',
+            },
+          },
+          recipientAccountId: '456',
+          refundAccountId: differentAccountId.toString(),
+        },
+        {
+          type: 'address' as const,
+          accountId: '456',
+          weight: 500000,
+        },
+      ];
+      vi.mocked(parseSplitsReceivers).mockResolvedValue({
+        onChain: mockOnChainReceivers,
+        metadata: deadlineMetadataReceivers,
+      });
+
+      // Act
+      const result = await prepareDripListUpdate(
+        mockAdapter,
+        mockIpfsMetadataUploader,
+        validConfig,
+        mockGraphqlClient,
+      );
+
+      // Assert
+      expect(result.allowExternalDonations).toBe(true);
+      expect(buildDripListMetadata).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowExternalDonations: true,
+        }),
+      );
     });
   });
 

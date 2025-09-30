@@ -1,6 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {createDripList} from '../../../src/internal/drip-lists/createDripList';
-import {DripsError} from '../../../src/internal/shared/DripsError';
 import type {
   WriteBlockchainAdapter,
   TxResponse,
@@ -65,9 +64,10 @@ describe('createDripList', () => {
       isVisible: true,
       recipients: [],
       name: 'Test Drip List',
-      description: 'A test drip list',
+      description: 'A test drip List',
       latestVersion: 'v2',
     },
+    allowExternalDonations: true,
   };
 
   const mockTxResponse: TxResponse = {
@@ -107,6 +107,7 @@ describe('createDripList', () => {
         dripListId: mockCreationContext.dripListId,
         txResponse: mockTxResponse,
         metadata: mockCreationContext.metadata,
+        allowExternalDonations: true,
       });
     });
 
@@ -213,6 +214,7 @@ describe('createDripList', () => {
         dripListId: mockCreationContext.dripListId,
         txResponse: mockTxResponse,
         metadata: mockCreationContext.metadata,
+        allowExternalDonations: true,
       });
     });
 
@@ -269,6 +271,7 @@ describe('createDripList', () => {
           description: 'Custom description',
           latestVersion: 'v2',
         },
+        allowExternalDonations: true,
       };
       vi.mocked(prepareDripListCreation).mockResolvedValue(customContext);
 
@@ -361,6 +364,7 @@ describe('createDripList', () => {
           recipients: [],
           latestVersion: 'v2',
         },
+        allowExternalDonations: true,
       };
       vi.mocked(prepareDripListCreation).mockResolvedValue(zeroContext);
 
@@ -406,6 +410,7 @@ describe('createDripList', () => {
           description: 'Large description',
           latestVersion: 'v2',
         },
+        allowExternalDonations: true,
       };
       vi.mocked(prepareDripListCreation).mockResolvedValue(largeContext);
 
