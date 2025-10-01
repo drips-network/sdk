@@ -219,6 +219,72 @@ describe('receiverUtils', () => {
     });
   });
 
+  describe('resolveDeadlineAccount', () => {
+    it('should resolve deadline account with project receiver', async () => {
+      const mockUrl = 'https://github.com/owner/repo';
+      const mockDeadline = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      const mockRefundAddress =
+        '0x1234567890123456789012345678901234567890' as Address;
+      const mockDestructured = {
+        forge: 'github' as const,
+        ownerName: 'owner',
+        repoName: 'repo',
+      };
+      const mockRepoAccountId = 987n;
+      const mockRefundAccountId = 654n;
+      const mockDeadlineAccountId = 321n;
+      const expectedDeadlineSeconds = Math.floor(mockDeadline.getTime() / 1000);
+
+      vi.mocked(destructProjectUrl).mockReturnValue(mockDestructured);
+      vi.mocked(calcProjectId).mockResolvedValue(mockRepoAccountId);
+      vi.mocked(calcAddressId).mockResolvedValue(mockRefundAccountId);
+      vi.mocked(calcDeadlineDriverAccountId).mockResolvedValue(
+        mockDeadlineAccountId,
+      );
+
+      const result = await receiverUtils.resolveDeadlineAccount(
+        mockAdapter,
+        {
+          type: 'project',
+          url: mockUrl,
+        },
+        {
+          deadline: mockDeadline,
+          refundAddress: mockRefundAddress,
+        },
+      );
+
+      expect(result).toEqual({
+        deadlineAccountId: mockDeadlineAccountId,
+        repoAccountId: mockRepoAccountId,
+        refundAccountId: mockRefundAccountId,
+        deadlineSeconds: expectedDeadlineSeconds,
+        source: {
+          forge: 'github',
+          ownerName: 'owner',
+          repoName: 'repo',
+          url: mockUrl,
+        },
+      });
+
+      expect(destructProjectUrl).toHaveBeenCalledWith(mockUrl);
+      expect(calcProjectId).toHaveBeenCalledWith(mockAdapter, {
+        forge: mockDestructured.forge,
+        name: `${mockDestructured.ownerName}/${mockDestructured.repoName}`,
+      });
+      expect(calcAddressId).toHaveBeenCalledWith(
+        mockAdapter,
+        mockRefundAddress,
+      );
+      expect(calcDeadlineDriverAccountId).toHaveBeenCalledWith(mockAdapter, {
+        repoAccountId: mockRepoAccountId,
+        recipientAccountId: mockRepoAccountId,
+        refundAccountId: mockRefundAccountId,
+        deadlineSeconds: expectedDeadlineSeconds,
+      });
+    });
+  });
+
   describe('parseSplitsReceivers', () => {
     beforeEach(() => {
       vi.mocked(destructProjectUrl).mockImplementation((url: string) => {

@@ -81,6 +81,19 @@ type MetadataDeadlineReceiver = z.output<typeof deadlineSplitReceiverSchema>;
 
 type SubListMetadataReceiver = z.output<typeof subListSplitReceiverSchema>;
 
+export type ResolvedDeadlineAccount = {
+  readonly deadlineAccountId: bigint;
+  readonly repoAccountId: bigint;
+  readonly refundAccountId: bigint;
+  readonly deadlineSeconds: number;
+  readonly source: {
+    readonly forge: string;
+    readonly ownerName: string;
+    readonly repoName: string;
+    readonly url: string;
+  };
+};
+
 export type MetadataSplitsReceiver =
   | MetadataProjectReceiver
   | MetadataDripListReceiver
@@ -92,16 +105,42 @@ export type ParseSplitsReceiversOptions = {
   readonly deadlineConfig?: DripListDeadlineConfig;
 };
 
+export async function resolveDeadlineAccount(
+  adapter: ReadBlockchainAdapter,
+  receiver: SdkProjectReceiver,
+  deadlineConfig: DripListDeadlineConfig,
+): Promise<ResolvedDeadlineAccount> {
+  const {url} = receiver;
+  const {deadline, refundAddress} = deadlineConfig;
+
+  const {forge, ownerName, repoName} = destructProjectUrl(url);
+  const repoAccountId = await calcProjectId(adapter, {
+    forge,
+    name: `${ownerName}/${repoName}`,
+  });
+
+  const refundAccountId = await calcAddressId(adapter, refundAddress);
+  const deadlineSeconds = toDeadlineSeconds(deadline);
+
+  const deadlineAccountId = await calcDeadlineDriverAccountId(adapter, {
+    repoAccountId,
+    recipientAccountId: repoAccountId,
+    refundAccountId,
+    deadlineSeconds,
+  });
+
+  return {
+    deadlineAccountId,
+    repoAccountId,
+    refundAccountId,
+    deadlineSeconds,
+    source: {forge, ownerName, repoName, url},
+  } satisfies ResolvedDeadlineAccount;
+}
+
 type ResolvedDeadlineReceiver = {
   readonly receiver: SdkSplitsReceiver;
-  readonly deadlineAccountId: bigint;
-  readonly repoAccountId: bigint;
-  readonly source: {
-    readonly forge: string;
-    readonly ownerName: string;
-    readonly repoName: string;
-    readonly url: string;
-  };
+  readonly account: ResolvedDeadlineAccount;
 };
 
 async function parseDeadlineReceivers(
@@ -119,41 +158,26 @@ async function parseDeadlineReceivers(
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
 
-  const refundAccountId = await calcAddressId(
-    adapter,
-    deadlineConfig.refundAddress,
-  );
-  const deadlineSeconds = toDeadlineSeconds(deadlineConfig.deadline);
-
   const resolved = await Promise.all(
     sdkReceivers.map(async receiver => {
       if (receiver.type !== 'project') {
         unreachable('Only project receivers can be used with deadlines');
       }
 
-      const {url} = receiver;
-      const {forge, ownerName, repoName} = destructProjectUrl(url);
-      const repoAccountId = await calcProjectId(adapter, {
-        forge,
-        name: `${ownerName}/${repoName}`,
-      });
-      const deadlineAccountId = await calcDeadlineDriverAccountId(adapter, {
-        repoAccountId,
-        recipientAccountId: repoAccountId,
-        refundAccountId,
-        deadlineSeconds,
-      });
-
       return {
         receiver,
-        deadlineAccountId,
-        repoAccountId,
-        source: {forge, ownerName, repoName, url},
+        account: await resolveDeadlineAccount(
+          adapter,
+          receiver,
+          deadlineConfig,
+        ),
       } as ResolvedDeadlineReceiver;
     }),
   );
 
-  resolved.sort((a, b) => (a.deadlineAccountId > b.deadlineAccountId ? 1 : -1));
+  resolved.sort((a, b) =>
+    a.account.deadlineAccountId > b.account.deadlineAccountId ? 1 : -1,
+  );
 
   const onChain: OnChainSplitsReceiver[] = [];
   const metadata: MetadataSplitsReceiver[] = [];
@@ -161,7 +185,10 @@ async function parseDeadlineReceivers(
   let previousAccountId: bigint | null = null;
 
   for (const entry of resolved) {
-    const {receiver, deadlineAccountId, repoAccountId, source} = entry;
+    const {
+      receiver,
+      account: {deadlineAccountId, repoAccountId, refundAccountId, source},
+    } = entry;
     const {weight} = receiver;
 
     if (weight <= 0 || weight > TOTAL_SPLITS_WEIGHT) {

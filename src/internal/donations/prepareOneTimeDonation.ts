@@ -8,12 +8,11 @@ import {
 import {requireSupportedChain} from '../shared/assertions';
 import {buildTx} from '../shared/buildTx';
 import {contractsRegistry} from '../config/contractsRegistry';
-import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
-import {calcDeadlineDriverAccountId} from '../shared/calcDeadlineDriverAccountId';
-import {calcAddressId} from '../shared/calcAddressId';
-import {toDeadlineSeconds} from '../shared/toDeadlineSeconds';
-import {calcProjectId} from '../projects/calcProjectId';
-import {destructProjectUrl} from '../projects/destructProjectUrl';
+import {
+  resolveDeadlineAccount,
+  resolveReceiverAccountId,
+  SdkReceiver,
+} from '../shared/receiverUtils';
 import {DripsError} from '../shared/DripsError';
 
 export type DeadlineConfig = {
@@ -68,25 +67,19 @@ export async function prepareOneTimeDonation(
       );
     }
 
-    const {forge, ownerName, repoName} = destructProjectUrl(receiver.url);
-    const repoAccountId = await calcProjectId(adapter, {
-      forge,
-      name: `${ownerName}/${repoName}`,
-    });
+    if (deadlineConfig.deadline <= new Date()) {
+      throw new DripsError('Deadline must be in the future', {
+        meta: {operation: prepareOneTimeDonation.name, receiver},
+      });
+    }
 
-    const refundAccountId = await calcAddressId(
+    const {deadlineAccountId} = await resolveDeadlineAccount(
       adapter,
-      deadlineConfig.refundAddress,
+      receiver,
+      deadlineConfig,
     );
 
-    const deadlineSeconds = toDeadlineSeconds(deadlineConfig.deadline);
-
-    receiverId = await calcDeadlineDriverAccountId(adapter, {
-      repoAccountId,
-      recipientAccountId: repoAccountId,
-      refundAccountId,
-      deadlineSeconds,
-    });
+    receiverId = deadlineAccountId;
   } else {
     receiverId = await resolveReceiverAccountId(adapter, receiver);
   }

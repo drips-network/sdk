@@ -4,7 +4,10 @@ import {
   PreparedTx,
   WriteBlockchainAdapter,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
-import {resolveReceiverAccountId} from '../../../src/internal/shared/receiverUtils';
+import {
+  resolveDeadlineAccount,
+  resolveReceiverAccountId,
+} from '../../../src/internal/shared/receiverUtils';
 import {
   OneTimeDonation,
   prepareOneTimeDonation,
@@ -13,20 +16,10 @@ import {contractsRegistry} from '../../../src';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {addressDriverAbi} from '../../../src/internal/abis/addressDriverAbi';
 import {generateRandomAddress, generateRandomBigInt} from '../../testUtils';
-import {calcDeadlineDriverAccountId} from '../../../src/internal/shared/calcDeadlineDriverAccountId';
-import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
-import {toDeadlineSeconds} from '../../../src/internal/shared/toDeadlineSeconds';
-import {calcProjectId} from '../../../src/internal/projects/calcProjectId';
-import {destructProjectUrl} from '../../../src/internal/projects/destructProjectUrl';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 
 vi.mock('../../../src/internal/shared/receiverUtils');
 vi.mock('../../../src/internal/shared/buildTx');
-vi.mock('../../../src/internal/shared/calcDeadlineDriverAccountId');
-vi.mock('../../../src/internal/shared/calcAddressId');
-vi.mock('../../../src/internal/shared/toDeadlineSeconds');
-vi.mock('../../../src/internal/projects/calcProjectId');
-vi.mock('../../../src/internal/projects/destructProjectUrl');
 
 describe('prepareOneTimeDonation', () => {
   let mockWriteAdapter: WriteBlockchainAdapter;
@@ -54,6 +47,18 @@ describe('prepareOneTimeDonation', () => {
     vi.mocked(resolveReceiverAccountId).mockResolvedValue(
       mockReceiverAccountId,
     );
+    vi.mocked(resolveDeadlineAccount).mockResolvedValue({
+      deadlineAccountId: mockReceiverAccountId,
+      repoAccountId: generateRandomBigInt(),
+      refundAccountId: generateRandomBigInt(),
+      deadlineSeconds: 0,
+      source: {
+        forge: 'github',
+        ownerName: 'owner',
+        repoName: 'repo',
+        url: 'https://github.com/owner/repo',
+      },
+    } as any);
   });
 
   it('should build the expected give transaction', async () => {
@@ -145,23 +150,21 @@ describe('prepareOneTimeDonation', () => {
   it('should handle project receiver with deadline config', async () => {
     // Arrange
     const mockDeadlineAccountId = generateRandomBigInt();
-    const mockRepoAccountId = generateRandomBigInt();
-    const mockRefundAccountId = generateRandomBigInt();
-    const mockDeadlineSeconds = 1735689600n;
     const mockRefundAddress = generateRandomAddress();
-    const mockDeadline = new Date('2025-01-01');
+    const mockDeadline = new Date(Date.now() + 86400000);
 
-    vi.mocked(destructProjectUrl).mockReturnValue({
-      forge: 'github',
-      ownerName: 'owner',
-      repoName: 'repo',
-    });
-    vi.mocked(calcProjectId).mockResolvedValue(mockRepoAccountId);
-    vi.mocked(calcAddressId).mockResolvedValue(mockRefundAccountId);
-    vi.mocked(toDeadlineSeconds).mockReturnValue(Number(mockDeadlineSeconds));
-    vi.mocked(calcDeadlineDriverAccountId).mockResolvedValue(
-      mockDeadlineAccountId,
-    );
+    vi.mocked(resolveDeadlineAccount).mockResolvedValue({
+      deadlineAccountId: mockDeadlineAccountId,
+      repoAccountId: generateRandomBigInt(),
+      refundAccountId: generateRandomBigInt(),
+      deadlineSeconds: 123,
+      source: {
+        forge: 'github',
+        ownerName: 'owner',
+        repoName: 'repo',
+        url: 'https://github.com/owner/repo',
+      },
+    } as any);
 
     const donation: OneTimeDonation = {
       erc20: mockErc20,
@@ -181,24 +184,11 @@ describe('prepareOneTimeDonation', () => {
     await prepareOneTimeDonation(mockWriteAdapter, donation);
 
     // Assert
-    expect(destructProjectUrl).toHaveBeenCalledWith(
-      'https://github.com/owner/repo',
-    );
-    expect(calcProjectId).toHaveBeenCalledWith(mockWriteAdapter, {
-      forge: 'github',
-      name: 'owner/repo',
-    });
-    expect(calcAddressId).toHaveBeenCalledWith(
+    expect(resolveDeadlineAccount).toHaveBeenCalledWith(
       mockWriteAdapter,
-      mockRefundAddress,
+      donation.receiver,
+      donation.deadlineConfig,
     );
-    expect(toDeadlineSeconds).toHaveBeenCalledWith(mockDeadline);
-    expect(calcDeadlineDriverAccountId).toHaveBeenCalledWith(mockWriteAdapter, {
-      repoAccountId: mockRepoAccountId,
-      recipientAccountId: mockRepoAccountId,
-      refundAccountId: mockRefundAccountId,
-      deadlineSeconds: Number(mockDeadlineSeconds),
-    });
     expect(buildTx).toHaveBeenCalledWith({
       abi: addressDriverAbi,
       functionName: 'give',
@@ -216,7 +206,7 @@ describe('prepareOneTimeDonation', () => {
   it('should throw error for non-project receiver with deadline config', async () => {
     // Arrange
     const mockRefundAddress = generateRandomAddress();
-    const mockDeadline = new Date('2025-01-01');
+    const mockDeadline = new Date(Date.now() + 86400000);
 
     const donation: OneTimeDonation = {
       erc20: mockErc20,
@@ -239,5 +229,35 @@ describe('prepareOneTimeDonation', () => {
     await expect(
       prepareOneTimeDonation(mockWriteAdapter, donation),
     ).rejects.toThrow('Deadline donations only support project receivers');
+    expect(resolveDeadlineAccount).not.toHaveBeenCalled();
+  });
+
+  it('should throw error when deadline is in the past', async () => {
+    // Arrange
+    const mockRefundAddress = generateRandomAddress();
+    const pastDeadline = new Date(Date.now() - 10000);
+
+    const donation: OneTimeDonation = {
+      erc20: mockErc20,
+      amount: '10',
+      tokenDecimals: 18,
+      receiver: {
+        type: 'project',
+        url: 'https://github.com/owner/repo',
+      },
+      deadlineConfig: {
+        deadline: pastDeadline,
+        refundAddress: mockRefundAddress,
+      },
+    };
+
+    // Act & Assert
+    await expect(
+      prepareOneTimeDonation(mockWriteAdapter, donation),
+    ).rejects.toThrow(DripsError);
+    await expect(
+      prepareOneTimeDonation(mockWriteAdapter, donation),
+    ).rejects.toThrow('Deadline must be in the future');
+    expect(resolveDeadlineAccount).not.toHaveBeenCalled();
   });
 });
