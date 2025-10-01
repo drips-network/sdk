@@ -63,7 +63,7 @@ describe('resolveDriverName', () => {
       expect(result).toBe('repoSubAccount');
     });
 
-    it('should return "deadline" for driver ID 5', () => {
+    it('should return "repoDeadline" for driver ID 5', () => {
       // Arrange
       const driverBits = 5n;
       const accountId = driverBits << 224n;
@@ -258,7 +258,7 @@ describe('resolveDriverName', () => {
         2n << 224n, // immutableSplits
         3n << 224n, // repo
         4n << 224n, // repoSubAccount
-        5n << 224n, // deadline
+        5n << 224n, // repoDeadline
       ];
       const expected = [
         'address',
