@@ -49,6 +49,7 @@ export type PrepareDripListUpdateResult = {
   readonly ipfsHash: string;
   readonly preparedTx: PreparedTx;
   readonly metadata: DripListMetadata;
+  readonly allowExternalDonations: boolean;
 };
 
 export async function prepareDripListUpdate(
@@ -91,12 +92,20 @@ export async function prepareDripListUpdate(
   const {metadata: metadataSplitsReceivers, onChain: onChainSplitsReceivers} =
     await parseSplitsReceivers(adapter, effectiveSplitsReceivers);
 
+  const ownerAccountId = BigInt(dripList.owner.accountId);
+
+  // External donations are not allowed if any of the receivers is a deadline and the refund account is the owner.
+  const allowExternalDonations = !metadataSplitsReceivers
+    .filter(receiver => receiver.type === 'deadline')
+    .some(receiver => receiver.refundAccountId === ownerAccountId.toString());
+
   const metadata = buildDripListMetadata({
     dripListId,
     receivers: metadataSplitsReceivers,
     name: maybeMetadata?.name ?? dripList.name,
     isVisible: maybeMetadata?.isVisible ?? dripList.isVisible,
     description: maybeMetadata?.description ?? dripList.description,
+    allowExternalDonations,
   });
 
   const ipfsHash = await ipfsMetadataUploaderFn(metadata);
@@ -139,5 +148,6 @@ export async function prepareDripListUpdate(
     preparedTx,
     ipfsHash,
     metadata,
+    allowExternalDonations,
   };
 }

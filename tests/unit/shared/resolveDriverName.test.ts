@@ -63,6 +63,18 @@ describe('resolveDriverName', () => {
       expect(result).toBe('repoSubAccount');
     });
 
+    it('should return "repoDeadline" for driver ID 5', () => {
+      // Arrange
+      const driverBits = 5n;
+      const accountId = driverBits << 224n;
+
+      // Act
+      const result = resolveDriverName(accountId);
+
+      // Assert
+      expect(result).toBe('repoDeadline');
+    });
+
     it('should correctly identify driver type regardless of other bits', () => {
       // Arrange - Set all bits except the driver ID bits
       const driverBits = 2n; // immutableSplits
@@ -100,8 +112,8 @@ describe('resolveDriverName', () => {
     });
 
     it('should throw error for unknown driver ID', () => {
-      // Arrange - Use a driver ID that doesn't exist (5)
-      const driverBits = 5n;
+      // Arrange - Use a driver ID that doesn't exist (6)
+      const driverBits = 6n;
       const accountId = driverBits << 224n;
 
       // Act & Assert
@@ -163,13 +175,14 @@ describe('resolveDriverName', () => {
   describe('bit manipulation correctness', () => {
     it('should correctly extract driver ID bits', () => {
       // Test each valid driver ID
-      const driverIds = [0n, 1n, 2n, 3n, 4n];
+      const driverIds = [0n, 1n, 2n, 3n, 4n, 5n];
       const expectedNames = [
         'address',
         'nft',
         'immutableSplits',
         'repo',
         'repoSubAccount',
+        'repoDeadline',
       ];
 
       for (let i = 0; i < driverIds.length; i++) {
@@ -245,6 +258,7 @@ describe('resolveDriverName', () => {
         2n << 224n, // immutableSplits
         3n << 224n, // repo
         4n << 224n, // repoSubAccount
+        5n << 224n, // repoDeadline
       ];
       const expected = [
         'address',
@@ -252,6 +266,7 @@ describe('resolveDriverName', () => {
         'immutableSplits',
         'repo',
         'repoSubAccount',
+        'repoDeadline',
       ];
 
       // Act

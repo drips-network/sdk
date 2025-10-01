@@ -1,1 +1,0 @@
-export { default as component } from "../../../../src/routes/donations/one-time-ethers/+page.svelte";

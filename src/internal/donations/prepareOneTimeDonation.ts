@@ -8,7 +8,19 @@ import {
 import {requireSupportedChain} from '../shared/assertions';
 import {buildTx} from '../shared/buildTx';
 import {contractsRegistry} from '../config/contractsRegistry';
-import {resolveReceiverAccountId, SdkReceiver} from '../shared/receiverUtils';
+import {
+  resolveDeadlineAccount,
+  resolveReceiverAccountId,
+  SdkReceiver,
+} from '../shared/receiverUtils';
+import {DripsError} from '../shared/DripsError';
+
+export type DeadlineConfig = {
+  /** The deadline by which funds must be claimed. */
+  readonly deadline: Date;
+  /** The address to refund unclaimed funds to. */
+  readonly refundAddress: Address;
+};
 
 export type OneTimeDonation = {
   /** The receiver of the donation. */
@@ -23,6 +35,8 @@ export type OneTimeDonation = {
   readonly tokenDecimals: number;
   /** Optional transaction overrides for the batched transaction. */
   batchedTxOverrides?: BatchedTxOverrides;
+  /** Optional deadline configuration for the donation. */
+  readonly deadlineConfig?: DeadlineConfig;
 };
 
 export async function prepareOneTimeDonation(
@@ -31,9 +45,44 @@ export async function prepareOneTimeDonation(
 ): Promise<PreparedTx> {
   const chainId = await adapter.getChainId();
   requireSupportedChain(chainId);
-  const {receiver, erc20, amount, batchedTxOverrides, tokenDecimals} = donation;
+  const {
+    receiver,
+    erc20,
+    amount,
+    batchedTxOverrides,
+    tokenDecimals,
+    deadlineConfig,
+  } = donation;
   const amountInWei = parseUnits(amount, tokenDecimals);
-  const receiverId = await resolveReceiverAccountId(adapter, receiver);
+
+  let receiverId: bigint;
+
+  if (deadlineConfig) {
+    if (receiver.type !== 'project') {
+      throw new DripsError(
+        'Deadline donations only support project receivers',
+        {
+          meta: {operation: prepareOneTimeDonation.name, receiver},
+        },
+      );
+    }
+
+    if (deadlineConfig.deadline <= new Date()) {
+      throw new DripsError('Deadline must be in the future', {
+        meta: {operation: prepareOneTimeDonation.name, receiver},
+      });
+    }
+
+    const {deadlineAccountId} = await resolveDeadlineAccount(
+      adapter,
+      receiver,
+      deadlineConfig,
+    );
+
+    receiverId = deadlineAccountId;
+  } else {
+    receiverId = await resolveReceiverAccountId(adapter, receiver);
+  }
 
   return buildTx({
     abi: addressDriverAbi,

@@ -56,6 +56,7 @@ describe('buildDripListMetadata', () => {
     description: 'A test drip list description',
     isVisible: true,
     latestVotingRoundId: 'latestVotingRoundId',
+    allowExternalDonations: true,
   };
 
   describe('successful metadata building', () => {
@@ -74,6 +75,7 @@ describe('buildDripListMetadata', () => {
         name: 'Test Drip List',
         description: 'A test drip list description',
         isVisible: true,
+        allowExternalDonations: true,
         latestVotingRoundId: 'latestVotingRoundId',
         recipients: [
           {
@@ -358,6 +360,7 @@ describe('buildDripListMetadata', () => {
         dripListId: 1n,
         receivers: [],
         isVisible: false,
+        allowExternalDonations: false,
       };
 
       // Act
@@ -513,6 +516,7 @@ describe('buildDripListMetadata', () => {
     it('should not modify input parameters', async () => {
       // Arrange
       const originalParams = {
+        allowExternalDonations: true,
         dripListId: 123n,
         receivers: [
           {

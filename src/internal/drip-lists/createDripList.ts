@@ -15,6 +15,7 @@ export type CreateDripListResult = {
   dripListId: bigint;
   txResponse: TxResponse;
   metadata: DripListMetadata;
+  allowExternalDonations: boolean;
 };
 
 export async function createDripList(
@@ -22,8 +23,14 @@ export async function createDripList(
   ipfsMetadataUploaderFn: IpfsMetadataUploaderFn<DripListMetadata>,
   dripList: NewDripList,
 ): Promise<CreateDripListResult> {
-  const {salt, ipfsHash, dripListId, preparedTx, metadata} =
-    await prepareDripListCreation(adapter, ipfsMetadataUploaderFn, dripList);
+  const {
+    salt,
+    ipfsHash,
+    dripListId,
+    preparedTx,
+    metadata,
+    allowExternalDonations,
+  } = await prepareDripListCreation(adapter, ipfsMetadataUploaderFn, dripList);
 
   const txResponse = await adapter.sendTx(preparedTx);
 
@@ -33,5 +40,6 @@ export async function createDripList(
     ipfsHash,
     dripListId,
     txResponse,
+    allowExternalDonations,
   };
 }

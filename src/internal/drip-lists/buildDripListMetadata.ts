@@ -7,6 +7,7 @@ export function buildDripListMetadata(
     Omit<NewDripList, 'receivers'> & {
       dripListId: bigint;
       receivers: ReadonlyArray<MetadataSplitsReceiver>;
+      allowExternalDonations: boolean;
     },
     'minter' | 'chainId'
   >,
@@ -18,6 +19,7 @@ export function buildDripListMetadata(
     description,
     isVisible,
     latestVotingRoundId,
+    allowExternalDonations,
   } = params;
 
   return {
@@ -30,6 +32,7 @@ export function buildDripListMetadata(
     name,
     description: description ?? undefined,
     isVisible,
+    allowExternalDonations,
     recipients: [...receivers],
     latestVotingRoundId,
   };

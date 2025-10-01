@@ -70,6 +70,7 @@ describe('updateDripList', () => {
       data: '0xdata' as const,
       abiFunctionName: 'updateDripList' as const,
     },
+    allowExternalDonations: true,
   };
 
   const mockTxResponse: TxResponse = {
@@ -305,6 +306,7 @@ describe('updateDripList', () => {
           data: '0xcustomdata' as const,
           abiFunctionName: 'customUpdateDripList' as const,
         },
+        allowExternalDonations: true,
       };
       vi.mocked(prepareDripListUpdate).mockResolvedValue(customPrepareResult);
 
@@ -607,6 +609,7 @@ describe('updateDripList', () => {
           data: '0x' as const,
           abiFunctionName: 'updateDripList' as const,
         },
+        allowExternalDonations: true,
       };
       vi.mocked(prepareDripListUpdate).mockResolvedValue(minimalPrepareResult);
 
@@ -645,6 +648,7 @@ describe('updateDripList', () => {
           data: `0x${'f'.repeat(1000)}` as const,
           abiFunctionName: 'updateDripList' as const,
         },
+        allowExternalDonations: true,
       };
       vi.mocked(prepareDripListUpdate).mockResolvedValue(largePrepareResult);
 

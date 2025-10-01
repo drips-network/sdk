@@ -6,12 +6,14 @@ import {SdkSplitsReceiver} from '../../../src/internal/shared/receiverUtils';
 import {calcProjectId} from '../../../src/internal/projects/calcProjectId';
 import {destructProjectUrl} from '../../../src/internal/projects/destructProjectUrl';
 import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
+import {calcDeadlineDriverAccountId} from '../../../src/internal/shared/calcDeadlineDriverAccountId';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 import {DripList} from '../../../src/internal/drip-lists/getDripListById';
 
 vi.mock('../../../src/internal/projects/calcProjectId');
 vi.mock('../../../src/internal/projects/destructProjectUrl');
 vi.mock('../../../src/internal/shared/calcAddressId');
+vi.mock('../../../src/internal/shared/calcDeadlineDriverAccountId');
 
 describe('receiverUtils', () => {
   let mockAdapter: ReadBlockchainAdapter;
@@ -213,6 +215,72 @@ describe('receiverUtils', () => {
         await expect(
           receiverUtils.resolveReceiverAccountId(mockAdapter, receiver),
         ).rejects.toThrow('Unsupported receiver type: unsupported');
+      });
+    });
+  });
+
+  describe('resolveDeadlineAccount', () => {
+    it('should resolve deadline account with project receiver', async () => {
+      const mockUrl = 'https://github.com/owner/repo';
+      const mockDeadline = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      const mockRefundAddress =
+        '0x1234567890123456789012345678901234567890' as Address;
+      const mockDestructured = {
+        forge: 'github' as const,
+        ownerName: 'owner',
+        repoName: 'repo',
+      };
+      const mockRepoAccountId = 987n;
+      const mockRefundAccountId = 654n;
+      const mockDeadlineAccountId = 321n;
+      const expectedDeadlineSeconds = Math.floor(mockDeadline.getTime() / 1000);
+
+      vi.mocked(destructProjectUrl).mockReturnValue(mockDestructured);
+      vi.mocked(calcProjectId).mockResolvedValue(mockRepoAccountId);
+      vi.mocked(calcAddressId).mockResolvedValue(mockRefundAccountId);
+      vi.mocked(calcDeadlineDriverAccountId).mockResolvedValue(
+        mockDeadlineAccountId,
+      );
+
+      const result = await receiverUtils.resolveDeadlineAccount(
+        mockAdapter,
+        {
+          type: 'project',
+          url: mockUrl,
+        },
+        {
+          deadline: mockDeadline,
+          refundAddress: mockRefundAddress,
+        },
+      );
+
+      expect(result).toEqual({
+        deadlineAccountId: mockDeadlineAccountId,
+        repoAccountId: mockRepoAccountId,
+        refundAccountId: mockRefundAccountId,
+        deadlineSeconds: expectedDeadlineSeconds,
+        source: {
+          forge: 'github',
+          ownerName: 'owner',
+          repoName: 'repo',
+          url: mockUrl,
+        },
+      });
+
+      expect(destructProjectUrl).toHaveBeenCalledWith(mockUrl);
+      expect(calcProjectId).toHaveBeenCalledWith(mockAdapter, {
+        forge: mockDestructured.forge,
+        name: `${mockDestructured.ownerName}/${mockDestructured.repoName}`,
+      });
+      expect(calcAddressId).toHaveBeenCalledWith(
+        mockAdapter,
+        mockRefundAddress,
+      );
+      expect(calcDeadlineDriverAccountId).toHaveBeenCalledWith(mockAdapter, {
+        repoAccountId: mockRepoAccountId,
+        recipientAccountId: mockRepoAccountId,
+        refundAccountId: mockRefundAccountId,
+        deadlineSeconds: expectedDeadlineSeconds,
       });
     });
   });
@@ -728,6 +796,74 @@ describe('receiverUtils', () => {
         address: '0x1234567890123456789012345678901234567890',
         weight: 250000,
       });
+    });
+  });
+
+  describe('parseSplitsReceivers with deadline config', () => {
+    beforeEach(() => {
+      vi.mocked(destructProjectUrl).mockReturnValue({
+        forge: 'github' as const,
+        ownerName: 'owner',
+        repoName: 'repo',
+      });
+      vi.mocked(calcProjectId).mockResolvedValue(123n);
+      vi.mocked(calcAddressId).mockResolvedValue(456n);
+      vi.mocked(calcDeadlineDriverAccountId).mockResolvedValue(789n);
+    });
+
+    it('should process project receivers with deadline config', async () => {
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'project',
+          url: 'https://github.com/owner/repo',
+          weight: 1000000,
+        },
+      ];
+
+      const deadlineConfig = {
+        deadline: new Date('2025-12-31'),
+        refundAddress: '0x1234567890123456789012345678901234567890' as Address,
+      };
+
+      const result = await receiverUtils.parseSplitsReceivers(
+        mockAdapter,
+        receivers,
+        {deadlineConfig},
+      );
+
+      expect(result.onChain).toHaveLength(1);
+      expect(result.metadata).toHaveLength(1);
+      expect(result.onChain[0].accountId).toBe(789n);
+      expect(result.metadata[0].type).toBe('deadline');
+    });
+
+    it('should handle mixed receivers with deadline config', async () => {
+      const receivers: SdkSplitsReceiver[] = [
+        {
+          type: 'project',
+          url: 'https://github.com/owner/repo',
+          weight: 500000,
+        },
+        {
+          type: 'drip-list',
+          accountId: 999n,
+          weight: 500000,
+        },
+      ];
+
+      const deadlineConfig = {
+        deadline: new Date('2025-12-31'),
+        refundAddress: '0x1234567890123456789012345678901234567890' as Address,
+      };
+
+      const result = await receiverUtils.parseSplitsReceivers(
+        mockAdapter,
+        receivers,
+        {deadlineConfig},
+      );
+
+      expect(result.onChain).toHaveLength(2);
+      expect(result.metadata).toHaveLength(2);
     });
   });
 });
