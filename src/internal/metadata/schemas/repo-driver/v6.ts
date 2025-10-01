@@ -24,7 +24,7 @@ export const deadlineSplitReceiverSchema = z.object({
   }),
   recipientAccountId: z.string(),
   refundAccountId: z.string(),
-  deadline: z.date(),
+  deadline: z.coerce.date(),
 });
 
 const repoDriverAccountSplitsSchemaV6 = z.object({
