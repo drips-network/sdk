@@ -15,7 +15,10 @@ import {
 } from './internal/shared/receiverUtils';
 import {calcDripListId} from './internal/shared/calcDripListId';
 import {calcAddressId} from './internal/shared/calcAddressId';
-import {calcProjectId} from './internal/projects/calcProjectId';
+import {
+  calcOrcidAccountId,
+  calcProjectId,
+} from './internal/projects/calcProjectId';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 
@@ -47,6 +50,7 @@ export const utils = {
   buildTx,
   calcAddressId,
   calcProjectId,
+  calcOrcidAccountId,
   calcDripListId,
   encodeStreamConfig,
   decodeStreamConfig,

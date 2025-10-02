@@ -13,7 +13,14 @@ import {claimOrcid} from '../internal/linked-identities/claimOrcid';
 
 export interface LinkedIdentitiesModule {
   /**
-   * Prepares a transaction to claim an ORCID identity for the connected account.
+   * Prepares a transaction to request ownership of an ORCID identity on-chain.
+   *
+   * **IMPORTANT - Drips App Requirement:**
+   * For a claiming operation to be considered valid within the context of the Drips App,
+   * the caller must ensure that 100% of the ORCID account's splits configuration is set
+   * to the ORCID owner's (claiming address) account ID. This method only handles the
+   * ownership request. The caller is responsible for configuring splits separately using
+   * the appropriate splits configuration methods.
    *
    * @param params - Parameters for claiming the ORCID identity.
    *
@@ -24,7 +31,14 @@ export interface LinkedIdentitiesModule {
   prepareClaimOrcid(params: ClaimOrcidParams): Promise<PreparedTx>;
 
   /**
-   * Claims an ORCID identity.
+   * Submits a transaction to request ownership of an ORCID identity on-chain.
+   *
+   * **IMPORTANT - Drips App Requirement:**
+   * For a claiming operation to be considered valid within the context of the Drips App,
+   * the caller must ensure that 100% of the ORCID account's splits configuration is set
+   * to the ORCID owner's (claiming address) account ID. This method only handles the
+   * ownership request. The caller is responsible for configuring splits separately using
+   * the appropriate splits configuration methods.
    *
    * @param params - Parameters for claiming the ORCID identity.
    *

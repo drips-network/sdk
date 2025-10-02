@@ -4,7 +4,10 @@ import {
   WriteBlockchainAdapter,
 } from '../internal/blockchain/BlockchainAdapter';
 import {calcAddressId} from '../internal/shared/calcAddressId';
-import {calcProjectId} from '../internal/projects/calcProjectId';
+import {
+  calcProjectId,
+  calcOrcidAccountId,
+} from '../internal/projects/calcProjectId';
 import {buildTx} from '../internal/shared/buildTx';
 import {
   encodeStreamConfig,
@@ -46,6 +49,17 @@ export interface UtilsModule {
    * @throws {DripsError} If the chain is not supported.
    */
   calcProjectId: (forge: Forge, name: ProjectName) => Promise<bigint>;
+
+  /**
+   * Calculates the (`RepoDriver`) account ID for an ORCID identity.
+   *
+   * @param orcidId - The ORCID ID (format: `'0000-0000-0000-0000'`).
+   *
+   * @returns The calculated account ID.
+   *
+   * @throws {DripsError} If the chain is not supported or ORCID ID is invalid.
+   */
+  calcOrcidAccountId: (orcidId: string) => Promise<bigint>;
 
   /**
    * Encodes a `StreamConfig` into a `bigint` representation.
@@ -101,6 +115,8 @@ export function createUtilsModule(deps: Deps): UtilsModule {
     calcAddressId: (address: Address) => calcAddressId(adapter, address),
     calcProjectId: (forge: Forge, name: ProjectName) =>
       calcProjectId(adapter, {forge, name}),
+    calcOrcidAccountId: (orcidId: string) =>
+      calcOrcidAccountId(adapter, orcidId),
     encodeStreamConfig,
     decodeStreamConfig,
     resolveDriverName,

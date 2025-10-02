@@ -49,7 +49,6 @@ import {
 } from '../../../src/internal/linked-identities/orcidUtils';
 import {calcOrcidAccountId} from '../../../src/internal/projects/calcProjectId';
 import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
-import {TOTAL_SPLITS_WEIGHT} from '../../../src/internal/shared/receiverUtils';
 import {repoDriverAbi} from '../../../src/internal/abis/repoDriverAbi';
 import {callerAbi} from '../../../src/internal/abis/callerAbi';
 
@@ -69,13 +68,6 @@ describe('prepareClaimOrcid', () => {
     data: '0xreq',
     value: 0n,
     abiFunctionName: 'requestUpdateOwner',
-  } as PreparedTx;
-
-  const setSplitsTx: PreparedTx = {
-    to: '0xRepoDriver1',
-    data: '0xsplit',
-    value: 0n,
-    abiFunctionName: 'setSplits',
   } as PreparedTx;
 
   const batchedTx: PreparedTx = {
@@ -104,7 +96,6 @@ describe('prepareClaimOrcid', () => {
 
     vi.mocked(buildTx)
       .mockReturnValueOnce(requestUpdateOwnerTx)
-      .mockReturnValueOnce(setSplitsTx)
       .mockReturnValueOnce(batchedTx);
 
     vi.mocked(convertToCallerCall).mockReturnValue(callerCall as any);
@@ -123,12 +114,9 @@ describe('prepareClaimOrcid', () => {
       );
       expect(assertValidOrcidId).toHaveBeenCalledWith(orcidId);
       expect(normalizeOrcidForContract).toHaveBeenCalledWith(orcidId);
-      expect(calcOrcidAccountId).toHaveBeenCalledWith(adapter, orcidId);
-      expect(adapter.getAddress).toHaveBeenCalled();
-      expect(calcAddressId).toHaveBeenCalledWith(adapter, signerAddress);
 
       // convertToCallerCall called for each inner tx
-      expect(convertToCallerCall).toHaveBeenCalledTimes(2);
+      expect(convertToCallerCall).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(batchedTx);
     });
@@ -189,40 +177,16 @@ describe('prepareClaimOrcid', () => {
       });
     });
 
-    it('should build setSplits transaction with correct parameters', async () => {
-      // Act
-      await prepareClaimOrcid(adapter, {orcidId});
-
-      // Assert
-      expect(buildTx).toHaveBeenNthCalledWith(
-        2,
-        expect.objectContaining({
-          abi: repoDriverAbi,
-          contract: '0xRepoDriver1',
-          functionName: 'setSplits',
-          args: [
-            orcidAccountId,
-            [
-              {
-                accountId: addressAccountId,
-                weight: TOTAL_SPLITS_WEIGHT,
-              },
-            ],
-          ],
-        }),
-      );
-    });
-
     it('should build batched transaction with correct parameters', async () => {
       // Act
       await prepareClaimOrcid(adapter, {orcidId});
 
       // Assert
-      expect(buildTx).toHaveBeenNthCalledWith(3, {
+      expect(buildTx).toHaveBeenNthCalledWith(2, {
         abi: callerAbi,
         contract: '0xCaller1',
         functionName: 'callBatched',
-        args: [[callerCall, callerCall]],
+        args: [[callerCall]],
         batchedTxOverrides: undefined,
       });
     });
