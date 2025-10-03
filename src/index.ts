@@ -43,8 +43,8 @@ export {sendContinuousDonation} from './internal/donations/sendContinuousDonatio
 export {prepareCollection} from './internal/collect/prepareCollection';
 export {collect} from './internal/collect/collect';
 
-export {prepareClaimOrcid} from './internal/linked-identities/prepareClaimOrcid';
 export {claimOrcid} from './internal/linked-identities/claimOrcid';
+export {waitForOrcidOwnership} from './internal/linked-identities/waitForOrcidOwnership';
 
 export const utils = {
   buildTx,
@@ -123,4 +123,9 @@ export {
   SqueezeArgs,
   StreamsHistory,
 } from './internal/collect/prepareCollection';
-export {ClaimOrcidParams} from './internal/linked-identities/prepareClaimOrcid';
+export {
+  ClaimOrcidParams,
+  ClaimOrcidResult,
+  ClaimOrcidStepResult,
+} from './internal/linked-identities/claimOrcid';
+export {WaitForOrcidOwnershipParams} from './internal/linked-identities/waitForOrcidOwnership';

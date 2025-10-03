@@ -1,27 +1,62 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {claimOrcid} from '../../../src/internal/linked-identities/claimOrcid';
-import {prepareClaimOrcid} from '../../../src/internal/linked-identities/prepareClaimOrcid';
 import {
   type WriteBlockchainAdapter,
   type TxResponse,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 
-vi.mock('../../../src/internal/linked-identities/prepareClaimOrcid');
+vi.mock('../../../src/internal/shared/assertions', () => ({
+  requireSupportedChain: vi.fn(),
+}));
+
+vi.mock('../../../src/internal/linked-identities/orcidUtils', () => ({
+  assertValidOrcidId: vi.fn(),
+  normalizeOrcidForContract: vi.fn(id => id),
+}));
+
+vi.mock('../../../src/internal/projects/calcProjectId', () => ({
+  calcOrcidAccountId: vi.fn(),
+}));
+
+vi.mock('../../../src/internal/shared/calcAddressId', () => ({
+  calcAddressId: vi.fn(),
+}));
+
+vi.mock(
+  '../../../src/internal/linked-identities/waitForOrcidOwnership',
+  () => ({
+    waitForOrcidOwnership: vi.fn(),
+  }),
+);
+
+vi.mock('../../../src/internal/config/contractsRegistry', () => ({
+  contractsRegistry: {
+    1: {
+      repoDriver: {address: '0xRepoDriver1'},
+    },
+  },
+}));
+
+import {waitForOrcidOwnership} from '../../../src/internal/linked-identities/waitForOrcidOwnership';
+import {calcOrcidAccountId} from '../../../src/internal/projects/calcProjectId';
+import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
 
 describe('claimOrcid', () => {
   let mockAdapter: WriteBlockchainAdapter;
 
-  const mockPreparedTx = {
-    to: '0xCaller000000000000000000000000000000000000' as `0x${string}`,
-    data: '0xdeadbeef' as `0x${string}`,
-  } as const;
+  const chainId = 1;
+  const signerAddress =
+    '0xSigner000000000000000000000000000000000001' as `0x${string}`;
+  const orcidId = '0000-0002-1825-0097';
+  const orcidAccountId = 12345n;
+  const addressAccountId = 67890n;
 
   const mockTxResponse: TxResponse = {
     hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
     wait: vi.fn().mockResolvedValue({
       hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
       to: '0xRecipient000000000000000000000000000000000000' as `0x${string}`,
-      from: '0xSender000000000000000000000000000000000000' as `0x${string}`,
+      from: signerAddress,
       blockNumber: 1n,
       gasUsed: 21000n,
       status: 'success' as const,
@@ -30,69 +65,216 @@ describe('claimOrcid', () => {
     meta: {module: 'linkedIdentities'},
   };
 
-  const params = {orcidId: '0000-0002-1825-0097'} as const;
-
   beforeEach((): void => {
+    vi.clearAllMocks();
+
     mockAdapter = {
-      getChainId: vi.fn(),
-      getAddress: vi.fn(),
+      getChainId: vi.fn().mockResolvedValue(chainId),
+      getAddress: vi.fn().mockResolvedValue(signerAddress),
       sendTx: vi.fn().mockResolvedValue(mockTxResponse),
       call: vi.fn(),
       signMsg: vi.fn(),
     } as unknown as WriteBlockchainAdapter;
 
-    vi.mocked(prepareClaimOrcid).mockResolvedValue(
-      mockPreparedTx as unknown as any,
+    vi.mocked(calcOrcidAccountId).mockResolvedValue(orcidAccountId);
+    vi.mocked(calcAddressId).mockResolvedValue(addressAccountId);
+    vi.mocked(waitForOrcidOwnership).mockResolvedValue(undefined);
+  });
+
+  it('claims ORCID and configures splits with 100% to claimer', async () => {
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId});
+
+    // Assert
+    expect(mockAdapter.sendTx).toHaveBeenCalledTimes(2); // claim + setSplits
+    expect(waitForOrcidOwnership).toHaveBeenCalledWith(mockAdapter, {
+      orcidId,
+      expectedOwner: signerAddress,
+      onProgress: undefined,
+    });
+    expect(result.orcidAccountId).toBe(orcidAccountId);
+    expect(result.status).toBe('complete');
+    expect(result.claim.success).toBe(true);
+    expect(result.ownership.success).toBe(true);
+    expect(result.splits.success).toBe(true);
+    if (result.claim.success) {
+      expect(result.claim.data.mined).toBe(true);
+    }
+    if (result.splits.success) {
+      expect(result.splits.data.mined).toBe(true);
+    }
+  });
+
+  it('invokes progress callback at each step', async () => {
+    // Arrange
+    const onProgress = vi.fn();
+
+    // Act
+    await claimOrcid(mockAdapter, {orcidId, onProgress});
+
+    // Assert
+    expect(onProgress).toHaveBeenCalledWith(
+      'claiming',
+      'Submitting claim transaction',
     );
-
-    vi.clearAllMocks();
+    expect(onProgress).toHaveBeenCalledWith(
+      'waiting',
+      'Polling for ownership confirmation',
+    );
+    expect(onProgress).toHaveBeenCalledWith(
+      'configuring',
+      'Setting splits configuration',
+    );
   });
 
-  it('calls prepareClaimOrcid and sends prepared tx', async () => {
-    // Act
-    const result = await claimOrcid(mockAdapter, params);
-
-    // Assert
-    expect(prepareClaimOrcid).toHaveBeenCalledWith(mockAdapter, params);
-    expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
-    expect(result).toBe(mockTxResponse);
-  });
-
-  it('passes through batchedTxOverrides when present', async () => {
+  it('passes wait options to waitForOrcidOwnership', async () => {
     // Arrange
-    const withOverrides = {
-      ...params,
-      batchedTxOverrides: {gasLimit: 100000n, maxFeePerGas: 1_000_000_000n},
-    } as const;
+    const waitOptions = {
+      pollIntervalMs: 5000,
+      timeoutMs: 60000,
+      onProgress: vi.fn(),
+    };
 
     // Act
-    await claimOrcid(mockAdapter, withOverrides);
+    await claimOrcid(mockAdapter, {orcidId, waitOptions});
 
     // Assert
-    expect(prepareClaimOrcid).toHaveBeenCalledWith(mockAdapter, withOverrides);
-    expect(mockAdapter.sendTx).toHaveBeenCalledWith(mockPreparedTx);
+    expect(waitForOrcidOwnership).toHaveBeenCalledWith(mockAdapter, {
+      orcidId,
+      expectedOwner: signerAddress,
+      ...waitOptions,
+      onProgress: waitOptions.onProgress,
+    });
   });
 
-  it('invokes functions in the correct order', async () => {
+  it('returns failed status when claim transaction fails', async () => {
     // Arrange
-    const order: string[] = [];
+    const claimError = new Error('Transaction failed');
+    mockAdapter.sendTx = vi.fn().mockRejectedValueOnce(claimError);
 
-    vi.mocked(prepareClaimOrcid).mockImplementationOnce(async () => {
-      order.push('prepareClaimOrcid');
-      return mockPreparedTx as unknown as any;
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId});
+
+    // Assert
+    expect(result.status).toBe('failed');
+    expect(result.claim.success).toBe(false);
+    expect(result.ownership.success).toBe(false);
+    expect(result.splits.success).toBe(false);
+    if (!result.claim.success) {
+      expect(result.claim.error).toBe(claimError);
+    }
+  });
+
+  it('returns partial status when ownership verification fails', async () => {
+    // Arrange
+    const ownershipError = new Error('Ownership timeout');
+    vi.mocked(waitForOrcidOwnership).mockRejectedValueOnce(ownershipError);
+
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId});
+
+    // Assert
+    expect(result.status).toBe('partial');
+    expect(result.claim.success).toBe(true);
+    expect(result.ownership.success).toBe(false);
+    expect(result.splits.success).toBe(false);
+    if (!result.ownership.success) {
+      expect(result.ownership.error).toBe(ownershipError);
+    }
+  });
+
+  it('returns partial status when splits configuration fails', async () => {
+    // Arrange
+    const splitsError = new Error('SetSplits failed');
+    mockAdapter.sendTx = vi
+      .fn()
+      .mockResolvedValueOnce(mockTxResponse) // claim succeeds
+      .mockRejectedValueOnce(splitsError); // setSplits fails
+
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId});
+
+    // Assert
+    expect(result.status).toBe('partial');
+    expect(result.claim.success).toBe(true);
+    expect(result.ownership.success).toBe(true);
+    expect(result.splits.success).toBe(false);
+    if (!result.splits.success) {
+      expect(result.splits.error).toBe(splitsError);
+    }
+  });
+
+  it('captures mined=false when transaction reverts', async () => {
+    // Arrange
+    const revertedTxResponse = {
+      ...mockTxResponse,
+      wait: vi.fn().mockResolvedValue({
+        hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        to: '0xRecipient000000000000000000000000000000000000' as `0x${string}`,
+        from: signerAddress,
+        blockNumber: 1n,
+        gasUsed: 21000n,
+        status: 'reverted' as const,
+        logs: [],
+      }),
+    };
+    mockAdapter.sendTx = vi.fn().mockResolvedValue(revertedTxResponse);
+
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId});
+
+    // Assert
+    expect(result.status).toBe('complete');
+    expect(result.claim.success).toBe(true);
+    if (result.claim.success) {
+      expect(result.claim.data.mined).toBe(false);
+    }
+  });
+
+  it('throws when progress callback throws', async () => {
+    // Arrange
+    const callbackError = new Error('Progress callback error');
+    const onProgress = vi.fn().mockImplementation(() => {
+      throw callbackError;
     });
 
-    (
-      mockAdapter.sendTx as unknown as ReturnType<typeof vi.fn>
-    ).mockImplementationOnce(async () => {
-      order.push('sendTx');
-      return mockTxResponse;
+    // Act & Assert
+    await expect(
+      claimOrcid(mockAdapter, {orcidId, onProgress}),
+    ).rejects.toThrow('Progress callback error');
+    expect(onProgress).toHaveBeenCalledWith(
+      'claiming',
+      'Submitting claim transaction',
+    );
+  });
+
+  it('throws when async progress callback rejects', async () => {
+    // Arrange
+    const callbackError = new Error('Async progress callback error');
+    const onProgress = vi.fn().mockRejectedValue(callbackError);
+
+    // Act & Assert
+    await expect(
+      claimOrcid(mockAdapter, {orcidId, onProgress}),
+    ).rejects.toThrow('Async progress callback error');
+    expect(onProgress).toHaveBeenCalledWith(
+      'claiming',
+      'Submitting claim transaction',
+    );
+  });
+
+  it('throws error for invalid ORCID format', async () => {
+    // Arrange
+    const {assertValidOrcidId} = await import(
+      '../../../src/internal/linked-identities/orcidUtils'
+    );
+    vi.mocked(assertValidOrcidId).mockImplementation(() => {
+      throw new Error('Invalid ORCID format');
     });
 
-    // Act
-    await claimOrcid(mockAdapter, params);
-
-    // Assert
-    expect(order).toEqual(['prepareClaimOrcid', 'sendTx']);
+    // Act & Assert
+    await expect(
+      claimOrcid(mockAdapter, {orcidId: 'invalid-orcid'}),
+    ).rejects.toThrow('Invalid ORCID format');
   });
 });

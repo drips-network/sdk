@@ -30,14 +30,15 @@ const ORCID_ID = '0000-0002-1825-0097';
 
 describe('Linked Identities', () => {
   it(
-    'should submit ORCID claim request transaction using Viem',
+    'should complete full ORCID claim flow using Viem',
     {timeout: TEST_TIMEOUT},
     async () => {
-      console.log('=== Claiming ORCID with Viem ===');
+      console.log('=== Testing Complete ORCID Claim Flow with Viem ===');
 
       // Step 1: Set up wallet account from private key.
       console.log('Step 1: Setting up wallet account...');
       const account = privateKeyToAccount(`0x${process.env.DEV_WALLET_PK!}`);
+      const ownerAddress = account.address;
 
       // Step 2: Create Viem wallet and public clients.
       console.log('Step 2: Creating Viem clients...');
@@ -52,49 +53,120 @@ describe('Linked Identities', () => {
         transport: http(process.env.RPC_URL!),
       });
 
-      // Step 3: Create the Drips SDK instance (no IPFS needed for this flow).
+      // Step 3: Create the Drips SDK instance.
       console.log('Step 3: Creating Drips SDK...');
       const sdk = createDripsSdk(walletClient, undefined, {
         graphql: {
-          url: process.env.GRAPHQL_URL!, // optional override for testing.
+          url: process.env.GRAPHQL_URL!,
         },
       });
 
-      // Step 4: Submit the ORCID claim transaction.
-      console.log('Step 4: Submitting ORCID claim request...');
-      const txResponse = await sdk.linkedIdentities.claimOrcid({
+      // Step 4: Calculate ORCID account ID before claiming.
+      console.log('Step 4: Calculating ORCID account ID...');
+      const orcidAccountId = await sdk.utils.calcOrcidAccountId(ORCID_ID);
+      console.log(`✓ ORCID Account ID: ${orcidAccountId}`);
+
+      // Step 5: Start the claim process with progress tracking.
+      console.log('Step 5: Starting ORCID claim flow...');
+      const progressSteps: string[] = [];
+
+      const result = await sdk.linkedIdentities.claimOrcid({
         orcidId: ORCID_ID,
+        onProgress: async (step, details) => {
+          console.log(`  → ${step}: ${details}`);
+          progressSteps.push(step);
+
+          // When we reach the waiting phase, log instructions for manual script execution.
+          if (step === 'waiting') {
+            console.log('\n⏸️  PAUSED: Waiting for ownership update...');
+            console.log(
+              '📝 Manually run the update-repo-owner.sh script with:',
+            );
+            console.log(
+              `account ID ${orcidAccountId} and ownerAddress ${ownerAddress}`,
+            );
+            console.log('⏳ Polling for ownership confirmation...\n');
+          }
+        },
+        waitOptions: {
+          pollIntervalMs: 1000, // Poll every second
+          timeoutMs: 60000, // 1 minute timeout
+        },
       });
 
-      // Step 5: Wait for the transaction confirmation.
-      console.log('Step 5: Waiting for transaction confirmation...');
-      const {hash} = await txResponse.wait();
-      console.log(`✓ Claim request transaction confirmed with hash: ${hash}`);
+      console.log(
+        `✓ ORCID claimed successfully. Account ID: ${result.orcidAccountId}`,
+      );
+      console.log(`✓ Overall status: ${result.status}`);
 
-      // Step 6: Verify transaction receipt and logs.
-      console.log('Step 6: Verifying transaction receipt...');
-      const receipt = await publicClient.getTransactionReceipt({hash});
+      // Step 6: Verify all progress steps were called.
+      console.log('Step 6: Verifying progress flow...');
+      expect(progressSteps).toEqual(['claiming', 'waiting', 'configuring']);
+      console.log('✓ All progress steps completed in correct order.');
 
-      expect(receipt.status).toBe('success');
-      expect(receipt.logs.length).toBeGreaterThan(0);
-      console.log('✓ Transaction executed successfully with logs emitted.');
+      // Step 7: Verify result status and structure.
+      console.log('Step 7: Verifying result structure...');
+      expect(result.status).toBe('complete');
+      expect(result.claim.success).toBe(true);
+      expect(result.ownership.success).toBe(true);
+      expect(result.splits.success).toBe(true);
+      expect(result.orcidAccountId).toBe(orcidAccountId);
+      console.log('✓ All steps succeeded.');
 
-      // Step 7: Verify the transaction targeted the Caller contract.
-      console.log('Step 7: Verifying transaction structure...');
-      const callerAddress = contractsRegistry[
-        localtestnet.id as keyof typeof contractsRegistry
-      ].caller.address as `0x${string}`;
+      // Step 8: Verify transaction receipts.
+      console.log('Step 8: Verifying transaction receipts...');
+      if (result.claim.success && result.splits.success) {
+        const claimReceipt = await publicClient.getTransactionReceipt({
+          hash: result.claim.data.hash,
+        });
+        const setSplitsReceipt = await publicClient.getTransactionReceipt({
+          hash: result.splits.data.hash,
+        });
 
-      expect(receipt.to?.toLowerCase()).toBe(callerAddress.toLowerCase());
-      console.log('✓ Transaction correctly targeted Caller contract.');
+        expect(claimReceipt.status).toBe('success');
+        expect(setSplitsReceipt.status).toBe('success');
+        expect(result.claim.data.mined).toBe(true);
+        expect(result.splits.data.mined).toBe(true);
+        console.log('✓ Both transactions executed successfully.');
+
+        // Step 9: Verify transactions targeted the RepoDriver contract.
+        console.log('Step 9: Verifying transaction structure...');
+        const repoDriverAddress = contractsRegistry[
+          localtestnet.id as keyof typeof contractsRegistry
+        ].repoDriver.address as `0x${string}`;
+
+        expect(claimReceipt.to?.toLowerCase()).toBe(
+          repoDriverAddress.toLowerCase(),
+        );
+        expect(setSplitsReceipt.to?.toLowerCase()).toBe(
+          repoDriverAddress.toLowerCase(),
+        );
+        console.log('✓ Transactions correctly targeted RepoDriver contract.');
+      }
+
+      // Step 10: Verify ownership data.
+      console.log('Step 10: Verifying ownership data...');
+      if (result.ownership.success) {
+        expect(result.ownership.data.owner.toLowerCase()).toBe(
+          ownerAddress.toLowerCase(),
+        );
+        expect(result.ownership.data.verificationTimeMs).toBeGreaterThan(0);
+        console.log(
+          `✓ Ownership verified in ${result.ownership.data.verificationTimeMs}ms`,
+        );
+      }
+
+      console.log(
+        '\n=== Full ORCID Claim Flow Test Completed Successfully ===',
+      );
     },
   );
 
   it(
-    'should submit ORCID claim request transaction using Ethers',
+    'should complete full ORCID claim flow using Ethers',
     {timeout: TEST_TIMEOUT},
     async () => {
-      console.log('=== Claiming ORCID with Ethers ===');
+      console.log('=== Testing Complete ORCID Claim Flow with Ethers ===');
 
       // Step 1: Set up JSON RPC provider and signer wallet.
       console.log('Step 1: Setting up provider and wallet...');
@@ -102,8 +174,9 @@ describe('Linked Identities', () => {
       const signer = new NonceManager(
         new Wallet(process.env.DEV_WALLET_PK!, provider),
       );
+      const ownerAddress = await signer.getAddress();
 
-      // Step 2: Create the Drips SDK instance (no IPFS required) and a Viem public client for reads.
+      // Step 2: Create the Drips SDK instance and Viem public client.
       console.log('Step 2: Creating Drips SDK and Viem public client...');
       const sdk = createDripsSdk(signer, undefined, {
         graphql: {
@@ -115,33 +188,104 @@ describe('Linked Identities', () => {
         transport: http(process.env.RPC_URL!),
       });
 
-      // Step 3: Submit the ORCID claim transaction.
-      console.log('Step 3: Submitting ORCID claim request...');
-      const txResponse = await sdk.linkedIdentities.claimOrcid({
+      // Step 3: Calculate ORCID account ID before claiming.
+      console.log('Step 3: Calculating ORCID account ID...');
+      const orcidAccountId = await sdk.utils.calcOrcidAccountId(ORCID_ID);
+      console.log(`✓ ORCID Account ID: ${orcidAccountId}`);
+
+      // Step 4: Start the claim process with progress tracking.
+      console.log('Step 4: Starting ORCID claim flow...');
+      const progressSteps: string[] = [];
+
+      const result = await sdk.linkedIdentities.claimOrcid({
         orcidId: ORCID_ID,
+        onProgress: async (step, details) => {
+          console.log(`  → ${step}: ${details}`);
+          progressSteps.push(step);
+
+          // When we reach the waiting phase, log instructions for manual script execution.
+          if (step === 'waiting') {
+            console.log('\n⏸️  PAUSED: Waiting for ownership update...');
+            console.log(
+              '📝 Manually run the update-repo-owner.sh script with:',
+            );
+            console.log(
+              `   account ID ${orcidAccountId} and ownerAddress ${ownerAddress}`,
+            );
+            console.log('⏳ Polling for ownership confirmation...\n');
+          }
+        },
+        waitOptions: {
+          pollIntervalMs: 1000, // Poll every second
+          timeoutMs: 60000, // 1 minute timeout
+        },
       });
 
-      // Step 4: Wait for the transaction confirmation.
-      console.log('Step 4: Waiting for transaction confirmation...');
-      const {hash} = await txResponse.wait();
-      console.log(`✓ Claim request transaction confirmed with hash: ${hash}`);
+      console.log(
+        `✓ ORCID claimed successfully. Account ID: ${result.orcidAccountId}`,
+      );
+      console.log(`✓ Overall status: ${result.status}`);
 
-      // Step 5: Verify transaction receipt and logs.
-      console.log('Step 5: Verifying transaction receipt...');
-      const receipt = await publicClient.getTransactionReceipt({hash});
+      // Step 5: Verify all progress steps were called.
+      console.log('Step 5: Verifying progress flow...');
+      expect(progressSteps).toEqual(['claiming', 'waiting', 'configuring']);
+      console.log('✓ All progress steps completed in correct order.');
 
-      expect(receipt.status).toBe('success');
-      expect(receipt.logs.length).toBeGreaterThan(0);
-      console.log('✓ Transaction executed successfully with logs emitted.');
+      // Step 6: Verify result status and structure.
+      console.log('Step 6: Verifying result structure...');
+      expect(result.status).toBe('complete');
+      expect(result.claim.success).toBe(true);
+      expect(result.ownership.success).toBe(true);
+      expect(result.splits.success).toBe(true);
+      expect(result.orcidAccountId).toBe(orcidAccountId);
+      console.log('✓ All steps succeeded.');
 
-      // Step 6: Verify the transaction targeted the Caller contract.
-      console.log('Step 6: Verifying transaction structure...');
-      const callerAddress = contractsRegistry[
-        localtestnet.id as keyof typeof contractsRegistry
-      ].caller.address as `0x${string}`;
+      // Step 7: Verify transaction receipts.
+      console.log('Step 7: Verifying transaction receipts...');
+      if (result.claim.success && result.splits.success) {
+        const claimReceipt = await publicClient.getTransactionReceipt({
+          hash: result.claim.data.hash,
+        });
+        const setSplitsReceipt = await publicClient.getTransactionReceipt({
+          hash: result.splits.data.hash,
+        });
 
-      expect(receipt.to?.toLowerCase()).toBe(callerAddress.toLowerCase());
-      console.log('✓ Transaction correctly targeted Caller contract.');
+        expect(claimReceipt.status).toBe('success');
+        expect(setSplitsReceipt.status).toBe('success');
+        expect(result.claim.data.mined).toBe(true);
+        expect(result.splits.data.mined).toBe(true);
+        console.log('✓ Both transactions executed successfully.');
+
+        // Step 8: Verify transactions targeted the RepoDriver contract.
+        console.log('Step 8: Verifying transaction structure...');
+        const repoDriverAddress = contractsRegistry[
+          localtestnet.id as keyof typeof contractsRegistry
+        ].repoDriver.address as `0x${string}`;
+
+        expect(claimReceipt.to?.toLowerCase()).toBe(
+          repoDriverAddress.toLowerCase(),
+        );
+        expect(setSplitsReceipt.to?.toLowerCase()).toBe(
+          repoDriverAddress.toLowerCase(),
+        );
+        console.log('✓ Transactions correctly targeted RepoDriver contract.');
+      }
+
+      // Step 9: Verify ownership data.
+      console.log('Step 9: Verifying ownership data...');
+      if (result.ownership.success) {
+        expect(result.ownership.data.owner.toLowerCase()).toBe(
+          ownerAddress.toLowerCase(),
+        );
+        expect(result.ownership.data.verificationTimeMs).toBeGreaterThan(0);
+        console.log(
+          `✓ Ownership verified in ${result.ownership.data.verificationTimeMs}ms`,
+        );
+      }
+
+      console.log(
+        '\n=== Full ORCID Claim Flow Test Completed Successfully ===',
+      );
     },
   );
 });

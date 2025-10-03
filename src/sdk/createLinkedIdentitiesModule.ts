@@ -1,52 +1,61 @@
 import {
-  PreparedTx,
   ReadBlockchainAdapter,
-  TxResponse,
   WriteBlockchainAdapter,
 } from '../internal/blockchain/BlockchainAdapter';
 import {requireWriteAccess} from '../internal/shared/assertions';
 import {
+  claimOrcid,
   ClaimOrcidParams,
-  prepareClaimOrcid,
-} from '../internal/linked-identities/prepareClaimOrcid';
-import {claimOrcid} from '../internal/linked-identities/claimOrcid';
+  ClaimOrcidResult,
+} from '../internal/linked-identities/claimOrcid';
+import {
+  waitForOrcidOwnership,
+  WaitForOrcidOwnershipParams,
+} from '../internal/linked-identities/waitForOrcidOwnership';
 
 export interface LinkedIdentitiesModule {
   /**
-   * Prepares a transaction to request ownership of an ORCID identity on-chain.
+   * Claims an ORCID identity.
    *
-   * **IMPORTANT - Drips App Requirement:**
-   * For a claiming operation to be considered valid within the context of the Drips App,
-   * the caller must ensure that 100% of the ORCID account's splits configuration is set
-   * to the ORCID owner's (claiming address) account ID. This method only handles the
-   * ownership request. The caller is responsible for configuring splits separately using
-   * the appropriate splits configuration methods.
+   * This method orchestrates the full ORCID claiming flow:
+   * 1. Submits claim transaction via `requestUpdateOwner`
+   * 2. Polls for ownership confirmation via oracle verification
+   * 3. Configures splits to 100% to claimer's address account
    *
-   * @param params - Parameters for claiming the ORCID identity.
+   * Each step's result is captured independently, allowing partial recovery
+   * if later steps fail. Check `result.status` for overall outcome.
    *
-   * @returns A prepared transaction ready for execution.
+   * @param params - Claim and configuration parameters.
    *
-   * @throws {DripsError} If the chain is not supported or the ORCID ID is invalid.
+   * @returns Detailed result object with step-by-step status and data.
+   * - `status: 'complete'` - All steps succeeded
+   * - `status: 'partial'` - Claim succeeded but ownership/splits failed
+   * - `status: 'failed'` - Claim transaction failed
+   *
+   * @example
+   * ```typescript
+   * const result = await sdk.linkedIdentities.claimOrcid({ orcidId: '0000-0002-1825-0097' });
+   *
+   * if (result.status === 'complete') {
+   *   console.log('✓ Fully claimed:', result.splits.data.hash);
+   * } else if (result.ownership.success && !result.splits.success) {
+   *   console.log('Owned but splits failed:', result.splits.error);
+   *   // Manual recovery: call setSplits separately
+   * }
+   * ```
    */
-  prepareClaimOrcid(params: ClaimOrcidParams): Promise<PreparedTx>;
+  claimOrcid(params: ClaimOrcidParams): Promise<ClaimOrcidResult>;
 
   /**
-   * Submits a transaction to request ownership of an ORCID identity on-chain.
+   * Polls for ownership confirmation of an ORCID identity.
    *
-   * **IMPORTANT - Drips App Requirement:**
-   * For a claiming operation to be considered valid within the context of the Drips App,
-   * the caller must ensure that 100% of the ORCID account's splits configuration is set
-   * to the ORCID owner's (claiming address) account ID. This method only handles the
-   * ownership request. The caller is responsible for configuring splits separately using
-   * the appropriate splits configuration methods.
+   * @param params - Polling parameters including ORCID ID and timeout.
    *
-   * @param params - Parameters for claiming the ORCID identity.
+   * @returns Promise that resolves when ownership is confirmed.
    *
-   * @returns The transaction response.
-   *
-   * @throws {DripsError} If the chain is not supported, the ORCID ID is invalid, or transaction execution fails.
+   * @throws {DripsError} If ownership is not confirmed within timeout or validation fails.
    */
-  claimOrcid(params: ClaimOrcidParams): Promise<TxResponse>;
+  waitForOrcidOwnership(params: WaitForOrcidOwnershipParams): Promise<void>;
 }
 
 type Deps = {
@@ -59,14 +68,15 @@ export function createLinkedIdentitiesModule(
   const {adapter} = deps;
 
   return {
-    prepareClaimOrcid: (params: ClaimOrcidParams): Promise<PreparedTx> => {
-      requireWriteAccess(adapter, prepareClaimOrcid.name);
-      return prepareClaimOrcid(adapter, params);
-    },
-
-    claimOrcid: (params: ClaimOrcidParams): Promise<TxResponse> => {
+    claimOrcid: (params: ClaimOrcidParams): Promise<ClaimOrcidResult> => {
       requireWriteAccess(adapter, claimOrcid.name);
       return claimOrcid(adapter, params);
+    },
+
+    waitForOrcidOwnership: (
+      params: WaitForOrcidOwnershipParams,
+    ): Promise<void> => {
+      return waitForOrcidOwnership(adapter, params);
     },
   };
 }
