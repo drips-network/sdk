@@ -1,51 +1,9 @@
-import { Address, Hex, Hash, Abi, ContractFunctionName, EncodeFunctionDataParameters, PublicClient, WalletClient, Account } from 'viem';
+import { Abi, ContractFunctionName, EncodeFunctionDataParameters, Address, Hash, Hex, PublicClient, WalletClient, Account } from 'viem';
+import { B as BatchedTxOverrides, P as PreparedTx, R as ReadBlockchainAdapter, W as WriteBlockchainAdapter, T as TxResponse } from './BlockchainAdapter-Dt3QuYIj.cjs';
+export { a as TxReceipt } from './BlockchainAdapter-Dt3QuYIj.cjs';
 import * as _efstajas_versioned_parser from '@efstajas/versioned-parser';
 import * as z from 'zod';
 import z__default, { z as z$1 } from 'zod';
-import { Provider, Signer } from 'ethers';
-
-type BatchedTxOverrides = {
-    nonce?: number;
-    value?: bigint;
-    gasLimit?: bigint;
-    gasPrice?: bigint;
-    maxFeePerGas?: bigint;
-    maxPriorityFeePerGas?: bigint;
-};
-type BaseTx = {
-    readonly to: Address;
-    readonly data: Hex;
-} & BatchedTxOverrides;
-type TxMeta = {
-    abiFunctionName?: string;
-};
-/** A prepared transaction ready for execution by a `WriteBlockchainAdapter`. */
-type PreparedTx = BaseTx & TxMeta;
-type TxReceipt = {
-    hash: Hash;
-    to?: Address;
-    from: Address;
-    blockNumber: bigint;
-    gasUsed: bigint;
-    status: 'success' | 'reverted';
-    logs: unknown[];
-};
-type TxResponse = {
-    hash: Hash;
-    wait: (confirmations?: number) => Promise<TxReceipt>;
-    meta?: Record<string, unknown>;
-};
-/** Adapter interface for read-only operations. */
-interface ReadBlockchainAdapter {
-    call(tx: PreparedTx): Promise<Hex>;
-    getChainId(): Promise<number>;
-}
-/** Adapter interface for read and write operations. */
-interface WriteBlockchainAdapter extends ReadBlockchainAdapter {
-    getAddress(): Promise<Address>;
-    sendTx(tx: PreparedTx): Promise<TxResponse>;
-    signMsg(message: string | Uint8Array): Promise<Hex>;
-}
 
 declare function buildTx<AbiType extends Abi | readonly unknown[], FnName extends ContractFunctionName<AbiType> | undefined = undefined>(request: EncodeFunctionDataParameters<AbiType, FnName> & {
     contract: Address;
@@ -116,6 +74,7 @@ type ProjectName = `${string}/${string}`;
  * ORCID iD in the format ^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$
  */
 type OrcidId = string;
+declare function calcOrcidAccountId(adapter: ReadBlockchainAdapter, orcidId: OrcidId): Promise<bigint>;
 declare function calcProjectId(adapter: ReadBlockchainAdapter, params: {
     forge: Forge$1;
     name: ProjectName | OrcidId;
@@ -1329,6 +1288,16 @@ interface UtilsModule {
      */
     calcProjectId: (forge: Forge$1, name: ProjectName) => Promise<bigint>;
     /**
+     * Calculates the (`RepoDriver`) account ID for an ORCID identity.
+     *
+     * @param orcidId - The ORCID ID (format: `'0000-0000-0000-0000'`).
+     *
+     * @returns The calculated account ID.
+     *
+     * @throws {DripsError} If the chain is not supported or ORCID ID is invalid.
+     */
+    calcOrcidAccountId: (orcidId: string) => Promise<bigint>;
+    /**
      * Encodes a `StreamConfig` into a `bigint` representation.
      *
      * @param config - The stream config to encode.
@@ -1367,35 +1336,109 @@ interface UtilsModule {
     resolveAddressFromAddressDriverId: typeof resolveAddressFromAddressDriverId;
 }
 
+type WaitForOrcidOwnershipParams = {
+    /** The ORCID ID to wait for ownership confirmation. */
+    readonly orcidId: string;
+    /** Expected owner address. If not provided, uses adapter's address. */
+    readonly expectedOwner?: Address;
+    /** Polling interval in milliseconds. Default: 3000ms. */
+    readonly pollIntervalMs?: number;
+    /** Timeout in milliseconds. Default: 120000ms (2 minutes). */
+    readonly timeoutMs?: number;
+    /** Progress callback invoked after each poll with elapsed time. */
+    readonly onProgress?: (elapsedMs: number) => void | Promise<void>;
+};
+declare function waitForOrcidOwnership(adapter: ReadBlockchainAdapter, params: WaitForOrcidOwnershipParams): Promise<void>;
+
 type ClaimOrcidParams = {
     /** The ORCID ID to claim (e.g., '0000-0002-1825-0097'). */
     readonly orcidId: string;
-    /** Optional transaction overrides for the returned `PreparedTx`. */
-    readonly batchedTxOverrides?: BatchedTxOverrides;
+    /** Optional wait parameters for ownership polling. */
+    readonly waitOptions?: Omit<WaitForOrcidOwnershipParams, 'orcidId'>;
+    /**
+     * Optional progress callback invoked at each step.
+     * - 'claiming': Submitting claim transaction
+     * - 'waiting': Polling for ownership confirmation
+     * - 'configuring': Setting splits configuration
+     */
+    readonly onProgress?: (step: 'claiming' | 'waiting' | 'configuring', details?: string) => void | Promise<void>;
 };
-declare function prepareClaimOrcid(adapter: WriteBlockchainAdapter, params: ClaimOrcidParams): Promise<PreparedTx>;
+type ClaimOrcidStepResult<T = void> = {
+    success: true;
+    data: T;
+} | {
+    success: false;
+    error: Error;
+};
+type ClaimOrcidResult = {
+    /** The ORCID account ID. */
+    readonly orcidAccountId: bigint;
+    /** Step 1: Claim transaction result. */
+    readonly claim: ClaimOrcidStepResult<{
+        hash: Hash;
+        /** Whether transaction was mined successfully. */
+        mined: boolean;
+    }>;
+    /** Step 2: Ownership verification result. */
+    readonly ownership: ClaimOrcidStepResult<{
+        /** Verified owner address. */
+        owner: Address;
+        /** Time taken to verify (ms). */
+        verificationTimeMs: number;
+    }>;
+    /** Step 3: Splits configuration result. */
+    readonly splits: ClaimOrcidStepResult<{
+        hash: Hash;
+        /** Whether transaction was mined successfully. */
+        mined: boolean;
+    }>;
+    /** Overall status helper. */
+    readonly status: 'complete' | 'partial' | 'failed';
+};
+declare function claimOrcid(adapter: WriteBlockchainAdapter, params: ClaimOrcidParams): Promise<ClaimOrcidResult>;
 
 interface LinkedIdentitiesModule {
     /**
-     * Prepares a transaction to claim an ORCID identity for the connected account.
-     *
-     * @param params - Parameters for claiming the ORCID identity.
-     *
-     * @returns A prepared transaction ready for execution.
-     *
-     * @throws {DripsError} If the chain is not supported or the ORCID ID is invalid.
-     */
-    prepareClaimOrcid(params: ClaimOrcidParams): Promise<PreparedTx>;
-    /**
      * Claims an ORCID identity.
      *
-     * @param params - Parameters for claiming the ORCID identity.
+     * This method orchestrates the full ORCID claiming flow:
+     * 1. Submits claim transaction via `requestUpdateOwner`
+     * 2. Polls for ownership confirmation via oracle verification
+     * 3. Configures splits to 100% to claimer's address account
      *
-     * @returns The transaction response.
+     * Each step's result is captured independently, allowing partial recovery
+     * if later steps fail. Check `result.status` for overall outcome.
      *
-     * @throws {DripsError} If the chain is not supported, the ORCID ID is invalid, or transaction execution fails.
+     * @param params - Claim and configuration parameters.
+     *
+     * @returns Detailed result object with step-by-step status and data.
+     * - `status: 'complete'` - All steps succeeded
+     * - `status: 'partial'` - Claim succeeded but ownership/splits failed
+     * - `status: 'failed'` - Claim transaction failed
+     *
+     * @example
+     * ```typescript
+     * const result = await sdk.linkedIdentities.claimOrcid({ orcidId: '0000-0002-1825-0097' });
+     *
+     * if (result.status === 'complete') {
+     *   console.log('✓ Fully claimed:', result.splits.data.hash);
+     * } else if (result.ownership.success && !result.splits.success) {
+     *   console.log('Owned but splits failed:', result.splits.error);
+     *   // Manual recovery: call setSplits separately
+     * }
+     * ```
      */
-    claimOrcid(params: ClaimOrcidParams): Promise<TxResponse>;
+    claimOrcid(params: ClaimOrcidParams): Promise<ClaimOrcidResult>;
+    /**
+     * Polls for ownership confirmation of an ORCID identity.
+     *
+     * @param params - Polling parameters including ORCID ID and timeout.
+     *
+     * @returns Promise that resolves when ownership is confirmed.
+     *
+     * @throws {DripsError} If ownership is not confirmed within timeout or validation fails.
+     */
+    waitForOrcidOwnership(params: WaitForOrcidOwnershipParams): Promise<void>;
 }
 
 type OnChainStreamReceiver = {
@@ -1519,7 +1562,19 @@ type DripsSdkOptions = {
         readonly apiKey?: string;
     };
 };
-type SupportedBlockchainClient = PublicClient | WalletClient | Provider | Signer | (ReadBlockchainAdapter & {
+interface EthersLikeProvider {
+    call: (...args: any[]) => Promise<any>;
+    getNetwork: () => Promise<{
+        chainId: bigint | number;
+    }>;
+}
+interface EthersLikeSigner {
+    getAddress: () => Promise<string>;
+    signMessage: (message: string | Uint8Array) => Promise<any>;
+    sendTransaction: (...args: any[]) => Promise<any>;
+    provider?: unknown;
+}
+type SupportedBlockchainClient = PublicClient | WalletClient | EthersLikeProvider | EthersLikeSigner | (ReadBlockchainAdapter & {
     type: 'custom';
 }) | (WriteBlockchainAdapter & {
     type: 'custom';
@@ -1572,9 +1627,6 @@ type SupportedBlockchainClient = PublicClient | WalletClient | Provider | Signer
  */
 declare function createDripsSdk(blockchainClient: SupportedBlockchainClient, ipfsMetadataUploaderFn?: IpfsMetadataUploaderFn<Metadata>, options?: DripsSdkOptions): DripsSdk;
 
-declare function createEthersReadAdapter(provider: Provider): ReadBlockchainAdapter;
-declare function createEthersWriteAdapter(signer: Signer): WriteBlockchainAdapter;
-
 declare function createViemReadAdapter(publicClient: PublicClient): ReadBlockchainAdapter;
 declare function createViemWriteAdapter(walletClient: WalletClient & {
     account: Account;
@@ -1583,8 +1635,6 @@ declare function createViemWriteAdapter(walletClient: WalletClient & {
 declare function sendOneTimeDonation(adapter: WriteBlockchainAdapter, donation: OneTimeDonation): Promise<TxResponse>;
 
 declare function collect(adapter: WriteBlockchainAdapter, config: CollectConfig): Promise<TxResponse>;
-
-declare function claimOrcid(adapter: WriteBlockchainAdapter, params: ClaimOrcidParams): Promise<TxResponse>;
 
 declare const contractsRegistry: {
     readonly 1: {
@@ -1773,6 +1823,7 @@ declare const utils: {
     buildTx: typeof buildTx;
     calcAddressId: typeof calcAddressId;
     calcProjectId: typeof calcProjectId;
+    calcOrcidAccountId: typeof calcOrcidAccountId;
     calcDripListId: typeof calcDripListId;
     encodeStreamConfig: typeof encodeStreamConfig;
     decodeStreamConfig: typeof decodeStreamConfig;
@@ -1789,4 +1840,4 @@ declare const dripsConstants: {
     CYCLE_SECS: number;
 };
 
-export { type ClaimOrcidParams, type CollectConfig, type ContinuousDonation, type CreateDripListResult, type DripList, type DripListMetadata, type DripListUpdateConfig, type DripsGraphQLClient, type DripsSdk, type Forge$1 as Forge, type IpfsMetadataUploaderFn, type Metadata, type MetadataSplitsReceiver, type NewDripList, type OnChainSplitsReceiver, type OnChainStreamReceiver, type OneTimeDonation, type PrepareContinuousDonationResult, type PrepareDripListCreationResult, type PrepareDripListUpdateResult, type PreparedTx, type ProjectMetadata, type ProjectName, type ReadBlockchainAdapter, type SdkAddressReceiver, type SdkDripListReceiver, type SdkEcosystemMainAccountReceiver, type SdkOrcidReceiver, type SdkProjectReceiver, type SdkReceiver, type SdkSplitsReceiver, type SdkSubListReceiver, type SendContinuousDonationResult, type SqueezeArgs, type StreamConfig, type StreamsHistory, type SubListMetadata, TimeUnit, type TxReceipt, type TxResponse, type UpdateDripListResult, type UserWithdrawableBalances, type WriteBlockchainAdapter, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createEthersReadAdapter, createEthersWriteAdapter, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareClaimOrcid, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils };
+export { type ClaimOrcidParams, type ClaimOrcidResult, type ClaimOrcidStepResult, type CollectConfig, type ContinuousDonation, type CreateDripListResult, type DripList, type DripListMetadata, type DripListUpdateConfig, type DripsGraphQLClient, type DripsSdk, type Forge$1 as Forge, type IpfsMetadataUploaderFn, type Metadata, type MetadataSplitsReceiver, type NewDripList, type OnChainSplitsReceiver, type OnChainStreamReceiver, type OneTimeDonation, type PrepareContinuousDonationResult, type PrepareDripListCreationResult, type PrepareDripListUpdateResult, PreparedTx, type ProjectMetadata, type ProjectName, ReadBlockchainAdapter, type SdkAddressReceiver, type SdkDripListReceiver, type SdkEcosystemMainAccountReceiver, type SdkOrcidReceiver, type SdkProjectReceiver, type SdkReceiver, type SdkSplitsReceiver, type SdkSubListReceiver, type SendContinuousDonationResult, type SqueezeArgs, type StreamConfig, type StreamsHistory, type SubListMetadata, TimeUnit, TxResponse, type UpdateDripListResult, type UserWithdrawableBalances, type WaitForOrcidOwnershipParams, WriteBlockchainAdapter, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils, waitForOrcidOwnership };

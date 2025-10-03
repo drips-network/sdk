@@ -282,10 +282,17 @@ export type OrcidLinkedIdentity = {
   chain: SupportedChain;
   isClaimed: Scalars['Boolean']['output'];
   orcid: Scalars['String']['output'];
+  orcidMetadata?: Maybe<OrcidMetadata>;
   owner?: Maybe<AddressDriverAccount>;
   support: Array<SupportItem>;
   totalEarned: Array<Amount>;
   withdrawableBalances: Array<WithdrawableBalance>;
+};
+
+export type OrcidMetadata = {
+  __typename: 'OrcidMetadata';
+  familyName?: Maybe<Scalars['String']['output']>;
+  givenName?: Maybe<Scalars['String']['output']>;
 };
 
 export type Project = {

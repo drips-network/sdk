@@ -1,5 +1,6 @@
 'use strict';
 
+var chunkCH4CRTTQ_cjs = require('./chunk-CH4CRTTQ.cjs');
 var viem = require('viem');
 var graphqlRequest = require('graphql-request');
 var versionedParser = require('@efstajas/versioned-parser');
@@ -10,27 +11,13 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 var z6__default = /*#__PURE__*/_interopDefault(z6);
 
-// src/internal/shared/buildTx.ts
-
-// src/internal/shared/DripsError.ts
-var DripsError = class extends Error {
-  cause;
-  meta;
-  constructor(message, options) {
-    super(`[Drips SDK] ${message}`, { cause: options?.cause });
-    this.name = "DripsError";
-    this.cause = options?.cause;
-    this.meta = options?.meta;
-  }
-};
-
 // src/internal/shared/unreachable.ts
 function unreachable(message) {
   let fullMessage = "Unreachable code reached";
   {
     fullMessage += `: ${message}`;
   }
-  throw new DripsError(fullMessage);
+  throw new chunkCH4CRTTQ_cjs.DripsError(fullMessage);
 }
 
 // src/internal/shared/buildTx.ts
@@ -67,7 +54,7 @@ function validateStreamRate(amountPerSecond) {
   const amountPerCycle = amountPerSecond * BigInt(CYCLE_SECS);
   const weiPerCycle = amountPerCycle / BigInt(AMT_PER_SEC_MULTIPLIER);
   if (weiPerCycle < 1n) {
-    throw new DripsError("Stream rate must be higher than 1 wei per week", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("Stream rate must be higher than 1 wei per week", {
       meta: {
         operation: validateStreamRate.name,
         amountPerSecond: amountPerSecond.toString(),
@@ -127,7 +114,7 @@ function validateAndFormatStreamReceivers(onChainReceivers) {
 }
 function validateMaxReceiversCount(receivers) {
   if (receivers.length > MAX_STREAMS_RECEIVERS) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Too many stream receivers: ${receivers.length}. Maximum is ${MAX_STREAMS_RECEIVERS}`
     );
   }
@@ -137,7 +124,7 @@ function validateNonZeroAmtPerSec(receivers) {
     (r) => decodeStreamConfig(r.config).amountPerSec === 0n
   );
   if (invalid.length > 0) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Stream receivers with 0 amtPerSec: ${invalid.map((r) => r.accountId.toString()).join(", ")}`
     );
   }
@@ -158,13 +145,13 @@ function validateSortedAndDeduplicated(receivers) {
     const sameAccount = prev.accountId === curr.accountId;
     const sameConfig = prev.config === curr.config;
     if (sameAccount && sameConfig) {
-      throw new DripsError(
+      throw new chunkCH4CRTTQ_cjs.DripsError(
         `Duplicate stream receiver: accountId=${curr.accountId.toString()}, config=${curr.config.toString()}`
       );
     }
     const ordered = prev.accountId < curr.accountId || prev.accountId === curr.accountId && prev.config < curr.config;
     if (!ordered) {
-      throw new DripsError(
+      throw new chunkCH4CRTTQ_cjs.DripsError(
         `Stream receivers not sorted: receiver at index ${i - 1} (${prev.accountId}, ${prev.config}) should come before receiver at index ${i} (${curr.accountId}, ${curr.config})`
       );
     }
@@ -173,7 +160,7 @@ function validateSortedAndDeduplicated(receivers) {
 function resolveAddressFromAddressDriverId(accountId) {
   const MAX_UINT256 = (1n << 256n) - 1n;
   if (accountId < 0n || accountId > MAX_UINT256) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Invalid accountId: ${accountId} is outside the uint256 range.`,
       {
         meta: {
@@ -195,7 +182,7 @@ function resolveAddressFromAddressDriverId(accountId) {
 // src/internal/shared/resolveDriverName.ts
 function resolveDriverName(accountId) {
   if (accountId < 0n || accountId > 2n ** 256n - 1n) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Could not get bits: ${accountId} is not a valid positive number within the range of a uint256.`,
       {
         meta: {
@@ -422,7 +409,7 @@ var graphqlChainMap = {
 // src/internal/shared/assertions.ts
 function requireWalletHasAccount(client, operation = "requireWalletHasAccount") {
   if (!client.account) {
-    throw new DripsError("WalletClient must have an account configured", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("WalletClient must have an account configured", {
       meta: {
         operation,
         client
@@ -432,7 +419,7 @@ function requireWalletHasAccount(client, operation = "requireWalletHasAccount") 
 }
 function requireSupportedChain(chainId, operation = "requireSupportedChain") {
   if (!(chainId in contractsRegistry)) {
-    throw new DripsError(`Unsupported chain ID: ${chainId}`, {
+    throw new chunkCH4CRTTQ_cjs.DripsError(`Unsupported chain ID: ${chainId}`, {
       meta: {
         operation,
         chainId,
@@ -445,7 +432,7 @@ function requireGraphQLSupportedChain(chainId, operation = "requireGraphQLSuppor
   requireSupportedChain(chainId, operation);
   const chain = graphqlChainMap[chainId];
   if (!chain) {
-    throw new DripsError(`Unsupported chain ID: ${chainId}`, {
+    throw new chunkCH4CRTTQ_cjs.DripsError(`Unsupported chain ID: ${chainId}`, {
       meta: {
         operation,
         chainId,
@@ -460,7 +447,7 @@ function isWriteAdapter(adapter) {
 }
 function requireWriteAccess(adapter, operation = "requireWriteAccess") {
   if (!isWriteAdapter(adapter)) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Operation '${operation}' requires wallet/signer permissions`,
       {
         meta: {
@@ -473,7 +460,7 @@ function requireWriteAccess(adapter, operation = "requireWriteAccess") {
 }
 function requireMetadataUploader(ipfsMetadataUploaderFn, operation = "requireMetadataUploader") {
   if (!ipfsMetadataUploaderFn) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Operation '${operation}' requires IPFS metadata uploader`,
       {
         meta: {
@@ -486,7 +473,7 @@ function requireMetadataUploader(ipfsMetadataUploaderFn, operation = "requireMet
 }
 function requireSupportedForge(forge, operation = "requireSupportedForge") {
   if (!supportedForges.includes(forge)) {
-    throw new DripsError(`Unsupported forge: ${forge}`, {
+    throw new chunkCH4CRTTQ_cjs.DripsError(`Unsupported forge: ${forge}`, {
       meta: {
         operation,
         forge,
@@ -1949,7 +1936,7 @@ var TOTAL_SPLITS_WEIGHT = 1e6;
 async function resolveReceiverAccountId(adapter, receiver) {
   if (receiver.type === "project") {
     if (!receiver.url) {
-      throw new DripsError("Project receiver must have a url", {
+      throw new chunkCH4CRTTQ_cjs.DripsError("Project receiver must have a url", {
         meta: {
           operation: resolveReceiverAccountId.name,
           receiver
@@ -1963,7 +1950,7 @@ async function resolveReceiverAccountId(adapter, receiver) {
     });
   } else if (receiver.type === "address") {
     if (!receiver.address) {
-      throw new DripsError("Address receiver must have an address", {
+      throw new chunkCH4CRTTQ_cjs.DripsError("Address receiver must have an address", {
         meta: {
           operation: resolveReceiverAccountId.name,
           receiver
@@ -1973,7 +1960,7 @@ async function resolveReceiverAccountId(adapter, receiver) {
     return await calcAddressId(adapter, receiver.address);
   } else if (receiver.type === "orcid") {
     if (!receiver.orcidId) {
-      throw new DripsError("ORCID receiver must have an ORCID iD", {
+      throw new chunkCH4CRTTQ_cjs.DripsError("ORCID receiver must have an ORCID iD", {
         meta: {
           operation: resolveReceiverAccountId.name,
           receiver
@@ -1986,7 +1973,7 @@ async function resolveReceiverAccountId(adapter, receiver) {
     });
   } else if (receiver.type === "drip-list" || receiver.type === "sub-list" || receiver.type === "ecosystem-main-account") {
     if (!receiver.accountId) {
-      throw new DripsError(`${receiver.type} receiver must have an accountId`, {
+      throw new chunkCH4CRTTQ_cjs.DripsError(`${receiver.type} receiver must have an accountId`, {
         meta: {
           operation: resolveReceiverAccountId.name,
           receiver
@@ -1995,7 +1982,7 @@ async function resolveReceiverAccountId(adapter, receiver) {
     }
     return receiver.accountId;
   }
-  throw new DripsError(`Unsupported receiver type: ${receiver.type}`, {
+  throw new chunkCH4CRTTQ_cjs.DripsError(`Unsupported receiver type: ${receiver.type}`, {
     meta: {
       operation: resolveReceiverAccountId.name,
       receiver
@@ -2009,7 +1996,7 @@ function mapApiSplitsToSdkSplitsReceivers(splits) {
       if ("project" in s) {
         const receiver = s;
         if (!receiver.project?.source.url) {
-          throw new DripsError("Missing project URL for REPO receiver", {
+          throw new chunkCH4CRTTQ_cjs.DripsError("Missing project URL for REPO receiver", {
             meta: { operation: "mapApiSplitsToSdkSplitsReceivers", receiver: s }
           });
         }
@@ -2021,7 +2008,7 @@ function mapApiSplitsToSdkSplitsReceivers(splits) {
       }
       const orcidId = extractOrcidIdFromAccountId(account.accountId);
       if (!orcidId) {
-        throw new DripsError("Failed to extract ORCID iD from account ID", {
+        throw new chunkCH4CRTTQ_cjs.DripsError("Failed to extract ORCID iD from account ID", {
           meta: { operation: "mapApiSplitsToSdkSplitsReceivers", receiver: s }
         });
       }
@@ -2050,7 +2037,7 @@ function mapApiSplitsToSdkSplitsReceivers(splits) {
         weight
       };
     }
-    throw new DripsError(`Unsupported account driver: ${account.driver}`, {
+    throw new chunkCH4CRTTQ_cjs.DripsError(`Unsupported account driver: ${account.driver}`, {
       meta: { operation: mapApiSplitsToSdkSplitsReceivers.name, receiver: s }
     });
   });
@@ -2096,7 +2083,7 @@ async function mapSdkToMetadataSplitsReceiver(accountId, receiver) {
       orcidId: receiver.orcidId
     };
   }
-  throw new DripsError(`Unsupported receiver type: ${receiver.type}`, {
+  throw new chunkCH4CRTTQ_cjs.DripsError(`Unsupported receiver type: ${receiver.type}`, {
     meta: {
       operation: mapSdkToMetadataSplitsReceiver.name,
       receiver
@@ -2108,7 +2095,7 @@ async function parseSplitsReceivers(adapter, sdkReceivers) {
     return { onChain: [], metadata: [] };
   }
   if (sdkReceivers.length > MAX_SPLITS_RECEIVERS) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Maximum of ${MAX_SPLITS_RECEIVERS} receivers allowed`,
       {
         meta: { operation: parseSplitsReceivers.name }
@@ -2129,12 +2116,12 @@ async function parseSplitsReceivers(adapter, sdkReceivers) {
   for (const { receiver, accountId } of resolved) {
     const { weight } = receiver;
     if (weight <= 0 || weight > TOTAL_SPLITS_WEIGHT) {
-      throw new DripsError(`Invalid weight: ${weight}`, {
+      throw new chunkCH4CRTTQ_cjs.DripsError(`Invalid weight: ${weight}`, {
         meta: { operation: parseSplitsReceivers.name, receiver }
       });
     }
     if (prevAccountId !== null && accountId <= prevAccountId) {
-      throw new DripsError(
+      throw new chunkCH4CRTTQ_cjs.DripsError(
         `Splits receivers not strictly sorted or deduplicated: ${accountId} after ${prevAccountId}`,
         {
           meta: { operation: parseSplitsReceivers.name }
@@ -2147,7 +2134,7 @@ async function parseSplitsReceivers(adapter, sdkReceivers) {
     metadata.push(await mapSdkToMetadataSplitsReceiver(accountId, receiver));
   }
   if (totalWeight !== TOTAL_SPLITS_WEIGHT) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Total weight must be exactly ${TOTAL_SPLITS_WEIGHT}, but got ${totalWeight}`,
       {
         meta: { operation: parseSplitsReceivers.name }
@@ -2868,169 +2855,6 @@ async function calcDripListId(adapter, params) {
   return dripListId;
 }
 
-// src/internal/blockchain/adapters/ethers/ethersMappers.ts
-function mapToEthersTransactionRequest(tx) {
-  const baseRequest = {
-    to: tx.to,
-    data: tx.data,
-    value: tx.value !== void 0 ? tx.value : void 0,
-    gasLimit: tx.gasLimit !== void 0 ? tx.gasLimit : void 0,
-    nonce: tx.nonce
-  };
-  if (tx.maxFeePerGas !== void 0 || tx.maxPriorityFeePerGas !== void 0) {
-    if (tx.gasPrice !== void 0) {
-      throw new DripsError(
-        "Cannot specify both EIP-1559 and legacy gas parameters.",
-        {
-          meta: {
-            gasPrice: tx.gasPrice,
-            maxFeePerGas: tx.maxFeePerGas,
-            maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
-            operation: mapToEthersTransactionRequest.name
-          }
-        }
-      );
-    }
-    return {
-      ...baseRequest,
-      maxFeePerGas: tx.maxFeePerGas !== void 0 ? tx.maxFeePerGas : void 0,
-      maxPriorityFeePerGas: tx.maxPriorityFeePerGas !== void 0 ? tx.maxPriorityFeePerGas : void 0
-    };
-  } else if (tx.gasPrice !== void 0) {
-    return {
-      ...baseRequest,
-      gasPrice: tx.gasPrice
-    };
-  }
-  return baseRequest;
-}
-function mapFromEthersResponse(ethersResponse) {
-  return {
-    hash: ethersResponse.hash,
-    wait: async (confirmations = 1) => {
-      const receipt = await ethersResponse.wait(confirmations);
-      if (!receipt) {
-        throw new DripsError("Transaction receipt not found");
-      }
-      return mapFromEthersReceipt(receipt);
-    }
-  };
-}
-function mapFromEthersReceipt(ethersReceipt) {
-  const { status, gasUsed, hash, blockNumber, logs, from, to } = ethersReceipt;
-  return {
-    from,
-    logs,
-    gasUsed,
-    blockNumber: BigInt(blockNumber),
-    to: to === null ? void 0 : to,
-    hash,
-    status: status === 1 ? "success" : "reverted"
-  };
-}
-
-// src/internal/blockchain/adapters/ethers/createEthersMeta.ts
-function createEthersMeta(tx, context) {
-  return {
-    to: tx.to,
-    funcName: tx.abiFunctionName,
-    account: context.account,
-    chainId: context.chainId,
-    operation: tx.abiFunctionName ?? context.operationFallback,
-    gas: {
-      gasLimit: tx.gasLimit,
-      gasPrice: tx.gasPrice,
-      maxFeePerGas: tx.maxFeePerGas,
-      maxPriorityFeePerGas: tx.maxPriorityFeePerGas
-    }
-  };
-}
-
-// src/internal/blockchain/adapters/ethers/ethersAdapters.ts
-function createEthersReadAdapter(provider) {
-  return {
-    async call(tx) {
-      const meta = createEthersMeta(tx, {
-        operationFallback: "call"
-      });
-      try {
-        const txReq = mapToEthersTransactionRequest(tx);
-        const result = await provider.call(txReq);
-        if (!result) {
-          throw new DripsError("Contract call returned no data", { meta });
-        }
-        return result;
-      } catch (error) {
-        throw new DripsError("Contract read failed", { cause: error, meta });
-      }
-    },
-    async getChainId() {
-      try {
-        const network = await provider.getNetwork();
-        return Number(network.chainId);
-      } catch (error) {
-        throw new DripsError("Failed to get chain ID", { cause: error });
-      }
-    }
-  };
-}
-function createEthersWriteAdapter(signer) {
-  const provider = signer.provider;
-  if (!provider) {
-    throw new DripsError("Signer must have a provider");
-  }
-  const readOnlyAdapter = createEthersReadAdapter(provider);
-  return {
-    ...readOnlyAdapter,
-    async getAddress() {
-      const meta = {
-        operation: "getAddress"
-      };
-      try {
-        const address = await signer.getAddress();
-        return address;
-      } catch (error) {
-        throw new DripsError("Failed to get signer address", {
-          cause: error,
-          meta
-        });
-      }
-    },
-    async sendTx(tx) {
-      const signerAddress = await signer.getAddress();
-      const meta = createEthersMeta(tx, {
-        account: signerAddress,
-        operationFallback: "sendTx"
-      });
-      try {
-        const ethersRequest = mapToEthersTransactionRequest(tx);
-        const ethersResponse = await signer.sendTransaction(ethersRequest);
-        return {
-          ...mapFromEthersResponse(ethersResponse),
-          meta
-        };
-      } catch (error) {
-        throw new DripsError(
-          `Contract write failed (func: ${tx.abiFunctionName})`,
-          { cause: error, meta }
-        );
-      }
-    },
-    async signMsg(message) {
-      const meta = {
-        message,
-        operation: "signMsg"
-      };
-      try {
-        const signature = await signer.signMessage(message);
-        return signature;
-      } catch (error) {
-        throw new DripsError("Message signing failed", { cause: error, meta });
-      }
-    }
-  };
-}
-
 // src/internal/blockchain/adapters/viem/viemMappers.ts
 function mapToViemCallParameters(tx) {
   const baseRequest = {
@@ -3042,7 +2866,7 @@ function mapToViemCallParameters(tx) {
   };
   if (tx.maxFeePerGas !== void 0 || tx.maxPriorityFeePerGas !== void 0) {
     if (tx.gasPrice !== void 0) {
-      throw new DripsError(
+      throw new chunkCH4CRTTQ_cjs.DripsError(
         "Cannot specify both EIP-1559 and legacy gas parameters.",
         {
           meta: {
@@ -3120,18 +2944,18 @@ function createViemReadAdapter(publicClient) {
         const callParams = mapToViemCallParameters(tx);
         const result = await publicClient.call(callParams);
         if (!result.data) {
-          throw new DripsError("Contract call returned no data", { meta });
+          throw new chunkCH4CRTTQ_cjs.DripsError("Contract call returned no data", { meta });
         }
         return result.data;
       } catch (error) {
-        throw new DripsError("Contract read failed", { cause: error, meta });
+        throw new chunkCH4CRTTQ_cjs.DripsError("Contract read failed", { cause: error, meta });
       }
     },
     async getChainId() {
       try {
         return publicClient.chain?.id ?? await publicClient.getChainId();
       } catch (error) {
-        throw new DripsError("Failed to get chain ID", { cause: error });
+        throw new chunkCH4CRTTQ_cjs.DripsError("Failed to get chain ID", { cause: error });
       }
     }
   };
@@ -3162,7 +2986,7 @@ function createViemWriteAdapter(walletClient) {
           meta
         };
       } catch (error) {
-        throw new DripsError(
+        throw new chunkCH4CRTTQ_cjs.DripsError(
           `Contract write failed (func: ${tx.abiFunctionName})`,
           {
             cause: error,
@@ -3183,7 +3007,7 @@ function createViemWriteAdapter(walletClient) {
           message: typeof message === "string" ? message : { raw: message }
         });
       } catch (error) {
-        throw new DripsError("Message signing failed", { cause: error, meta });
+        throw new chunkCH4CRTTQ_cjs.DripsError("Message signing failed", { cause: error, meta });
       }
     }
   };
@@ -3203,12 +3027,12 @@ function resolveBlockchainAdapter(client) {
     return createViemReadAdapter(client);
   }
   if (!("transport" in client) && hasRequiredMethods(client, ["signMessage", "getAddress"])) {
-    return createEthersWriteAdapter(client);
+    return chunkCH4CRTTQ_cjs.createEthersWriteAdapter(client);
   }
   if (!("transport" in client) && hasRequiredMethods(client, ["call"]) && !("signMessage" in client)) {
-    return createEthersReadAdapter(client);
+    return chunkCH4CRTTQ_cjs.createEthersReadAdapter(client);
   }
-  throw new DripsError("Unsupported client type for blockchain adapter", {
+  throw new chunkCH4CRTTQ_cjs.DripsError("Unsupported client type for blockchain adapter", {
     meta: {
       operation: resolveBlockchainAdapter.name,
       clientKeys: Object.keys(client)
@@ -3485,7 +3309,7 @@ function encodeMetadataKeyValue({
 }) {
   const keyBytes = viem.toBytes(key);
   if (keyBytes.length > 31) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Metadata key "${key}" is too long: ${keyBytes.length} bytes (max 31)`
     );
   }
@@ -3570,7 +3394,7 @@ async function createDripList(adapter, ipfsMetadataUploaderFn, dripList) {
 var DEFAULT_GRAPHQL_URL = "https://drips-multichain-api.up.railway.app";
 function createGraphQLClient(url = DEFAULT_GRAPHQL_URL, apiKey) {
   if (!url) {
-    throw new DripsError("Missing required GraphQL endpoint");
+    throw new chunkCH4CRTTQ_cjs.DripsError("Missing required GraphQL endpoint");
   }
   const headers = {};
   if (apiKey) {
@@ -3582,7 +3406,7 @@ function createGraphQLClient(url = DEFAULT_GRAPHQL_URL, apiKey) {
       try {
         return await client.request(query, variables);
       } catch (error) {
-        throw new DripsError("GraphQL query failed", {
+        throw new chunkCH4CRTTQ_cjs.DripsError("GraphQL query failed", {
           cause: error,
           meta: {
             operation: "GraphQLClient.query",
@@ -3741,12 +3565,12 @@ async function prepareDripListUpdate(adapter, ipfsMetadataUploaderFn, config, gr
   } = config;
   const dripList = await getDripListById(dripListId, chainId, graphqlClient);
   if (!dripList) {
-    throw new DripsError(`Drip list with ID ${dripListId} not found`, {
+    throw new chunkCH4CRTTQ_cjs.DripsError(`Drip list with ID ${dripListId} not found`, {
       meta: { operation }
     });
   }
   if (!maybeReceivers && !maybeMetadata) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       "Nothing to update: no receivers or metadata provided",
       {
         meta: { operation }
@@ -3861,7 +3685,7 @@ function createDripListsModule(deps) {
 // src/internal/shared/filterCurrentChain.ts
 function filterCurrentChain(items, chain) {
   if (!Array.isArray(items)) {
-    throw new DripsError(
+    throw new chunkCH4CRTTQ_cjs.DripsError(
       `Expected an array of items for chain "${chain}", but got invalid input.`,
       {
         meta: {
@@ -3873,13 +3697,13 @@ function filterCurrentChain(items, chain) {
   const matches = items.filter((item) => item.chain === chain);
   if (matches.length === 1) return matches[0];
   if (matches.length === 0) {
-    throw new DripsError(`No item found for chain "${chain}".`, {
+    throw new chunkCH4CRTTQ_cjs.DripsError(`No item found for chain "${chain}".`, {
       meta: {
         operation: filterCurrentChain.name
       }
     });
   }
-  throw new DripsError(
+  throw new chunkCH4CRTTQ_cjs.DripsError(
     `Expected exactly one item for chain "${chain}", but found ${matches.length}.`,
     {
       meta: {
@@ -4614,6 +4438,7 @@ function createUtilsModule(deps) {
     buildTx,
     calcAddressId: (address) => calcAddressId(adapter, address),
     calcProjectId: (forge, name) => calcProjectId(adapter, { forge, name }),
+    calcOrcidAccountId: (orcidId) => calcOrcidAccountId(adapter, orcidId),
     encodeStreamConfig,
     decodeStreamConfig,
     resolveDriverName,
@@ -4624,14 +4449,14 @@ function createUtilsModule(deps) {
 // src/internal/linked-identities/orcidUtils.ts
 function assertValidOrcidId(orcidId) {
   if (typeof orcidId !== "string") {
-    throw new DripsError("Invalid ORCID: expected string.", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("Invalid ORCID: expected string.", {
       meta: { operation: assertValidOrcidId.name, orcidId }
     });
   }
   const baseStr = orcidId.replace(/[-\s]/g, "");
   const orcidPattern = /^\d{15}[\dX]$/i;
   if (!orcidPattern.test(baseStr.toUpperCase())) {
-    throw new DripsError("Invalid ORCID format.", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("Invalid ORCID format.", {
       meta: { operation: assertValidOrcidId.name, orcidId }
     });
   }
@@ -4639,7 +4464,7 @@ function assertValidOrcidId(orcidId) {
   for (let i = 0; i < 15; i++) {
     const digit = parseInt(baseStr[i], 10);
     if (Number.isNaN(digit)) {
-      throw new DripsError("Invalid ORCID digits.", {
+      throw new chunkCH4CRTTQ_cjs.DripsError("Invalid ORCID digits.", {
         meta: { operation: assertValidOrcidId.name, orcidId }
       });
     }
@@ -4650,7 +4475,7 @@ function assertValidOrcidId(orcidId) {
   const calculatedCheckDigit = result === 10 ? "X" : String(result);
   const actualCheckDigit = baseStr.charAt(15).toUpperCase();
   if (calculatedCheckDigit !== actualCheckDigit) {
-    throw new DripsError("Invalid ORCID checksum.", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("Invalid ORCID checksum.", {
       meta: { operation: assertValidOrcidId.name, orcidId }
     });
   }
@@ -4658,70 +4483,202 @@ function assertValidOrcidId(orcidId) {
 function normalizeOrcidForContract(orcidId) {
   const trimmed = (orcidId ?? "").trim();
   if (trimmed.length === 0) {
-    throw new DripsError("ORCID is empty.", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("ORCID is empty.", {
       meta: { operation: normalizeOrcidForContract.name, orcidId }
     });
   }
   return trimmed;
 }
-
-// src/internal/linked-identities/prepareClaimOrcid.ts
-var ORCID_FORGE_ID = 2;
-async function prepareClaimOrcid(adapter, params) {
-  const chainId = await adapter.getChainId();
-  requireSupportedChain(chainId, prepareClaimOrcid.name);
-  const { orcidId, batchedTxOverrides } = params;
+async function waitForOrcidOwnership(adapter, params) {
+  const {
+    orcidId,
+    expectedOwner,
+    pollIntervalMs = 3e3,
+    timeoutMs = 12e4,
+    onProgress
+  } = params;
   assertValidOrcidId(orcidId);
-  const { repoDriver, caller } = contractsRegistry[chainId];
-  const txs = [];
-  const requestUpdateOwnerTx = buildTx({
-    abi: repoDriverAbi,
-    contract: contractsRegistry[chainId].repoDriver.address,
-    functionName: "requestUpdateOwner",
-    args: [ORCID_FORGE_ID, viem.toHex(normalizeOrcidForContract(orcidId))]
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId, waitForOrcidOwnership.name);
+  const accountId = await calcOrcidAccountId(adapter, orcidId);
+  const repoDriverAddress = contractsRegistry[chainId].repoDriver.address;
+  let targetOwner;
+  if (expectedOwner) {
+    targetOwner = expectedOwner;
+  } else {
+    if ("getAddress" in adapter && typeof adapter.getAddress === "function") {
+      targetOwner = await adapter.getAddress();
+    } else {
+      throw new chunkCH4CRTTQ_cjs.DripsError(
+        "Expected owner address must be provided for read-only adapter.",
+        {
+          meta: { operation: waitForOrcidOwnership.name, orcidId }
+        }
+      );
+    }
+  }
+  const startTime = Date.now();
+  const endTime = startTime + timeoutMs;
+  while (Date.now() < endTime) {
+    const ownerOfTx = buildTx({
+      abi: repoDriverAbi,
+      contract: repoDriverAddress,
+      functionName: "ownerOf",
+      args: [accountId]
+    });
+    const encodedResult = await adapter.call(ownerOfTx);
+    const currentOwner = viem.decodeFunctionResult({
+      abi: repoDriverAbi,
+      functionName: "ownerOf",
+      data: encodedResult
+    });
+    if (currentOwner.toLowerCase() === targetOwner.toLowerCase()) {
+      return;
+    }
+    const elapsedMs = Date.now() - startTime;
+    await onProgress?.(elapsedMs);
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+  throw new chunkCH4CRTTQ_cjs.DripsError(`Ownership confirmation timeout after ${timeoutMs}ms.`, {
+    meta: {
+      operation: waitForOrcidOwnership.name,
+      orcidId,
+      accountId: accountId.toString(),
+      expectedOwner: targetOwner,
+      timeoutMs
+    }
   });
-  txs.push(requestUpdateOwnerTx);
-  const orcidAccountId = await calcOrcidAccountId(adapter, orcidId);
-  const splitReceiver = {
-    // If the connected wallet is not the owner of the ORCID account, the `setSplits` call will fail (and so the whole batched call).
-    accountId: await calcAddressId(adapter, await adapter.getAddress()),
-    // The owner of the ORCID account must be the receiver of the splits.
-    weight: TOTAL_SPLITS_WEIGHT
-  };
-  const setSplitsTx = buildTx({
-    abi: repoDriverAbi,
-    contract: repoDriver.address,
-    functionName: "setSplits",
-    args: [orcidAccountId, [splitReceiver]]
-  });
-  txs.push(setSplitsTx);
-  const preparedTx = buildTx({
-    abi: callerAbi,
-    contract: caller.address,
-    functionName: "callBatched",
-    args: [txs.map(convertToCallerCall)],
-    batchedTxOverrides
-  });
-  return preparedTx;
 }
 
 // src/internal/linked-identities/claimOrcid.ts
+var ORCID_FORGE_ID = 2;
 async function claimOrcid(adapter, params) {
-  const preparedTx = await prepareClaimOrcid(adapter, params);
-  return adapter.sendTx(preparedTx);
+  const { orcidId, waitOptions, onProgress } = params;
+  assertValidOrcidId(orcidId);
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId, claimOrcid.name);
+  const repoDriverAddress = contractsRegistry[chainId].repoDriver.address;
+  const orcidAccountId = await calcOrcidAccountId(adapter, orcidId);
+  let claimResult;
+  let ownershipResult;
+  let splitsResult;
+  await onProgress?.("claiming", "Submitting claim transaction");
+  try {
+    const requestUpdateOwnerTx = buildTx({
+      abi: repoDriverAbi,
+      contract: repoDriverAddress,
+      functionName: "requestUpdateOwner",
+      args: [ORCID_FORGE_ID, viem.toHex(normalizeOrcidForContract(orcidId))]
+    });
+    const claimResponse = await adapter.sendTx(requestUpdateOwnerTx);
+    const receipt = await claimResponse.wait();
+    claimResult = {
+      success: true,
+      data: {
+        hash: claimResponse.hash,
+        mined: receipt.status === "success"
+      }
+    };
+  } catch (error) {
+    claimResult = {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+    return {
+      orcidAccountId,
+      claim: claimResult,
+      ownership: { success: false, error: new Error("Claim step failed") },
+      splits: { success: false, error: new Error("Claim step failed") },
+      status: "failed"
+    };
+  }
+  await onProgress?.("waiting", "Polling for ownership confirmation");
+  const ownershipStartTime = Date.now();
+  try {
+    const ownerAddress = await adapter.getAddress();
+    await waitForOrcidOwnership(adapter, {
+      orcidId,
+      expectedOwner: ownerAddress,
+      ...waitOptions,
+      onProgress: waitOptions?.onProgress
+    });
+    ownershipResult = {
+      success: true,
+      data: {
+        owner: ownerAddress,
+        verificationTimeMs: Date.now() - ownershipStartTime
+      }
+    };
+  } catch (error) {
+    ownershipResult = {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+    return {
+      orcidAccountId,
+      claim: claimResult,
+      ownership: ownershipResult,
+      splits: { success: false, error: new Error("Ownership step failed") },
+      status: "partial"
+    };
+  }
+  await onProgress?.("configuring", "Setting splits configuration");
+  try {
+    const claimerAddress = await adapter.getAddress();
+    const claimerAccountId = await calcAddressId(adapter, claimerAddress);
+    const receivers = [
+      {
+        accountId: claimerAccountId,
+        weight: TOTAL_SPLITS_WEIGHT
+      }
+    ];
+    const setSplitsTx = buildTx({
+      abi: repoDriverAbi,
+      contract: repoDriverAddress,
+      functionName: "setSplits",
+      args: [orcidAccountId, receivers]
+    });
+    const setSplitsResponse = await adapter.sendTx(setSplitsTx);
+    const receipt = await setSplitsResponse.wait();
+    splitsResult = {
+      success: true,
+      data: {
+        hash: setSplitsResponse.hash,
+        mined: receipt.status === "success"
+      }
+    };
+  } catch (error) {
+    splitsResult = {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+    return {
+      orcidAccountId,
+      claim: claimResult,
+      ownership: ownershipResult,
+      splits: splitsResult,
+      status: "partial"
+    };
+  }
+  return {
+    orcidAccountId,
+    claim: claimResult,
+    ownership: ownershipResult,
+    splits: splitsResult,
+    status: "complete"
+  };
 }
 
 // src/sdk/createLinkedIdentitiesModule.ts
 function createLinkedIdentitiesModule(deps) {
   const { adapter } = deps;
   return {
-    prepareClaimOrcid: (params) => {
-      requireWriteAccess(adapter, prepareClaimOrcid.name);
-      return prepareClaimOrcid(adapter, params);
-    },
     claimOrcid: (params) => {
       requireWriteAccess(adapter, claimOrcid.name);
       return claimOrcid(adapter, params);
+    },
+    waitForOrcidOwnership: (params) => {
+      return waitForOrcidOwnership(adapter, params);
     }
   };
 }
@@ -5994,7 +5951,7 @@ async function prepareCollection(adapter, config) {
   const { drips, caller, addressDriver, nativeTokenUnwrapper } = contractsRegistry[chainId];
   const signerAddress = await adapter.getAddress();
   if (tokenAddresses?.length === 0) {
-    throw new DripsError("No tokens provided for collection.", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("No tokens provided for collection.", {
       meta: { operation: prepareCollection.name, tokenAddresses }
     });
   }
@@ -6043,7 +6000,7 @@ async function prepareCollection(adapter, config) {
     if (shouldAutoUnwrap) {
       const nativeTokenUnwrapperAddress = nativeTokenUnwrapper.address;
       if (!nativeTokenUnwrapperAddress) {
-        throw new DripsError(
+        throw new chunkCH4CRTTQ_cjs.DripsError(
           "Native token unwrapper is not configured for this chain but auto unwrap is enabled.",
           {
             meta: { operation: prepareCollection.name, chainId }
@@ -6051,7 +6008,7 @@ async function prepareCollection(adapter, config) {
         );
       }
       if (transferToAddress && transferToAddress !== signerAddress) {
-        throw new DripsError(
+        throw new chunkCH4CRTTQ_cjs.DripsError(
           "Signer address and transfer to address must match when auto unwrapping.",
           {
             meta: {
@@ -6192,7 +6149,7 @@ function getMetadataParser(metadata) {
     parser = parsers[metadata.driver];
   }
   if (!parser) {
-    throw new DripsError("Unsupported metadata driver", {
+    throw new chunkCH4CRTTQ_cjs.DripsError("Unsupported metadata driver", {
       meta: {
         operation: getMetadataParser.name,
         metadata
@@ -6208,7 +6165,7 @@ function createIpfsMetadataUploader(client) {
       const { cid } = await client.uploadJson(metadata);
       return cid;
     } catch (err) {
-      throw new DripsError("IPFS upload failed", {
+      throw new chunkCH4CRTTQ_cjs.DripsError("IPFS upload failed", {
         cause: err,
         meta: {
           operation: createIpfsMetadataUploader.name,
@@ -6241,6 +6198,7 @@ var utils = {
   buildTx,
   calcAddressId,
   calcProjectId,
+  calcOrcidAccountId,
   calcDripListId,
   encodeStreamConfig,
   decodeStreamConfig,
@@ -6262,15 +6220,12 @@ exports.collect = collect;
 exports.contractsRegistry = contractsRegistry;
 exports.createDripList = createDripList;
 exports.createDripsSdk = createDripsSdk;
-exports.createEthersReadAdapter = createEthersReadAdapter;
-exports.createEthersWriteAdapter = createEthersWriteAdapter;
 exports.createPinataIpfsMetadataUploader = createPinataIpfsMetadataUploader;
 exports.createViemReadAdapter = createViemReadAdapter;
 exports.createViemWriteAdapter = createViemWriteAdapter;
 exports.dripsConstants = dripsConstants;
 exports.getDripListById = getDripListById;
 exports.getUserWithdrawableBalances = getUserWithdrawableBalances;
-exports.prepareClaimOrcid = prepareClaimOrcid;
 exports.prepareCollection = prepareCollection;
 exports.prepareContinuousDonation = prepareContinuousDonation;
 exports.prepareDripListCreation = prepareDripListCreation;
@@ -6280,3 +6235,4 @@ exports.sendContinuousDonation = sendContinuousDonation;
 exports.sendOneTimeDonation = sendOneTimeDonation;
 exports.updateDripList = updateDripList;
 exports.utils = utils;
+exports.waitForOrcidOwnership = waitForOrcidOwnership;

@@ -1,22 +1,9 @@
+import { DripsError, createEthersWriteAdapter, createEthersReadAdapter } from './chunk-UDRMPPVX.js';
 import { isAddress, encodeFunctionData, checksumAddress, toHex, decodeFunctionResult, publicActions, parseUnits, toBytes, pad, stringToHex } from 'viem';
 import { gql, GraphQLClient } from 'graphql-request';
 import { createVersionedParser } from '@efstajas/versioned-parser';
 import z6, { z } from 'zod';
 import { PinataSDK } from 'pinata';
-
-// src/internal/shared/buildTx.ts
-
-// src/internal/shared/DripsError.ts
-var DripsError = class extends Error {
-  cause;
-  meta;
-  constructor(message, options) {
-    super(`[Drips SDK] ${message}`, { cause: options?.cause });
-    this.name = "DripsError";
-    this.cause = options?.cause;
-    this.meta = options?.meta;
-  }
-};
 
 // src/internal/shared/unreachable.ts
 function unreachable(message) {
@@ -2862,169 +2849,6 @@ async function calcDripListId(adapter, params) {
   return dripListId;
 }
 
-// src/internal/blockchain/adapters/ethers/ethersMappers.ts
-function mapToEthersTransactionRequest(tx) {
-  const baseRequest = {
-    to: tx.to,
-    data: tx.data,
-    value: tx.value !== void 0 ? tx.value : void 0,
-    gasLimit: tx.gasLimit !== void 0 ? tx.gasLimit : void 0,
-    nonce: tx.nonce
-  };
-  if (tx.maxFeePerGas !== void 0 || tx.maxPriorityFeePerGas !== void 0) {
-    if (tx.gasPrice !== void 0) {
-      throw new DripsError(
-        "Cannot specify both EIP-1559 and legacy gas parameters.",
-        {
-          meta: {
-            gasPrice: tx.gasPrice,
-            maxFeePerGas: tx.maxFeePerGas,
-            maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
-            operation: mapToEthersTransactionRequest.name
-          }
-        }
-      );
-    }
-    return {
-      ...baseRequest,
-      maxFeePerGas: tx.maxFeePerGas !== void 0 ? tx.maxFeePerGas : void 0,
-      maxPriorityFeePerGas: tx.maxPriorityFeePerGas !== void 0 ? tx.maxPriorityFeePerGas : void 0
-    };
-  } else if (tx.gasPrice !== void 0) {
-    return {
-      ...baseRequest,
-      gasPrice: tx.gasPrice
-    };
-  }
-  return baseRequest;
-}
-function mapFromEthersResponse(ethersResponse) {
-  return {
-    hash: ethersResponse.hash,
-    wait: async (confirmations = 1) => {
-      const receipt = await ethersResponse.wait(confirmations);
-      if (!receipt) {
-        throw new DripsError("Transaction receipt not found");
-      }
-      return mapFromEthersReceipt(receipt);
-    }
-  };
-}
-function mapFromEthersReceipt(ethersReceipt) {
-  const { status, gasUsed, hash, blockNumber, logs, from, to } = ethersReceipt;
-  return {
-    from,
-    logs,
-    gasUsed,
-    blockNumber: BigInt(blockNumber),
-    to: to === null ? void 0 : to,
-    hash,
-    status: status === 1 ? "success" : "reverted"
-  };
-}
-
-// src/internal/blockchain/adapters/ethers/createEthersMeta.ts
-function createEthersMeta(tx, context) {
-  return {
-    to: tx.to,
-    funcName: tx.abiFunctionName,
-    account: context.account,
-    chainId: context.chainId,
-    operation: tx.abiFunctionName ?? context.operationFallback,
-    gas: {
-      gasLimit: tx.gasLimit,
-      gasPrice: tx.gasPrice,
-      maxFeePerGas: tx.maxFeePerGas,
-      maxPriorityFeePerGas: tx.maxPriorityFeePerGas
-    }
-  };
-}
-
-// src/internal/blockchain/adapters/ethers/ethersAdapters.ts
-function createEthersReadAdapter(provider) {
-  return {
-    async call(tx) {
-      const meta = createEthersMeta(tx, {
-        operationFallback: "call"
-      });
-      try {
-        const txReq = mapToEthersTransactionRequest(tx);
-        const result = await provider.call(txReq);
-        if (!result) {
-          throw new DripsError("Contract call returned no data", { meta });
-        }
-        return result;
-      } catch (error) {
-        throw new DripsError("Contract read failed", { cause: error, meta });
-      }
-    },
-    async getChainId() {
-      try {
-        const network = await provider.getNetwork();
-        return Number(network.chainId);
-      } catch (error) {
-        throw new DripsError("Failed to get chain ID", { cause: error });
-      }
-    }
-  };
-}
-function createEthersWriteAdapter(signer) {
-  const provider = signer.provider;
-  if (!provider) {
-    throw new DripsError("Signer must have a provider");
-  }
-  const readOnlyAdapter = createEthersReadAdapter(provider);
-  return {
-    ...readOnlyAdapter,
-    async getAddress() {
-      const meta = {
-        operation: "getAddress"
-      };
-      try {
-        const address = await signer.getAddress();
-        return address;
-      } catch (error) {
-        throw new DripsError("Failed to get signer address", {
-          cause: error,
-          meta
-        });
-      }
-    },
-    async sendTx(tx) {
-      const signerAddress = await signer.getAddress();
-      const meta = createEthersMeta(tx, {
-        account: signerAddress,
-        operationFallback: "sendTx"
-      });
-      try {
-        const ethersRequest = mapToEthersTransactionRequest(tx);
-        const ethersResponse = await signer.sendTransaction(ethersRequest);
-        return {
-          ...mapFromEthersResponse(ethersResponse),
-          meta
-        };
-      } catch (error) {
-        throw new DripsError(
-          `Contract write failed (func: ${tx.abiFunctionName})`,
-          { cause: error, meta }
-        );
-      }
-    },
-    async signMsg(message) {
-      const meta = {
-        message,
-        operation: "signMsg"
-      };
-      try {
-        const signature = await signer.signMessage(message);
-        return signature;
-      } catch (error) {
-        throw new DripsError("Message signing failed", { cause: error, meta });
-      }
-    }
-  };
-}
-
 // src/internal/blockchain/adapters/viem/viemMappers.ts
 function mapToViemCallParameters(tx) {
   const baseRequest = {
@@ -4608,6 +4432,7 @@ function createUtilsModule(deps) {
     buildTx,
     calcAddressId: (address) => calcAddressId(adapter, address),
     calcProjectId: (forge, name) => calcProjectId(adapter, { forge, name }),
+    calcOrcidAccountId: (orcidId) => calcOrcidAccountId(adapter, orcidId),
     encodeStreamConfig,
     decodeStreamConfig,
     resolveDriverName,
@@ -4658,64 +4483,196 @@ function normalizeOrcidForContract(orcidId) {
   }
   return trimmed;
 }
-
-// src/internal/linked-identities/prepareClaimOrcid.ts
-var ORCID_FORGE_ID = 2;
-async function prepareClaimOrcid(adapter, params) {
-  const chainId = await adapter.getChainId();
-  requireSupportedChain(chainId, prepareClaimOrcid.name);
-  const { orcidId, batchedTxOverrides } = params;
+async function waitForOrcidOwnership(adapter, params) {
+  const {
+    orcidId,
+    expectedOwner,
+    pollIntervalMs = 3e3,
+    timeoutMs = 12e4,
+    onProgress
+  } = params;
   assertValidOrcidId(orcidId);
-  const { repoDriver, caller } = contractsRegistry[chainId];
-  const txs = [];
-  const requestUpdateOwnerTx = buildTx({
-    abi: repoDriverAbi,
-    contract: contractsRegistry[chainId].repoDriver.address,
-    functionName: "requestUpdateOwner",
-    args: [ORCID_FORGE_ID, toHex(normalizeOrcidForContract(orcidId))]
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId, waitForOrcidOwnership.name);
+  const accountId = await calcOrcidAccountId(adapter, orcidId);
+  const repoDriverAddress = contractsRegistry[chainId].repoDriver.address;
+  let targetOwner;
+  if (expectedOwner) {
+    targetOwner = expectedOwner;
+  } else {
+    if ("getAddress" in adapter && typeof adapter.getAddress === "function") {
+      targetOwner = await adapter.getAddress();
+    } else {
+      throw new DripsError(
+        "Expected owner address must be provided for read-only adapter.",
+        {
+          meta: { operation: waitForOrcidOwnership.name, orcidId }
+        }
+      );
+    }
+  }
+  const startTime = Date.now();
+  const endTime = startTime + timeoutMs;
+  while (Date.now() < endTime) {
+    const ownerOfTx = buildTx({
+      abi: repoDriverAbi,
+      contract: repoDriverAddress,
+      functionName: "ownerOf",
+      args: [accountId]
+    });
+    const encodedResult = await adapter.call(ownerOfTx);
+    const currentOwner = decodeFunctionResult({
+      abi: repoDriverAbi,
+      functionName: "ownerOf",
+      data: encodedResult
+    });
+    if (currentOwner.toLowerCase() === targetOwner.toLowerCase()) {
+      return;
+    }
+    const elapsedMs = Date.now() - startTime;
+    await onProgress?.(elapsedMs);
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+  throw new DripsError(`Ownership confirmation timeout after ${timeoutMs}ms.`, {
+    meta: {
+      operation: waitForOrcidOwnership.name,
+      orcidId,
+      accountId: accountId.toString(),
+      expectedOwner: targetOwner,
+      timeoutMs
+    }
   });
-  txs.push(requestUpdateOwnerTx);
-  const orcidAccountId = await calcOrcidAccountId(adapter, orcidId);
-  const splitReceiver = {
-    // If the connected wallet is not the owner of the ORCID account, the `setSplits` call will fail (and so the whole batched call).
-    accountId: await calcAddressId(adapter, await adapter.getAddress()),
-    // The owner of the ORCID account must be the receiver of the splits.
-    weight: TOTAL_SPLITS_WEIGHT
-  };
-  const setSplitsTx = buildTx({
-    abi: repoDriverAbi,
-    contract: repoDriver.address,
-    functionName: "setSplits",
-    args: [orcidAccountId, [splitReceiver]]
-  });
-  txs.push(setSplitsTx);
-  const preparedTx = buildTx({
-    abi: callerAbi,
-    contract: caller.address,
-    functionName: "callBatched",
-    args: [txs.map(convertToCallerCall)],
-    batchedTxOverrides
-  });
-  return preparedTx;
 }
 
 // src/internal/linked-identities/claimOrcid.ts
+var ORCID_FORGE_ID = 2;
 async function claimOrcid(adapter, params) {
-  const preparedTx = await prepareClaimOrcid(adapter, params);
-  return adapter.sendTx(preparedTx);
+  const { orcidId, waitOptions, onProgress } = params;
+  assertValidOrcidId(orcidId);
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId, claimOrcid.name);
+  const repoDriverAddress = contractsRegistry[chainId].repoDriver.address;
+  const orcidAccountId = await calcOrcidAccountId(adapter, orcidId);
+  let claimResult;
+  let ownershipResult;
+  let splitsResult;
+  await onProgress?.("claiming", "Submitting claim transaction");
+  try {
+    const requestUpdateOwnerTx = buildTx({
+      abi: repoDriverAbi,
+      contract: repoDriverAddress,
+      functionName: "requestUpdateOwner",
+      args: [ORCID_FORGE_ID, toHex(normalizeOrcidForContract(orcidId))]
+    });
+    const claimResponse = await adapter.sendTx(requestUpdateOwnerTx);
+    const receipt = await claimResponse.wait();
+    claimResult = {
+      success: true,
+      data: {
+        hash: claimResponse.hash,
+        mined: receipt.status === "success"
+      }
+    };
+  } catch (error) {
+    claimResult = {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+    return {
+      orcidAccountId,
+      claim: claimResult,
+      ownership: { success: false, error: new Error("Claim step failed") },
+      splits: { success: false, error: new Error("Claim step failed") },
+      status: "failed"
+    };
+  }
+  await onProgress?.("waiting", "Polling for ownership confirmation");
+  const ownershipStartTime = Date.now();
+  try {
+    const ownerAddress = await adapter.getAddress();
+    await waitForOrcidOwnership(adapter, {
+      orcidId,
+      expectedOwner: ownerAddress,
+      ...waitOptions,
+      onProgress: waitOptions?.onProgress
+    });
+    ownershipResult = {
+      success: true,
+      data: {
+        owner: ownerAddress,
+        verificationTimeMs: Date.now() - ownershipStartTime
+      }
+    };
+  } catch (error) {
+    ownershipResult = {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+    return {
+      orcidAccountId,
+      claim: claimResult,
+      ownership: ownershipResult,
+      splits: { success: false, error: new Error("Ownership step failed") },
+      status: "partial"
+    };
+  }
+  await onProgress?.("configuring", "Setting splits configuration");
+  try {
+    const claimerAddress = await adapter.getAddress();
+    const claimerAccountId = await calcAddressId(adapter, claimerAddress);
+    const receivers = [
+      {
+        accountId: claimerAccountId,
+        weight: TOTAL_SPLITS_WEIGHT
+      }
+    ];
+    const setSplitsTx = buildTx({
+      abi: repoDriverAbi,
+      contract: repoDriverAddress,
+      functionName: "setSplits",
+      args: [orcidAccountId, receivers]
+    });
+    const setSplitsResponse = await adapter.sendTx(setSplitsTx);
+    const receipt = await setSplitsResponse.wait();
+    splitsResult = {
+      success: true,
+      data: {
+        hash: setSplitsResponse.hash,
+        mined: receipt.status === "success"
+      }
+    };
+  } catch (error) {
+    splitsResult = {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error))
+    };
+    return {
+      orcidAccountId,
+      claim: claimResult,
+      ownership: ownershipResult,
+      splits: splitsResult,
+      status: "partial"
+    };
+  }
+  return {
+    orcidAccountId,
+    claim: claimResult,
+    ownership: ownershipResult,
+    splits: splitsResult,
+    status: "complete"
+  };
 }
 
 // src/sdk/createLinkedIdentitiesModule.ts
 function createLinkedIdentitiesModule(deps) {
   const { adapter } = deps;
   return {
-    prepareClaimOrcid: (params) => {
-      requireWriteAccess(adapter, prepareClaimOrcid.name);
-      return prepareClaimOrcid(adapter, params);
-    },
     claimOrcid: (params) => {
       requireWriteAccess(adapter, claimOrcid.name);
       return claimOrcid(adapter, params);
+    },
+    waitForOrcidOwnership: (params) => {
+      return waitForOrcidOwnership(adapter, params);
     }
   };
 }
@@ -6235,6 +6192,7 @@ var utils = {
   buildTx,
   calcAddressId,
   calcProjectId,
+  calcOrcidAccountId,
   calcDripListId,
   encodeStreamConfig,
   decodeStreamConfig,
@@ -6250,4 +6208,4 @@ var dripsConstants = {
   CYCLE_SECS
 };
 
-export { TimeUnit, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createEthersReadAdapter, createEthersWriteAdapter, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareClaimOrcid, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils };
+export { TimeUnit, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils, waitForOrcidOwnership };

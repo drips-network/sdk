@@ -235,10 +235,16 @@ type OrcidLinkedIdentity {
   chain: SupportedChain!
   isClaimed: Boolean!
   orcid: String!
+  orcidMetadata: OrcidMetadata
   owner: AddressDriverAccount
   support: [SupportItem!]!
   totalEarned: [Amount!]!
   withdrawableBalances: [WithdrawableBalance!]!
+}
+
+type OrcidMetadata {
+  familyName: String
+  givenName: String
 }
 
 type Project {
