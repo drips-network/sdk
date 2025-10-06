@@ -4556,7 +4556,6 @@ async function claimOrcid(adapter, params) {
   let claimResult;
   let ownershipResult;
   let splitsResult;
-  await onProgress?.("claiming", "Submitting claim transaction");
   try {
     const requestUpdateOwnerTx = buildTx({
       abi: repoDriverAbi,
@@ -4565,6 +4564,7 @@ async function claimOrcid(adapter, params) {
       args: [ORCID_FORGE_ID, toHex(normalizeOrcidForContract(orcidId))]
     });
     const claimResponse = await adapter.sendTx(requestUpdateOwnerTx);
+    await onProgress?.({ step: "claiming", txHash: claimResponse.hash });
     const receipt = await claimResponse.wait();
     claimResult = {
       success: true,
@@ -4586,7 +4586,6 @@ async function claimOrcid(adapter, params) {
       status: "failed"
     };
   }
-  await onProgress?.("waiting", "Polling for ownership confirmation");
   const ownershipStartTime = Date.now();
   try {
     const ownerAddress = await adapter.getAddress();
@@ -4594,7 +4593,10 @@ async function claimOrcid(adapter, params) {
       orcidId,
       expectedOwner: ownerAddress,
       ...waitOptions,
-      onProgress: waitOptions?.onProgress
+      onProgress: async (elapsedMs) => {
+        await onProgress?.({ step: "waiting", elapsedMs });
+        await waitOptions?.onProgress?.(elapsedMs);
+      }
     });
     ownershipResult = {
       success: true,
@@ -4616,7 +4618,7 @@ async function claimOrcid(adapter, params) {
       status: "partial"
     };
   }
-  await onProgress?.("configuring", "Setting splits configuration");
+  await onProgress?.({ step: "configuring", orcidAccountId });
   try {
     const claimerAddress = await adapter.getAddress();
     const claimerAccountId = await calcAddressId(adapter, claimerAddress);
@@ -4662,6 +4664,39 @@ async function claimOrcid(adapter, params) {
     status: "complete"
   };
 }
+async function prepareClaimOrcid(adapter, params) {
+  const { orcidId } = params;
+  assertValidOrcidId(orcidId);
+  const chainId = await adapter.getChainId();
+  requireSupportedChain(chainId, prepareClaimOrcid.name);
+  const repoDriverAddress = contractsRegistry[chainId].repoDriver.address;
+  const claimTx = buildTx({
+    abi: repoDriverAbi,
+    contract: repoDriverAddress,
+    functionName: "requestUpdateOwner",
+    args: [ORCID_FORGE_ID, toHex(normalizeOrcidForContract(orcidId))]
+  });
+  const orcidAccountId = await calcOrcidAccountId(adapter, orcidId);
+  const claimerAddress = await adapter.getAddress();
+  const claimerAccountId = await calcAddressId(adapter, claimerAddress);
+  const receivers = [
+    {
+      accountId: claimerAccountId,
+      weight: TOTAL_SPLITS_WEIGHT
+    }
+  ];
+  const setSplitsTx = buildTx({
+    abi: repoDriverAbi,
+    contract: repoDriverAddress,
+    functionName: "setSplits",
+    args: [orcidAccountId, receivers]
+  });
+  return {
+    orcidAccountId,
+    claimTx,
+    setSplitsTx
+  };
+}
 
 // src/sdk/createLinkedIdentitiesModule.ts
 function createLinkedIdentitiesModule(deps) {
@@ -4670,6 +4705,10 @@ function createLinkedIdentitiesModule(deps) {
     claimOrcid: (params) => {
       requireWriteAccess(adapter, claimOrcid.name);
       return claimOrcid(adapter, params);
+    },
+    prepareClaimOrcid: (params) => {
+      requireWriteAccess(adapter, prepareClaimOrcid.name);
+      return prepareClaimOrcid(adapter, params);
     },
     waitForOrcidOwnership: (params) => {
       return waitForOrcidOwnership(adapter, params);
@@ -6208,4 +6247,4 @@ var dripsConstants = {
   CYCLE_SECS
 };
 
-export { TimeUnit, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils, waitForOrcidOwnership };
+export { TimeUnit, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareClaimOrcid, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils, waitForOrcidOwnership };

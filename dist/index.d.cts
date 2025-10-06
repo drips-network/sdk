@@ -1350,18 +1350,23 @@ type WaitForOrcidOwnershipParams = {
 };
 declare function waitForOrcidOwnership(adapter: ReadBlockchainAdapter, params: WaitForOrcidOwnershipParams): Promise<void>;
 
+type ProgressEvent = {
+    readonly step: 'claiming';
+    readonly txHash?: Hash;
+} | {
+    readonly step: 'waiting';
+    readonly elapsedMs: number;
+} | {
+    readonly step: 'configuring';
+    readonly orcidAccountId: bigint;
+};
 type ClaimOrcidParams = {
     /** The ORCID ID to claim (e.g., '0000-0002-1825-0097'). */
     readonly orcidId: string;
     /** Optional wait parameters for ownership polling. */
     readonly waitOptions?: Omit<WaitForOrcidOwnershipParams, 'orcidId'>;
-    /**
-     * Optional progress callback invoked at each step.
-     * - 'claiming': Submitting claim transaction
-     * - 'waiting': Polling for ownership confirmation
-     * - 'configuring': Setting splits configuration
-     */
-    readonly onProgress?: (step: 'claiming' | 'waiting' | 'configuring', details?: string) => void | Promise<void>;
+    /** Optional progress callback invoked at each step with typed event data. */
+    readonly onProgress?: (event: ProgressEvent) => void | Promise<void>;
 };
 type ClaimOrcidStepResult<T = void> = {
     success: true;
@@ -1397,6 +1402,20 @@ type ClaimOrcidResult = {
 };
 declare function claimOrcid(adapter: WriteBlockchainAdapter, params: ClaimOrcidParams): Promise<ClaimOrcidResult>;
 
+type PrepareClaimOrcidParams = {
+    /** The ORCID ID to claim (e.g., '0000-0002-1825-0097'). */
+    readonly orcidId: string;
+};
+type PrepareClaimOrcidResult = {
+    /** The ORCID account ID. */
+    readonly orcidAccountId: bigint;
+    /** Transaction to submit claim via requestUpdateOwner. */
+    readonly claimTx: PreparedTx;
+    /** Transaction to configure splits to 100% to claimer. */
+    readonly setSplitsTx: PreparedTx;
+};
+declare function prepareClaimOrcid(adapter: WriteBlockchainAdapter, params: PrepareClaimOrcidParams): Promise<PrepareClaimOrcidResult>;
+
 interface LinkedIdentitiesModule {
     /**
      * Claims an ORCID identity.
@@ -1429,6 +1448,20 @@ interface LinkedIdentitiesModule {
      * ```
      */
     claimOrcid(params: ClaimOrcidParams): Promise<ClaimOrcidResult>;
+    /**
+     * Prepares transactions for claiming an ORCID identity.
+     *
+     * Returns prepared transactions without executing them:
+     * 1. Claim transaction (requestUpdateOwner)
+     * 2. Splits configuration transaction (setSplits to 100% to caller's address)
+     *
+     * Use this for transaction batching, gas estimation, or custom execution flows.
+     *
+     * @param params - ORCID ID to claim.
+     *
+     * @returns Prepared transactions and associated account IDs.
+     */
+    prepareClaimOrcid(params: PrepareClaimOrcidParams): Promise<PrepareClaimOrcidResult>;
     /**
      * Polls for ownership confirmation of an ORCID identity.
      *
@@ -1840,4 +1873,4 @@ declare const dripsConstants: {
     CYCLE_SECS: number;
 };
 
-export { type ClaimOrcidParams, type ClaimOrcidResult, type ClaimOrcidStepResult, type CollectConfig, type ContinuousDonation, type CreateDripListResult, type DripList, type DripListMetadata, type DripListUpdateConfig, type DripsGraphQLClient, type DripsSdk, type Forge$1 as Forge, type IpfsMetadataUploaderFn, type Metadata, type MetadataSplitsReceiver, type NewDripList, type OnChainSplitsReceiver, type OnChainStreamReceiver, type OneTimeDonation, type PrepareContinuousDonationResult, type PrepareDripListCreationResult, type PrepareDripListUpdateResult, PreparedTx, type ProjectMetadata, type ProjectName, ReadBlockchainAdapter, type SdkAddressReceiver, type SdkDripListReceiver, type SdkEcosystemMainAccountReceiver, type SdkOrcidReceiver, type SdkProjectReceiver, type SdkReceiver, type SdkSplitsReceiver, type SdkSubListReceiver, type SendContinuousDonationResult, type SqueezeArgs, type StreamConfig, type StreamsHistory, type SubListMetadata, TimeUnit, TxResponse, type UpdateDripListResult, type UserWithdrawableBalances, type WaitForOrcidOwnershipParams, WriteBlockchainAdapter, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils, waitForOrcidOwnership };
+export { type ClaimOrcidParams, type ClaimOrcidResult, type ClaimOrcidStepResult, type CollectConfig, type ContinuousDonation, type CreateDripListResult, type DripList, type DripListMetadata, type DripListUpdateConfig, type DripsGraphQLClient, type DripsSdk, type Forge$1 as Forge, type IpfsMetadataUploaderFn, type Metadata, type MetadataSplitsReceiver, type NewDripList, type OnChainSplitsReceiver, type OnChainStreamReceiver, type OneTimeDonation, type PrepareClaimOrcidParams, type PrepareClaimOrcidResult, type PrepareContinuousDonationResult, type PrepareDripListCreationResult, type PrepareDripListUpdateResult, PreparedTx, type ProjectMetadata, type ProjectName, ReadBlockchainAdapter, type SdkAddressReceiver, type SdkDripListReceiver, type SdkEcosystemMainAccountReceiver, type SdkOrcidReceiver, type SdkProjectReceiver, type SdkReceiver, type SdkSplitsReceiver, type SdkSubListReceiver, type SendContinuousDonationResult, type SqueezeArgs, type StreamConfig, type StreamsHistory, type SubListMetadata, TimeUnit, TxResponse, type UpdateDripListResult, type UserWithdrawableBalances, type WaitForOrcidOwnershipParams, WriteBlockchainAdapter, claimOrcid, collect, contractsRegistry, createDripList, createDripsSdk, createPinataIpfsMetadataUploader, createViemReadAdapter, createViemWriteAdapter, dripsConstants, getDripListById, getUserWithdrawableBalances, prepareClaimOrcid, prepareCollection, prepareContinuousDonation, prepareDripListCreation, prepareDripListUpdate, prepareOneTimeDonation, sendContinuousDonation, sendOneTimeDonation, updateDripList, utils, waitForOrcidOwnership };
