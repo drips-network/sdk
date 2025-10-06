@@ -1,8 +1,8 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {claimOrcid} from '../../../src/internal/linked-identities/claimOrcid';
-import {
-  type WriteBlockchainAdapter,
-  type TxResponse,
+import type {
+  WriteBlockchainAdapter,
+  TxResponse,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
@@ -87,11 +87,14 @@ describe('claimOrcid', () => {
 
     // Assert
     expect(mockAdapter.sendTx).toHaveBeenCalledTimes(2); // claim + setSplits
-    expect(waitForOrcidOwnership).toHaveBeenCalledWith(mockAdapter, {
-      orcidId,
-      expectedOwner: signerAddress,
-      onProgress: undefined,
-    });
+    expect(waitForOrcidOwnership).toHaveBeenCalledWith(
+      mockAdapter,
+      expect.objectContaining({
+        orcidId,
+        expectedOwner: signerAddress,
+        onProgress: expect.any(Function),
+      }),
+    );
     expect(result.orcidAccountId).toBe(orcidAccountId);
     expect(result.status).toBe('complete');
     expect(result.claim.success).toBe(true);
@@ -105,29 +108,36 @@ describe('claimOrcid', () => {
     }
   });
 
-  it('invokes progress callback at each step', async () => {
+  it('invokes progress callback at each step with typed events', async () => {
     // Arrange
     const onProgress = vi.fn();
+
+    // Mock waitForOrcidOwnership to call its onProgress callback
+    vi.mocked(waitForOrcidOwnership).mockImplementation(
+      async (_adapter, params) => {
+        if (params.onProgress) {
+          await params.onProgress(1000); // Simulate 1000ms elapsed
+        }
+      },
+    );
 
     // Act
     await claimOrcid(mockAdapter, {orcidId, onProgress});
 
     // Assert
     expect(onProgress).toHaveBeenCalledWith(
-      'claiming',
-      'Submitting claim transaction',
+      expect.objectContaining({step: 'claiming'}),
     );
     expect(onProgress).toHaveBeenCalledWith(
-      'waiting',
-      'Polling for ownership confirmation',
+      expect.objectContaining({step: 'waiting', elapsedMs: 1000}),
     );
-    expect(onProgress).toHaveBeenCalledWith(
-      'configuring',
-      'Setting splits configuration',
-    );
+    expect(onProgress).toHaveBeenCalledWith({
+      step: 'configuring',
+      orcidAccountId,
+    });
   });
 
-  it('passes wait options to waitForOrcidOwnership', async () => {
+  it('passes wait options to waitForOrcidOwnership with wrapped callback', async () => {
     // Arrange
     const waitOptions = {
       pollIntervalMs: 5000,
@@ -139,12 +149,16 @@ describe('claimOrcid', () => {
     await claimOrcid(mockAdapter, {orcidId, waitOptions});
 
     // Assert
-    expect(waitForOrcidOwnership).toHaveBeenCalledWith(mockAdapter, {
-      orcidId,
-      expectedOwner: signerAddress,
-      ...waitOptions,
-      onProgress: waitOptions.onProgress,
-    });
+    expect(waitForOrcidOwnership).toHaveBeenCalledWith(
+      mockAdapter,
+      expect.objectContaining({
+        orcidId,
+        expectedOwner: signerAddress,
+        pollIntervalMs: 5000,
+        timeoutMs: 60000,
+        onProgress: expect.any(Function),
+      }),
+    );
   });
 
   it('returns failed status when claim transaction fails', async () => {
@@ -231,35 +245,43 @@ describe('claimOrcid', () => {
     }
   });
 
-  it('throws when progress callback throws', async () => {
+  it('returns failed result when progress callback throws', async () => {
     // Arrange
     const callbackError = new Error('Progress callback error');
     const onProgress = vi.fn().mockImplementation(() => {
       throw callbackError;
     });
 
-    // Act & Assert
-    await expect(
-      claimOrcid(mockAdapter, {orcidId, onProgress}),
-    ).rejects.toThrow('Progress callback error');
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId, onProgress});
+
+    // Assert
+    expect(result.status).toBe('failed');
+    expect(result.claim.success).toBe(false);
+    if (!result.claim.success) {
+      expect(result.claim.error).toBe(callbackError);
+    }
     expect(onProgress).toHaveBeenCalledWith(
-      'claiming',
-      'Submitting claim transaction',
+      expect.objectContaining({step: 'claiming'}),
     );
   });
 
-  it('throws when async progress callback rejects', async () => {
+  it('returns failed result when async progress callback rejects', async () => {
     // Arrange
     const callbackError = new Error('Async progress callback error');
     const onProgress = vi.fn().mockRejectedValue(callbackError);
 
-    // Act & Assert
-    await expect(
-      claimOrcid(mockAdapter, {orcidId, onProgress}),
-    ).rejects.toThrow('Async progress callback error');
+    // Act
+    const result = await claimOrcid(mockAdapter, {orcidId, onProgress});
+
+    // Assert
+    expect(result.status).toBe('failed');
+    expect(result.claim.success).toBe(false);
+    if (!result.claim.success) {
+      expect(result.claim.error).toBe(callbackError);
+    }
     expect(onProgress).toHaveBeenCalledWith(
-      'claiming',
-      'Submitting claim transaction',
+      expect.objectContaining({step: 'claiming'}),
     );
   });
 

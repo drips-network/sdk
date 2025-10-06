@@ -16,23 +16,20 @@ import {
   WaitForOrcidOwnershipParams,
 } from './waitForOrcidOwnership';
 
-const ORCID_FORGE_ID = 2; // Matches `RepoDriver` Forge enum: GitHub=0, GitLab=1, ORCID=2.
+export const ORCID_FORGE_ID = 2; // Matches `RepoDriver` Forge enum: GitHub=0, GitLab=1, ORCID=2.
+
+export type ProgressEvent =
+  | {readonly step: 'claiming'; readonly txHash?: Hash}
+  | {readonly step: 'waiting'; readonly elapsedMs: number}
+  | {readonly step: 'configuring'; readonly orcidAccountId: bigint};
 
 export type ClaimOrcidParams = {
   /** The ORCID ID to claim (e.g., '0000-0002-1825-0097'). */
   readonly orcidId: string;
   /** Optional wait parameters for ownership polling. */
   readonly waitOptions?: Omit<WaitForOrcidOwnershipParams, 'orcidId'>;
-  /**
-   * Optional progress callback invoked at each step.
-   * - 'claiming': Submitting claim transaction
-   * - 'waiting': Polling for ownership confirmation
-   * - 'configuring': Setting splits configuration
-   */
-  readonly onProgress?: (
-    step: 'claiming' | 'waiting' | 'configuring',
-    details?: string,
-  ) => void | Promise<void>;
+  /** Optional progress callback invoked at each step with typed event data. */
+  readonly onProgress?: (event: ProgressEvent) => void | Promise<void>;
 };
 
 export type ClaimOrcidStepResult<T = void> =
@@ -88,7 +85,6 @@ export async function claimOrcid(
   let splitsResult: ClaimOrcidResult['splits'];
 
   // Step 1: Submit claim transaction.
-  await onProgress?.('claiming', 'Submitting claim transaction');
   try {
     const requestUpdateOwnerTx = buildTx({
       abi: repoDriverAbi,
@@ -98,6 +94,7 @@ export async function claimOrcid(
     });
 
     const claimResponse = await adapter.sendTx(requestUpdateOwnerTx);
+    await onProgress?.({step: 'claiming', txHash: claimResponse.hash});
     const receipt = await claimResponse.wait();
 
     claimResult = {
@@ -124,7 +121,6 @@ export async function claimOrcid(
   }
 
   // Step 2: Wait for ownership confirmation.
-  await onProgress?.('waiting', 'Polling for ownership confirmation');
   const ownershipStartTime = Date.now();
   try {
     const ownerAddress = await adapter.getAddress();
@@ -133,7 +129,10 @@ export async function claimOrcid(
       orcidId,
       expectedOwner: ownerAddress,
       ...waitOptions,
-      onProgress: waitOptions?.onProgress,
+      onProgress: async (elapsedMs: number) => {
+        await onProgress?.({step: 'waiting', elapsedMs});
+        await waitOptions?.onProgress?.(elapsedMs);
+      },
     });
 
     ownershipResult = {
@@ -160,7 +159,7 @@ export async function claimOrcid(
   }
 
   // Step 3: Configure splits to 100% to claimer.
-  await onProgress?.('configuring', 'Setting splits configuration');
+  await onProgress?.({step: 'configuring', orcidAccountId});
   try {
     const claimerAddress = await adapter.getAddress();
     const claimerAccountId = await calcAddressId(adapter, claimerAddress);

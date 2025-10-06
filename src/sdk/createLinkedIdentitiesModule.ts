@@ -9,6 +9,11 @@ import {
   ClaimOrcidResult,
 } from '../internal/linked-identities/claimOrcid';
 import {
+  prepareClaimOrcid,
+  PrepareClaimOrcidParams,
+  PrepareClaimOrcidResult,
+} from '../internal/linked-identities/prepareClaimOrcid';
+import {
   waitForOrcidOwnership,
   WaitForOrcidOwnershipParams,
 } from '../internal/linked-identities/waitForOrcidOwnership';
@@ -47,6 +52,23 @@ export interface LinkedIdentitiesModule {
   claimOrcid(params: ClaimOrcidParams): Promise<ClaimOrcidResult>;
 
   /**
+   * Prepares transactions for claiming an ORCID identity.
+   *
+   * Returns prepared transactions without executing them:
+   * 1. Claim transaction (requestUpdateOwner)
+   * 2. Splits configuration transaction (setSplits to 100% to caller's address)
+   *
+   * Use this for transaction batching, gas estimation, or custom execution flows.
+   *
+   * @param params - ORCID ID to claim.
+   *
+   * @returns Prepared transactions and associated account IDs.
+   */
+  prepareClaimOrcid(
+    params: PrepareClaimOrcidParams,
+  ): Promise<PrepareClaimOrcidResult>;
+
+  /**
    * Polls for ownership confirmation of an ORCID identity.
    *
    * @param params - Polling parameters including ORCID ID and timeout.
@@ -71,6 +93,13 @@ export function createLinkedIdentitiesModule(
     claimOrcid: (params: ClaimOrcidParams): Promise<ClaimOrcidResult> => {
       requireWriteAccess(adapter, claimOrcid.name);
       return claimOrcid(adapter, params);
+    },
+
+    prepareClaimOrcid: (
+      params: PrepareClaimOrcidParams,
+    ): Promise<PrepareClaimOrcidResult> => {
+      requireWriteAccess(adapter, prepareClaimOrcid.name);
+      return prepareClaimOrcid(adapter, params);
     },
 
     waitForOrcidOwnership: (

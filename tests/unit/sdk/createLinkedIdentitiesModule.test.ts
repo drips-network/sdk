@@ -8,10 +8,12 @@ import {
   WriteBlockchainAdapter,
 } from '../../../src/internal/blockchain/BlockchainAdapter';
 import {claimOrcid as _claimOrcid} from '../../../src/internal/linked-identities/claimOrcid';
+import {prepareClaimOrcid as _prepareClaimOrcid} from '../../../src/internal/linked-identities/prepareClaimOrcid';
 import {waitForOrcidOwnership as _waitForOrcidOwnership} from '../../../src/internal/linked-identities/waitForOrcidOwnership';
 import {requireWriteAccess} from '../../../src/internal/shared/assertions';
 
 vi.mock('../../../src/internal/linked-identities/claimOrcid');
+vi.mock('../../../src/internal/linked-identities/prepareClaimOrcid');
 vi.mock('../../../src/internal/linked-identities/waitForOrcidOwnership');
 vi.mock('../../../src/internal/shared/assertions');
 
@@ -55,6 +57,29 @@ describe('createLinkedIdentitiesModule', () => {
     // Assert
     expect(result).toBe(expectedResult);
     expect(_claimOrcid).toHaveBeenCalledWith(adapter, params);
+  });
+
+  it('should prepare claim ORCID', async () => {
+    // Arrange
+    const params = {orcidId: '0000-0001-2345-6789'} as any;
+    const expectedResult = {
+      orcidAccountId: 123n,
+      claimerAddressId: 456n,
+      claimTx: {to: '0xRepoDriver', data: '0x123'},
+      setSplitsTx: {to: '0xRepoDriver', data: '0x456'},
+    } as any;
+    vi.mocked(_prepareClaimOrcid).mockResolvedValue(expectedResult);
+
+    // Act
+    const result = await linkedIdentitiesModule.prepareClaimOrcid(params);
+
+    // Assert
+    expect(result).toBe(expectedResult);
+    expect(_prepareClaimOrcid).toHaveBeenCalledWith(adapter, params);
+    expect(requireWriteAccess).toHaveBeenCalledWith(
+      adapter,
+      'prepareClaimOrcid',
+    );
   });
 
   it('should wait for ownership', async () => {
@@ -131,6 +156,7 @@ describe('createLinkedIdentitiesModule', () => {
 
       // Assert
       expect(module).toHaveProperty('claimOrcid');
+      expect(module).toHaveProperty('prepareClaimOrcid');
       expect(module).toHaveProperty('waitForOrcidOwnership');
     });
   });

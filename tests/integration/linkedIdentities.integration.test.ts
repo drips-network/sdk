@@ -72,12 +72,12 @@ describe('Linked Identities', () => {
 
       const result = await sdk.linkedIdentities.claimOrcid({
         orcidId: ORCID_ID,
-        onProgress: async (step, details) => {
-          console.log(`  → ${step}: ${details}`);
-          progressSteps.push(step);
+        onProgress: async event => {
+          console.log(`  → ${event.step}`);
+          progressSteps.push(event.step);
 
           // When we reach the waiting phase, log instructions for manual script execution.
-          if (step === 'waiting') {
+          if (event.step === 'waiting') {
             console.log('\n⏸️  PAUSED: Waiting for ownership update...');
             console.log(
               '📝 Manually run the update-repo-owner.sh script with:',
@@ -199,12 +199,12 @@ describe('Linked Identities', () => {
 
       const result = await sdk.linkedIdentities.claimOrcid({
         orcidId: ORCID_ID,
-        onProgress: async (step, details) => {
-          console.log(`  → ${step}: ${details}`);
-          progressSteps.push(step);
+        onProgress: async event => {
+          console.log(`  → ${event.step}`);
+          progressSteps.push(event.step);
 
           // When we reach the waiting phase, log instructions for manual script execution.
-          if (step === 'waiting') {
+          if (event.step === 'waiting') {
             console.log('\n⏸️  PAUSED: Waiting for ownership update...');
             console.log(
               '📝 Manually run the update-repo-owner.sh script with:',

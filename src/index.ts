@@ -44,6 +44,7 @@ export {prepareCollection} from './internal/collect/prepareCollection';
 export {collect} from './internal/collect/collect';
 
 export {claimOrcid} from './internal/linked-identities/claimOrcid';
+export {prepareClaimOrcid} from './internal/linked-identities/prepareClaimOrcid';
 export {waitForOrcidOwnership} from './internal/linked-identities/waitForOrcidOwnership';
 
 export const utils = {
@@ -128,4 +129,8 @@ export {
   ClaimOrcidResult,
   ClaimOrcidStepResult,
 } from './internal/linked-identities/claimOrcid';
+export {
+  PrepareClaimOrcidParams,
+  PrepareClaimOrcidResult,
+} from './internal/linked-identities/prepareClaimOrcid';
 export {WaitForOrcidOwnershipParams} from './internal/linked-identities/waitForOrcidOwnership';
