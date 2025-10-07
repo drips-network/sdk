@@ -697,7 +697,7 @@ describe('calcProjectId', () => {
       const expectedContracts = [
         '0x770023d55D09A9C110694827F1a6B32D5c2b373E', // mainnet
         '0x54372850Db72915Fd9C5EC745683EB607b4a8642', // polygon amoy
-        '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B', // optimism sepolia
+        '0x808e5C413BB085284D18e17BDF9682A66A0097D5', // optimism sepolia
         '0xa71bdf410D48d4AA9aE1517A69D7E1Ef0c179b2B', // sepolia
         '0x971e08fc533d2A5f228c7944E511611dA3B56B24', // localhost
         '0x54372850Db72915Fd9C5EC745683EB607b4a8642', // base sepolia

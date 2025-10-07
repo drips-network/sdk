@@ -488,7 +488,7 @@ describe('calcAddressId', () => {
         }, // polygon amoy
         {
           chainId: 11155420,
-          contract: '0x70E1E1437AeFe8024B6780C94490662b45C3B567',
+          contract: '0xA2B5b1ACaF088d6AF2e289EF54DbF48058429eA8',
         }, // optimism sepolia
         {
           chainId: 11155111,
