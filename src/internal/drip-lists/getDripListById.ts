@@ -81,6 +81,14 @@ const GET_DRIP_LIST_QUERY = gql`
             driver
           }
         }
+        ... on LinkedIdentityReceiver {
+          __typename
+          weight
+          account {
+            accountId
+            driver
+          }
+        }
       }
       support {
         ... on OneTimeDonationSupport {

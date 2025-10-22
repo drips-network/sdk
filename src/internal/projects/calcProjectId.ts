@@ -38,7 +38,7 @@ export async function calcProjectId(
   adapter: ReadBlockchainAdapter,
   params: {
     forge: Forge;
-    name: ProjectName;
+    name: ProjectName | OrcidId;
   },
 ): Promise<bigint> {
   return calcRepoDriverAccountId(adapter, params);

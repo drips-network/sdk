@@ -27,7 +27,7 @@
     }
   },
   "files": [
-    "dist/"
+    "dist/*"
   ],
   "scripts": {
     "test": "vitest run tests/unit",

@@ -58,6 +58,15 @@ export type GetDripListQuery = {
           };
         }
       | {
+          __typename: 'LinkedIdentityReceiver';
+          weight: number;
+          account: {
+            __typename: 'RepoDriverAccount';
+            accountId: string;
+            driver: Types.Driver;
+          };
+        }
+      | {
           __typename: 'ProjectReceiver';
           weight: number;
           account: {

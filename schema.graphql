@@ -28,6 +28,13 @@ type ChainAmount {
   tokenAddress: String!
 }
 
+type ChainStats {
+  chain: SupportedChain!
+  claimedProjectsCount: Int!
+  dripListsCount: Int!
+  receiversCount: Int!
+}
+
 type ClaimedProjectData {
   avatar: Avatar!
   chain: SupportedChain!
@@ -71,6 +78,15 @@ type DripListReceiver implements Receiver {
   dripList: DripList!
   driver: Driver!
   weight: Int!
+}
+
+enum DripListSortField {
+  mintedAt
+}
+
+input DripListSortInput {
+  direction: SortDirection
+  field: DripListSortField!
 }
 
 type DripListSupport {
@@ -168,6 +184,35 @@ type ImmutableSplitsDriverAccount implements Account {
   driver: Driver!
 }
 
+union LinkedIdentity = OrcidLinkedIdentity
+
+type LinkedIdentityReceiver implements Receiver {
+  account: RepoDriverAccount!
+  driver: Driver!
+  linkedIdentity: LinkedIdentity!
+  weight: Int!
+}
+
+enum LinkedIdentitySortField {
+  createdAt
+}
+
+input LinkedIdentitySortInput {
+  direction: SortDirection
+  field: LinkedIdentitySortField!
+}
+
+enum LinkedIdentityTypeField {
+  orcid
+}
+
+input LinkedIdentityWhereInput {
+  accountId: String
+  areSplitsValid: Boolean
+  ownerAddress: String
+  type: LinkedIdentityTypeField
+}
+
 type MintedTokens {
   chain: SupportedChain!
   total: Int!
@@ -184,10 +229,29 @@ type OneTimeDonationSupport {
   date: Date!
 }
 
+type OrcidLinkedIdentity {
+  account: RepoDriverAccount!
+  areSplitsValid: Boolean!
+  chain: SupportedChain!
+  isClaimed: Boolean!
+  orcid: String!
+  orcidMetadata: OrcidMetadata
+  owner: AddressDriverAccount
+  support: [SupportItem!]!
+  totalEarned: [Amount!]!
+  withdrawableBalances: [WithdrawableBalance!]!
+}
+
+type OrcidMetadata {
+  familyName: String
+  givenName: String
+}
+
 type Project {
   account: RepoDriverAccount!
   chainData: [ProjectData!]!
   isVisible: Boolean!
+  repoMetadata: RepoMetadata
   source: Source!
 }
 
@@ -232,14 +296,18 @@ input ProjectWhereInput {
 }
 
 type Query {
+  chainStats(chains: [SupportedChain!]): [ChainStats!]!
   dripList(chain: SupportedChain!, id: ID!): DripList
-  dripLists(chains: [SupportedChain!], where: DripListWhereInput): [DripList!]!
+  dripLists(chains: [SupportedChain!], limit: Int = 100, sort: DripListSortInput, where: DripListWhereInput): [DripList!]!
   earnedFunds(chains: [SupportedChain!], projectId: String!): [ChainAmount!]!
   ecosystemMainAccount(chain: SupportedChain!, id: ID!): EcosystemMainAccount
+  linkedIdentities(chains: [SupportedChain!], limit: Int = 100, sort: LinkedIdentitySortInput, where: LinkedIdentityWhereInput): [LinkedIdentity!]!
+  linkedIdentityById(chain: SupportedChain!, id: ID!): LinkedIdentity
   mintedTokensCountByOwnerAddress(chain: SupportedChain!, ownerAddress: String!): MintedTokens!
+  orcidLinkedIdentityByOrcid(chain: SupportedChain!, orcid: String!): OrcidLinkedIdentity
   projectById(chains: [SupportedChain!], id: ID!): Project
   projectByUrl(chains: [SupportedChain!], url: String!): Project
-  projects(chains: [SupportedChain!], sort: ProjectSortInput, where: ProjectWhereInput): [Project!]!
+  projects(chains: [SupportedChain!], limit: Int = 100, sort: ProjectSortInput, where: ProjectWhereInput): [Project!]!
   streams(chains: [SupportedChain!], where: StreamWhereInput): [Stream!]!
   userByAddress(address: String!, chains: [SupportedChain!]): User!
   userById(accountId: ID!, chains: [SupportedChain!]): User!
@@ -254,6 +322,13 @@ interface Receiver {
 type RepoDriverAccount implements Account {
   accountId: ID!
   driver: Driver!
+}
+
+type RepoMetadata {
+  defaultBranch: String!
+  description: String
+  forksCount: Int!
+  stargazersCount: Int!
 }
 
 enum SortDirection {
@@ -273,7 +348,7 @@ type Splits {
   maintainers: [AddressReceiver!]!
 }
 
-union SplitsReceiver = AddressReceiver | DripListReceiver | EcosystemMainAccountReceiver | ProjectReceiver | SubListReceiver
+union SplitsReceiver = AddressReceiver | DripListReceiver | EcosystemMainAccountReceiver | LinkedIdentityReceiver | ProjectReceiver | SubListReceiver
 
 type Stream {
   chain: SupportedChain!
@@ -396,6 +471,7 @@ type UserData {
   chain: SupportedChain!
   dripLists: [DripList]!
   latestMetadataIpfsHash: String
+  linkedIdentities: [LinkedIdentity!]!
   projects: [Project]!
   streams: UserStreams!
   support: [SupportItem!]!

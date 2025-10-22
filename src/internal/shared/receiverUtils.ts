@@ -1,6 +1,6 @@
 import {Address} from 'viem';
 import {ReadBlockchainAdapter} from '../blockchain/BlockchainAdapter';
-import {calcProjectId} from '../projects/calcProjectId';
+import {calcProjectId, supportedForges} from '../projects/calcProjectId';
 import {destructProjectUrl} from '../projects/destructProjectUrl';
 import {calcAddressId} from './calcAddressId';
 import {DripsError} from './DripsError';
@@ -16,6 +16,8 @@ import {
   AddressReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
+import { extractOrcidIdFromAccountId } from './accountIdUtils';
+import { orcidSplitReceiverSchema } from '../metadata/schemas/repo-driver/v6';
 
 /** Maximum number of splits receivers of a single account. */
 export const MAX_SPLITS_RECEIVERS = 200;
@@ -47,12 +49,18 @@ export type SdkAddressReceiver = {
   address: Address;
 };
 
+export type SdkOrcidReceiver = {
+  type: 'orcid';
+  orcidId: string;
+};
+
 export type SdkReceiver =
   | SdkProjectReceiver
   | SdkDripListReceiver
   | SdkSubListReceiver
   | SdkAddressReceiver
-  | SdkEcosystemMainAccountReceiver;
+  | SdkEcosystemMainAccountReceiver
+  | SdkOrcidReceiver;
 
 export type SdkSplitsReceiver = SdkReceiver & {
   weight: number;
@@ -73,11 +81,14 @@ type MetadataAddressReceiver = z.output<
 
 type SubListMetadataReceiver = z.output<typeof subListSplitReceiverSchema>;
 
+type MetadataOrcidReceiver = z.output<typeof orcidSplitReceiverSchema>;
+
 export type MetadataSplitsReceiver =
   | MetadataProjectReceiver
   | MetadataDripListReceiver
   | MetadataAddressReceiver
-  | SubListMetadataReceiver;
+  | SubListMetadataReceiver
+  | MetadataOrcidReceiver;
 
 export async function resolveReceiverAccountId(
   adapter: ReadBlockchainAdapter,
@@ -107,7 +118,21 @@ export async function resolveReceiverAccountId(
       });
     }
     return await calcAddressId(adapter, receiver.address);
-  } else if (
+  } else if (receiver.type === 'orcid') {
+    if (!receiver.orcidId) {
+      throw new DripsError('ORCID receiver must have an ORCID iD', {
+        meta: {
+          operation: resolveReceiverAccountId.name,
+          receiver,
+        },
+      });
+    }
+    return await calcProjectId(adapter, {
+      forge: supportedForges[1],
+      name: receiver.orcidId,
+    });
+  }
+  else if (
     receiver.type === 'drip-list' ||
     receiver.type === 'sub-list' ||
     receiver.type === 'ecosystem-main-account'
@@ -137,17 +162,33 @@ export function mapApiSplitsToSdkSplitsReceivers(
   return splits.map(s => {
     const {weight, account} = s;
 
+    // Can be a project or an ORCID
     if (account.driver === 'REPO') {
-      const receiver = s as ProjectReceiver;
-      if (!receiver.project?.source.url) {
-        throw new DripsError('Missing project URL for REPO receiver', {
+      if ('project' in s) {
+        const receiver = s as ProjectReceiver;
+        if (!receiver.project?.source.url) {
+          throw new DripsError('Missing project URL for REPO receiver', {
+            meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
+          });
+        }
+
+        return {
+          type: 'project',
+          url: receiver.project.source.url,
+          weight,
+        };
+      }
+
+      const orcidId = extractOrcidIdFromAccountId(account.accountId)
+      if (!orcidId) {
+        throw new DripsError('Failed to extract ORCID iD from account ID', {
           meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
         });
       }
 
       return {
-        type: 'project',
-        url: receiver.project.source.url,
+        type: 'orcid',
+        orcidId,
         weight,
       };
     } else if (account.driver === 'NFT') {
@@ -214,6 +255,13 @@ async function mapSdkToMetadataSplitsReceiver(
       weight: receiver.weight,
       accountId: accountId.toString(),
     };
+  } else if (receiver.type === 'orcid') {
+    return {
+      type: 'orcid',
+      weight: receiver.weight,
+      accountId: accountId.toString(),
+      orcidId: receiver.orcidId
+    }
   }
 
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {
