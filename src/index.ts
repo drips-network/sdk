@@ -15,10 +15,8 @@ import {
 } from './internal/shared/receiverUtils';
 import {calcDripListId} from './internal/shared/calcDripListId';
 import {calcAddressId} from './internal/shared/calcAddressId';
-import {
-  calcOrcidAccountId,
-  calcProjectId,
-} from './internal/projects/calcProjectId';
+import {calcProjectId} from './internal/projects/calcProjectId';
+import {calcOrcidAccountId} from './internal/linked-identities/orcidUtils';
 
 export {createDripsSdk} from './sdk/createDripsSdk';
 

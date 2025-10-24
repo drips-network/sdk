@@ -4,10 +4,7 @@ import {
   WriteBlockchainAdapter,
 } from '../internal/blockchain/BlockchainAdapter';
 import {calcAddressId} from '../internal/shared/calcAddressId';
-import {
-  calcProjectId,
-  calcOrcidAccountId,
-} from '../internal/projects/calcProjectId';
+import {calcProjectId} from '../internal/projects/calcProjectId';
 import {buildTx} from '../internal/shared/buildTx';
 import {
   encodeStreamConfig,
@@ -16,6 +13,7 @@ import {
 import {resolveDriverName} from '../internal/shared/resolveDriverName';
 import {resolveAddressFromAddressDriverId} from '../internal/shared/resolveAddressFromAddressDriverId';
 import {Forge, ProjectName} from '../internal/projects/calcProjectId';
+import {calcOrcidAccountId} from '../internal/linked-identities/orcidUtils';
 
 export interface UtilsModule {
   /**

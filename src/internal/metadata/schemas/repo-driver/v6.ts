@@ -1,16 +1,16 @@
-import z from "zod";
+import z from 'zod';
 import {repoDriverAccountMetadataSchemaV5} from './v5';
 import {
   addressDriverSplitReceiverSchema,
   repoDriverSplitReceiverSchema,
 } from './v2';
-import { dripListSplitReceiverSchema } from "./v3";
+import {dripListSplitReceiverSchema} from '../nft-driver/v2';
 
 export const orcidSplitReceiverSchema = z.object({
   type: z.literal('orcid'),
   weight: z.number(),
   accountId: z.string(),
-  orcidId: z.string()
+  orcidId: z.string(),
 });
 
 const repoDriverAccountSplitsSchema = z.object({

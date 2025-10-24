@@ -41,7 +41,8 @@
     "posttest": "npm run lint",
     "gql:generate-schema": "./scripts/generate-schema.sh",
     "gql:build-types": "./scripts/build-gql-types.sh",
-    "gql:build": "npm run gql:generate-schema && npm run gql:build-types"
+    "gql:build": "npm run gql:generate-schema && npm run gql:build-types",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "devDependencies": {

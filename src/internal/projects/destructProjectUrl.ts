@@ -21,7 +21,7 @@ export function destructProjectUrl(url: string): {
   const repoName = match[3];
 
   return {
-    forge: 'github',
+    forge: 'github', // TODO: refactor when supporting more forges
     ownerName,
     repoName,
   };

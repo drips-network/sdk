@@ -5,8 +5,7 @@ import {repoDriverAbi} from '../abis/repoDriverAbi';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {requireSupportedChain} from '../shared/assertions';
 import {DripsError} from '../shared/DripsError';
-import {assertValidOrcidId} from './orcidUtils';
-import {calcOrcidAccountId} from '../projects/calcProjectId';
+import {assertValidOrcidId, calcOrcidAccountId} from './orcidUtils';
 
 export type WaitForOrcidOwnershipParams = {
   /** The ORCID ID to wait for ownership confirmation. */

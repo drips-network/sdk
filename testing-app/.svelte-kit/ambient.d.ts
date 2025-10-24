@@ -28,6 +28,7 @@
 declare module '$env/static/private' {
 	export const COMMAND_MODE: string;
 	export const HOME: string;
+	export const LANG: string;
 	export const LESS: string;
 	export const LOGNAME: string;
 	export const LSCOLORS: string;
@@ -41,6 +42,7 @@ declare module '$env/static/private' {
 	export const NVM_INC: string;
 	export const OLDPWD: string;
 	export const ORIGINAL_XDG_CURRENT_DESKTOP: string;
+	export const OSLogRateLimit: string;
 	export const PAGER: string;
 	export const PATH: string;
 	export const PWD: string;
@@ -107,6 +109,7 @@ declare module '$env/dynamic/private' {
 	export const env: {
 		COMMAND_MODE: string;
 		HOME: string;
+		LANG: string;
 		LESS: string;
 		LOGNAME: string;
 		LSCOLORS: string;
@@ -120,6 +123,7 @@ declare module '$env/dynamic/private' {
 		NVM_INC: string;
 		OLDPWD: string;
 		ORIGINAL_XDG_CURRENT_DESKTOP: string;
+		OSLogRateLimit: string;
 		PAGER: string;
 		PATH: string;
 		PWD: string;

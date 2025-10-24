@@ -1,7 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {
   calcProjectId,
-  calcOrcidAccountId,
   supportedForges,
   type Forge,
   type ProjectName,
@@ -30,6 +29,7 @@ import {requireSupportedChain} from '../../../src/internal/shared/assertions';
 import {decodeFunctionResult, toHex} from 'viem';
 import {buildTx} from '../../../src/internal/shared/buildTx';
 import {repoDriverAbi} from '../../../src/internal/abis/repoDriverAbi';
+import {calcOrcidAccountId} from '../../../src/internal/linked-identities/orcidUtils';
 
 describe('calcProjectId', () => {
   const mockAdapter: ReadBlockchainAdapter = {

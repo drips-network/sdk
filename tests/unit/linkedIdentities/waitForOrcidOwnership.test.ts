@@ -3,6 +3,7 @@ import {waitForOrcidOwnership} from '../../../src/internal/linked-identities/wai
 import type {ReadBlockchainAdapter} from '../../../src/internal/blockchain/BlockchainAdapter';
 import {encodeFunctionResult, getAddress} from 'viem';
 import {repoDriverAbi} from '../../../src/internal/abis/repoDriverAbi';
+import {calcOrcidAccountId} from '../../../src/internal/linked-identities/orcidUtils';
 
 vi.mock('../../../src/internal/shared/assertions', () => ({
   requireSupportedChain: vi.fn(),
@@ -10,9 +11,6 @@ vi.mock('../../../src/internal/shared/assertions', () => ({
 
 vi.mock('../../../src/internal/linked-identities/orcidUtils', () => ({
   assertValidOrcidId: vi.fn(),
-}));
-
-vi.mock('../../../src/internal/projects/calcProjectId', () => ({
   calcOrcidAccountId: vi.fn(),
 }));
 
@@ -23,8 +21,6 @@ vi.mock('../../../src/internal/config/contractsRegistry', () => ({
     },
   },
 }));
-
-import {calcOrcidAccountId} from '../../../src/internal/projects/calcProjectId';
 
 describe('waitForOrcidOwnership', () => {
   let mockAdapter: ReadBlockchainAdapter;

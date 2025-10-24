@@ -27,24 +27,17 @@ const forgeMap: Record<Forge, number> = {
   orcid: 2,
 };
 
-export async function calcOrcidAccountId(
-  adapter: ReadBlockchainAdapter,
-  orcidId: OrcidId,
-): Promise<bigint> {
-  return calcRepoDriverAccountId(adapter, {forge: 'orcid', name: orcidId});
-}
-
 export async function calcProjectId(
   adapter: ReadBlockchainAdapter,
   params: {
     forge: Forge;
-    name: ProjectName | OrcidId;
+    name: ProjectName;
   },
 ): Promise<bigint> {
   return calcRepoDriverAccountId(adapter, params);
 }
 
-async function calcRepoDriverAccountId(
+export async function calcRepoDriverAccountId(
   adapter: ReadBlockchainAdapter,
   params: {
     forge: Forge;

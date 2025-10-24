@@ -12,9 +12,6 @@ vi.mock('../../../src/internal/shared/assertions', () => ({
 vi.mock('../../../src/internal/linked-identities/orcidUtils', () => ({
   assertValidOrcidId: vi.fn(),
   normalizeOrcidForContract: vi.fn(id => id),
-}));
-
-vi.mock('../../../src/internal/projects/calcProjectId', () => ({
   calcOrcidAccountId: vi.fn(),
 }));
 
@@ -38,8 +35,8 @@ vi.mock('../../../src/internal/config/contractsRegistry', () => ({
 }));
 
 import {waitForOrcidOwnership} from '../../../src/internal/linked-identities/waitForOrcidOwnership';
-import {calcOrcidAccountId} from '../../../src/internal/projects/calcProjectId';
 import {calcAddressId} from '../../../src/internal/shared/calcAddressId';
+import {calcOrcidAccountId} from '../../../src/internal/linked-identities/orcidUtils';
 
 describe('claimOrcid', () => {
   let mockAdapter: WriteBlockchainAdapter;

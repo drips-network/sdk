@@ -16,8 +16,11 @@ import {
   AddressReceiver,
   ProjectReceiver,
 } from '../graphql/__generated__/base-types';
-import { extractOrcidIdFromAccountId } from './accountIdUtils';
-import { orcidSplitReceiverSchema } from '../metadata/schemas/repo-driver/v6';
+import {orcidSplitReceiverSchema} from '../metadata/schemas/repo-driver/v6';
+import {
+  calcOrcidAccountId,
+  extractOrcidIdFromAccountId,
+} from '../linked-identities/orcidUtils';
 
 /** Maximum number of splits receivers of a single account. */
 export const MAX_SPLITS_RECEIVERS = 200;
@@ -127,12 +130,8 @@ export async function resolveReceiverAccountId(
         },
       });
     }
-    return await calcProjectId(adapter, {
-      forge: supportedForges[1],
-      name: receiver.orcidId,
-    });
-  }
-  else if (
+    return await calcOrcidAccountId(adapter, receiver.orcidId);
+  } else if (
     receiver.type === 'drip-list' ||
     receiver.type === 'sub-list' ||
     receiver.type === 'ecosystem-main-account'
@@ -179,7 +178,7 @@ export function mapApiSplitsToSdkSplitsReceivers(
         };
       }
 
-      const orcidId = extractOrcidIdFromAccountId(account.accountId)
+      const orcidId = extractOrcidIdFromAccountId(account.accountId);
       if (!orcidId) {
         throw new DripsError('Failed to extract ORCID iD from account ID', {
           meta: {operation: 'mapApiSplitsToSdkSplitsReceivers', receiver: s},
@@ -260,8 +259,8 @@ async function mapSdkToMetadataSplitsReceiver(
       type: 'orcid',
       weight: receiver.weight,
       accountId: accountId.toString(),
-      orcidId: receiver.orcidId
-    }
+      orcidId: receiver.orcidId,
+    };
   }
 
   throw new DripsError(`Unsupported receiver type: ${(receiver as any).type}`, {

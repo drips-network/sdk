@@ -4,8 +4,11 @@ import {buildTx} from '../shared/buildTx';
 import {repoDriverAbi} from '../abis/repoDriverAbi';
 import {contractsRegistry} from '../config/contractsRegistry';
 import {requireSupportedChain} from '../shared/assertions';
-import {assertValidOrcidId, normalizeOrcidForContract} from './orcidUtils';
-import {calcOrcidAccountId} from '../projects/calcProjectId';
+import {
+  assertValidOrcidId,
+  calcOrcidAccountId,
+  normalizeOrcidForContract,
+} from './orcidUtils';
 import {calcAddressId} from '../shared/calcAddressId';
 import {
   OnChainSplitsReceiver,
