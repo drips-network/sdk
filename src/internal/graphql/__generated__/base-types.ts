@@ -462,7 +462,10 @@ export type RepoMetadata = {
   defaultBranch: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   forksCount: Scalars['Int']['output'];
+  ownerName: Scalars['String']['output'];
+  repoName: Scalars['String']['output'];
   stargazersCount: Scalars['Int']['output'];
+  url: Scalars['String']['output'];
 };
 
 export enum SortDirection {

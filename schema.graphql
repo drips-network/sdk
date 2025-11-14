@@ -328,7 +328,10 @@ type RepoMetadata {
   defaultBranch: String!
   description: String
   forksCount: Int!
+  ownerName: String!
+  repoName: String!
   stargazersCount: Int!
+  url: String!
 }
 
 enum SortDirection {
