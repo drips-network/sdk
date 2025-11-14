@@ -3,6 +3,21 @@ import {calcRepoDriverAccountId, OrcidId} from '../projects/calcProjectId';
 import {DripsError} from '../shared/DripsError';
 
 /**
+ * ORCID iDs in the sandbox environment should start with
+ * this prefix.
+ */
+export const SANDBOX_PREFIX = 'sandbox-'
+
+/**
+ * Regex to match the sandbox prefix at the start of an ORCID iD.
+ */
+const SANDBOX_PREFIX_REGEX = new RegExp(`^${SANDBOX_PREFIX}`);
+
+export function unprefixOrcidId(orcidId: string): string {
+  return orcidId.replace(SANDBOX_PREFIX_REGEX, '');
+}
+
+/**
  * Validates ORCID base format (no dashes): 0009000142722989X
  */
 const ORCID_BASE_FORMAT_REGEX = /^\d{15}[\dX]$/i;
@@ -19,11 +34,12 @@ export function assertValidOrcidId(orcidId: string): void {
     });
   }
 
-  const baseStr: string = orcidId.replace(/[-\s]/g, '');
+  const unprefixedOrcidId = unprefixOrcidId(orcidId);
+  const baseStr: string = unprefixedOrcidId.replace(/[-\s]/g, '');
 
   if (!ORCID_BASE_FORMAT_REGEX.test(baseStr.toUpperCase())) {
     throw new DripsError('Invalid ORCID format.', {
-      meta: {operation: assertValidOrcidId.name, orcidId},
+      meta: {operation: assertValidOrcidId.name, unprefixedOrcidId},
     });
   }
 
@@ -32,7 +48,7 @@ export function assertValidOrcidId(orcidId: string): void {
     const digit = parseInt(baseStr[i], 10);
     if (Number.isNaN(digit)) {
       throw new DripsError('Invalid ORCID digits.', {
-        meta: {operation: assertValidOrcidId.name, orcidId},
+        meta: {operation: assertValidOrcidId.name, unprefixedOrcidId},
       });
     }
     total = (total + digit) * 2;
@@ -45,7 +61,7 @@ export function assertValidOrcidId(orcidId: string): void {
 
   if (calculatedCheckDigit !== actualCheckDigit) {
     throw new DripsError('Invalid ORCID checksum.', {
-      meta: {operation: assertValidOrcidId.name, orcidId},
+      meta: {operation: assertValidOrcidId.name, unprefixedOrcidId},
     });
   }
 }

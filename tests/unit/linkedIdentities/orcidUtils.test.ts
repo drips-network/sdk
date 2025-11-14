@@ -2,6 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {
   assertValidOrcidId,
   normalizeOrcidForContract,
+  SANDBOX_PREFIX,
 } from '../../../src/internal/linked-identities/orcidUtils';
 import {DripsError} from '../../../src/internal/shared/DripsError';
 
@@ -13,6 +14,10 @@ describe('orcidUtils', () => {
 
     it('accepts a valid ORCID with spaces', () => {
       expect(() => assertValidOrcidId('0000 0002 1825 0097')).not.toThrow();
+    });
+
+    it('accepts a valid ORCID with the sandbox prefix', () => {
+      expect(() => assertValidOrcidId(`${SANDBOX_PREFIX}0009-0007-1106-8413`)).not.toThrow();
     });
 
     it('rejects non-string input', () => {
