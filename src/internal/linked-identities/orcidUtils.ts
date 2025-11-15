@@ -3,8 +3,7 @@ import {calcRepoDriverAccountId, OrcidId} from '../projects/calcProjectId';
 import {DripsError} from '../shared/DripsError';
 
 /**
- * ORCID iDs in the sandbox environment should start with
- * this prefix.
+ * ORCID iDs in the sandbox environment should start with this prefix.
  */
 export const SANDBOX_PREFIX = 'sandbox-'
 
