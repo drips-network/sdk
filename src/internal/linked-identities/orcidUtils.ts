@@ -12,6 +12,12 @@ export const SANDBOX_PREFIX = 'sandbox-'
  */
 const SANDBOX_PREFIX_REGEX = new RegExp(`^${SANDBOX_PREFIX}`);
 
+/**
+ * Remvoes the sandbox prefix from an ORCID iD, if present.
+ *
+ * @param orcidId An ORCID iD, possibly with the sandbox prefix.
+ * @returns The ORCID iD without the sandbox prefix.
+ */
 export function unprefixOrcidId(orcidId: string): string {
   return orcidId.replace(SANDBOX_PREFIX_REGEX, '');
 }
