@@ -9,11 +9,25 @@ import {resolveDriverName} from '../shared/resolveDriverName';
 import {addressDriverAccountMetadataParser} from '../metadata/schemas';
 import {GetCurrentStreamsQuery} from './__generated__/gql.generated';
 
+export type StreamUpdate = {
+  readonly streamId: string;
+  readonly name?: string;
+  readonly archived?: boolean;
+  readonly config?: {
+    raw: string;
+    dripId: string;
+    amountPerSecond: bigint;
+    durationSeconds?: number;
+    startTimestamp?: number;
+  };
+};
+
 export async function buildStreamsMetadata(
   adapter: ReadBlockchainAdapter,
   accountId: bigint,
   streams: GetCurrentStreamsQuery['userById']['chainData'][number]['streams']['outgoing'],
   newStream?: ContinuousDonation & {dripId: bigint},
+  streamUpdates?: ReadonlyArray<StreamUpdate>,
 ) {
   const streamsByTokenAddress = streams.reduce<
     Record<
@@ -91,6 +105,8 @@ export async function buildStreamsMetadata(
         return {
           tokenAddress,
           streams: streams.map(stream => {
+            const update = streamUpdates?.find(u => u.streamId === stream.id);
+
             const recipientDriver = resolveDriverName(
               BigInt(stream.receiver.account.accountId),
             );
@@ -105,23 +121,45 @@ export async function buildStreamsMetadata(
               );
             }
 
+            const raw = update?.config?.raw ?? stream.config.raw;
+            const dripId = update?.config?.dripId ?? stream.config.dripId;
+            const amountPerSecond =
+              update?.config?.amountPerSecond ??
+              BigInt(stream.config.amountPerSecond.amount);
+            const durationSeconds =
+              update?.config?.durationSeconds !== undefined
+                ? update.config.durationSeconds
+                : Number(stream.config.durationSeconds || 0);
+            const startTimestamp =
+              update?.config?.startTimestamp !== undefined
+                ? update.config.startTimestamp
+                : Math.floor(
+                    new Date(stream.config.startDate).getTime() / 1000,
+                  );
+
+            const archived =
+              update?.archived !== undefined ? update.archived : false;
+
+            const name =
+              update?.name !== undefined
+                ? update.name || undefined
+                : (stream.name ?? undefined);
+
             return {
               id: stream.id,
               initialDripsConfig: {
-                raw: stream.config.raw,
-                dripId: stream.config.dripId,
-                amountPerSecond: BigInt(stream.config.amountPerSecond.amount),
-                durationSeconds: Number(stream.config.durationSeconds || 0),
-                startTimestamp: Math.floor(
-                  new Date(stream.config.startDate).getTime() / 1000,
-                ),
+                raw,
+                dripId,
+                amountPerSecond,
+                durationSeconds,
+                startTimestamp,
               },
               receiver: {
                 driver: supportedDriver,
                 accountId: stream.receiver.account.accountId.toString(),
               },
-              archived: false,
-              name: stream.name ?? undefined,
+              archived,
+              name,
             };
           }),
         };

@@ -26,12 +26,19 @@ import {
   requireMetadataUploader,
 } from '../../../src/internal/shared/assertions';
 import {Address, Hex} from 'viem';
+import {
+  prepareEditContinuousDonation,
+  EditContinuousDonationConfig,
+} from '../../../src/internal/donations/prepareEditContinuousDonation';
+import {sendEditContinuousDonation} from '../../../src/internal/donations/sendEditContinuousDonation';
 
 vi.mock('../../../src/internal/donations/prepareOneTimeDonation');
 vi.mock('../../../src/internal/donations/sendOneTimeDonation');
 vi.mock('../../../src/internal/donations/prepareContinuousDonation');
 vi.mock('../../../src/internal/donations/sendContinuousDonation');
 vi.mock('../../../src/internal/shared/assertions');
+vi.mock('../../../src/internal/donations/prepareEditContinuousDonation');
+vi.mock('../../../src/internal/donations/sendEditContinuousDonation');
 
 describe('createDonationsModule', () => {
   let adapter: WriteBlockchainAdapter;
@@ -919,6 +926,12 @@ describe('createDonationsModule', () => {
       expect(module).toHaveProperty('sendContinuous');
       expect(module).toHaveProperty('prepareOneTime');
       expect(module).toHaveProperty('prepareContinuous');
+      expect(module).toHaveProperty('prepareEditContinuous');
+      expect(module).toHaveProperty('sendEditContinuous');
+      expect(module).toHaveProperty('preparePauseContinuous');
+      expect(module).toHaveProperty('pauseContinuous');
+      expect(module).toHaveProperty('prepareDeleteContinuous');
+      expect(module).toHaveProperty('deleteContinuous');
       expect(typeof module.sendOneTime).toBe('function');
       expect(typeof module.sendContinuous).toBe('function');
       expect(typeof module.prepareOneTime).toBe('function');
@@ -947,6 +960,97 @@ describe('createDonationsModule', () => {
       // Assert
       expect(module).toHaveProperty('sendOneTime');
       expect(module).toHaveProperty('sendContinuous');
+    });
+
+    describe('editContinuous and stream management', () => {
+      const editConfig: EditContinuousDonationConfig = {
+        streamId: '123-0xabcdef1234567890abcdef1234567890abcdef12-456',
+        name: 'Edited Name',
+      };
+
+      it('should prepare editing continuous donation', async () => {
+        const expectedResult = {
+          preparedTx: {to: '0x1', data: '0x', value: 0n} as any,
+          ipfsHash: 'QmEditHash',
+          metadata: {} as any,
+        };
+        vi.mocked(prepareEditContinuousDonation).mockResolvedValue(
+          expectedResult,
+        );
+
+        const result = await donationsModule.prepareEditContinuous(editConfig);
+
+        expect(result).toBe(expectedResult);
+        expect(prepareEditContinuousDonation).toHaveBeenCalledWith(
+          adapter,
+          mockIpfsMetadataUploader,
+          editConfig,
+          mockGraphqlClient,
+        );
+      });
+
+      it('should send editing continuous donation', async () => {
+        const expectedResult = {
+          txResponse: {hash: '0x123'} as any,
+          ipfsHash: 'QmEditHash',
+          metadata: {} as any,
+        };
+        vi.mocked(sendEditContinuousDonation).mockResolvedValue(expectedResult);
+
+        const result = await donationsModule.sendEditContinuous(editConfig);
+
+        expect(result).toBe(expectedResult);
+        expect(sendEditContinuousDonation).toHaveBeenCalledWith(
+          adapter,
+          mockIpfsMetadataUploader,
+          editConfig,
+          mockGraphqlClient,
+        );
+      });
+
+      it('should prepare and send pauseContinuous', async () => {
+        const streamId = '123-0xabcdef1234567890abcdef1234567890abcdef12-456';
+        vi.mocked(prepareEditContinuousDonation).mockResolvedValue({} as any);
+        vi.mocked(sendEditContinuousDonation).mockResolvedValue({} as any);
+
+        await donationsModule.preparePauseContinuous(streamId);
+        expect(prepareEditContinuousDonation).toHaveBeenCalledWith(
+          adapter,
+          mockIpfsMetadataUploader,
+          expect.objectContaining({streamId, pause: true}),
+          mockGraphqlClient,
+        );
+
+        await donationsModule.pauseContinuous(streamId);
+        expect(sendEditContinuousDonation).toHaveBeenCalledWith(
+          adapter,
+          mockIpfsMetadataUploader,
+          expect.objectContaining({streamId, pause: true}),
+          mockGraphqlClient,
+        );
+      });
+
+      it('should prepare and send deleteContinuous', async () => {
+        const streamId = '123-0xabcdef1234567890abcdef1234567890abcdef12-456';
+        vi.mocked(prepareEditContinuousDonation).mockResolvedValue({} as any);
+        vi.mocked(sendEditContinuousDonation).mockResolvedValue({} as any);
+
+        await donationsModule.prepareDeleteContinuous(streamId);
+        expect(prepareEditContinuousDonation).toHaveBeenCalledWith(
+          adapter,
+          mockIpfsMetadataUploader,
+          expect.objectContaining({streamId, delete: true}),
+          mockGraphqlClient,
+        );
+
+        await donationsModule.deleteContinuous(streamId);
+        expect(sendEditContinuousDonation).toHaveBeenCalledWith(
+          adapter,
+          mockIpfsMetadataUploader,
+          expect.objectContaining({streamId, delete: true}),
+          mockGraphqlClient,
+        );
+      });
     });
   });
 });

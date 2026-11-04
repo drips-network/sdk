@@ -1,4 +1,5 @@
 import {
+  BatchedTxOverrides,
   PreparedTx,
   ReadBlockchainAdapter,
   TxResponse,
@@ -10,6 +11,10 @@ import {
   PrepareContinuousDonationResult,
 } from '../internal/donations/prepareContinuousDonation';
 import {
+  EditContinuousDonationConfig,
+  prepareEditContinuousDonation,
+} from '../internal/donations/prepareEditContinuousDonation';
+import {
   OneTimeDonation,
   prepareOneTimeDonation,
 } from '../internal/donations/prepareOneTimeDonation';
@@ -17,6 +22,7 @@ import {
   sendContinuousDonation,
   SendContinuousDonationResult,
 } from '../internal/donations/sendContinuousDonation';
+import {sendEditContinuousDonation} from '../internal/donations/sendEditContinuousDonation';
 import {sendOneTimeDonation} from '../internal/donations/sendOneTimeDonation';
 import {DripsGraphQLClient} from '../internal/graphql/createGraphQLClient';
 import {
@@ -54,7 +60,6 @@ export interface DonationsModule {
   /**
    * Prepares the context for a continuous donation stream.
    *
-   * @param ipfsMetadataUploaderFn - A function to upload metadata to IPFS.
    * @param donation - Configuration for the donation stream.
    *
    * @returns An object containing the prepared transaction, IPFS hash, and metadata.
@@ -66,7 +71,6 @@ export interface DonationsModule {
   /**
    * Sends a continuous donation by preparing and executing the transaction.
    *
-   * @param ipfsMetadataUploaderFn - Function to upload metadata to IPFS.
    * @param donation - Configuration for the continuous donation stream.
    *
    * @returns An object containing the transaction response, metadata, and IPFS hash.
@@ -75,6 +79,84 @@ export interface DonationsModule {
    */
   sendContinuous(
     donation: ContinuousDonation,
+  ): Promise<SendContinuousDonationResult>;
+
+  /**
+   * Prepares the context for editing an existing continuous donation stream (rate, name, pausing, deleting).
+   *
+   * @param config - Configuration specifying the stream edits.
+   *
+   * @returns An object containing the prepared transaction, IPFS hash, and updated metadata.
+   *
+   * @throws {DripsError} If the stream is not found, chain is not supported, validation fails, or caller is not stream sender.
+   */
+  prepareEditContinuous(
+    config: EditContinuousDonationConfig,
+  ): Promise<PrepareContinuousDonationResult>;
+
+  /**
+   * Edits an existing continuous donation stream (rate, name, pausing, deleting).
+   *
+   * @param config - Configuration specifying the stream edits.
+   *
+   * @returns An object containing the transaction response, updated metadata, and IPFS hash.
+   *
+   * @throws {DripsError} If the stream is not found, chain is not supported, validation fails, or transaction execution fails.
+   */
+  sendEditContinuous(
+    config: EditContinuousDonationConfig,
+  ): Promise<SendContinuousDonationResult>;
+
+  /**
+   * Prepares the transaction for pausing an active continuous donation stream.
+   *
+   * @param streamId - The unique ID of the stream to pause.
+   * @param batchedTxOverrides - Optional transaction overrides.
+   *
+   * @returns An object containing the prepared transaction, IPFS hash, and updated metadata.
+   */
+  preparePauseContinuous(
+    streamId: string,
+    batchedTxOverrides?: BatchedTxOverrides,
+  ): Promise<PrepareContinuousDonationResult>;
+
+  /**
+   * Pauses an active continuous donation stream.
+   *
+   * @param streamId - The unique ID of the stream to pause.
+   * @param batchedTxOverrides - Optional transaction overrides.
+   *
+   * @returns An object containing the transaction response, updated metadata, and IPFS hash.
+   */
+  pauseContinuous(
+    streamId: string,
+    batchedTxOverrides?: BatchedTxOverrides,
+  ): Promise<SendContinuousDonationResult>;
+
+  /**
+   * Prepares the transaction for deleting (archiving) an existing continuous donation stream.
+   *
+   * @param streamId - The unique ID of the stream to delete.
+   * @param batchedTxOverrides - Optional transaction overrides.
+   *
+   * @returns An object containing the prepared transaction, IPFS hash, and updated metadata.
+   */
+  prepareDeleteContinuous(
+    streamId: string,
+    batchedTxOverrides?: BatchedTxOverrides,
+  ): Promise<PrepareContinuousDonationResult>;
+
+  /**
+   * Deletes (archives) an existing continuous donation stream.
+   *
+   * @param streamId - The unique ID of the stream to delete.
+   * @param batchedTxOverrides - Optional transaction overrides.
+   *
+   * @returns An object containing the transaction response, updated metadata, and IPFS hash.
+   */
+  deleteContinuous(
+    streamId: string,
+    batchedTxOverrides?: BatchedTxOverrides,
   ): Promise<SendContinuousDonationResult>;
 }
 
@@ -124,6 +206,102 @@ export function createDonationsModule(deps: Deps): DonationsModule {
         adapter,
         ipfsMetadataUploaderFn,
         donation,
+        graphqlClient,
+      );
+    },
+
+    prepareEditContinuous: (config: EditContinuousDonationConfig) => {
+      requireWriteAccess(adapter, sendEditContinuousDonation.name);
+      requireMetadataUploader(
+        ipfsMetadataUploaderFn,
+        sendEditContinuousDonation.name,
+      );
+      return prepareEditContinuousDonation(
+        adapter,
+        ipfsMetadataUploaderFn,
+        config,
+        graphqlClient,
+      );
+    },
+
+    sendEditContinuous: (config: EditContinuousDonationConfig) => {
+      requireWriteAccess(adapter, sendEditContinuousDonation.name);
+      requireMetadataUploader(
+        ipfsMetadataUploaderFn,
+        sendEditContinuousDonation.name,
+      );
+      return sendEditContinuousDonation(
+        adapter,
+        ipfsMetadataUploaderFn,
+        config,
+        graphqlClient,
+      );
+    },
+
+    preparePauseContinuous: (
+      streamId: string,
+      batchedTxOverrides?: BatchedTxOverrides,
+    ) => {
+      requireWriteAccess(adapter, sendEditContinuousDonation.name);
+      requireMetadataUploader(
+        ipfsMetadataUploaderFn,
+        sendEditContinuousDonation.name,
+      );
+      return prepareEditContinuousDonation(
+        adapter,
+        ipfsMetadataUploaderFn,
+        {streamId, pause: true, batchedTxOverrides},
+        graphqlClient,
+      );
+    },
+
+    pauseContinuous: (
+      streamId: string,
+      batchedTxOverrides?: BatchedTxOverrides,
+    ) => {
+      requireWriteAccess(adapter, sendEditContinuousDonation.name);
+      requireMetadataUploader(
+        ipfsMetadataUploaderFn,
+        sendEditContinuousDonation.name,
+      );
+      return sendEditContinuousDonation(
+        adapter,
+        ipfsMetadataUploaderFn,
+        {streamId, pause: true, batchedTxOverrides},
+        graphqlClient,
+      );
+    },
+
+    prepareDeleteContinuous: (
+      streamId: string,
+      batchedTxOverrides?: BatchedTxOverrides,
+    ) => {
+      requireWriteAccess(adapter, sendEditContinuousDonation.name);
+      requireMetadataUploader(
+        ipfsMetadataUploaderFn,
+        sendEditContinuousDonation.name,
+      );
+      return prepareEditContinuousDonation(
+        adapter,
+        ipfsMetadataUploaderFn,
+        {streamId, delete: true, batchedTxOverrides},
+        graphqlClient,
+      );
+    },
+
+    deleteContinuous: (
+      streamId: string,
+      batchedTxOverrides?: BatchedTxOverrides,
+    ) => {
+      requireWriteAccess(adapter, sendEditContinuousDonation.name);
+      requireMetadataUploader(
+        ipfsMetadataUploaderFn,
+        sendEditContinuousDonation.name,
+      );
+      return sendEditContinuousDonation(
+        adapter,
+        ipfsMetadataUploaderFn,
+        {streamId, delete: true, batchedTxOverrides},
         graphqlClient,
       );
     },
