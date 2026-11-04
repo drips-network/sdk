@@ -37,6 +37,11 @@ export {prepareOneTimeDonation} from './internal/donations/prepareOneTimeDonatio
 export {sendOneTimeDonation} from './internal/donations/sendOneTimeDonation';
 export {prepareContinuousDonation} from './internal/donations/prepareContinuousDonation';
 export {sendContinuousDonation} from './internal/donations/sendContinuousDonation';
+export {
+  prepareEditContinuousDonation,
+  EditContinuousDonationConfig,
+} from './internal/donations/prepareEditContinuousDonation';
+export {sendEditContinuousDonation} from './internal/donations/sendEditContinuousDonation';
 
 export {prepareCollection} from './internal/collect/prepareCollection';
 export {collect} from './internal/collect/collect';

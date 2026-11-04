@@ -65,6 +65,7 @@ export async function getCurrentStreamsAndReceivers(
 ): Promise<{
   currentStreams: GetCurrentStreamsQuery['userById']['chainData'][number]['streams']['outgoing'];
   currentReceivers: OnChainStreamReceiver[];
+  allStreams?: GetCurrentStreamsQuery['userById']['chainData'][number]['streams']['outgoing'];
 }> {
   requireGraphQLSupportedChain(chainId, getCurrentStreamsAndReceivers.name);
 
@@ -103,5 +104,6 @@ export async function getCurrentStreamsAndReceivers(
   return {
     currentStreams,
     currentReceivers,
+    allStreams,
   };
 }

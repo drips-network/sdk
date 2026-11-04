@@ -568,4 +568,53 @@ describe('buildStreamsMetadata', () => {
       }),
     );
   });
+
+  it('should apply streamUpdates to existing streams when provided', async () => {
+    // Arrange
+    const streamUpdates = [
+      {
+        streamId: 'existing-stream-id',
+        name: 'Updated Name',
+        archived: true,
+        config: {
+          raw: 'updated-raw',
+          dripId: '789',
+          amountPerSecond: 2000000000000000000n,
+          durationSeconds: 1000,
+          startTimestamp: 1234567,
+        },
+      },
+    ];
+
+    // Act
+    await buildStreamsMetadata(
+      mockAdapter,
+      mockAccountId,
+      mockStreams,
+      undefined,
+      streamUpdates,
+    );
+
+    // Assert
+    const parseLatestInput = vi.mocked(
+      addressDriverAccountMetadataParser.parseLatest,
+    ).mock.calls[0][0] as any;
+
+    expect(parseLatestInput.assetConfigs[0].streams[0]).toEqual({
+      id: 'existing-stream-id',
+      initialDripsConfig: {
+        raw: 'updated-raw',
+        dripId: '789',
+        amountPerSecond: 2000000000000000000n,
+        durationSeconds: 1000,
+        startTimestamp: 1234567,
+      },
+      receiver: {
+        driver: 'address',
+        accountId: '456',
+      },
+      archived: true,
+      name: 'Updated Name',
+    });
+  });
 });
