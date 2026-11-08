@@ -21,6 +21,7 @@ import {
   LinkedIdentitiesModule,
 } from './createLinkedIdentitiesModule';
 import {createFundsModule, FundsModule} from './createFundsModule';
+import {createProjectsModule, ProjectsModule} from './createProjectsModule';
 
 export interface DripsSdk {
   readonly dripLists: DripListsModule;
@@ -28,6 +29,7 @@ export interface DripsSdk {
   readonly utils: UtilsModule;
   readonly funds: FundsModule;
   readonly linkedIdentities: LinkedIdentitiesModule;
+  readonly projects: ProjectsModule;
   readonly constants: typeof dripsConstants;
 }
 
@@ -128,5 +130,6 @@ export function createDripsSdk(
     donations: createDonationsModule(deps),
     funds: createFundsModule({adapter, graphqlClient}),
     linkedIdentities: createLinkedIdentitiesModule({adapter}),
+    projects: createProjectsModule(deps),
   };
 }

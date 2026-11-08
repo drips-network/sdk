@@ -45,6 +45,11 @@ export {claimOrcid} from './internal/linked-identities/claimOrcid';
 export {prepareClaimOrcid} from './internal/linked-identities/prepareClaimOrcid';
 export {waitForOrcidOwnership} from './internal/linked-identities/waitForOrcidOwnership';
 
+export {claimProject} from './internal/projects/claimProject';
+export {prepareClaimProject} from './internal/projects/prepareClaimProject';
+export {waitForProjectOwnership} from './internal/projects/waitForProjectOwnership';
+export {buildProjectMetadata} from './internal/projects/buildProjectMetadata';
+
 export const utils = {
   buildTx,
   calcAddressId,
@@ -133,3 +138,24 @@ export {
   PrepareClaimOrcidResult,
 } from './internal/linked-identities/prepareClaimOrcid';
 export {WaitForOrcidOwnershipParams} from './internal/linked-identities/waitForOrcidOwnership';
+export {ProjectsModule, createProjectsModule} from './sdk/createProjectsModule';
+export {
+  ClaimProjectParams,
+  ClaimProjectResult,
+  ClaimProjectStepResult,
+  ProjectClaimProgressEvent,
+} from './internal/projects/claimProject';
+export {
+  PrepareClaimProjectParams,
+  PrepareClaimProjectResult,
+  ProjectSplits,
+  ProjectMaintainerSplitsReceiver,
+  ProjectDependencySplitsReceiver,
+} from './internal/projects/prepareClaimProject';
+export {WaitForProjectOwnershipParams} from './internal/projects/waitForProjectOwnership';
+export {
+  ProjectAvatar,
+  ProjectEmojiAvatar,
+  ProjectImageAvatar,
+  ProjectMetadataConfig,
+} from './internal/projects/buildProjectMetadata';
