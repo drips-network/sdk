@@ -16,6 +16,7 @@ import {createDonationsModule} from '../../../src/sdk/createDonationsModule';
 import {createUtilsModule} from '../../../src/sdk/createUtilsModule';
 import {createFundsModule} from '../../../src/sdk/createFundsModule';
 import {createLinkedIdentitiesModule} from '../../../src/sdk/createLinkedIdentitiesModule';
+import {createProjectsModule} from '../../../src/sdk/createProjectsModule';
 import {dripsConstants} from '../../../src';
 import {
   createGraphQLClient,
@@ -28,6 +29,7 @@ vi.mock('../../../src/sdk/createDonationsModule');
 vi.mock('../../../src/sdk/createUtilsModule');
 vi.mock('../../../src/sdk/createFundsModule');
 vi.mock('../../../src/sdk/createLinkedIdentitiesModule');
+vi.mock('../../../src/sdk/createProjectsModule');
 vi.mock('../../../src/internal/graphql/createGraphQLClient');
 
 describe('createDripsSdk', () => {
@@ -37,6 +39,7 @@ describe('createDripsSdk', () => {
   const utilsModule = {} as any;
   const fundsModule = {} as any;
   const linkedIdentitiesModule = {} as any;
+  const projectsModule = {} as any;
   const mockAdapter = {} as ReadBlockchainAdapter;
   const mockGraphqlClient = {
     query: vi.fn(),
@@ -53,6 +56,7 @@ describe('createDripsSdk', () => {
     vi.mocked(createLinkedIdentitiesModule).mockReturnValue(
       linkedIdentitiesModule,
     );
+    vi.mocked(createProjectsModule).mockReturnValue(projectsModule);
     vi.mocked(createGraphQLClient).mockReturnValue(mockGraphqlClient);
   });
 
@@ -69,6 +73,7 @@ describe('createDripsSdk', () => {
     expect(sdk.donations).toBe(donationsModule);
     expect(sdk.funds).toBe(fundsModule);
     expect(sdk.linkedIdentities).toBe(linkedIdentitiesModule);
+    expect(sdk.projects).toBe(projectsModule);
     expect(sdk.constants).toBe(dripsConstants);
     expect(sdk.utils).toBe(utilsModule);
     expect(createDripListsModule).toHaveBeenCalledWith({
@@ -90,6 +95,11 @@ describe('createDripsSdk', () => {
     });
     expect(createLinkedIdentitiesModule).toHaveBeenCalledWith({
       adapter: mockAdapter,
+    });
+    expect(createProjectsModule).toHaveBeenCalledWith({
+      adapter: mockAdapter,
+      graphqlClient: mockGraphqlClient,
+      ipfsMetadataUploaderFn,
     });
   });
 
